@@ -176,6 +176,7 @@ destructor TArchiverManager.Destroy;
 begin
   Timer.Free;
   ProcessList.Free;
+  ReleaseArchiverDLL;  //aiai
   inherited Destroy;
 end;
 
