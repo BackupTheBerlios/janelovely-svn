@@ -4,8 +4,10 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, ComCtrls, FileCtrl, IniFiles, Mask, Spin, ToolWin,
-  JConfig, UAnimatedPaintBox, UEditSaveLocation, UHttpManage,StrUtils, CheckLst, ARCHIVES, ImgList;
+  Dialogs, StdCtrls, ExtCtrls, ComCtrls, FileCtrl, IniFiles, Mask,
+  ToolWin, JConfig, UAnimatedPaintBox, UEditSaveLocation, UHttpManage,
+  StrUtils, CheckLst, ARCHIVES, ImgList, JLXPStdCtrls, JLXPComCtrls,
+  JLXPSpin, JLXPExtCtrls;
 
 
 type
@@ -218,14 +220,14 @@ type
     btOK: TButton;
     btCancel: TButton;
     PageControl1: TPageControl;
-    TabSheetGeneral: TTabSheet;
-    TabSheetArchive: TTabSheet;
+    TabSheetGeneral: TJLXPTabSheet;
+    TabSheetArchive: TJLXPTabSheet;
     cmbUserAgent: TComboBox;
     Label2: TLabel;
     Label1: TLabel;
-    seRedirectMaximum: TSpinEdit;
+    seRedirectMaximum: TJLXPSpinEdit;
     Label3: TLabel;
-    seTimeOut: TSpinEdit;
+    seTimeOut: TJLXPSpinEdit;
     cbEnableFolding: TCheckBox;
     cbAdjustToWindow: TCheckBox;
     cbScrollOpposite: TCheckBox;
@@ -234,59 +236,59 @@ type
     cbKeepTabVisible: TCheckBox;
     ebExternalViewer: TEdit;
     Label6: TLabel;
-    TabSheetQuickSave: TTabSheet;
-    ToolBar1: TToolBar;
+    TabSheetQuickSave: TJLXPTabSheet;
+    ToolBar1: TJLXPToolBar;
     btnUp: TToolButton;
     btnDown: TToolButton;
     btnMakeNew: TToolButton;
     btnEdit: TToolButton;
     btnDelete: TToolButton;
     lvQuickSPList: TListView;
-    TabSheetTab: TTabSheet;
-    rgTabStyle: TRadioGroup;
+    TabSheetTab: TJLXPTabSheet;
+    rgTabStyle: TJLXPRadioGroup;
     cbImageTab: TCheckBox;
     cbEnableMultiLineTab: TCheckBox;
     cbContinuousTabChange: TCheckBox;
-    rgTabSelectAllType: TRadioGroup;
+    rgTabSelectAllType: TJLXPRadioGroup;
     cbShowDialogToSaveHighlightTab: TCheckBox;
     cbCloseAllTabIfFormClosed: TCheckBox;
     cbAlwaysProtect: TCheckBox;
     clbArchiveEnabled: TCheckListBox;
     Label7: TLabel;
     cbUseIndividualStatusBar: TCheckBox;
-    rgShrinkType: TRadioGroup;
+    rgShrinkType: TJLXPRadioGroup;
     cbHiddenMode: TCheckBox;
     Button1: TButton;
     cbUseTabNavigateIcon: TCheckBox;
     cbGoLeftWhenTabClose: TCheckBox;
-    TabSheetDanger: TTabSheet;
+    TabSheetDanger: TJLXPTabSheet;
     cbInvisibleTab: TCheckBox;
-    TabSheetThread: TTabSheet;
+    TabSheetThread: TJLXPTabSheet;
     cbSwapShiftCtrl: TCheckBox;
     cbOpenImagesOnly: TCheckBox;
     cbShowImageHint: TCheckBox;
     cbShowImageOnImageHint: TCheckBox;
     Label4: TLabel;
-    seImageHintHeigtht: TSpinEdit;
+    seImageHintHeigtht: TJLXPSpinEdit;
     Label5: TLabel;
-    seImageHintWidth: TSpinEdit;
+    seImageHintWidth: TJLXPSpinEdit;
     cbDisableDeleteTmpAlart: TCheckBox;
     cbDeleteTmpOnStartUp: TCheckBox;
     cbForceToUseViewer: TCheckBox;
     cbDisableAlartAtOpenWithRelation: TCheckBox;
-    seProtectMosaicSize: TSpinEdit;
+    seProtectMosaicSize: TJLXPSpinEdit;
     Label11: TLabel;
     cbEnableFlashMovie: TCheckBox;
     cbDisableTitleBar: TCheckBox;
     cbConnectedTabEdge: TCheckBox;
-    seConnectionLimit: TSpinEdit;
+    seConnectionLimit: TJLXPSpinEdit;
     Label12: TLabel;
     cbOpenURLOnMouseOver: TCheckBox;
-    TabSheetCache: TTabSheet;
-    seLifeSpanOfCache: TSpinEdit;
+    TabSheetCache: TJLXPTabSheet;
+    seLifeSpanOfCache: TJLXPSpinEdit;
     lbLifeSpanOfCache: TLabel;
     cbUseViewCache: TCheckBox;
-    GroupBoxCachePriority: TGroupBox;
+    GroupBoxCachePriority: TJLXPGroupBox;
     cbPrioryCacheImage: TCheckBox;
     cbPrioryCacheArchive: TCheckBox;
     LabelCachePriority: TLabel;

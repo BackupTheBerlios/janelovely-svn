@@ -2,9 +2,9 @@ program Jane2ch;
 (* Copyright (c) 2001,2002 Twiddle <hetareprog@hotmail.com> *)
 
 {$R 'sqlite.res' 'sqlite.rc'}
+{$R 'manifest.res' 'manifest.rc'}
 
 uses
-  //MemCheck,
   Windows,
   SysUtils,
   MMSystem,
@@ -86,14 +86,8 @@ uses
   JLBaseWritePanel in 'AIAI\JLBaseWritePanel.pas',
   JLWritePanel in 'AIAI\JLWritePanel.pas',
   UWriteForm in 'UWriteForm.pas' {WriteForm},
-  {$IFDEF SQLITE3}
-  sqlite3 in 'AIAI\sqlite3.pas',
-  {$ELSE}
   sqlite in 'AIAI\sqlite.pas',
-  {$ENDIF}
   ClipBrdSub in 'AIAI\ClipBrdSub.pas';
-  //JLControls in 'AIAI\JLControls.pas',
-  //JLCommCtrl in 'AIAI\JLCommCtrl.pas';
 
 {$R *.res}
 

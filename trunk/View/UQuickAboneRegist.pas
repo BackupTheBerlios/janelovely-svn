@@ -3,8 +3,7 @@ unit UQuickAboneRegist;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, Spin;
+  Windows, Messages, Classes, Controls, Forms, StdCtrls, ExtCtrls, JLXPSpin;
 
 type
   TQuickAboneRegist = class(TForm)
@@ -14,7 +13,7 @@ type
     btnCancel: TButton;
     btnSelectAll: TButton;
     cmbAboneType: TComboBox;
-    seLifeSpan: TSpinEdit;
+    seLifeSpan: TJLXPSpinEdit;
     Label1: TLabel;
     btnQuickAbone: TButton;
     procedure btnSelectAllClick(Sender: TObject);

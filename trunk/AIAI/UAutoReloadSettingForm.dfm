@@ -33,7 +33,7 @@ object AutoReloadSettingForm: TAutoReloadSettingForm
     ModalResult = 1
     TabOrder = 0
   end
-  object IntervalSpinEdit: TSpinEdit
+  object IntervalSpinEdit: TJLXPSpinEdit
     Left = 138
     Top = 11
     Width = 41

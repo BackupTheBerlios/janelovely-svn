@@ -272,7 +272,7 @@ object WriteForm: TWriteForm
       TabOrder = 1
       OnClick = CheckBoxTopClick
     end
-    object ToolBar1: TToolBar
+    object ToolBar1: TJLXPToolBar
       Left = 8
       Top = 4
       Width = 69
@@ -304,7 +304,7 @@ object WriteForm: TWriteForm
       end
     end
   end
-  object WStatusBar: TStatusBar
+  object WStatusBar: TJLXPStatusBar
     Left = 0
     Top = 293
     Width = 484

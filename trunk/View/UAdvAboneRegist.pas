@@ -3,14 +3,13 @@ unit UAdvAboneRegist;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, Spin, StdCtrls,
-  UNGWordsAssistant;
+  Windows, Messages, Classes, Graphics, Controls, Forms, StdCtrls,
+  UNGWordsAssistant, JLXPSpin;
 
 type
 
   TChangeNameQueryEvent =
-    procedure(Sender: TObject; OldName, NewName: String; CanChange: Boolean) of object;
+    procedure(Sender: TObject; OldName, NewName: String; var CanChange: Boolean) of object;
 
   TAdvAboneRegist = class(TForm)
     EditNGName: TEdit;
@@ -29,7 +28,7 @@ type
     ButtonOK: TButton;
     ButtonCancel: TButton;
     ComboBoxAboneType: TComboBox;
-    SpinEditLifeSpan: TSpinEdit;
+    SpinEditLifeSpan: TJLXPSpinEdit;
     Label7: TLabel;
     EditName: TEdit;
     EditNGWord: TEdit;

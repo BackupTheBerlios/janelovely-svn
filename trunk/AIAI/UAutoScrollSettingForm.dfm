@@ -98,7 +98,7 @@ object AutoScrollSettingForm: TAutoScrollSettingForm
     Font.Style = []
     ParentFont = False
   end
-  object SpinEditLines1: TSpinEdit
+  object SpinEditLines1: TJLXPSpinEdit
     Left = 46
     Top = 27
     Width = 46
@@ -108,7 +108,7 @@ object AutoScrollSettingForm: TAutoScrollSettingForm
     TabOrder = 0
     Value = 1
   end
-  object SpinEditLines2: TSpinEdit
+  object SpinEditLines2: TJLXPSpinEdit
     Left = 96
     Top = 27
     Width = 46
@@ -118,7 +118,7 @@ object AutoScrollSettingForm: TAutoScrollSettingForm
     TabOrder = 1
     Value = 1
   end
-  object SpinEditLines3: TSpinEdit
+  object SpinEditLines3: TJLXPSpinEdit
     Left = 146
     Top = 27
     Width = 46
@@ -128,7 +128,7 @@ object AutoScrollSettingForm: TAutoScrollSettingForm
     TabOrder = 2
     Value = 1
   end
-  object SpinEditLines4: TSpinEdit
+  object SpinEditLines4: TJLXPSpinEdit
     Left = 196
     Top = 27
     Width = 46
@@ -138,7 +138,7 @@ object AutoScrollSettingForm: TAutoScrollSettingForm
     TabOrder = 3
     Value = 1
   end
-  object SpinEditLines5: TSpinEdit
+  object SpinEditLines5: TJLXPSpinEdit
     Left = 246
     Top = 27
     Width = 46
@@ -148,7 +148,7 @@ object AutoScrollSettingForm: TAutoScrollSettingForm
     TabOrder = 4
     Value = 1
   end
-  object SpinEditLines6: TSpinEdit
+  object SpinEditLines6: TJLXPSpinEdit
     Left = 296
     Top = 27
     Width = 46
@@ -158,7 +158,7 @@ object AutoScrollSettingForm: TAutoScrollSettingForm
     TabOrder = 5
     Value = 1
   end
-  object SpinEditLines7: TSpinEdit
+  object SpinEditLines7: TJLXPSpinEdit
     Left = 346
     Top = 27
     Width = 46
@@ -168,7 +168,7 @@ object AutoScrollSettingForm: TAutoScrollSettingForm
     TabOrder = 6
     Value = 1
   end
-  object SpinEditLines8: TSpinEdit
+  object SpinEditLines8: TJLXPSpinEdit
     Left = 396
     Top = 27
     Width = 46
@@ -178,7 +178,7 @@ object AutoScrollSettingForm: TAutoScrollSettingForm
     TabOrder = 7
     Value = 1
   end
-  object SpinEditInterval1: TSpinEdit
+  object SpinEditInterval1: TJLXPSpinEdit
     Left = 46
     Top = 53
     Width = 46
@@ -189,7 +189,7 @@ object AutoScrollSettingForm: TAutoScrollSettingForm
     TabOrder = 8
     Value = 100
   end
-  object SpinEditInterval2: TSpinEdit
+  object SpinEditInterval2: TJLXPSpinEdit
     Left = 96
     Top = 53
     Width = 46
@@ -200,7 +200,7 @@ object AutoScrollSettingForm: TAutoScrollSettingForm
     TabOrder = 9
     Value = 100
   end
-  object SpinEditInterval3: TSpinEdit
+  object SpinEditInterval3: TJLXPSpinEdit
     Left = 146
     Top = 53
     Width = 46
@@ -211,7 +211,7 @@ object AutoScrollSettingForm: TAutoScrollSettingForm
     TabOrder = 10
     Value = 100
   end
-  object SpinEditInterval4: TSpinEdit
+  object SpinEditInterval4: TJLXPSpinEdit
     Left = 196
     Top = 53
     Width = 46
@@ -222,7 +222,7 @@ object AutoScrollSettingForm: TAutoScrollSettingForm
     TabOrder = 11
     Value = 100
   end
-  object SpinEditInterval5: TSpinEdit
+  object SpinEditInterval5: TJLXPSpinEdit
     Left = 246
     Top = 53
     Width = 46
@@ -233,7 +233,7 @@ object AutoScrollSettingForm: TAutoScrollSettingForm
     TabOrder = 12
     Value = 100
   end
-  object SpinEditInterval6: TSpinEdit
+  object SpinEditInterval6: TJLXPSpinEdit
     Left = 296
     Top = 53
     Width = 46
@@ -244,7 +244,7 @@ object AutoScrollSettingForm: TAutoScrollSettingForm
     TabOrder = 13
     Value = 100
   end
-  object SpinEditInterval7: TSpinEdit
+  object SpinEditInterval7: TJLXPSpinEdit
     Left = 346
     Top = 53
     Width = 46
@@ -255,7 +255,7 @@ object AutoScrollSettingForm: TAutoScrollSettingForm
     TabOrder = 14
     Value = 100
   end
-  object SpinEditInterval8: TSpinEdit
+  object SpinEditInterval8: TJLXPSpinEdit
     Left = 396
     Top = 53
     Width = 46

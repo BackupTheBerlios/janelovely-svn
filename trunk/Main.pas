@@ -37,12 +37,12 @@ uses
   UAutoScrollSettingForm, ULovelyWebForm, UNews, UGetBoardListForm,
   UChottoForm, UImageViewCacheListForm,
   UCheckSeverDown,
-  JLWritePanel, JLTab, JLToolButton, JLSideBar;
+  JLWritePanel, JLTab, JLToolButton, JLSideBar, JLXPComCtrls;
   {/aiai}
 
 const
-  VERSION  = '0.1.0.6';      (* Printable ASCIIコード厳守。')'はダメ *)
-  JANE2CH  = 'JaneLovely 0.1.0.6';
+  VERSION  = '0.1.0.7';      (* Printable ASCIIコード厳守。')'はダメ *)
+  JANE2CH  = 'JaneLovely 0.1.0.7';
   KEYWORD_OF_USER_AGENT = 'JaneLovely';      (*  *)
 
   DISTRIBUTORS_SITE = 'http://www.geocities.jp/openjane4714/';
@@ -313,35 +313,35 @@ type
     MenuWndLastClosed: TMenuItem;
     ListImages: TImageList;
     CoolBar: TCoolBar;
-    ToolBarMain: TToolBar;
-    DivisionChangeButton: TToolButton;
-    ToolButton8: TToolButton;
-    ToggleTreeButton: TToolButton;
-    ToggleRPaneButton: TToolButton;
-    PaneModeChangeButton: TToolButton;
-    ToolButton10: TToolButton;
-    ToolOptionsButton: TToolButton;
-    ToolButton11: TToolButton;
-    ThreadRefreshButton: TToolButton;
-    LinkBar: TToolBar;
+    ToolBarMain: TJLXPToolBar;
+    DivisionChangeButton: TToolbutton;
+    ToolButton8: TToolbutton;
+    ToggleTreeButton: TToolbutton;
+    ToggleRPaneButton: TToolbutton;
+    PaneModeChangeButton: TToolbutton;
+    ToolButton10: TToolbutton;
+    ToolOptionsButton: TToolbutton;
+    ToolButton11: TToolbutton;
+    ThreadRefreshButton: TToolbutton;
+    LinkBar: TJLXPToolBar;
     TabPanel: TPanel;
     Panel3: TPanel;
     TabControl: TTabControl;
     ThreadToolPanel: TPanel;
-    ThreadToolBar: TToolBar;
-    JumpBottun: TToolButton;
-    ThreCheckNewResButton: TToolButton;
-    ToolButton4: TToolButton;
-    ToolButton5: TToolButton;
+    ThreadToolBar: TJLXPToolBar;
+    JumpBottun: TToolbutton;
+    ThreCheckNewResButton: TToolbutton;
+    ToolButton4: TToolbutton;
+    ToolButton5: TToolbutton;
     ThreadTitleLabel: TLabel;
     actTreeToggleVisible: TAction;
     UrlEdit: TEdit;
-    ToolButton12: TToolButton;
-    ToolButton13: TToolButton;
-    ToolButton14: TToolButton;
+    ToolButton12: TToolbutton;
+    ToolButton13: TToolbutton;
+    ToolButton14: TToolbutton;
     MainToolImages: TImageList;
     ThreadToolImages: TImageList;
-    ToolButton15: TToolButton;
+    ToolButton15: TToolbutton;
     actCloseTab: TAction;
     N45: TMenuItem;
     MenuBoardLogListLimit: TMenuItem;
@@ -384,14 +384,14 @@ type
     actDivisionChange: TAction;
     actPaneModeChange: TAction;
     PopupTreeDelFav: TMenuItem;
-    FindGrepButton: TToolButton;
-    ThreBuildButton: TToolButton;
-    FindThreadButton: TToolButton;
-    ToolButton9: TToolButton;
-    ThreStopButton: TToolButton;
-    ToolButton17: TToolButton;
-    ResFindButton: TToolButton;
-    ToolButton19: TToolButton;
+    FindGrepButton: TToolbutton;
+    ThreBuildButton: TToolbutton;
+    FindThreadButton: TToolbutton;
+    ToolButton9: TToolbutton;
+    ThreStopButton: TToolbutton;
+    ToolButton17: TToolbutton;
+    ResFindButton: TToolbutton;
+    ToolButton19: TToolbutton;
     MenuListThreBuild: TMenuItem;
     N33: TMenuItem;
     N37: TMenuItem;
@@ -399,8 +399,8 @@ type
     MenuOptOnline: TMenuItem;
     MenuOptLogin: TMenuItem;
     MenuHelp: TMenuItem;
-    HelpButton: TToolButton;
-    OnlineButton: TToolButton;
+    HelpButton: TToolbutton;
+    OnlineButton: TToolbutton;
     MenuListOpenHide: TMenuItem;
     ListPopupHide: TMenuItem;
     actListOpenHide: TAction;
@@ -439,7 +439,7 @@ type
     MenuThreReadPosClear: TMenuItem;
     MenuThreCheckResAllClear: TMenuItem;
     ResJumpTimer: TTimer;
-    DrawLinesButton: TToolButton;
+    DrawLinesButton: TToolbutton;
     PopupDrawLines: TPopupMenu;
     DrawAll: TMenuItem;
     Draw50: TMenuItem;
@@ -552,7 +552,7 @@ type
     MenuClearMail: TMenuItem;
     ViewPopupSaveDat: TMenuItem;
     ViewPopupTITLECopy: TMenuItem;
-    AutoReScButton: TToolButton;
+    AutoReScButton: TToolbutton;
     N63: TMenuItem;
     ViewPopupOpenAutoReloadSettingForm: TMenuItem;
     ViewPopupAutoScrollSpeed: TMenuItem;
@@ -582,7 +582,7 @@ type
     TextPopupOpenByLovelyBrowser: TMenuItem;
     LovelyBrowser1: TMenuItem;
     MenuThreCheckNewAll: TMenuItem;
-    TabPtrlButton: TToolButton;
+    TabPtrlButton: TToolbutton;
     MenuThrePtrl: TMenuItem;
     actAutoReSc: TAction;
     N67: TMenuItem;
@@ -644,7 +644,7 @@ type
     PopupViewCopyData: TMenuItem;
     PopupViewCopyRD: TMenuItem;
     PopupViewReplyWithQuotationOnWriteMemo: TMenuItem;
-    ToolBarUrlEdit: TToolBar;
+    ToolBarUrlEdit: TJLXPToolBar;
     PopupTreeRefreshIdxList: TMenuItem;
     actRefreshIdxList: TAction;
     MenuListRefreshIdxList: TMenuItem;
@@ -668,12 +668,12 @@ type
     MenuPopupBarAdressBar: TMenuItem;
     MenuPopupBarMenu: TMenuItem;
     N82: TMenuItem;
-    ToolButton1: TToolButton;
+    ToolButton1: TToolbutton;
     MenuListRefreshAll: TMenuItem;
     PopupTaskTray: TPopupMenu;
     PopupTaskTrayClose: TMenuItem;
     PopupTaskTrayRestore: TMenuItem;
-    ToolBarTreeTitle: TToolBar;
+    ToolBarTreeTitle: TJLXPToolBar;
     ToolButtonTreeTitle: TJLToolButton;
     LabelTreeTitle: TLabel;
     ToolButtonTreeTitleCanMove: TJLToolButton;
@@ -699,7 +699,7 @@ type
     WritePanel: TPanel;
     WritePanelTitle: TPanel;
     LabelWriteTitle: TLabel;
-    ToolBarWriteTitle: TToolBar;
+    ToolBarWriteTitle: TJLXPToolBar;
     ToolButtonWriteTitle: TJLToolButton;
     ToolButtonWriteTitleAutoHide: TJLToolButton;
     ToolButtonWriteTitleClose: TJLToolButton;
@@ -721,7 +721,7 @@ type
     MenuWritePanelDisableTopBar: TMenuItem;
     MenuWriteMemoDisableTopBar: TMenuItem;
     MenuOptSetNewsSize: TMenuItem;
-    StatusBar: TStatusBar;
+    StatusBar: TJLXPStatusBar;
     {/aiai}
     procedure FormCreate(Sender: TObject);
     procedure MenuToolsOptionsClick(Sender: TObject);
@@ -1612,7 +1612,7 @@ uses Types, UFormSplash, UTTSearch;
 (* どうもやり過ぎの気がしなくもないのだが･･･ *)
 {$DEFINE ENABLE_DOWNLOAD_BY_MOUSE}
 
-type TDummyToolButton = class(TToolButton); //beginner
+type TDummyToolButton = class(TToolbutton); //beginner
 
 
 const
@@ -2120,14 +2120,14 @@ var
       end;
     end;
   var
-    Button: TToolButton;
+    Button: TToolbutton;
     idx, j: Integer;
     item : TMenuItem;
   begin
     (* セパレータ *)
     if str = '-' then
     begin
-      Button := TToolButton.Create(parent);
+      Button := TToolbutton.Create(parent);
       Button.Parent := parent;
       Button.Style := tbsSeparator;
       Button.Width := 8;
@@ -2150,7 +2150,7 @@ var
         exit;
 
     (* 通常ボタン *)
-    Button := TToolButton.Create(parent);
+    Button := TToolbutton.Create(parent);
     Button.Parent := parent;
     //Button.Style := tbsButton;
     if item.Action <> nil then
@@ -2600,7 +2600,7 @@ begin
     LogSplitter.Parent:=Panel0;
     LogPanel.Parent:=Panel0;
   end;
-  LogPanel.Top := LogPanel.Parent.BoundsRect.Bottom - LogPanel.Height;
+  LogPanel.Top := LogPanel.Parent.BoundsRect.Bottom - LogPanel.Height + 1;
   LogSplitter.Top := LogPanel.Top - LogSplitter.Height + 1;
 end;
 {/beginner}
@@ -3756,7 +3756,7 @@ procedure TMainWnd.UpdateFavoritesMenu;
       LinkBar.Buttons[LinkBar.ButtonCount -1].Free;
     while (LinkBar.ButtonCount < item.Count) do
     begin
-      with TToolButton.Create(LinkBar) do
+      with TToolbutton.Create(LinkBar) do
       begin
         Parent := LinkBar;
         //Style := tbsButton;
@@ -6217,7 +6217,7 @@ end;
 (* オートリロード and オートスクロール *)
 procedure TMainWnd.actAutoReScExecute(Sender: TObject);
 begin
-  if sender is TToolButton then
+  if sender is TToolbutton then
     Log('ToolButton');
 
   actAutoReSc.Checked := not actAutoReSc.Checked;
@@ -11087,7 +11087,8 @@ begin
     end;
   end;
 end;
-
+
+
 procedure TMainWnd.BrowserMouseEnter(Sender: TObject);
 var
   viewItem: TBaseViewItem;
@@ -15860,8 +15861,10 @@ begin
     FavoriteListBoard.AddRef;
     if (FavoriteListBoard = CurrentBoard) then
     begin
-      ListView.OnData := nil;
-      currentBoard.SafeClear;
+
+      ListView.OnData := nil;
+
+      currentBoard.SafeClear;
       currentBoard.Load;
       currentBoard.ResetListState;
       ListView.OnData := ListViewData;
@@ -15870,13 +15873,19 @@ begin
         SetRPane(ptList);
       exit;
     end else
-    begin
-      FavoriteListBoard.SafeClear;
-      FavoriteListBoard.Load;
-      FavoriteListBoard.ResetListState;
-    end;
 
-    FavoriteListBoard.AddRef;
+    begin
+
+      FavoriteListBoard.SafeClear;
+
+      FavoriteListBoard.Load;
+
+      FavoriteListBoard.ResetListState;
+
+    end;
+
+
+    FavoriteListBoard.AddRef;
 
     if assigned(requestingBoard) then
     begin
@@ -16597,10 +16606,10 @@ end;
 procedure TMainWnd.PanelTitlePanelClick(Sender: TObject);
 begin
   //閉じるボタン
-  if TToolButton(Sender) = ToolButtonTreeTitleClose then
+  if TJLToolButton(Sender) = ToolButtonTreeTitleClose then
     ToggleTreePanel(False)
   //オートハイド切り替えボタン
-  else if TToolButton(Sender) = ToolButtonTreeTitleCanMove then
+  else if TJLToolButton(Sender) = ToolButtonTreeTitleCanMove then
   begin
     TreePanelCanMove := not TreePanelCanMove;
     ToggleTreePanelCanMove(TreePanelCanMove);

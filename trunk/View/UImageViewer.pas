@@ -9,7 +9,7 @@ uses
   SPIs, SPIbmp, {GIFImage,} PNGImage, Idhttp, RegExpr,
   UViewITem,
   UImageViewConfig, UAnimatedPaintBox, UHttpManage, UArchiveView, UImageHint,
-  UImagePageControl, UImageTabSheet, UPopUpButtons, CheckURL;
+  UImagePageControl, UImageTabSheet, UPopUpButtons, CheckURL, JLXPComCtrls;
 
 const
   ViewGesturePrefix='ImageViewGesture';
@@ -23,7 +23,7 @@ type
   TQuickSaveMenuItem = class(TMenuItem);//クイックセーブメニューの識別用
 
   TImageForm = class(TForm)
-    StatusBar: TStatusBar;
+    StatusBar: TJLXPStatusBar;
     SPIs: TSPIs;
     ImagePopUpMenu: TPopupMenu;
     miCloseTab: TMenuItem;

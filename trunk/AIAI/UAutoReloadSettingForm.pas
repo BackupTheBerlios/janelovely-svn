@@ -3,13 +3,12 @@ unit UAutoReloadSettingForm;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, Spin, JConfig;
+  Windows, Messages, Classes, Controls, Forms, StdCtrls, JConfig, JLXPSpin;
 
 type
   TAutoReloadSettingForm = class(TForm)
     OKButton: TButton;
-    IntervalSpinEdit: TSpinEdit;
+    IntervalSpinEdit: TJLXPSpinEdit;
     Label1: TLabel;
     CancelButton: TButton;
     DefaultButton: TButton;

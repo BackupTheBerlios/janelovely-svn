@@ -39,10 +39,10 @@ object ImageViewPreference: TImageViewPreference
     Top = 0
     Width = 430
     Height = 289
-    ActivePage = TabSheetDanger
-    TabIndex = 6
+    ActivePage = TabSheetGeneral
+    TabIndex = 0
     TabOrder = 2
-    object TabSheetGeneral: TTabSheet
+    object TabSheetGeneral: TJLXPTabSheet
       Caption = #25805#20316
       object Label6: TLabel
         Left = 6
@@ -50,6 +50,7 @@ object ImageViewPreference: TImageViewPreference
         Width = 203
         Height = 12
         Caption = #22806#37096#12499#12517#12540#12450'('#30011#20687#12434'Alt+'#12463#12522#12483#12463#12391#36215#21205')'
+        Transparent = True
       end
       object cbEnableFolding: TCheckBox
         Left = 13
@@ -151,7 +152,7 @@ object ImageViewPreference: TImageViewPreference
         TabOrder = 0
       end
     end
-    object TabSheetTab: TTabSheet
+    object TabSheetTab: TJLXPTabSheet
       Caption = #12479#12502','#12510#12540#12463
       ImageIndex = 3
       object Label11: TLabel
@@ -160,8 +161,9 @@ object ImageViewPreference: TImageViewPreference
         Width = 117
         Height = 12
         Caption = #12514#12470#12452#12463#12479#12452#12523#12398#22823#12365#12373
+        Transparent = True
       end
-      object rgTabStyle: TRadioGroup
+      object rgTabStyle: TJLXPRadioGroup
         Left = 13
         Top = 6
         Width = 161
@@ -199,7 +201,7 @@ object ImageViewPreference: TImageViewPreference
         TabOrder = 5
         OnClick = cbContinuousTabChangeClick
       end
-      object rgTabSelectAllType: TRadioGroup
+      object rgTabSelectAllType: TJLXPRadioGroup
         Left = 186
         Top = 6
         Width = 160
@@ -219,7 +221,7 @@ object ImageViewPreference: TImageViewPreference
         Caption = #12510#12540#12463#30011#20687#12434#25805#20316#12377#12427#26178#12399#12480#12452#12450#12525#12464#12434#34920#31034
         TabOrder = 6
       end
-      object rgShrinkType: TRadioGroup
+      object rgShrinkType: TJLXPRadioGroup
         Left = 13
         Top = 93
         Width = 77
@@ -247,7 +249,7 @@ object ImageViewPreference: TImageViewPreference
         Caption = #12479#12502#12434#38281#12376#12383#26178#12395#24038#12398#12479#12502#12434#12450#12463#12486#12451#12502#21270
         TabOrder = 8
       end
-      object seProtectMosaicSize: TSpinEdit
+      object seProtectMosaicSize: TJLXPSpinEdit
         Left = 256
         Top = 204
         Width = 49
@@ -266,7 +268,7 @@ object ImageViewPreference: TImageViewPreference
         TabOrder = 9
       end
     end
-    object TabSheetArchive: TTabSheet
+    object TabSheetArchive: TJLXPTabSheet
       Caption = #26360#24235','#36890#20449
       ImageIndex = 1
       object Label2: TLabel
@@ -275,6 +277,7 @@ object ImageViewPreference: TImageViewPreference
         Width = 109
         Height = 12
         Caption = #12518#12540#12470#12540#12456#12540#12472#12455#12531#12488
+        Transparent = True
       end
       object Label1: TLabel
         Left = 163
@@ -282,6 +285,7 @@ object ImageViewPreference: TImageViewPreference
         Width = 82
         Height = 12
         Caption = #12522#12480#12452#12524#12463#12488#22238#25968
+        Transparent = True
       end
       object Label3: TLabel
         Left = 6
@@ -289,6 +293,7 @@ object ImageViewPreference: TImageViewPreference
         Width = 81
         Height = 12
         Caption = #12479#12452#12512#12450#12454#12488'('#31186')'
+        Transparent = True
       end
       object Label7: TLabel
         Left = 6
@@ -296,6 +301,7 @@ object ImageViewPreference: TImageViewPreference
         Width = 65
         Height = 12
         Caption = #26360#24235#12501#12449#12452#12523
+        Transparent = True
       end
       object Label12: TLabel
         Left = 8
@@ -303,6 +309,7 @@ object ImageViewPreference: TImageViewPreference
         Width = 60
         Height = 12
         Caption = #26368#22823#25509#32154#25968
+        Transparent = True
       end
       object cmbUserAgent: TComboBox
         Left = 6
@@ -318,7 +325,7 @@ object ImageViewPreference: TImageViewPreference
           'Mozilla/4.79 [en] (Win98; I)'
           'Mozilla/5.0 (Windows; U; Windows NT 5.0; en-US; rv:1.2b)')
       end
-      object seRedirectMaximum: TSpinEdit
+      object seRedirectMaximum: TJLXPSpinEdit
         Left = 253
         Top = 171
         Width = 49
@@ -328,7 +335,7 @@ object ImageViewPreference: TImageViewPreference
         TabOrder = 4
         Value = 0
       end
-      object seTimeOut: TSpinEdit
+      object seTimeOut: TJLXPSpinEdit
         Left = 96
         Top = 171
         Width = 49
@@ -356,7 +363,7 @@ object ImageViewPreference: TImageViewPreference
         Caption = #26360#24235#12395#12473#12486#12540#12479#12473#12496#12540#12434#34920#31034
         TabOrder = 1
       end
-      object seConnectionLimit: TSpinEdit
+      object seConnectionLimit: TJLXPSpinEdit
         Left = 96
         Top = 200
         Width = 49
@@ -367,7 +374,7 @@ object ImageViewPreference: TImageViewPreference
         Value = 1
       end
     end
-    object TabSheetThread: TTabSheet
+    object TabSheetThread: TJLXPTabSheet
       Caption = #12473#12524#35239#25805#20316
       ImageIndex = 5
       object Label4: TLabel
@@ -383,6 +390,7 @@ object ImageViewPreference: TImageViewPreference
         Width = 32
         Height = 12
         Caption = #215#12288#27178
+        Transparent = True
       end
       object cbSwapShiftCtrl: TCheckBox
         Left = 6
@@ -417,7 +425,7 @@ object ImageViewPreference: TImageViewPreference
         TabOrder = 3
         OnClick = cbShowImageOnImageHintClick
       end
-      object seImageHintHeigtht: TSpinEdit
+      object seImageHintHeigtht: TJLXPSpinEdit
         Left = 198
         Top = 63
         Width = 46
@@ -427,7 +435,7 @@ object ImageViewPreference: TImageViewPreference
         TabOrder = 4
         Value = 300
       end
-      object seImageHintWidth: TSpinEdit
+      object seImageHintWidth: TJLXPSpinEdit
         Left = 288
         Top = 63
         Width = 46
@@ -487,10 +495,10 @@ object ImageViewPreference: TImageViewPreference
         TabOrder = 7
       end
     end
-    object TabSheetQuickSave: TTabSheet
+    object TabSheetQuickSave: TJLXPTabSheet
       Caption = #12463#12452#12483#12463#20445#23384
       ImageIndex = 2
-      object ToolBar1: TToolBar
+      object ToolBar1: TJLXPToolBar
         Left = 390
         Top = 0
         Width = 32
@@ -571,7 +579,7 @@ object ImageViewPreference: TImageViewPreference
         OnChange = lvQuickSPListChange
       end
     end
-    object TabSheetCache: TTabSheet
+    object TabSheetCache: TJLXPTabSheet
       Caption = #12461#12515#12483#12471#12517
       ImageIndex = 6
       object lbLifeSpanOfCache: TLabel
@@ -580,6 +588,7 @@ object ImageViewPreference: TImageViewPreference
         Width = 132
         Height = 12
         Caption = #12461#12515#12483#12471#12517#12398#26377#21177#26399#38480'('#26085')'
+        Transparent = True
       end
       object LabelCachePath: TLabel
         Left = 8
@@ -587,8 +596,9 @@ object ImageViewPreference: TImageViewPreference
         Width = 119
         Height = 12
         Caption = #12461#12515#12483#12471#12517#20445#23384#12501#12457#12523#12480
+        Transparent = True
       end
-      object seLifeSpanOfCache: TSpinEdit
+      object seLifeSpanOfCache: TJLXPSpinEdit
         Left = 160
         Top = 58
         Width = 65
@@ -606,7 +616,7 @@ object ImageViewPreference: TImageViewPreference
         Caption = #12461#12515#12483#12471#12517#12434#20351#29992#12377#12427
         TabOrder = 0
       end
-      object GroupBoxCachePriority: TGroupBox
+      object GroupBoxCachePriority: TJLXPGroupBox
         Left = 8
         Top = 88
         Width = 337
@@ -619,6 +629,7 @@ object ImageViewPreference: TImageViewPreference
           Width = 102
           Height = 12
           Caption = #12381#12398#20182'(";"'#12391#21306#20999#12427')'
+          Transparent = True
         end
         object cbPrioryCacheImage: TCheckBox
           Left = 120
@@ -681,7 +692,7 @@ object ImageViewPreference: TImageViewPreference
         TabOrder = 1
       end
     end
-    object TabSheetDanger: TTabSheet
+    object TabSheetDanger: TJLXPTabSheet
       Caption = #23455#39443#23460
       ImageIndex = 4
       object Label8: TLabel
@@ -690,6 +701,7 @@ object ImageViewPreference: TImageViewPreference
         Width = 129
         Height = 12
         Caption = #35501#12415#36796#12414#12428#12383'SusiePlugin'
+        Transparent = True
       end
       object cbInvisibleTab: TCheckBox
         Left = 8

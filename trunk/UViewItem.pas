@@ -2143,8 +2143,8 @@ var
   Tree: TIndexTree;
 begin
   dup := thread.DupData;
-  //Mask := TBits.Create;
-  //Tree := TIndexTree.Create;
+  Mask := nil;
+  Tree := nil;
   try
     if IncludeRef then
     begin
@@ -2156,11 +2156,11 @@ begin
       Tree.HeadLineLength := Config.ojvLenofOutLineRes;
       Tree.Mask := Mask;
       Tree.Build(thread, 1);
-    end
-    else
-    begin
-      Mask:= nil;
-      Tree:= nil;
+    //end
+    //else
+    //begin
+    //  Mask:= nil;
+    //  Tree:= nil;
     end;
     Result := 0;
     for i := 1 to thread.lines do

@@ -41,7 +41,7 @@ object NewsSettingForm: TNewsSettingForm
     ModalResult = 2
     TabOrder = 1
   end
-  object SpinEditNewsInterval: TSpinEdit
+  object SpinEditNewsInterval: TJLXPSpinEdit
     Left = 136
     Top = 24
     Width = 49

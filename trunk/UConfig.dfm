@@ -105,7 +105,7 @@ object UIConfig: TUIConfig
         TabOrder = 4
         Visible = False
       end
-      object GroupBoxProxy: TGroupBox
+      object GroupBoxProxy: TJLXPGroupBox
         Left = 16
         Top = 24
         Width = 361
@@ -311,7 +311,7 @@ object UIConfig: TUIConfig
         Top = 191
         Width = 289
         Height = 20
-        ItemHeight = 12
+        ItemHeight = 0
         TabOrder = 5
       end
     end
@@ -319,7 +319,7 @@ object UIConfig: TUIConfig
       Caption = #21205#20316
       ImageIndex = 4
       TabVisible = False
-      object GroupBox2: TGroupBox
+      object GroupBox2: TJLXPGroupBox
         Left = 16
         Top = 76
         Width = 361
@@ -352,7 +352,7 @@ object UIConfig: TUIConfig
           TabOrder = 0
         end
       end
-      object GroupBox3: TGroupBox
+      object GroupBox3: TJLXPGroupBox
         Left = 16
         Top = 144
         Width = 361
@@ -428,7 +428,7 @@ object UIConfig: TUIConfig
             #26368#26032'500'#12524#12473)
         end
       end
-      object GroupBox6: TGroupBox
+      object GroupBox6: TJLXPGroupBox
         Left = 16
         Top = 256
         Width = 361
@@ -444,7 +444,7 @@ object UIConfig: TUIConfig
           TabOrder = 0
         end
       end
-      object GroupBox11: TGroupBox
+      object GroupBox11: TJLXPGroupBox
         Left = 16
         Top = 8
         Width = 361
@@ -473,7 +473,7 @@ object UIConfig: TUIConfig
       Caption = #25805#20316
       ImageIndex = 5
       TabVisible = False
-      object GroupBox4: TGroupBox
+      object GroupBox4: TJLXPGroupBox
         Left = 8
         Top = 40
         Width = 228
@@ -575,7 +575,7 @@ object UIConfig: TUIConfig
             #26356#26032#12481#12455#12483#12463)
         end
       end
-      object GroupBox5: TGroupBox
+      object GroupBox5: TJLXPGroupBox
         Left = 8
         Top = 176
         Width = 228
@@ -683,7 +683,7 @@ object UIConfig: TUIConfig
         Caption = #12471#12531#12464#12523#12463#12522#12483#12463#12391#12459#12486#12468#12522#12540#12434#38283#12367
         TabOrder = 0
       end
-      object GroupBox15: TGroupBox
+      object GroupBox15: TJLXPGroupBox
         Left = 244
         Top = 40
         Width = 140
@@ -731,7 +731,7 @@ object UIConfig: TUIConfig
           TabOrder = 4
         end
       end
-      object GroupBox19: TGroupBox
+      object GroupBox19: TJLXPGroupBox
         Left = 244
         Top = 184
         Width = 140
@@ -766,7 +766,7 @@ object UIConfig: TUIConfig
           Height = 12
           Caption = #31186
         end
-        object SpinEditListReloadInterval: TSpinEdit
+        object SpinEditListReloadInterval: TJLXPSpinEdit
           Left = 78
           Top = 23
           Width = 41
@@ -776,7 +776,7 @@ object UIConfig: TUIConfig
           TabOrder = 0
           Value = 0
         end
-        object SpinEditThreadReloadInterval: TSpinEdit
+        object SpinEditThreadReloadInterval: TJLXPSpinEdit
           Left = 78
           Top = 61
           Width = 41
@@ -810,7 +810,7 @@ object UIConfig: TUIConfig
         ParentShowHint = False
         ShowHint = True
       end
-      object GroupBox14: TGroupBox
+      object GroupBox14: TJLXPGroupBox
         Left = 24
         Top = 8
         Width = 305
@@ -944,7 +944,7 @@ object UIConfig: TUIConfig
         Caption = #12513#12491#12517#12540#12395#12362#27671#12395#20837#12426#12434#23637#38283#12377#12427
         TabOrder = 3
       end
-      object SpinEditRecyclableCount: TSpinEdit
+      object SpinEditRecyclableCount: TJLXPSpinEdit
         Left = 199
         Top = 259
         Width = 57
@@ -1127,7 +1127,7 @@ object UIConfig: TUIConfig
       Caption = 'User'
       ImageIndex = 7
       TabVisible = False
-      object GroupBoxUser: TGroupBox
+      object GroupBoxUser: TJLXPGroupBox
         Left = 32
         Top = 24
         Width = 321
@@ -1198,7 +1198,7 @@ object UIConfig: TUIConfig
           OnClick = ButtonResetSIDClick
         end
       end
-      object GroupBoxRem: TGroupBox
+      object GroupBoxRem: TJLXPGroupBox
         Left = 32
         Top = 144
         Width = 321
@@ -1269,7 +1269,7 @@ object UIConfig: TUIConfig
         Height = 12
         Caption = #24453#12385#26178#38291
       end
-      object GroupBox1: TGroupBox
+      object GroupBox1: TJLXPGroupBox
         Left = 8
         Top = 80
         Width = 361
@@ -1335,7 +1335,7 @@ object UIConfig: TUIConfig
           TabOrder = 2
           Text = 'EditMaxHintHeight'
         end
-        object RadioGroupMethod: TRadioGroup
+        object RadioGroupMethod: TJLXPRadioGroup
           Left = 16
           Top = 112
           Width = 193
@@ -1407,7 +1407,7 @@ object UIConfig: TUIConfig
         Caption = #22810#27573#12509#12483#12503#12450#12483#12503
         TabOrder = 2
       end
-      object SpinEditHintHoverTime: TSpinEdit
+      object SpinEditHintHoverTime: TJLXPSpinEdit
         Left = 320
         Top = 32
         Width = 49
@@ -1427,7 +1427,7 @@ object UIConfig: TUIConfig
         TabOrder = 3
         OnClick = CheckBoxAutoEnableNestingClick
       end
-      object SpinEditHintHintHoverTime: TSpinEdit
+      object SpinEditHintHintHoverTime: TJLXPSpinEdit
         Left = 320
         Top = 56
         Width = 49
@@ -1595,7 +1595,7 @@ object UIConfig: TUIConfig
             TabOrder = 0
           end
         end
-        object Sheet_Option: TTabSheet
+        object Sheet_Option: TJLXPTabSheet
           Caption = 'Option'
           ImageIndex = 5
           object Label60: TLabel
@@ -1604,6 +1604,7 @@ object UIConfig: TUIConfig
             Width = 154
             Height = 12
             Caption = 'NGName,Addr,Word'#12398#26399#38480'('#26085')'
+            Transparent = True
           end
           object Label61: TLabel
             Left = 24
@@ -1611,6 +1612,7 @@ object UIConfig: TUIConfig
             Width = 123
             Height = 12
             Caption = #12487#12501#12457#12523#12488#12398#12354#12412#12540#12435#27861
+            Transparent = True
           end
           object Label62: TLabel
             Left = 24
@@ -1618,6 +1620,7 @@ object UIConfig: TUIConfig
             Width = 83
             Height = 12
             Caption = 'NGID'#12398#26399#38480'('#26085')'
+            Transparent = True
           end
           object CheckBoxLinkAbone: TCheckBox
             Left = 32
@@ -1644,7 +1647,7 @@ object UIConfig: TUIConfig
             Caption = #37325#35201#12461#12540#12527#12540#12489#12434#21547#12416#12524#12473#12434#33258#21205#30340#12395#12481#12455#12483#12463#12377#12427
             TabOrder = 2
           end
-          object seNGItemLifeSpan: TSpinEdit
+          object seNGItemLifeSpan: TJLXPSpinEdit
             Left = 192
             Top = 108
             Width = 65
@@ -1654,7 +1657,7 @@ object UIConfig: TUIConfig
             TabOrder = 3
             Value = 0
           end
-          object seNGIDLifeSpan: TSpinEdit
+          object seNGIDLifeSpan: TJLXPSpinEdit
             Left = 192
             Top = 140
             Width = 65
@@ -1801,7 +1804,7 @@ object UIConfig: TUIConfig
         Caption = #12479#12502#19978#12507#12452#12540#12523#22238#36578#12391#12479#12502#20999#12426#26367#12360
         TabOrder = 0
       end
-      object GroupBox12: TGroupBox
+      object GroupBox12: TJLXPGroupBox
         Left = 16
         Top = 40
         Width = 361
@@ -2129,7 +2132,7 @@ object UIConfig: TUIConfig
         TabOrder = 5
         Text = '20'
       end
-      object RadioGroupTreeTabStyle: TRadioGroup
+      object RadioGroupTreeTabStyle: TJLXPRadioGroup
         Left = 24
         Top = 184
         Width = 97
@@ -2142,7 +2145,7 @@ object UIConfig: TUIConfig
           #38750#34920#31034)
         TabOrder = 6
       end
-      object RadioGroupListTabStyle: TRadioGroup
+      object RadioGroupListTabStyle: TJLXPRadioGroup
         Left = 144
         Top = 184
         Width = 97
@@ -2155,7 +2158,7 @@ object UIConfig: TUIConfig
           #38750#34920#31034)
         TabOrder = 7
       end
-      object RadioGroupThreadTabStyle: TRadioGroup
+      object RadioGroupThreadTabStyle: TJLXPRadioGroup
         Left = 264
         Top = 184
         Width = 97
@@ -2180,6 +2183,30 @@ object UIConfig: TUIConfig
       Caption = #12473#12479#12452#12523
       ImageIndex = 16
       TabVisible = False
+      object LabelListOdd: TLabel
+        Left = 208
+        Top = 168
+        Width = 113
+        Height = 17
+        Alignment = taCenter
+        AutoSize = False
+        Caption = 'LabelListOdd'
+        Color = clBtnFace
+        ParentColor = False
+        Layout = tlCenter
+      end
+      object LabelListEven: TLabel
+        Left = 208
+        Top = 185
+        Width = 113
+        Height = 17
+        Alignment = taCenter
+        AutoSize = False
+        Caption = 'LabelListEven'
+        Color = clBtnFace
+        ParentColor = False
+        Layout = tlCenter
+      end
       object CheckBoxStlThreadToolBar: TCheckBox
         Left = 16
         Top = 120
@@ -2196,7 +2223,7 @@ object UIConfig: TUIConfig
         Caption = #12473#12524#12479#12452#12488#12523#12434#12484#12540#12523#12496#12540#12398#38563#12395#34920#31034#12377#12427
         TabOrder = 2
       end
-      object GroupBox10: TGroupBox
+      object GroupBox10: TJLXPGroupBox
         Left = 16
         Top = 16
         Width = 337
@@ -2260,31 +2287,6 @@ object UIConfig: TUIConfig
         Caption = #12473#12524#35239#12398#32972#26223#12434#33394#20998#12369#12377#12427
         TabOrder = 3
       end
-      object MemoListOdd: TMemo
-        Left = 208
-        Top = 168
-        Width = 113
-        Height = 17
-        TabStop = False
-        Alignment = taCenter
-        BevelEdges = [beLeft, beTop, beRight]
-        BevelInner = bvNone
-        BevelOuter = bvNone
-        BorderStyle = bsNone
-        ReadOnly = True
-        TabOrder = 4
-      end
-      object MemoListEven: TMemo
-        Left = 208
-        Top = 185
-        Width = 113
-        Height = 17
-        TabStop = False
-        Alignment = taCenter
-        BorderStyle = bsNone
-        ReadOnly = True
-        TabOrder = 5
-      end
       object Button1: TButton
         Tag = 101
         Left = 328
@@ -2292,7 +2294,7 @@ object UIConfig: TUIConfig
         Width = 25
         Height = 17
         Caption = '...'
-        TabOrder = 6
+        TabOrder = 4
         OnClick = ButtonColorClick
       end
       object Button2: TButton
@@ -2302,7 +2304,7 @@ object UIConfig: TUIConfig
         Width = 25
         Height = 17
         Caption = '...'
-        TabOrder = 7
+        TabOrder = 5
         OnClick = ButtonColorClick
       end
       object CheckBoxStlShowTreeMarks: TCheckBox
@@ -2311,7 +2313,7 @@ object UIConfig: TUIConfig
         Width = 281
         Height = 17
         Caption = #12484#12522#12540#12395#65291#35352#21495#12392#28857#32218#12434#34920#31034#12377#12427
-        TabOrder = 8
+        TabOrder = 6
       end
       object CheckBoxStlSmallLogPanel: TCheckBox
         Left = 16
@@ -2319,7 +2321,7 @@ object UIConfig: TUIConfig
         Width = 129
         Height = 17
         Caption = #12488#12524#12540#12473#12434#32302#23567#12377#12427
-        TabOrder = 9
+        TabOrder = 7
       end
       object RadioButtonLogPanelUnderBoard: TRadioButton
         Left = 168
@@ -2327,7 +2329,7 @@ object UIConfig: TUIConfig
         Width = 97
         Height = 17
         Caption = #26495#19968#35239#12398#19979
-        TabOrder = 10
+        TabOrder = 8
       end
       object RadioButtonLogPanelUnderThread: TRadioButton
         Left = 272
@@ -2335,7 +2337,7 @@ object UIConfig: TUIConfig
         Width = 105
         Height = 17
         Caption = #12473#12524#19968#35239#12398#19979
-        TabOrder = 11
+        TabOrder = 9
       end
     end
     object SheetColors: TTabSheet
@@ -2349,126 +2351,145 @@ object UIConfig: TUIConfig
         Height = 12
         Caption = #8251#12473#12524#12499#12517#12540#12398#12501#12457#12531#12488#12398#31278#39006#12399#12473#12461#12531#12289#22823#12365#12373#12399#31379#12513#12491#12517#12540#12391#35373#23450
       end
-      object GroupBox7: TGroupBox
+      object GroupBox7: TJLXPGroupBox
         Left = 16
         Top = 0
         Width = 169
         Height = 289
         Caption = #12503#12524#12499#12517#12540
         TabOrder = 0
-        object MemoLog: TMemo
-          Left = 8
-          Top = 95
-          Width = 153
-          Height = 22
-          TabStop = False
-          Alignment = taCenter
-          ReadOnly = True
-          TabOrder = 0
-        end
-        object MemoTextView: TMemo
-          Left = 8
-          Top = 123
-          Width = 153
-          Height = 22
-          TabStop = False
-          Alignment = taCenter
-          ReadOnly = True
-          TabOrder = 1
-        end
-        object MemoList: TMemo
-          Left = 8
-          Top = 68
-          Width = 153
-          Height = 22
-          TabStop = False
-          Alignment = taCenter
-          ReadOnly = True
-          TabOrder = 2
-        end
-        object MemoFavorite: TMemo
-          Left = 8
-          Top = 41
-          Width = 153
-          Height = 22
-          TabStop = False
-          Alignment = taCenter
-          ReadOnly = True
-          TabOrder = 3
-        end
-        object MemoTree: TMemo
+        object LabelTree: TLabel
           Left = 8
           Top = 15
           Width = 153
           Height = 22
-          TabStop = False
           Alignment = taCenter
-          ReadOnly = True
-          TabOrder = 4
-        end
-        object MemoDefault: TMemo
-          Left = 8
-          Top = 261
-          Width = 153
-          Height = 22
-          TabStop = False
-          Alignment = taCenter
-          BorderStyle = bsNone
+          AutoSize = False
+          Caption = 'LabelTree'
           Color = clBtnFace
-          ReadOnly = True
-          TabOrder = 5
+          ParentColor = False
+          Layout = tlCenter
         end
-        object MemoThreadTitle: TMemo
+        object LabelFavorite: TLabel
           Left = 8
-          Top = 151
+          Top = 42
           Width = 153
           Height = 22
-          TabStop = False
           Alignment = taCenter
-          ReadOnly = True
-          TabOrder = 6
+          AutoSize = False
+          Caption = 'LabelFavorite'
+          Color = clBtnFace
+          ParentColor = False
+          Layout = tlCenter
         end
-        object MemoWrite: TMemo
+        object LabelList: TLabel
           Left = 8
-          Top = 207
+          Top = 69
           Width = 153
           Height = 22
-          TabStop = False
           Alignment = taCenter
-          ReadOnly = True
-          TabOrder = 7
+          AutoSize = False
+          Caption = 'LabelList'
+          Color = clBtnFace
+          ParentColor = False
+          Layout = tlCenter
         end
-        object MemoHint: TMemo
+        object LabelLog: TLabel
           Left = 8
-          Top = 234
+          Top = 96
+          Width = 153
+          Height = 22
+          Alignment = taCenter
+          AutoSize = False
+          Caption = 'LabelLog'
+          Color = clBtnFace
+          ParentColor = False
+          Layout = tlCenter
+        end
+        object LabelTextView: TLabel
+          Left = 8
+          Top = 123
+          Width = 153
+          Height = 22
+          Alignment = taCenter
+          AutoSize = False
+          Caption = 'LabelTextView'
+          Color = clBtnFace
+          ParentColor = False
+          Layout = tlCenter
+        end
+        object LabelThreadTitle: TLabel
+          Left = 8
+          Top = 150
+          Width = 153
+          Height = 22
+          Alignment = taCenter
+          AutoSize = False
+          Caption = 'LabelThreadTitle'
+          Color = clBtnFace
+          ParentColor = False
+          Layout = tlCenter
+        end
+        object LabelWriteMemo: TLabel
+          Left = 8
+          Top = 177
+          Width = 153
+          Height = 22
+          Alignment = taCenter
+          AutoSize = False
+          Caption = 'LabelWriteMemo'
+          Color = clBtnFace
+          ParentColor = False
+          Layout = tlCenter
+        end
+        object LabelWrite: TLabel
+          Left = 8
+          Top = 205
+          Width = 153
+          Height = 22
+          Alignment = taCenter
+          AutoSize = False
+          Caption = 'LabelWrite'
+          Color = clBtnFace
+          ParentColor = False
+          Layout = tlCenter
+        end
+        object LabelHint: TLabel
+          Left = 8
+          Top = 232
           Width = 105
           Height = 22
-          TabStop = False
           Alignment = taCenter
-          ReadOnly = True
-          TabOrder = 8
+          AutoSize = False
+          Caption = 'LabelHint'
+          Color = clBtnFace
+          ParentColor = False
+          Layout = tlCenter
         end
-        object MemoHintFix: TMemo
+        object LabelHintFix: TLabel
           Left = 120
-          Top = 234
+          Top = 232
           Width = 41
           Height = 22
-          TabStop = False
           Alignment = taCenter
-          ReadOnly = True
-          TabOrder = 9
+          AutoSize = False
+          Caption = 'LabelHintFix'
+          Color = clBtnFace
+          ParentColor = False
+          Layout = tlCenter
         end
-        object MemoWriteMemo: TMemo
+        object LabelDefault: TLabel
           Left = 8
-          Top = 179
+          Top = 260
           Width = 153
-          Height = 23
+          Height = 22
           Alignment = taCenter
-          ReadOnly = True
-          TabOrder = 10
+          AutoSize = False
+          Caption = 'LabelDefault'
+          Layout = tlCenter
         end
       end
-      object GroupBox8: TGroupBox
+      object GroupBox8: TJLXPGroupBox
         Left = 192
         Top = 0
         Width = 81
@@ -2576,7 +2597,7 @@ object UIConfig: TUIConfig
           OnClick = ButtonFontClick
         end
       end
-      object GroupBox9: TGroupBox
+      object GroupBox9: TJLXPGroupBox
         Left = 280
         Top = 0
         Width = 89
@@ -2710,7 +2731,7 @@ object UIConfig: TUIConfig
         Height = 20
         TabOrder = 0
       end
-      object GroupBox13: TGroupBox
+      object GroupBox13: TJLXPGroupBox
         Left = 40
         Top = 40
         Width = 217
@@ -2756,7 +2777,7 @@ object UIConfig: TUIConfig
           Height = 20
           TabOrder = 2
         end
-        object SpinEditViewScrollSmoothness: TSpinEdit
+        object SpinEditViewScrollSmoothness: TJLXPSpinEdit
           Left = 120
           Top = 56
           Width = 57
@@ -2766,7 +2787,7 @@ object UIConfig: TUIConfig
           TabOrder = 3
           Value = 3
         end
-        object SpinEditViewScrollFrameRate: TSpinEdit
+        object SpinEditViewScrollFrameRate: TJLXPSpinEdit
           Left = 120
           Top = 80
           Width = 57
@@ -2939,7 +2960,7 @@ object UIConfig: TUIConfig
         TabStop = False
         OnClick = ButtonClmnDownClick
       end
-      object seCheckNewThreadInHour: TSpinEdit
+      object seCheckNewThreadInHour: TJLXPSpinEdit
         Left = 6
         Top = 223
         Width = 57
@@ -3038,6 +3059,54 @@ object UIConfig: TUIConfig
         Height = 12
         Caption = #12375#12365#12356#25968
       end
+      object LabelIDLinkColorMany: TLabel
+        Left = 139
+        Top = 96
+        Width = 93
+        Height = 18
+        Alignment = taCenter
+        AutoSize = False
+        Caption = #30330#35328#12364#22810#12356'ID'
+        Color = clWhite
+        Font.Charset = SHIFTJIS_CHARSET
+        Font.Color = clRed
+        Font.Height = -12
+        Font.Name = #65325#65331' '#65328#12468#12471#12483#12463
+        Font.Style = []
+        ParentColor = False
+        ParentFont = False
+        Layout = tlCenter
+      end
+      object LabelIDLinkColorNone: TLabel
+        Left = 139
+        Top = 123
+        Width = 93
+        Height = 18
+        Alignment = taCenter
+        AutoSize = False
+        Caption = #30330#35328#12364'1'#12398'ID'
+        Color = clBtnFace
+        ParentColor = False
+        Layout = tlCenter
+      end
+      object LabelLinkedNumColor: TLabel
+        Left = 139
+        Top = 189
+        Width = 93
+        Height = 18
+        Alignment = taCenter
+        AutoSize = False
+        Caption = '100'
+        Color = clBtnFace
+        Font.Charset = SHIFTJIS_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -12
+        Font.Name = #65325#65331' '#65328#12468#12471#12483#12463
+        Font.Style = [fsUnderline]
+        ParentColor = False
+        ParentFont = False
+        Layout = tlCenter
+      end
       object CheckBoxAllowTreeDup: TCheckBox
         Left = 16
         Top = 1
@@ -3046,7 +3115,7 @@ object UIConfig: TUIConfig
         Caption = #12484#12522#12540#12289#12450#12454#12488#12521#12452#12531#34920#31034#12391#37325#35079#12434#35377#21487#12377#12427
         TabOrder = 0
       end
-      object SpinEditLenofOutLineRes: TSpinEdit
+      object SpinEditLenofOutLineRes: TJLXPSpinEdit
         Left = 202
         Top = 25
         Width = 65
@@ -3074,7 +3143,7 @@ object UIConfig: TUIConfig
         Caption = 'ID'#12509#12483#12503#12450#12483#12503
         TabOrder = 3
       end
-      object SpinEditIDPopUpMaxCount: TSpinEdit
+      object SpinEditIDPopUpMaxCount: TJLXPSpinEdit
         Left = 174
         Top = 62
         Width = 59
@@ -3084,7 +3153,7 @@ object UIConfig: TUIConfig
         TabOrder = 4
         Value = 0
       end
-      object SpinEditOpenNewResThreadLimit: TSpinEdit
+      object SpinEditOpenNewResThreadLimit: TJLXPSpinEdit
         Left = 291
         Top = 257
         Width = 65
@@ -3102,31 +3171,13 @@ object UIConfig: TUIConfig
         Caption = #12522#12531#12463#12373#12428#12383#12524#12473#30058#12434#30528#33394
         TabOrder = 6
       end
-      object MemoLinkedNumColor: TMemo
-        Left = 140
-        Top = 188
-        Width = 93
-        Height = 20
-        TabStop = False
-        Alignment = taCenter
-        Font.Charset = SHIFTJIS_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -12
-        Font.Name = #65325#65331' '#65328#12468#12471#12483#12463
-        Font.Style = [fsUnderline]
-        Lines.Strings = (
-          '100')
-        ParentFont = False
-        ReadOnly = True
-        TabOrder = 7
-      end
       object ButtonColordNumber: TButton
         Left = 233
         Top = 188
         Width = 25
         Height = 20
         Caption = '...'
-        TabOrder = 8
+        TabOrder = 7
         OnClick = ButtonColordNumberClick
       end
       object CheckBoxIDPopOnMOver: TCheckBox
@@ -3135,7 +3186,7 @@ object UIConfig: TUIConfig
         Width = 97
         Height = 17
         Caption = #12510#12454#12473#12458#12540#12496#12540
-        TabOrder = 9
+        TabOrder = 8
       end
       object CheckBoxIDLinkColor: TCheckBox
         Left = 41
@@ -3143,35 +3194,7 @@ object UIConfig: TUIConfig
         Width = 89
         Height = 17
         Caption = #12522#12531#12463#12398#30528#33394
-        TabOrder = 10
-      end
-      object MemoIDLinkColorMany: TMemo
-        Left = 140
-        Top = 96
-        Width = 93
-        Height = 21
-        Alignment = taCenter
-        Font.Charset = SHIFTJIS_CHARSET
-        Font.Color = clRed
-        Font.Height = -12
-        Font.Name = #65325#65331' '#65328#12468#12471#12483#12463
-        Font.Style = []
-        Lines.Strings = (
-          #30330#35328#12364#22810#12356'ID')
-        ParentFont = False
-        ReadOnly = True
-        TabOrder = 11
-      end
-      object MemoIDLinkColorNone: TMemo
-        Left = 140
-        Top = 123
-        Width = 93
-        Height = 21
-        Alignment = taCenter
-        Lines.Strings = (
-          #30330#35328#12364'1'#12398'ID')
-        ReadOnly = True
-        TabOrder = 12
+        TabOrder = 9
       end
       object ButtonIDLinkColorMany: TButton
         Left = 232
@@ -3179,7 +3202,7 @@ object UIConfig: TUIConfig
         Width = 25
         Height = 20
         Caption = '...'
-        TabOrder = 13
+        TabOrder = 10
         OnClick = ButtonIDLinkColorManyClick
       end
       object ButtonIDLinkColorNone: TButton
@@ -3188,17 +3211,17 @@ object UIConfig: TUIConfig
         Width = 25
         Height = 20
         Caption = '...'
-        TabOrder = 14
+        TabOrder = 11
         OnClick = ButtonIDLinkColorNoneClick
       end
-      object SpinEditIDLinkThreshold: TSpinEdit
+      object SpinEditIDLinkThreshold: TJLXPSpinEdit
         Left = 313
         Top = 95
         Width = 49
         Height = 21
         MaxValue = 50
         MinValue = 2
-        TabOrder = 15
+        TabOrder = 12
         Value = 5
       end
       object CheckBoxQuickMerge: TCheckBox
@@ -3207,14 +3230,14 @@ object UIConfig: TUIConfig
         Width = 192
         Height = 17
         Caption = #39640#36895'Merge('#8251#20877#36215#21205#24460#12395#26377#21177')'
-        TabOrder = 16
+        TabOrder = 13
       end
     end
     object SheetTabColor: TTabSheet
       Caption = #12479#12502#12398#33394
       ImageIndex = 19
       TabVisible = False
-      object GroupBox16: TGroupBox
+      object GroupBox16: TJLXPGroupBox
         Left = 0
         Top = 0
         Width = 385
@@ -3224,17 +3247,41 @@ object UIConfig: TUIConfig
         TabOrder = 0
         object Label56: TLabel
           Left = 288
-          Top = 56
+          Top = 40
           Width = 66
           Height = 12
           Alignment = taCenter
           Caption = #12486#12461#12473#12488#12398#33394
           Layout = tlCenter
         end
+        object LabelWriteWait: TLabel
+          Left = 154
+          Top = 224
+          Width = 105
+          Height = 22
+          Alignment = taCenter
+          AutoSize = False
+          Caption = 'LabelWriteWait'
+          Color = clBtnFace
+          ParentColor = False
+          Layout = tlCenter
+        end
+        object LabelAutoReload: TLabel
+          Left = 154
+          Top = 257
+          Width = 105
+          Height = 22
+          Alignment = taCenter
+          AutoSize = False
+          Caption = 'LabelAutoReload'
+          Color = clBtnFace
+          ParentColor = False
+          Layout = tlCenter
+        end
         object ButtonProcessText: TButton
           Tag = 4
           Left = 272
-          Top = 161
+          Top = 157
           Width = 97
           Height = 22
           Caption = #26356#26032#20013
@@ -3244,7 +3291,7 @@ object UIConfig: TUIConfig
         object ButtonNewText: TButton
           Tag = 2
           Left = 272
-          Top = 101
+          Top = 97
           Width = 97
           Height = 22
           Caption = #26032#30528#12354#12427#26178
@@ -3254,14 +3301,14 @@ object UIConfig: TUIConfig
         object ButtonDefaultText: TButton
           Tag = 1
           Left = 272
-          Top = 73
+          Top = 67
           Width = 97
           Height = 22
           Caption = #12487#12501#12457#12523#12488
           TabOrder = 2
           OnClick = ButtonTextColorClick
         end
-        object GroupBox17: TGroupBox
+        object GroupBox17: TJLXPGroupBox
           Left = 18
           Top = 16
           Width = 120
@@ -3269,35 +3316,65 @@ object UIConfig: TUIConfig
           Align = alCustom
           Caption = #12450#12463#12486#12451#12502#12398#26178
           TabOrder = 3
-          object MemoDefaultActive: TMemo
+          object LabelDefaultActive: TLabel
             Left = 8
-            Top = 56
+            Top = 50
             Width = 105
             Height = 22
-            TabStop = False
             Alignment = taCenter
-            ReadOnly = True
-            TabOrder = 1
+            AutoSize = False
+            Caption = 'LabelDefaultActive'
+            Color = clBtnFace
+            ParentColor = False
+            Layout = tlCenter
           end
-          object MemoNewActive: TMemo
+          object LabelNewActive: TLabel
             Left = 8
-            Top = 85
+            Top = 80
             Width = 105
             Height = 22
-            TabStop = False
             Alignment = taCenter
-            ReadOnly = True
-            TabOrder = 2
+            AutoSize = False
+            Caption = 'LabelNewActive'
+            Color = clBtnFace
+            ParentColor = False
+            Layout = tlCenter
           end
-          object MemoProcessActive: TMemo
+          object LabelNew2Active: TLabel
             Left = 8
-            Top = 143
+            Top = 110
             Width = 105
             Height = 22
-            TabStop = False
             Alignment = taCenter
-            ReadOnly = True
-            TabOrder = 3
+            AutoSize = False
+            Caption = 'LabelNew2Active'
+            Color = clBtnFace
+            ParentColor = False
+            Layout = tlCenter
+          end
+          object LabelProcessActive: TLabel
+            Left = 8
+            Top = 140
+            Width = 105
+            Height = 22
+            Alignment = taCenter
+            AutoSize = False
+            Caption = 'LabelProcessActive'
+            Color = clBtnFace
+            ParentColor = False
+            Layout = tlCenter
+          end
+          object LabelDisableWriteActive: TLabel
+            Left = 8
+            Top = 170
+            Width = 105
+            Height = 22
+            Alignment = taCenter
+            AutoSize = False
+            Caption = 'LabelDisableWriteActive'
+            Color = clBtnFace
+            ParentColor = False
+            Layout = tlCenter
           end
           object ButtonActiveBack: TButton
             Tag = 1
@@ -3309,62 +3386,73 @@ object UIConfig: TUIConfig
             TabOrder = 0
             OnClick = ButtonBackColorClick
           end
-          object MemoDisableWriteActive: TMemo
-            Left = 8
-            Top = 172
-            Width = 105
-            Height = 22
-            TabStop = False
-            Alignment = taCenter
-            ReadOnly = True
-            TabOrder = 4
-          end
-          object MemoNew2Active: TMemo
-            Left = 8
-            Top = 113
-            Width = 105
-            Height = 22
-            Alignment = taCenter
-            ReadOnly = True
-            TabOrder = 5
-          end
         end
-        object GroupBox18: TGroupBox
+        object GroupBox18: TJLXPGroupBox
           Left = 144
           Top = 16
           Width = 120
           Height = 201
           Caption = #12450#12463#12486#12451#12502#12376#12419#12394#12356#26178
           TabOrder = 4
-          object MemoDefaultNoActive: TMemo
+          object LabelNew2NoActive: TLabel
             Left = 8
-            Top = 56
+            Top = 110
             Width = 105
             Height = 22
-            TabStop = False
             Alignment = taCenter
-            ReadOnly = True
-            TabOrder = 1
+            AutoSize = False
+            Caption = 'LabelNew2NoActive'
+            Color = clBtnFace
+            ParentColor = False
+            Layout = tlCenter
           end
-          object MemoNewNoActive: TMemo
+          object LabelDefaultNoActive: TLabel
             Left = 8
-            Top = 85
+            Top = 50
             Width = 105
             Height = 22
-            TabStop = False
             Alignment = taCenter
-            ReadOnly = True
-            TabOrder = 2
+            AutoSize = False
+            Caption = 'LabelDefaultNoActive'
+            Color = clBtnFace
+            ParentColor = False
+            Layout = tlCenter
           end
-          object MemoProcessNoActive: TMemo
+          object LabelNewNoActive: TLabel
             Left = 8
-            Top = 144
+            Top = 80
             Width = 105
             Height = 22
-            TabStop = False
             Alignment = taCenter
-            ReadOnly = True
-            TabOrder = 3
+            AutoSize = False
+            Caption = 'LabelNewNoActive'
+            Color = clBtnFace
+            ParentColor = False
+            Layout = tlCenter
+          end
+          object LabelProcessNoActive: TLabel
+            Left = 8
+            Top = 140
+            Width = 105
+            Height = 22
+            Alignment = taCenter
+            AutoSize = False
+            Caption = 'LabelProcessNoActive'
+            Color = clBtnFace
+            ParentColor = False
+            Layout = tlCenter
+          end
+          object LabelDisableWriteNoActive: TLabel
+            Left = 8
+            Top = 170
+            Width = 105
+            Height = 22
+            Alignment = taCenter
+            AutoSize = False
+            Caption = 'LabelDisableWriteNoActive'
+            Color = clBtnFace
+            ParentColor = False
+            Layout = tlCenter
           end
           object ButtonNoActiveBack: TButton
             Tag = 2
@@ -3376,45 +3464,16 @@ object UIConfig: TUIConfig
             TabOrder = 0
             OnClick = ButtonBackColorClick
           end
-          object MemoDisableWriteNoAcitve: TMemo
-            Left = 8
-            Top = 172
-            Width = 105
-            Height = 22
-            TabStop = False
-            Alignment = taCenter
-            ReadOnly = True
-            TabOrder = 4
-          end
-          object MemoNew2NoActive: TMemo
-            Left = 8
-            Top = 115
-            Width = 105
-            Height = 22
-            Alignment = taCenter
-            ReadOnly = True
-            TabOrder = 5
-          end
         end
         object ButtonDisableWriteText: TButton
           Tag = 5
           Left = 272
-          Top = 189
+          Top = 187
           Width = 97
           Height = 22
           Caption = #26360#12365#36796#12417#12394#12356
           TabOrder = 5
           OnClick = ButtonTextColorClick
-        end
-        object MemoWriteWait: TMemo
-          Left = 152
-          Top = 225
-          Width = 105
-          Height = 22
-          TabStop = False
-          Alignment = taCenter
-          ReadOnly = True
-          TabOrder = 6
         end
         object ButtonWriteWait: TButton
           Tag = 3
@@ -3423,17 +3482,8 @@ object UIConfig: TUIConfig
           Width = 92
           Height = 22
           Caption = 'WriteWait'#20013
-          TabOrder = 7
+          TabOrder = 6
           OnClick = ButtonBackColorClick
-        end
-        object MemoAutoReload: TMemo
-          Left = 152
-          Top = 257
-          Width = 105
-          Height = 22
-          Alignment = taCenter
-          ReadOnly = True
-          TabOrder = 8
         end
         object ButtonAutoReload: TButton
           Tag = 4
@@ -3442,17 +3492,17 @@ object UIConfig: TUIConfig
           Width = 92
           Height = 22
           Caption = #12458#12540#12488#12522#12525#12540#12489#20013
-          TabOrder = 9
+          TabOrder = 7
           OnClick = ButtonBackColorClick
         end
         object ButtonNew2Text: TButton
           Tag = 3
           Left = 272
-          Top = 131
+          Top = 127
           Width = 97
           Height = 22
           Caption = #26356#26032#12354#12427#26178
-          TabOrder = 10
+          TabOrder = 8
           OnClick = ButtonTextColorClick
         end
       end

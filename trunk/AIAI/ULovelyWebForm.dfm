@@ -18,7 +18,7 @@ object LovelyWebForm: TLovelyWebForm
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 12
-  object NavigateToolBar: TToolBar
+  object NavigateToolBar: TJLXPToolBar
     Left = 0
     Top = 0
     Width = 688
@@ -99,7 +99,7 @@ object LovelyWebForm: TLovelyWebForm
       8000000000000000000000000000000000000000000000000000000000000000
       00000000000000000100000000000000000000000000000000000000}
   end
-  object StatusBar: TStatusBar
+  object StatusBar: TJLXPStatusBar
     Left = 0
     Top = 434
     Width = 688

@@ -211,7 +211,7 @@ object MainWnd: TMainWnd
                 OnMouseDown = ThreadTitleLabelMouseDown
                 OnMouseMove = ThreadTitleLabelMouseMove
               end
-              object ThreadToolBar: TToolBar
+              object ThreadToolBar: TJLXPToolBar
                 Left = 195
                 Top = 0
                 Width = 325
@@ -393,7 +393,7 @@ object MainWnd: TMainWnd
                 OnMouseMove = LabelWriteTitleMouseMove
                 OnMouseUp = LabelWriteTitleMouseUp
               end
-              object ToolBarWriteTitle: TToolBar
+              object ToolBarWriteTitle: TJLXPToolBar
                 Left = 458
                 Top = 0
                 Width = 51
@@ -789,7 +789,7 @@ object MainWnd: TMainWnd
               OnMouseMove = LabelTreeTitleMouseMove
               OnMouseUp = LabelTreeTitleMouseUp
             end
-            object ToolBarTreeTitle: TToolBar
+            object ToolBarTreeTitle: TJLXPToolBar
               Left = 65
               Top = 0
               Width = 53
@@ -925,14 +925,14 @@ object MainWnd: TMainWnd
           Control = ToolBarMain
           ImageIndex = -1
           MinHeight = 23
-          Width = 343
+          Width = 331
         end
         item
           Break = False
           Control = LinkBar
           ImageIndex = -1
           MinHeight = 22
-          Width = 290
+          Width = 302
         end
         item
           Control = ToolBarUrlEdit
@@ -942,10 +942,10 @@ object MainWnd: TMainWnd
         end>
       ParentShowHint = False
       ShowHint = True
-      object ToolBarMain: TToolBar
+      object ToolBarMain: TJLXPToolBar
         Left = 9
         Top = 0
-        Width = 330
+        Width = 318
         Height = 23
         AutoSize = True
         ButtonHeight = 23
@@ -961,6 +961,7 @@ object MainWnd: TMainWnd
           Top = 0
           Action = actOnLine
           ImageIndex = 12
+          Style = tbsCheck
         end
         object ToolButton8: TToolButton
           Left = 23
@@ -1082,7 +1083,7 @@ object MainWnd: TMainWnd
           OnClick = MenuHelpClick
         end
       end
-      object ToolBarUrlEdit: TToolBar
+      object ToolBarUrlEdit: TJLXPToolBar
         Left = 9
         Top = 25
         Width = 622
@@ -1108,10 +1109,10 @@ object MainWnd: TMainWnd
           OnKeyDown = UrlEditKeyDown
         end
       end
-      object LinkBar: TToolBar
-        Left = 354
+      object LinkBar: TJLXPToolBar
+        Left = 342
         Top = 0
-        Width = 277
+        Width = 289
         Height = 22
         AutoSize = True
         ButtonWidth = 45
@@ -1124,6 +1125,7 @@ object MainWnd: TMainWnd
         PopupMenu = PopupBar
         ShowCaptions = True
         TabOrder = 2
+        Transparent = True
         Wrapable = False
         OnResize = LinkBarResize
       end
@@ -1140,7 +1142,7 @@ object MainWnd: TMainWnd
       OnClick = MenuViewTreeToggleVisibleClick
     end
   end
-  object StatusBar: TStatusBar
+  object StatusBar: TJLXPStatusBar
     Left = 0
     Top = 501
     Width = 639
@@ -2624,6 +2626,7 @@ object MainWnd: TMainWnd
     end
     object actOnLine: TAction
       Caption = #12458#12531#12521#12452#12531'(&L)'
+      Checked = True
       OnExecute = actOnLineExecute
     end
     object actLogin: TAction

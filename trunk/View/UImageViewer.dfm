@@ -22,7 +22,7 @@ object ImageForm: TImageForm
   OnMouseMove = FormMouseMove
   PixelsPerInch = 96
   TextHeight = 12
-  object StatusBar: TStatusBar
+  object StatusBar: TJLXPStatusBar
     Left = 0
     Top = 567
     Width = 514

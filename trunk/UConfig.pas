@@ -9,8 +9,9 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ComCtrls, StdCtrls, StrUtils, ShlObj, ActiveX, HTMLDocumentEvent,
   JConfig, ExtCtrls, U2chTicket, UBase64, UCryptAuto, IniFiles, Menus,
-  Grids, ValEdit,HogeTextView, JLWritePanel,
-  UNGWordsAssistant, UAdvAboneRegist, Spin, Buttons, ExtDlgs;//beginner
+  Grids, ValEdit,HogeTextView,
+  UNGWordsAssistant, UAdvAboneRegist, Buttons, ExtDlgs, //beginner
+  JLWritePanel, JLXPSpin, JLXPStdCtrls, JLXPComCtrls, JLXPExtCtrls;
 
 const
 {  NG_NAMES_FILE         = 'NGnames.txt';
@@ -37,7 +38,7 @@ type
     EditBBSMenuURL: TEdit;
     CheckBoxNetOnline: TCheckBox;
     CheckBoxNetUseReadCGI: TCheckBox;
-    GroupBoxProxy: TGroupBox;
+    GroupBoxProxy: TJLXPGroupBox;
     Label1: TLabel;
     Label2: TLabel;
     Label10: TLabel;
@@ -61,26 +62,26 @@ type
     ButtonSelLogBaseFolder: TButton;
     ButtonSelSkinFolder: TButton;
     SheetAction: TTabSheet;
-    GroupBox2: TGroupBox;
+    GroupBox2: TJLXPGroupBox;
     CheckBoxOprSelPreviousThread: TCheckBox;
     CheckBoxOprShowSubjectCache: TCheckBox;
     CheckBoxOprOpenThreWNewView: TCheckBox;
-    GroupBox3: TGroupBox;
+    GroupBox3: TJLXPGroupBox;
     CheckBoxOprScrollToNewRes: TCheckBox;
     RadioButtonOprScrollTop: TRadioButton;
     RadioButtonOprScrollBottom: TRadioButton;
     CheckBoxOprJumpToPrev: TCheckBox;
-    GroupBox6: TGroupBox;
+    GroupBox6: TJLXPGroupBox;
     CheckBoxOprOpenFavWNewView: TCheckBox;
     SheetOperation: TTabSheet;
-    GroupBox4: TGroupBox;
+    GroupBox4: TJLXPGroupBox;
     Label12: TLabel;
     Label13: TLabel;
     Label14: TLabel;
     ComboBoxOprBrdClick: TComboBox;
     ComboBoxOprBrdDblClk: TComboBox;
     ComboBoxOprBrdOther: TComboBox;
-    GroupBox5: TGroupBox;
+    GroupBox5: TJLXPGroupBox;
     Label15: TLabel;
     Label16: TLabel;
     Label17: TLabel;
@@ -89,7 +90,7 @@ type
     ComboBoxOprThrOther: TComboBox;
     CheckBoxCatSingleClick: TCheckBox;
     SheetHint: TTabSheet;
-    GroupBox1: TGroupBox;
+    GroupBox1: TJLXPGroupBox;
     Label3: TLabel;
     Label4: TLabel;
     Label5: TLabel;
@@ -98,7 +99,7 @@ type
     CheckBoxUseHint4URL: TCheckBox;
     EditMaxHintWidth: TEdit;
     EditMaxHintHeight: TEdit;
-    RadioGroupMethod: TRadioGroup;
+    RadioGroupMethod: TJLXPRadioGroup;
     RadioButtonHintUseGet: TRadioButton;
     RadioButtonHintUseHead: TRadioButton;
     EditHintMaxSize: TEdit;
@@ -113,14 +114,14 @@ type
     CheckBoxDatDelOOTLog: TCheckBox;
     Memo1: TMemo;
     SheetUserInfo: TTabSheet;
-    GroupBoxUser: TGroupBox;
+    GroupBoxUser: TJLXPGroupBox;
     Label19: TLabel;
     Label20: TLabel;
     EditUserID: TEdit;
     EditPassword: TEdit;
     CheckBoxAutoAuth: TCheckBox;
     ButtonManualConnect: TButton;
-    GroupBoxRem: TGroupBox;
+    GroupBoxRem: TJLXPGroupBox;
     Label21: TLabel;
     EditPassphrase: TEdit;
     ButtonRemenberPasswd: TButton;
@@ -138,30 +139,23 @@ type
     EditStlTabWidth: TEdit;
     EditStlListTabWidth: TEdit;
     EditStlListTabHeight: TEdit;
-    RadioGroupTreeTabStyle: TRadioGroup;
-    RadioGroupListTabStyle: TRadioGroup;
-    RadioGroupThreadTabStyle: TRadioGroup;
+    RadioGroupTreeTabStyle: TJLXPRadioGroup;
+    RadioGroupListTabStyle: TJLXPRadioGroup;
+    RadioGroupThreadTabStyle: TJLXPRadioGroup;
     SheetMouse: TTabSheet;
     Label27: TLabel;
     EditMseGestureMargin: TEdit;
     CheckBoxMseUseWheelTabChange: TCheckBox;
     SheetColors: TTabSheet;
-    GroupBox7: TGroupBox;
-    MemoLog: TMemo;
-    MemoTextView: TMemo;
-    MemoList: TMemo;
-    MemoFavorite: TMemo;
-    MemoTree: TMemo;
-    MemoDefault: TMemo;
-    MemoThreadTitle: TMemo;
-    GroupBox8: TGroupBox;
+    GroupBox7: TJLXPGroupBox;
+    GroupBox8: TJLXPGroupBox;
     ButtonTraceFont: TButton;
     ButtonListFont: TButton;
     ButtonDefFont: TButton;
     ButtonTreeFont: TButton;
     ButtonAllFonts: TButton;
     ButtonThreadTitleFont: TButton;
-    GroupBox9: TGroupBox;
+    GroupBox9: TJLXPGroupBox;
     ButtonTextColor: TButton;
     ButtonListColor: TButton;
     ButtonFavoriteColor: TButton;
@@ -206,12 +200,10 @@ type
     CheckBoxStlListMarkIcons: TCheckBox;
     CheckBoxOptSaveLastItems: TCheckBox;
     CheckBoxOptAllowFavoriteDuplicate: TCheckBox;
-    GroupBox10: TGroupBox;
-    GroupBox11: TGroupBox;
+    GroupBox10: TJLXPGroupBox;
+    GroupBox11: TJLXPGroupBox;
     CheckBoxOprBoardExpandOneCategory: TCheckBox;
     CheckBoxStlListExtraBackColor: TCheckBox;
-    MemoListOdd: TMemo;
-    MemoListEven: TMemo;
     Button1: TButton;
     Button2: TButton;
     CheckBoxOprOpenBoardWNewTab: TCheckBox;
@@ -226,7 +218,7 @@ type
     ComboBoxMseMenus: TComboBox;
     Label39: TLabel;
     Label40: TLabel;
-    GroupBox12: TGroupBox;
+    GroupBox12: TJLXPGroupBox;
     ValueListMouseGesture: TValueListEditor;
     ComboBoxMseSubMenus: TComboBox;
     ButtonMseAdd: TButton;
@@ -240,7 +232,6 @@ type
     EditRecvBufferSize: TEdit;
     CheckBoxHint4OtherThread: TCheckBox;
     CheckBoxWrtShowThreadTitle: TCheckBox;
-    MemoWrite: TMemo;
     Label43: TLabel;
     ButtonWriteFont: TButton;
     Label44: TLabel;
@@ -254,7 +245,7 @@ type
     SheetDoe: TTabSheet;
     Label46: TLabel;
     EditViewVerticalCaretMargin: TEdit;
-    GroupBox13: TGroupBox;
+    GroupBox13: TJLXPGroupBox;
     RadioButtonViewLineScroll: TRadioButton;
     RadioButtonViewPageScroll: TRadioButton;
     EditViewScrollLines: TEdit;
@@ -283,14 +274,14 @@ type
     ComboBoxOprDrawLines: TComboBox;
     Label47: TLabel;
     SheetTabOperation: TTabSheet;
-    GroupBox14: TGroupBox;
+    GroupBox14: TJLXPGroupBox;
     Label49: TLabel;
     Label53: TLabel;
     ComboBoxOprAddPosNormal: TComboBox;
     ComboBoxOprAddPosRelative: TComboBox;
     Label54: TLabel;
     ComboBoxOprClosePos: TComboBox;
-    GroupBox15: TGroupBox;
+    GroupBox15: TJLXPGroupBox;
     CheckBoxOprThreBgOpen: TCheckBox;
     CheckBoxOprFavBgOpen: TCheckBox;
     CheckBoxOprClosedBgOpen: TCheckBox;
@@ -302,21 +293,19 @@ type
     EditZoomPoint2: TEdit;
     EditZoomPoint3: TEdit;
     EditZoomPoint4: TEdit;
-    SpinEditRecyclableCount: TSpinEdit;
+    SpinEditRecyclableCount: TJLXPSpinEdit;
     LabelRecyclableCount: TLabel;
     CheckBoxDiscrepancyWarning: TCheckBox;
     CheckBoxDisableStatusBar: TCheckBox;
     ButtonHintFont: TButton;
     ButtonHintFontLink: TButton;
-    MemoHint: TMemo;
-    MemoHintFix: TMemo;
     ButtonHintColor: TButton;
     ButtonHintColorFix: TButton;
     CheckBoxNestingPopUp: TCheckBox;
     LabelAutoEnableNesting: TLabel;
-    SpinEditHintHoverTime: TSpinEdit;
+    SpinEditHintHoverTime: TJLXPSpinEdit;
     CheckBoxAutoEnableNesting: TCheckBox;
-    SpinEditHintHintHoverTime: TSpinEdit;
+    SpinEditHintHintHoverTime: TJLXPSpinEdit;
     CheckBoxHintAutoEnableNesting: TCheckBox;
     LabelHoverTime: TLabel;
     {beginner}
@@ -332,93 +321,77 @@ type
     MenuNGWordLifeForever: TMenuItem;
     LabelMsePlace: TLabel;
     ComboBoxMsePlace: TComboBox;
-    seCheckNewThreadInHour: TSpinEdit;
+    seCheckNewThreadInHour: TJLXPSpinEdit;
     LabelCheckNewThreadInHour: TLabel;
     CheckBoxStlSmallLogPanel: TCheckBox;
     SheetForView: TTabSheet;
     CheckBoxAllowTreeDup: TCheckBox;
-    SpinEditLenofOutLineRes: TSpinEdit;
+    SpinEditLenofOutLineRes: TJLXPSpinEdit;
     LabelLenofOutLineRes: TLabel;
     RadioButtonLogPanelUnderBoard: TRadioButton;
     RadioButtonLogPanelUnderThread: TRadioButton;
-    SpinEditViewScrollSmoothness: TSpinEdit;
+    SpinEditViewScrollSmoothness: TJLXPSpinEdit;
     LabelViewScrollSmoothness: TLabel;
     LabelViewScrollFrameRate: TLabel;
-    SpinEditViewScrollFrameRate: TSpinEdit;
+    SpinEditViewScrollFrameRate: TJLXPSpinEdit;
     CheckBoxViewEnableAutoScroll: TCheckBox;
     TabSheet1: TTabSheet;
     ListBoxNGEx: TListBox;
     SheetTabColor: TTabSheet;
-    MemoDefaultActive: TMemo;
-    MemoNewActive: TMemo;
     ButtonActiveBack: TButton;
     ButtonNoActiveBack: TButton;
-    MemoProcessActive: TMemo;
-    MemoDefaultNoActive: TMemo;
-    MemoNewNoActive: TMemo;
     ButtonDefaultText: TButton;
     ButtonNewText: TButton;
     ButtonProcessText: TButton;
-    GroupBox16: TGroupBox;
-    GroupBox17: TGroupBox;
-    GroupBox18: TGroupBox;
-    MemoProcessNoActive: TMemo;
+    GroupBox16: TJLXPGroupBox;
+    GroupBox17: TJLXPGroupBox;
+    GroupBox18: TJLXPGroupBox;
     Label56: TLabel;
-    MemoDisableWriteActive: TMemo;
-    MemoDisableWriteNoAcitve: TMemo;
     ButtonDisableWriteText: TButton;
-    MemoWriteWait: TMemo;
     ButtonWriteWait: TButton;
     ShowDayOfWeekCheckBox: TCheckBox;
-    MemoAutoReload: TMemo;
     ButtonAutoReload: TButton;
     Label57: TLabel;
     EditOptChottoView: TEdit;
     ButtonNew2Text: TButton;
-    MemoNew2Active: TMemo;
-    MemoNew2NoActive: TMemo;
-    Sheet_Option: TTabSheet;
+    Sheet_Option: TJLXPTabSheet;
     CheckBoxLinkAbone: TCheckBox;
     CheckBoxoptSetFocusOnWriteMemo: TCheckBox;
     CheckBoxIDPopUp: TCheckBox;
-    SpinEditIDPopUpMaxCount: TSpinEdit;
+    SpinEditIDPopUpMaxCount: TJLXPSpinEdit;
     Label58: TLabel;
     Label59: TLabel;
-    SpinEditOpenNewResThreadLimit: TSpinEdit;
+    SpinEditOpenNewResThreadLimit: TJLXPSpinEdit;
     CheckBoxOldOnCheckNew: TCheckBox;
     CheckBoxReadIfScrollBottom: TCheckBox;
     cbPermanentNG: TCheckBox;
     cbPermanentMarking: TCheckBox;
-    seNGItemLifeSpan: TSpinEdit;
+    seNGItemLifeSpan: TJLXPSpinEdit;
     Label60: TLabel;
-    seNGIDLifeSpan: TSpinEdit;
+    seNGIDLifeSpan: TJLXPSpinEdit;
     cmbAboneLevel: TComboBox;
     Label61: TLabel;
     Label62: TLabel;
     CheckBoxHideInTaskTray: TCheckBox;
     CheckBoxColordNumber: TCheckBox;
-    MemoLinkedNumColor: TMemo;
     ButtonColordNumber: TButton;
     CheckBoxIDPopOnMOver: TCheckBox;
     CheckBoxIDLinkColor: TCheckBox;
-    MemoIDLinkColorMany: TMemo;
-    MemoIDLinkColorNone: TMemo;
     ButtonIDLinkColorMany: TButton;
     ButtonIDLinkColorNone: TButton;
     Label63: TLabel;
-    SpinEditIDLinkThreshold: TSpinEdit;
+    SpinEditIDLinkThreshold: TJLXPSpinEdit;
     CheckBoxQuickMerge: TCheckBox;
-    MemoWriteMemo: TMemo;
     ButtonWriteMemoFont: TButton;
     ButtonWriteMemoColor: TButton;
     SheetFavPatrol: TTabSheet;
     CheckBoxFavPatrolOpenNewResThread: TCheckBox;
     CheckBoxCheckThreadMadeAfterLstMdfy2: TCheckBox;
-    GroupBox19: TGroupBox;
+    GroupBox19: TJLXPGroupBox;
     Label65: TLabel;
     Label66: TLabel;
-    SpinEditListReloadInterval: TSpinEdit;
-    SpinEditThreadReloadInterval: TSpinEdit;
+    SpinEditListReloadInterval: TJLXPSpinEdit;
+    SpinEditThreadReloadInterval: TJLXPSpinEdit;
     Label67: TLabel;
     Label68: TLabel;
     Label69: TLabel;
@@ -432,6 +405,34 @@ type
     CheckBoxWheelScrollUnderCursor: TCheckBox;
     NGThread: TTabSheet;
     ListBoxNGThread: TListBox;
+    LabelDefaultActive: TLabel;
+    LabelNewActive: TLabel;
+    LabelNew2Active: TLabel;
+    LabelProcessActive: TLabel;
+    LabelDisableWriteActive: TLabel;
+    LabelNew2NoActive: TLabel;
+    LabelDefaultNoActive: TLabel;
+    LabelNewNoActive: TLabel;
+    LabelProcessNoActive: TLabel;
+    LabelDisableWriteNoActive: TLabel;
+    LabelWriteWait: TLabel;
+    LabelAutoReload: TLabel;
+    LabelIDLinkColorMany: TLabel;
+    LabelIDLinkColorNone: TLabel;
+    LabelLinkedNumColor: TLabel;
+    LabelTree: TLabel;
+    LabelFavorite: TLabel;
+    LabelList: TLabel;
+    LabelLog: TLabel;
+    LabelTextView: TLabel;
+    LabelThreadTitle: TLabel;
+    LabelWriteMemo: TLabel;
+    LabelWrite: TLabel;
+    LabelHint: TLabel;
+    LabelHintFix: TLabel;
+    LabelDefault: TLabel;
+    LabelListOdd: TLabel;
+    LabelListEven: TLabel;
     procedure FormShow(Sender: TObject);
     procedure OkButtonClick(Sender: TObject);
     procedure CancelButtonClick(Sender: TObject);
@@ -515,7 +516,7 @@ type
     {beginner}
     PreserveMseGesture: string;
     procedure CustomWndProc(var Message: TMessage);
-    procedure AdvAboneRegistChangeName(Sender: TObject; OldName, NewName: String; CanChange: Boolean);
+    procedure AdvAboneRegistChangeName(Sender: TObject; OldName, NewName: String; var CanChange: Boolean);
     {/beginner}
     { Private 宣言 }
   public
@@ -982,24 +983,24 @@ begin
 
   Main.Config.cmdConfigList.Text := self.ValueListCommand.Strings.Text;
 
-  Main.Config.clListViewOddBackColor  := self.MemoListOdd.Color;
-  Main.Config.clListViewEvenBackColor := self.MemoListEven.Color;
+  Main.Config.clListViewOddBackColor  := self.LabelListOdd.Color;
+  Main.Config.clListViewEvenBackColor := self.LabelListEven.Color;
 
   if Config.ColorChanged then
     SetMainwndColors;
   if Config.FontChanged then
   begin
-    Config.SetFontInfo(Config.viewTreeFontInfo, MemoTree.Font);
-    Config.SetFontInfo(Config.viewListFontInfo, MemoList.Font);
-    Config.SetFontInfo(Config.viewTraceFontInfo, MemoLog.Font);
-    Config.SetFontInfo(Config.viewDefFontInfo, MemoDefault.Font);
-    Config.SetFontInfo(Config.viewThreadTitleFontInfo, MemoThreadTitle.Font); //※[457]
-    Config.SetFontInfo(Config.viewWriteFontInfo, MemoWrite.Font);
+    Config.SetFontInfo(Config.viewTreeFontInfo, LabelTree.Font);
+    Config.SetFontInfo(Config.viewListFontInfo, LabelList.Font);
+    Config.SetFontInfo(Config.viewTraceFontInfo, LabelLog.Font);
+    Config.SetFontInfo(Config.viewDefFontInfo, LabelDefault.Font);
+    Config.SetFontInfo(Config.viewThreadTitleFontInfo, LabelThreadTitle.Font); //※[457]
+    Config.SetFontInfo(Config.viewWriteFontInfo, LabelWrite.Font);
     {beginner}
-    Config.SetFontInfo(Config.viewHintFontInfo, MemoHint.Font);
-    Config.viewHintFontLinkColor := MemoHintFix.Font.Color;
+    Config.SetFontInfo(Config.viewHintFontInfo, LabelHint.Font);
+    Config.viewHintFontLinkColor := LabelHintFix.Font.Color;
     {beginner}
-    Config.SetFontInfo(Config.viewMemoFontInfo, MemoWriteMemo.Font); //aiai
+    Config.SetFontInfo(Config.viewMemoFontInfo, LabelWriteMemo.Font); //aiai
     SetFonts;
   end;
 
@@ -1036,16 +1037,16 @@ begin
 
   {aiai}
   if Main.Config.TabColorChanged then begin
-    Main.Config.tclActiveBack     := self.MemoDefaultActive.Color;
-    Main.Config.tclNoActiveBack   := self.MemoDefaultNoActive.Color;
-    Main.Config.tclWriteWaitBack  := self.MemoWriteWait.Color;
-    Main.Config.tclAutoReloadBack := self.MemoAutoReload.Color;
+    Main.Config.tclActiveBack     := self.LabelDefaultActive.Color;
+    Main.Config.tclNoActiveBack   := self.LabelDefaultNoActive.Color;
+    Main.Config.tclWriteWaitBack  := self.LabelWriteWait.Color;
+    Main.Config.tclAutoReloadBack := self.LabelAutoReload.Color;
 
-    Main.Config.tclDefaultText      := self.MemoDefaultActive.Font.Color;
-    Main.Config.tclNewText          := self.MemoNewActive.Font.Color;
-    Main.Config.tclNew2Text         := self.MemoNew2Active.Font.Color;
-    Main.Config.tclProcessText      := self.MemoProcessActive.Font.Color;
-    Main.Config.tclDisableWriteText := self.MemoDisableWriteActive.Font.Color;
+    Main.Config.tclDefaultText      := self.LabelDefaultActive.Font.Color;
+    Main.Config.tclNewText          := self.LabelNewActive.Font.Color;
+    Main.Config.tclNew2Text         := self.LabelNew2Active.Font.Color;
+    Main.Config.tclProcessText      := self.LabelProcessActive.Font.Color;
+    Main.Config.tclDisableWriteText := self.LabelDisableWriteActive.Font.Color;
 
     Main.Config.SaveTabColor;
 
@@ -1054,22 +1055,22 @@ begin
   end;
 
   if (Main.Config.ojvColordNumber <> self.CheckBoxColordNumber.Checked)
-  or (Main.Config.ojvLinkedNumColor <> self.MemoLinkedNumColor.Font.Color) then
+  or (Main.Config.ojvLinkedNumColor <> self.LabelLinkedNumColor.Font.Color) then
   begin
     Main.Config.ojvColordNumber := self.CheckBoxColordNumber.Checked;
-    Main.Config.ojvLinkedNumColor := self.MemoLinkedNumColor.Font.Color;
+    Main.Config.ojvLinkedNumColor := self.LabelLinkedNumColor.Font.Color;
     MainWnd.LoadColordNumberSetting;
     Main.Config.Modified := true;
   end;
 
   if (Main.Config.ojvIDLinkColor <> self.CheckBoxIDLinkColor.Checked)
-  or (Main.Config.ojvIDLinkColorMany <> self.MemoIDLinkColorMany.Font.Color)
-  or (Main.Config.ojvIDLinkColorNone <> self.MemoIDLinkColorNone.Font.Color)
+  or (Main.Config.ojvIDLinkColorMany <> self.LabelIDLinkColorMany.Font.Color)
+  or (Main.Config.ojvIDLinkColorNone <> self.LabelIDLinkColorNone.Font.Color)
   or (Main.Config.ojvIDLinkThreshold <> self.SpinEditIDLinkThreshold.Value) then
   begin
     Main.Config.ojvIDLinkColor := self.CheckBoxIDLinkColor.Checked;
-    Main.Config.ojvIDLinkColorMany := self.MemoIDLinkColorMany.Font.Color;
-    Main.Config.ojvIDLinkColorNone := self.MemoIDLinkColorNone.Font.Color;
+    Main.Config.ojvIDLinkColorMany := self.LabelIDLinkColorMany.Font.Color;
+    Main.Config.ojvIDLinkColorNone := self.LabelIDLinkColorNone.Font.Color;
     Main.Config.ojvIDLinkThreshold := self.SpinEditIDLinkThreshold.Value;
     MainWnd.LoadColordIDSetting;
     Main.Config.Modified := true;
@@ -1229,10 +1230,14 @@ begin
   self.CheckBoxHideInTaskTray.Checked := Main.Config.optHideInTaskTray;
 
   self.CheckBoxColordNumber.Checked := Main.Config.ojvColordNumber;
-  self.MemoLinkedNumColor.Font.Color := Main.Config.ojvLinkedNumColor;
+  self.LabelLinkedNumColor.Font.Color := Main.Config.ojvLinkedNumColor;
   self.CheckBoxIDLinkColor.Checked := Main.Config.ojvIDLinkColor;
-  self.MemoIDLinkColorMany.Font.Color := Main.Config.ojvIDLinkColorMany;
-  self.MemoIDLinkColorNone.Font.Color := Main.Config.ojvIDLinkColorNone;
+  self.LabelIDLinkColorMany.Font.Color := Main.Config.ojvIDLinkColorMany;
+  self.LabelIDLinkColorNone.Font.Color := Main.Config.ojvIDLinkColorNone;
+  self.LabelLinkedNumColor.Color := clWindow;
+  self.LabelIDLinkColorMany.Color := clWindow;
+  self.LabelIDLinkColorNone.Color := clWindow;
+
   self.SpinEditIDLinkThreshold.Value := Main.Config.ojvIDLinkThreshold;
   self.CheckBoxQuickMerge.Checked := Main.Config.ojvQuickMerge;
 
@@ -1325,10 +1330,10 @@ begin
   self.CheckBoxWheelScrollUnderCursor.Checked := Main.Config.mseWheelScrollUnderCursor;
   //self.MemoMouseGesture.Lines.Text := Main.Config.mseGestureList.Text;
 
-  self.MemoListOdd.Text  := '奇数行';
-  self.MemoListEven.Text := '偶数行';
-  self.MemoListOdd.Color  := Config.clListViewOddBackColor;
-  self.MemoListEven.Color := Config.clListViewEvenBackColor;
+  self.LabelListOdd.Caption  := '奇数行';
+  self.LabelListEven.Caption := '偶数行';
+  self.LabelListOdd.Color  := Config.clListViewOddBackColor;
+  self.LabelListEven.Color := Config.clListViewEvenBackColor;
 
   self.ValueListCommand.Strings.Text := Config.cmdConfigList.Text;
 
@@ -1567,7 +1572,8 @@ begin
 end;
 
 {beginner}
-procedure TUIConfig.AdvAboneRegistChangeName(Sender: TObject; OldName, NewName: String; CanChange: Boolean);
+procedure TUIConfig.AdvAboneRegistChangeName(Sender: TObject;
+  OldName, NewName: String; var CanChange: Boolean);
 var
   Old: Integer;
 begin
@@ -1844,44 +1850,44 @@ end;
 procedure TUIConfig.ButtonColorClick(Sender: TObject);
 var
   tag: integer;
-  Memo: TMemo;
+  Lbl: TLabel;
 begin
   tag := TButton(Sender).Tag;
   case tag of
-    1: Memo := MemoTree;
-    2: Memo := MemoFavorite;
-    3: Memo := MemoList;
-    4: Memo := MemoLog;
+    1: Lbl := LabelTree;
+    2: Lbl := LabelFavorite;
+    3: Lbl := LabelList;
+    4: Lbl := LabelLog;
     {$IFNDEF IE}
-    5: Memo := MemoTextView;
+    5: Lbl := LabelTextView;
     {$ENDIF}
-    10:Memo := MemoTree;
-    11: Memo := MemoThreadTitle; //※[457]
-    101: Memo := MemoListOdd;
-    102: Memo := MemoListEven;
-    200: Memo := MemoHint; //beginner
-    201: Memo := MemoHintFix; //beginner
-    300: Memo := MemoWriteMemo; //aiai
+    10:Lbl := LabelTree;
+    11: Lbl := LabelThreadTitle; //※[457]
+    101: Lbl := LabelListOdd;
+    102: Lbl := LabelListEven;
+    200: Lbl := LabelHint; //beginner
+    201: Lbl := LabelHintFix; //beginner
+    300: Lbl := LabelWriteMemo; //aiai
     else exit;
   end;
 
-  ColorDialog.Color := Memo.Color;
+  ColorDialog.Color := Lbl.Color;
   if not ColorDialog.Execute then
     exit;
 
-  Memo.Color := ColorDialog.Color;
+  Lbl.Color := ColorDialog.Color;
 
   if tag = 10 then
   begin
-    MemoFavorite.Color := ColorDialog.Color;
-    MemoList.Color := ColorDialog.Color;
-    MemoLog.Color := ColorDialog.Color;
+    LabelFavorite.Color := ColorDialog.Color;
+    LabelList.Color := ColorDialog.Color;
+    LabelLog.Color := ColorDialog.Color;
     {$IFNDEF IE}
-    MemoTextView.Color := ColorDialog.Color;
+    LabelTextView.Color := ColorDialog.Color;
     {$ENDIF}
-    MemoThreadTitle.Color := ColorDialog.Color;
-    MemoHint.Color := ColorDialog.Color;  //beginner
-    MemoWriteMemo.Color := ColorDialog.Color; //aiai
+    LabelThreadTitle.Color := ColorDialog.Color;
+    LabelHint.Color := ColorDialog.Color;  //beginner
+    LabelWriteMemo.Color := ColorDialog.Color; //aiai
   end;
 
   Config.ColorChanged := true;
@@ -1891,20 +1897,20 @@ end;
 procedure TUIConfig.ButtonFontClick(Sender: TObject);
 var
   tag: integer;
-  Memo: TMemo;
+  Lbl: TLabel;
 begin
   tag := TButton(Sender).Tag;
   case tag of
-    1:  Memo := MemoTree;
-    2:  Memo := MemoList;
-    3:  Memo := MemoLog;
-    4:  Memo := MemoDefault;
-    5:  Memo := MemoWrite;
-    10: Memo := MemoTree;
-    11: Memo := MemoThreadTitle; //※[457]
-    200: Memo := MemoHint; //beginner
-    201: Memo := MemoHintFix; //beginner
-    300: Memo := MemoWriteMemo; //aiai
+    1:  Lbl := LabelTree;
+    2:  Lbl := LabelList;
+    3:  Lbl := LabelLog;
+    4:  Lbl := LabelDefault;
+    5:  Lbl := LabelWrite;
+    10: Lbl := LabelTree;
+    11: Lbl := LabelThreadTitle; //※[457]
+    200: Lbl := LabelHint; //beginner
+    201: Lbl := LabelHintFix; //beginner
+    300: Lbl := LabelWriteMemo; //aiai
     else exit;
   end;
 
@@ -1912,36 +1918,36 @@ begin
   if tag = 201 then begin
     if not ColorDialog.Execute then
       exit;
-    Memo.Font.Color := ColorDialog.Color;
+    Lbl.Font.Color := ColorDialog.Color;
     Config.FontChanged := true;
     Exit;
   end;
   {/beginner}
 
-  FontDialog.Font := Memo.Font;
+  FontDialog.Font := Lbl.Font;
   if not FontDialog.Execute then
     exit;
 
   FontDialog.Font.Charset := SHIFTJIS_CHARSET;//beginner
-  Memo.Font := FontDialog.Font;
+  Lbl.Font := FontDialog.Font;
 
   if tag =1 then
-     MemoFavorite.Font := FontDialog.Font
+     LabelFavorite.Font := FontDialog.Font
   else if tag = 10 then
   begin
-    MemoFavorite.Font := FontDialog.Font;
-    MemoList.Font := FontDialog.Font;
-    MemoLog.Font := FontDialog.Font;
-    MemoDefault.Font := FontDialog.Font;
-    MemoThreadTitle.Font := FontDialog.Font;
-    MemoWrite.Font := FontDialog.Font;
-    MemoHint.Font := FontDialog.Font;  //beginner
-    MemoWriteMemo.Font := FontDialog.Font; //aiai
+    LabelFavorite.Font := FontDialog.Font;
+    LabelList.Font := FontDialog.Font;
+    LabelLog.Font := FontDialog.Font;
+    LabelDefault.Font := FontDialog.Font;
+    LabelThreadTitle.Font := FontDialog.Font;
+    LabelWrite.Font := FontDialog.Font;
+    LabelHint.Font := FontDialog.Font;  //beginner
+    LabelWriteMemo.Font := FontDialog.Font; //aiai
   end;
   {beginner}
-  MemoHintFix.Font.Name := MemoHint.Font.Name;
-  MemoHintFix.Font.Charset := MemoHint.Font.Charset;
-  MemoHintFix.Font.Size := MemoHint.Font.Size;
+  LabelHintFix.Font.Name := LabelHint.Font.Name;
+  LabelHintFix.Font.Charset := LabelHint.Font.Charset;
+  LabelHintFix.Font.Size := LabelHint.Font.Size;
   {/beginner}
 
   Config.FontChanged := true;
@@ -1954,24 +1960,24 @@ var
   i: integer;
 {$ENDIF}
 begin
-  if self.MemoList.Text = '' then
+  if self.LabelList.Caption = '' then
     exit;
-  MainWnd.ListView.Color := self.MemoList.Color;
-  MainWnd.TreeView.Color := self.MemoTree.Color;
-  MainWnd.FavoriteView.Color := self.MemoFavorite.Color;
-  MainWnd.Memo.Color := self.MemoLog.Color;
-  MainWnd.ThreadToolPanel.Color := self.MemoThreadTitle.Color;
-  Config.wrtWritePanelColor := self.MemoWriteMemo.Color; //aiai
+  MainWnd.ListView.Color := self.LabelList.Color;
+  MainWnd.TreeView.Color := self.LabelTree.Color;
+  MainWnd.FavoriteView.Color := self.LabelFavorite.Color;
+  MainWnd.Memo.Color := self.LabelLog.Color;
+  MainWnd.ThreadToolPanel.Color := self.LabelThreadTitle.Color;
+  Config.wrtWritePanelColor := self.LabelWriteMemo.Color; //aiai
   {$IFNDEF IE}
-  Config.clViewColor := self.MemoTextView.Color;
+  Config.clViewColor := self.LabelTextView.Color;
   Mainwnd.WebPanel.Color := Config.clViewColor;
   for i := 0 to viewList.Count -1 do
     viewList.Items[i].browser.Color := Config.clViewColor;
   {$ENDIF}
   {beginner}
-  MainWnd.PopupHint.Color := Self.MemoHint.Color;
-  Config.clHintOnFix := Self.MemoHintFix.Color;
-  Config.viewHintFontLinkColor := Self.MemoHintFix.Font.Color;
+  MainWnd.PopupHint.Color := Self.LabelHint.Color;
+  Config.clHintOnFix := Self.LabelHintFix.Color;
+  Config.viewHintFontLinkColor := Self.LabelHintFix.Font.Color;
   {/beginner}
 
 end;
@@ -1981,7 +1987,7 @@ procedure TUIConfig.SetFonts;
 var
   font: TFont;
 begin
-  if MemoTree.Font <> MainWnd.TreeView.Font then
+  if LabelTree.Font <> MainWnd.TreeView.Font then
   begin
     font := TFont.Create;
     Config.SetFont(font, Config.viewTreeFontInfo);
@@ -1989,7 +1995,7 @@ begin
     MainWnd.FavoriteView.Font.Assign(font);
     font.Free;
   end;
-  if MemoDefault.Font <> MainWnd.Font then
+  if LabelDefault.Font <> MainWnd.Font then
   begin
     font := TFont.Create;
     Config.SetFont(font, Config.viewDefFontInfo);
@@ -2001,14 +2007,14 @@ begin
     self.Font.Assign(font);
     font.Free;
   end;
-  if MemoLog.Font <> MainWnd.Memo.Font then
+  if LabelLog.Font <> MainWnd.Memo.Font then
   begin
     font := TFont.Create;
     Config.SetFont(font, Config.viewTraceFontInfo);
     MainWnd.Memo.Font.Assign(font);
     font.Free;
   end;
-  if MemoList.Font <> MainWnd.ListView.Font then
+  if LabelList.Font <> MainWnd.ListView.Font then
   begin
     font := TFont.Create;
     Config.SetFont(font, Config.viewListFontInfo);
@@ -2016,7 +2022,7 @@ begin
     font.Free;
   end;
   //※[457]
-  if MemoThreadTitle.Font <> MainWnd.ThreadTitleLabel.Font then
+  if LabelThreadTitle.Font <> MainWnd.ThreadTitleLabel.Font then
   begin
     font := TFont.Create;
     Config.SetFont(font, Config.viewThreadTitleFontInfo);
@@ -2024,7 +2030,7 @@ begin
     font.Free;
   end;
   {beginner}
-  if MemoHint.Font <> MainWnd.PopupHint.Font then
+  if LabelHint.Font <> MainWnd.PopupHint.Font then
   begin
     font := TFont.Create;
     Config.SetFont(font, Config.viewHintFontInfo);
@@ -2032,7 +2038,7 @@ begin
     MainWnd.PopupHint.Canvas.Font.Assign(font);
     font.Free;
   end;
-  config.viewHintFontLinkColor := MemoHintFix.Font.Color;
+  config.viewHintFontLinkColor := LabelHintFix.Font.Color;
   {/beginner}
 end;
 
@@ -2273,89 +2279,89 @@ begin
   end
   else if PageControl.ActivePage = SheetColors then
   begin
-    self.MemoTree.Text := '板覧';
-    self.MemoFavorite.Text := 'お気に入り';
-    self.MemoList.Text := 'スレ覧';
-    self.MemoLog.Text := 'トレース画面';
-    self.MemoTextView.Text := 'スレビュー';
-    self.MemoDefault.Text := 'その他';
-    self.MemoThreadTitle.Text := 'スレタイトル'; //※[457]
-    self.MemoWrite.Text := '書き込み';
-    self.MemoWriteMemo.Text := 'メモ欄';
-    self.MemoTree.Color := MainWnd.TreeView.Color;
-    self.MemoFavorite.Color := MainWnd.FavoriteView.Color;
-    self.MemoList.Color := MainWnd.ListView.Color;
-    self.MemoLog.Color := MainWnd.Memo.Color;
-    self.MemoThreadTitle.Color := MainWnd.ThreadToolPanel.Color; //※[457]
+    self.LabelTree.Caption := '板覧';
+    self.LabelFavorite.Caption := 'お気に入り';
+    self.LabelList.Caption := 'スレ覧';
+    self.LabelLog.Caption := 'トレース画面';
+    self.LabelTextView.Caption := 'スレビュー';
+    self.LabelDefault.Caption := 'その他';
+    self.LabelThreadTitle.Caption := 'スレタイトル'; //※[457]
+    self.LabelWrite.Caption := '書き込み';
+    self.LabelWriteMemo.Caption := 'メモ欄';
+    self.LabelTree.Color := MainWnd.TreeView.Color;
+    self.LabelFavorite.Color := MainWnd.FavoriteView.Color;
+    self.LabelList.Color := MainWnd.ListView.Color;
+    self.LabelLog.Color := MainWnd.Memo.Color;
+    self.LabelThreadTitle.Color := MainWnd.ThreadToolPanel.Color; //※[457]
     {$IFDEF IE}
     self.ButtonTextColor.Enabled :=false;
     self.ButtonTextColor.Visible :=false;
     {$ELSE}
-    self.MemoTextView.Color := Config.clViewColor;
+    self.LabelTextView.Color := Config.clViewColor;
     {$ENDIF}
-    self.MemoTree.Font := MainWnd.FavoriteView.Font;
-    self.MemoFavorite.Font := MainWnd.FavoriteView.Font;
-    self.MemoList.Font := MainWnd.ListView.Font;
-    self.MemoLog.Font := MainWnd.Memo.Font;
-    self.MemoThreadTitle.Font := MainWnd.ThreadTitleLabel.Font;
+    self.LabelTree.Font := MainWnd.FavoriteView.Font;
+    self.LabelFavorite.Font := MainWnd.FavoriteView.Font;
+    self.LabelList.Font := MainWnd.ListView.Font;
+    self.LabelLog.Font := MainWnd.Memo.Font;
+    self.LabelThreadTitle.Font := MainWnd.ThreadTitleLabel.Font;
     {beginner}
-    self.MemoHint.Text := 'ヒント';
-    self.MemoHint.Color := MainWnd.PopupHint.Color;
-    self.MemoHint.Font := MainWnd.PopupHint.Font;
-    self.MemoHintFix.Text := 'Lnk';
-    self.MemoHintFix.Color := Config.clHintOnFix;
-    self.MemoHintFix.Font := self.MemoHint.Font;
-    self.MemoHintFix.Font.Color := Config.viewHintFontLinkColor;
-    self.MemoHintFix.Font.Style := [fsUnderLine];
+    self.LabelHint.Caption := 'ヒント';
+    self.LabelHint.Color := MainWnd.PopupHint.Color;
+    self.LabelHint.Font := MainWnd.PopupHint.Font;
+    self.LabelHintFix.Caption := 'Lnk';
+    self.LabelHintFix.Color := Config.clHintOnFix;
+    self.LabelHintFix.Font := self.LabelHint.Font;
+    self.LabelHintFix.Font.Color := Config.viewHintFontLinkColor;
+    self.LabelHintFix.Font.Style := [fsUnderLine];
     {/beginner}
-    self.MemoWriteMemo.Color := Config.wrtWritePanelColor; //aiai
+    self.LabelWriteMemo.Color := Config.wrtWritePanelColor; //aiai
     if Config.viewWriteFontInfo.face <> '' then
     begin
       font := TFont.Create;
       Config.SetFont(font, Config.viewWriteFontInfo);
-      MemoWrite.Font.Assign(font);
+      LabelWrite.Font.Assign(font);
       font.Free;
     end;
   end
   {aiai}
   else if PageControl.ActivePage = SheetTabColor then
   begin
-    self.MemoDefaultActive.Text        := 'デフォルト';
-    self.MemoDefaultNoActive.Text      := 'デフォルト';
-    self.MemoNewActive.Text            := '新着ある';
-    self.MemoNewNoActive.Text          := '新着ある';
-    self.MemoNew2Active.Text           := '更新ある';
-    self.MemoNew2NoActive.Text         := '更新ある';
-    self.MemoProcessActive.Text        := '更新中';
-    self.MemoProcessNoActive.Text      := '更新中';
-    self.MemoDisableWriteActive.Text   := '書き込めない';
-    self.MemoDisableWriteNoAcitve.Text := '書き込めない';
-    self.MemoWriteWait.Text            := 'WriteWait中';
-    self.MemoAutoReload.Text           := 'オートリロード中';
+    self.LabelDefaultActive.Caption        := 'デフォルト';
+    self.LabelDefaultNoActive.Caption      := 'デフォルト';
+    self.LabelNewActive.Caption            := '新着ある';
+    self.LabelNewNoActive.Caption          := '新着ある';
+    self.LabelNew2Active.Caption           := '更新ある';
+    self.LabelNew2NoActive.Caption         := '更新ある';
+    self.LabelProcessActive.Caption        := '更新中';
+    self.LabelProcessNoActive.Caption      := '更新中';
+    self.LabelDisableWriteActive.Caption   := '書き込めない';
+    self.LabelDisableWriteNoActive.Caption := '書き込めない';
+    self.LabelWriteWait.Caption            := 'WriteWait中';
+    self.LabelAutoReload.Caption           := 'オートリロード中';
 
-    self.MemoDefaultActive.Color        := Main.Config.tclActiveBack;
-    self.MemoNewActive.Color            := Main.Config.tclActiveBack;
-    self.MemoNew2Active.Color           := Main.Config.tclActiveBack;
-    self.MemoProcessActive.Color        := Main.Config.tclActiveBack;
-    self.MemoDisableWriteActive.Color   := Main.Config.tclActiveBack;
-    self.MemoDefaultNoActive.Color      := Main.Config.tclNoActiveBack;
-    self.MemoNewNoActive.Color          := Main.Config.tclNoActiveBack;
-    self.MemoNew2NoActive.Color         := Main.Config.tclNoActiveBack;
-    self.MemoProcessNoActive.Color      := Main.Config.tclNoActiveBack;
-    self.MemoDisableWriteNoAcitve.Color := Main.Config.tclNoActiveBack;
-    self.MemoWriteWait.Color            := Main.Config.tclWriteWaitBack;
-    self.MemoAutoReload.Color           := Main.Config.tclAutoReloadBack;
+    self.LabelDefaultActive.Color        := Main.Config.tclActiveBack;
+    self.LabelNewActive.Color            := Main.Config.tclActiveBack;
+    self.LabelNew2Active.Color           := Main.Config.tclActiveBack;
+    self.LabelProcessActive.Color        := Main.Config.tclActiveBack;
+    self.LabelDisableWriteActive.Color   := Main.Config.tclActiveBack;
+    self.LabelDefaultNoActive.Color      := Main.Config.tclNoActiveBack;
+    self.LabelNewNoActive.Color          := Main.Config.tclNoActiveBack;
+    self.LabelNew2NoActive.Color         := Main.Config.tclNoActiveBack;
+    self.LabelProcessNoActive.Color      := Main.Config.tclNoActiveBack;
+    self.LabelDisableWriteNoActive.Color := Main.Config.tclNoActiveBack;
+    self.LabelWriteWait.Color            := Main.Config.tclWriteWaitBack;
+    self.LabelAutoReload.Color           := Main.Config.tclAutoReloadBack;
 
-    self.MemoDefaultActive.Font.Color        := Main.Config.tclDefaultText;
-    self.MemoDefaultNoActive.Font.Color      := Main.Config.tclDefaultText;
-    self.MemoNewActive.Font.Color            := Main.Config.tclNewText;
-    self.MemoNewNoActive.Font.Color          := Main.Config.tclNewText;
-    self.MemoNew2Active.Font.Color           := Main.Config.tclNew2Text;
-    self.MemoNew2NoActive.Font.Color         := Main.Config.tclNew2Text;
-    self.MemoProcessActive.Font.Color        := Main.Config.tclProcessText;
-    self.MemoProcessNoActive.Font.Color      := Main.Config.tclProcessText;
-    self.MemoDisableWriteActive.Font.Color   := Main.Config.tclDisableWriteText;
-    self.MemoDisableWriteNoAcitve.Font.Color := Main.Config.tclDisableWriteText;
+    self.LabelDefaultActive.Font.Color        := Main.Config.tclDefaultText;
+    self.LabelDefaultNoActive.Font.Color      := Main.Config.tclDefaultText;
+    self.LabelNewActive.Font.Color            := Main.Config.tclNewText;
+    self.LabelNewNoActive.Font.Color          := Main.Config.tclNewText;
+    self.LabelNew2Active.Font.Color           := Main.Config.tclNew2Text;
+    self.LabelNew2NoActive.Font.Color         := Main.Config.tclNew2Text;
+    self.LabelProcessActive.Font.Color        := Main.Config.tclProcessText;
+    self.LabelProcessNoActive.Font.Color      := Main.Config.tclProcessText;
+    self.LabelDisableWriteActive.Font.Color   := Main.Config.tclDisableWriteText;
+    self.LabelDisableWriteNoActive.Font.Color := Main.Config.tclDisableWriteText;
   end
   {/aiai}
   else if PageControl.ActivePage = SheetMouse then
@@ -2642,39 +2648,39 @@ begin
   case tag of
     1:  //アクティブの時のタブの背景色
       begin
-        ColorDialog.Color := MemoDefaultActive.Color;
+        ColorDialog.Color := LabelDefaultActive.Color;
         if not ColorDialog.Execute then exit;
 
-        MemoDefaultActive.Color      := ColorDialog.Color;
-        MemoNewActive.Color          := ColorDialog.Color;
-        MemoNew2Active.Color         := ColorDialog.Color;
-        MemoProcessActive.Color      := ColorDialog.Color;
-        MemoDisableWriteActive.Color := ColorDialog.Color;
+        LabelDefaultActive.Color      := ColorDialog.Color;
+        LabelNewActive.Color          := ColorDialog.Color;
+        LabelNew2Active.Color         := ColorDialog.Color;
+        LabelProcessActive.Color      := ColorDialog.Color;
+        LabelDisableWriteActive.Color := ColorDialog.Color;
       end;
     2: //アクティブじゃない時のタブの背景色
       begin
-        ColorDialog.Color := MemoDefaultNoActive.Color;
+        ColorDialog.Color := LabelDefaultNoActive.Color;
         if not ColorDialog.Execute then exit;
 
-        MemoDefaultNoActive.Color      := ColorDialog.Color;
-        MemoNewNoActive.Color          := ColorDialog.Color;
-        MemoNew2NoActive.Color         := ColorDialog.Color;
-        MemoProcessNoActive.Color      := ColorDialog.Color;
-        MemoDisableWriteNoAcitve.Color := ColorDialog.Color;
+        LabelDefaultNoActive.Color      := ColorDialog.Color;
+        LabelNewNoActive.Color          := ColorDialog.Color;
+        LabelNew2NoActive.Color         := ColorDialog.Color;
+        LabelProcessNoActive.Color      := ColorDialog.Color;
+        LabelDisableWriteNoActive.Color := ColorDialog.Color;
       end;
     3: //WriteWait中のタブの背景色
       begin
-        ColorDialog.Color := MemoWriteWait.Color;
+        ColorDialog.Color := LabelWriteWait.Color;
         if not ColorDialog.Execute then exit;
 
-        MemoWriteWait.Color := ColorDialog.Color;
+        LabelWriteWait.Color := ColorDialog.Color;
       end;
     4: //AutoReload中のタブの背景色
       begin
-        Colordialog.Color := MemoAutoReload.Color;
+        Colordialog.Color := LabelAutoReload.Color;
         if not ColorDialog.Execute then exit;
 
-        MemoAutoReload.Color := ColorDialog.Color;
+        LabelAutoReload.Color := ColorDialog.Color;
       end;
   else exit;
   end;
@@ -2690,49 +2696,49 @@ begin
   case tag of
     1: //デフォルトの文字の色
       begin
-        ColorDialog.Color := MemoDefaultActive.Font.Color;
+        ColorDialog.Color := LabelDefaultActive.Font.Color;
 
         if not ColorDialog.Execute then exit;
 
-        MemoDefaultActive.Font.Color := ColorDialog.Color;
-        MemoDefaultNoActive.Font.Color := ColorDialog.Color;
+        LabelDefaultActive.Font.Color := ColorDialog.Color;
+        LabelDefaultNoActive.Font.Color := ColorDialog.Color;
       end;
     2: //新着があるの文字の色
       begin
-        ColorDialog.Color := MemoNewActive.Font.Color;
+        ColorDialog.Color := LabelNewActive.Font.Color;
 
         if not ColorDialog.Execute then exit;
 
-        MemoNewActive.Font.Color := ColorDialog.Color;
-        MemoNewNoActive.Font.Color := ColorDialog.Color;
+        LabelNewActive.Font.Color := ColorDialog.Color;
+        LabelNewNoActive.Font.Color := ColorDialog.Color;
       end;
     3: //更新があるの文字の色
       begin
-        ColorDialog.Color := MemoNew2Active.Font.Color;
+        ColorDialog.Color := LabelNew2Active.Font.Color;
 
         if not ColorDialog.Execute then exit;
 
-        MemoNew2Active.Font.Color := ColorDialog.Color;
-        MemoNew2NoActive.Font.Color := ColorDialog.Color;
+        LabelNew2Active.Font.Color := ColorDialog.Color;
+        LabelNew2NoActive.Font.Color := ColorDialog.Color;
 
       end;
     4: //更新中の文字の色
       begin
-        ColorDialog.Color := MemoProcessActive.Font.Color;
+        ColorDialog.Color := LabelProcessActive.Font.Color;
 
         if not ColorDialog.Execute then exit;
 
-        MemoProcessActive.Font.Color := ColorDialog.Color;
-        MemoProcessNoActive.Font.Color := ColorDialog.Color;
+        LabelProcessActive.Font.Color := ColorDialog.Color;
+        LabelProcessNoActive.Font.Color := ColorDialog.Color;
       end;
     5: //書き込めないの文字の色
       begin
-        ColorDialog.Color := MemoDisableWriteActive.Font.Color;
+        ColorDialog.Color := LabelDisableWriteActive.Font.Color;
 
         if not ColorDialog.Execute then exit;
 
-        MemoDisableWriteActive.Font.Color := ColorDialog.Color;
-        MemoDisableWriteNoAcitve.Font.Color := ColorDialog.Color;
+        LabelDisableWriteActive.Font.Color := ColorDialog.Color;
+        LabelDisableWriteNoActive.Font.Color := ColorDialog.Color;
       end;
   else exit;
   end;
@@ -2751,25 +2757,25 @@ end;
 //aiai
 procedure TUIConfig.ButtonColordNumberClick(Sender: TObject);
 begin
-   ColorDialog.Color := self.MemoLinkedNumColor.Font.Color;
+   ColorDialog.Color := self.LabelLinkedNumColor.Font.Color;
    if ColorDialog.Execute then
-     self.MemoLinkedNumColor.Font.Color := ColorDialog.Color;
+     self.LabelLinkedNumColor.Font.Color := ColorDialog.Color;
 end;
 
 //aiai
 procedure TUIConfig.ButtonIDLinkColorManyClick(Sender: TObject);
 begin
-   ColorDialog.Color := self.MemoIDLinkColorMany.Font.Color;
+   ColorDialog.Color := self.LabelIDLinkColorMany.Font.Color;
    if ColorDialog.Execute then
-     self.MemoIDLinkColorMany.Font.Color := ColorDialog.Color;
+     self.LabelIDLinkColorMany.Font.Color := ColorDialog.Color;
 end;
 
 //aiai
 procedure TUIConfig.ButtonIDLinkColorNoneClick(Sender: TObject);
 begin
-   ColorDialog.Color := self.MemoIDLinkColorNone.Font.Color;
+   ColorDialog.Color := self.LabelIDLinkColorNone.Font.Color;
    if ColorDialog.Execute then
-     self.MemoIDLinkColorNone.Font.Color := ColorDialog.Color;
+     self.LabelIDLinkColorNone.Font.Color := ColorDialog.Color;
 end;
 
 end.

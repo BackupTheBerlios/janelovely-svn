@@ -3,8 +3,7 @@ unit UAutoScrollSettingForm;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, Spin, Jconfig;
+  Windows, Messages, Classes, StdCtrls, Controls, JLXPSpin, Forms, JConfig;
 
 type
   TAutoScrollSettingForm = class(TForm)
@@ -18,22 +17,22 @@ type
     Label6: TLabel;
     Label7: TLabel;
     Label8: TLabel;
-    SpinEditLines1: TSpinEdit;
-    SpinEditLines2: TSpinEdit;
-    SpinEditLines3: TSpinEdit;
-    SpinEditLines4: TSpinEdit;
-    SpinEditLines5: TSpinEdit;
-    SpinEditLines6: TSpinEdit;
-    SpinEditLines7: TSpinEdit;
-    SpinEditLines8: TSpinEdit;
-    SpinEditInterval1: TSpinEdit;
-    SpinEditInterval2: TSpinEdit;
-    SpinEditInterval3: TSpinEdit;
-    SpinEditInterval4: TSpinEdit;
-    SpinEditInterval5: TSpinEdit;
-    SpinEditInterval6: TSpinEdit;
-    SpinEditInterval7: TSpinEdit;
-    SpinEditInterval8: TSpinEdit;
+    SpinEditLines1: TJLXPSpinEdit;
+    SpinEditLines2: TJLXPSpinEdit;
+    SpinEditLines3: TJLXPSpinEdit;
+    SpinEditLines4: TJLXPSpinEdit;
+    SpinEditLines5: TJLXPSpinEdit;
+    SpinEditLines6: TJLXPSpinEdit;
+    SpinEditLines7: TJLXPSpinEdit;
+    SpinEditLines8: TJLXPSpinEdit;
+    SpinEditInterval1: TJLXPSpinEdit;
+    SpinEditInterval2: TJLXPSpinEdit;
+    SpinEditInterval3: TJLXPSpinEdit;
+    SpinEditInterval4: TJLXPSpinEdit;
+    SpinEditInterval5: TJLXPSpinEdit;
+    SpinEditInterval6: TJLXPSpinEdit;
+    SpinEditInterval7: TJLXPSpinEdit;
+    SpinEditInterval8: TJLXPSpinEdit;
     Label9: TLabel;
     ButtonOK: TButton;
     ButtonCancel: TButton;

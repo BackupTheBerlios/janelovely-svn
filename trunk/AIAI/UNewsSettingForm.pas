@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, Spin;
+  Dialogs, StdCtrls, JLXPSpin;
 
 type
   TSettingType = (TInterval, TBarSize);
@@ -13,7 +13,7 @@ type
     ButtonOK: TButton;
     ButtonCancel: TButton;
     Label1: TLabel;
-    SpinEditNewsInterval: TSpinEdit;
+    SpinEditNewsInterval: TJLXPSpinEdit;
     procedure FormCreate(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
   private

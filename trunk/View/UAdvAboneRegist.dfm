@@ -1,6 +1,6 @@
 object AdvAboneRegist: TAdvAboneRegist
-  Left = 474
-  Top = 207
+  Left = 194
+  Top = 201
   BorderStyle = bsToolWindow
   Caption = #25313#24373'NG'
   ClientHeight = 232
@@ -194,7 +194,7 @@ object AdvAboneRegist: TAdvAboneRegist
       #36879#26126#12354#12412#65374#12435
       #37325#35201#12461#12540#12527#12540#12489)
   end
-  object SpinEditLifeSpan: TSpinEdit
+  object SpinEditLifeSpan: TJLXPSpinEdit
     Left = 296
     Top = 206
     Width = 49

@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Controls, ExtCtrls, ComCtrls, StdCtrls,
-  Graphics, Buttons, HogeTextView, UViewItem;
+  Graphics, Buttons, HogeTextView, UViewItem, JLXPComCtrls;
 
 const
   TABSHEET_WRITE      = 0;
@@ -50,7 +50,7 @@ type
     PreViewItem: TFlexViewItem;
     Result: TMemo;
     SettingTxt: TMemo;
-    WStatusBar: TStatusBar;
+    WStatusBar: TJLXPStatusBar;
     PanelColor: array[0..2] of TColor;  //パネルの数だけ確保
     AAComboDropDown: Boolean;
     procedure CreatePreView; virtual;
@@ -286,7 +286,7 @@ end;
 (* ステータスバーを作る *)
 procedure TJLBaseWritePanel.CreateStatusBar;
 begin
-  WStatusBar := TStatusBar.Create(Self);
+  WStatusBar := TJLXPStatusBar.Create(Self);
   With WStatusBar do
   begin
     Parent := Self;

@@ -49,7 +49,7 @@ uses
   ULocalCopy,
   StrSub,
   UCrypt,
-  jconvert, ToolWin;
+  jconvert, ToolWin, JLXPComCtrls;
 
 type
   TPostType = (postNormal, postCheck);
@@ -85,10 +85,10 @@ type
     writeActShowAAList: TAction;
     TabSheetSettingTxt: TTabSheet;
     SettingTxt: TMemo;
-    WStatusBar: TStatusBar;
+    WStatusBar: TJLXPStatusBar;
     EditNameBox: TComboBoxEx;
     EditMailBox: TComboBoxEx;
-    ToolBar1: TToolBar;
+    ToolBar1: TJLXPToolBar;
     ToolButtonRecordNameMail: TToolButton;
     ToolButtonTrim: TToolButton;
     ToolButtonNameWarn: TToolButton;  //rika
@@ -179,7 +179,6 @@ type
     procedure RequestToGetLocalRule;
     procedure PasteAAListItem;
     procedure SetNameBox(NameCombo: TComboboxEx; NameList: TStringList; const Board: string);  //beginner(by nono)
-    procedure WmSize(var Msg: TMessage); message WM_SIZE;  //aiai
 
   protected
     procedure CreateParams(var Params: TCreateParams); override;
@@ -2235,15 +2234,6 @@ begin
   Config.wrtNameMailWarning := not Config.wrtNameMailWarning;
   ToolButtonNameWarn.Down := Config.wrtNameMailWarning;
   JLWritePanel.SetNameMailWarning(Config.wrtNameMailWarning);
-end;
-
-//aiai
-procedure TWriteForm.WmSize(var Msg: TMessage);
-begin
-  inherited;
-
-  if Assigned(WStatusBar) then
-    WStatusBar.Invalidate;
 end;
 
 end.

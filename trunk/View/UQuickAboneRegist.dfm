@@ -78,7 +78,7 @@ object QuickAboneRegist: TQuickAboneRegist
         #36879#26126#12354#12412#65374#12435
         #37325#35201#12461#12540#12527#12540#12489)
     end
-    object seLifeSpan: TSpinEdit
+    object seLifeSpan: TJLXPSpinEdit
       Left = 240
       Top = 6
       Width = 49

@@ -5,7 +5,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, OleCtrls, SHDocVw_TLB, ComCtrls, ToolWin, ImgList, StdCtrls;
+  Dialogs, OleCtrls, SHDocVw_TLB, ComCtrls, ToolWin, ImgList, StdCtrls,
+  JLXPComCtrls;
 
 const
   LOVELY_WEB_BROWSER = 'ì f[fì Lovely Web Browser';
@@ -14,7 +15,7 @@ const
 
 type
   TLovelyWebForm = class(TForm)
-    NavigateToolBar: TToolBar;
+    NavigateToolBar: TJLXPToolBar;
     GoBackButton: TToolButton;
     GoForwardButton: TToolButton;
     StopButton: TToolButton;
@@ -23,7 +24,7 @@ type
     NavigateEdit: TEdit;
     NavigateButtonImageList: TImageList;
     WebBrowser: TWebBrowser;
-    StatusBar: TStatusBar;
+    StatusBar: TJLXPStatusBar;
     procedure NavigateButtonClick(Sender: TObject);
     procedure NavigateEditKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
@@ -218,7 +219,7 @@ begin
   Config.lovelyWebFormWidth := Result.Right - Result.Left;
 end;
 
-procedure TLovelyWebForm.FormShow(Sender: TObject);
+procedure TLovelyWebForm.FormShow(Sender: TObject);
 begin
   (* •Û‘¶‚³‚ê‚½ˆÊ’u‚ÉˆÚ“® *)
   {if (Config.lovelyWebFormTop >= 0)
