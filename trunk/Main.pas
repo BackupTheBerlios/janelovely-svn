@@ -1235,7 +1235,7 @@ type
     WritePanelMoving: Boolean;
     //改造▽ 追加 (スレビューに壁紙を設定する。Doe用)
     //改造メモ：メモリ節約対応。壁紙の保持をTHogeTextViewの外で行う
-    BrowserWallPaper: TBitmap;
+    BrowserWallPaper: TGraphic;
     BrowserWallPaperVAlign: TWallpaperVAlign;
     BrowserWallPaperHAlign: TWallpaperHAlign;
     BrowserWallPaperName: String;
@@ -2906,16 +2906,6 @@ begin
 end;
 
 procedure TMainWnd.LoadReconstructionSetting;
-  procedure LoadPictureFile(image: TGraphic; bitmap: TBitmap);
-  begin
-    try
-      image.LoadFromFile(BrowserWallpaperName);
-      bitmap.Assign(image);
-    finally
-      image.Free;
-    end;
-  end;
-
 var
   ImageConv: TGraphic;
   FileExt: String;
@@ -2924,28 +2914,53 @@ begin
 
   if FileExists(BrowserWallpaperName) then
   begin
-    BrowserWallpaper := TBitmap.Create;
     FileExt := ExtractFileExt(BrowserWallpaperName);
 
-    if SameText(FileExt, '.jpg') or SameText(FileExt, '.jpeg') then begin
+    if SameText(FileExt, '.jpg') or SameText(FileExt, '.jpeg') then
+    begin
+
+      BrowserWallpaper := TBitmap.Create;
       ImageConv := TApiBitmap.Create;
-      LoadPictureFile(ImageConv, BrowserWallpaper);
+      try
+        try
+          ImageConv.LoadFromFile(BrowserWallpaperName);
+          BrowserWallpaper.Assign(ImageConv);
+        finally
+          ImageConv.Free;
+        end; //try
+      except
+        on E: Exception do begin
+          Log(E.Message);
+          FreeAndNil(BrowserWallpaper);
+        end;
+      end;  //try
+
     end
     else if SameText(FileExt, '.png') then begin
-      ImageConv := TPNGObject.Create;
-      LoadPictureFile(ImageConv, BrowserWallpaper);
+
+     BrowserWallpaper := TPNGObject.Create;
+      try
+        BrowserWallpaper.LoadFromFile(BrowserWallpaperName);
+      except
+        on E: Exception do begin
+          Log(E.Message);
+          FreeAndNil(BrowserWallpaper);
+        end;
+      end;
+
     end
     else if SameText(FileExt, '.bmp') then begin
-      ImageConv := TBitmap.Create;
-      LoadPictureFile(ImageConv, BrowserWallpaper);
-    end
-    else begin
-      //壁紙情報をクリア
-      //改造メモ：ここまでいる？　FreeだけでOK？
-      BrowserWallpaper.Dormant;             // GDI リソースを解放する
-      BrowserWallpaper.FreeImage;           // Memory を解放する
-      BrowserWallpaper.ReleaseHandle;       // ビットマップイメージは本当に解放される
-      FreeAndNil(BrowserWallpaper);
+
+     BrowserWallpaper := TBitmap.Create;
+      try
+        BrowserWallpaper.LoadFromFile(BrowserWallpaperName);
+      except
+        on E: Exception do begin
+          Log(E.Message);
+          FreeAndNil(BrowserWallpaper);
+        end;
+      end;  //try
+
     end;
   end;
 

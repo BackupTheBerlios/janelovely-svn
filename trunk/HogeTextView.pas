@@ -24,8 +24,7 @@ uses
   Clipbrd,
   ExtCtrls,
   MMSystem, //beginner
-  AppEvnts,
-  PNGImage;
+  AppEvnts;
 
 type
   (*-------------------------------------------------------*)
@@ -183,7 +182,7 @@ type
     FBitmap: TBitmap;
 
     //改造▽ 追加 (スレビューに壁紙を設定する。Doe用)
-    FWallpaper: TBitmap;
+    FWallpaper: TGraphic;
     FWallpaperVAlign: TWallpaperVAlign;
     FWallpaperHAlign: TWallpaperHAlign;
     //改造△ 追加 (スレビューに壁紙を設定する。Doe用)
@@ -423,7 +422,7 @@ type
     property ConfCaretVisible: boolean read FConfCaretVisible write SetConfCaretVisible;
 
     //改造▽ 追加 (スレビューに壁紙を設定する。Doe用)
-    property Wallpaper: TBitmap read FWallpaper write FWallpaper;
+    property Wallpaper: TGraphic read FWallpaper write FWallpaper;
     property WallpaperVAlign: TWallpaperVAlign read FWallpaperVAlign write FWallpaperVAlign;
     property WallpaperHAlign: TWallpaperHAlign read FWallpaperHAlign write FWallpaperHAlign;
     //改造△ 追加 (スレビューに壁紙を設定する。Doe用)
@@ -2207,7 +2206,7 @@ begin
   while screenLine < vLines do
   begin
     {aiai}
-    if item.PictLine then
+    if item.PictLine and Assigned(item.Picture) then
     begin
       PictY := Y - item.PictPos * bs;
       PictCount := Length(PictArray);
@@ -2217,19 +2216,13 @@ begin
         begin
           SetLength(PictArray, PictCount + 1);
           PictArray[PictCount] := PictY;
-          if item.Picture is TPNGObject then
-            TPNGObject(item.Picture).Draw(FBitmap.Canvas, Bounds(FLeftMargin, PictY, item.Picture.Width, item.Picture.Height))
-          else
-            FBitmap.Canvas.Draw(FLeftMargin, PictY, item.Picture);
+          FBitmap.Canvas.Draw(FLeftMargin, PictY, item.Picture);
         end;
       end else
       begin
         SetLength(PictArray, 1);
         PictArray[0] := PictY;
-        if item.Picture is TPNGObject then
-          TPNGObject(item.Picture).Draw(FBitmap.Canvas, Bounds(FLeftMargin, PictY, item.Picture.Width, item.Picture.Height))
-        else
-          FBitmap.Canvas.Draw(FLeftMargin, PictY, item.Picture);
+        FBitmap.Canvas.Draw(FLeftMargin, PictY, item.Picture);
       end;
     end;
     {/aiai}

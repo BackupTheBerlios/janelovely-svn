@@ -1546,6 +1546,9 @@ begin
 
 end;
 
+const
+  PngHeader: Array[0..7] of Char = (#137, 'P', 'N', 'G', #13, #10, #26, #10);
+
 //イメージヒントの表示
 function TImageForm.ShowImageHint(Text:String; ForSelf:Boolean):Boolean;
 var
@@ -1627,7 +1630,7 @@ begin
         //ImageConv:=TJPEGImage.Create
         ImageConv := TApiBitmap.Create
       (* pngの展開にPNGImageを使う (aiai) *)
-      else if (StrLComp(ImageHeaderPointer, #$89#$50#$4E#$47#$0D#$0A#$1A#$0A#$00#$00#$00#$0D#$49#$48#$44#$52, 16)=0)  {SameText(ExtractFileExt(FInfo), '.png')} then
+      else if (StrLComp(ImageHeaderPointer, PngHeader, 8)=0)  {SameText(ExtractFileExt(FInfo), '.png')} then
         ImageConv := TPNGObject.Create
       else
         ImageConv:=TSPIBitmap.Create;

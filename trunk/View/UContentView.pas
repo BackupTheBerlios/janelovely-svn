@@ -531,6 +531,9 @@ begin
   inherited;
 end;
 
+const
+  PngHeader: Array[0..7] of Char = (#137, 'P', 'N', 'G', #13, #10, #26, #10);
+
 //データの取り込み、必要に応じてデコードスレッド起動
 procedure TImageView.AssignData(AData:TStringStream);
 var
@@ -579,7 +582,7 @@ begin
        or (StrLComp(HeaderPointer, #$FF#$D8#$FF#$E1,4) = 0) {or SameText(ExtractFileExt(FInfo), '.jpg')} then
       //ImageConv:=TJPEGImage.Create
       ImageConv := TApiBitmap.Create
-    else if (StrLComp(HeaderPointer, #$89#$50#$4E#$47#$0D#$0A#$1A#$0A#$00#$00#$00#$0D#$49#$48#$44#$52, 16)=0)  {SameText(ExtractFileExt(FInfo), '.png')} then
+    else if (StrLComp(HeaderPointer, PngHeader, 8)=0)  {SameText(ExtractFileExt(FInfo), '.png')} then
       (* pngの展開にPNGImageを使う (aiai) *)
       ImageConv := TPNGObject.Create
     else

@@ -501,7 +501,6 @@ type
   TPictureViewList = class(TStringList)
   public
     destructor Destroy; override;
-    function FindPicture(APass: String): TGraphic;
   end;
   {/aiai}
 
@@ -1249,42 +1248,64 @@ procedure TDat2View.WritePicture(pass: String; overlap: Boolean);
 var
   Image, ImageConv: TGraphic;
   Ext: String;
+  index: Integer;
 begin
   Flush;
 
-  Image := PictViewList.FindPicture(pass);
-  if Image = nil then
+  index := PictViewList.IndexOf(pass);
+  if index <> -1 then
+  begin
+    Image := TGraphic(PictViewList.Objects[index]);
+  end else
   begin
     Ext := ExtractFileExt(Config.SkinPath + pass);
     if FileExists(Config.SkinPath + pass) then
     begin
-      if SameText(Ext, '.jpg') or SameText(Ext, '.jpeg') then
-      begin
+      if SameText(Ext, '.jpg') or SameText(Ext, '.jpeg') then begin
+
         Image := TBitmap.Create;
         ImageConv := TApiBitmap.Create;
         try
-          ImageConv.LoadFromFile(Config.SkinPath + pass);
-          Image.Assign(ImageConv);
-        finally
-          ImageConv.Free;
-          PictViewList.AddObject(pass, Image)
+          try
+            ImageConv.LoadFromFile(Config.SkinPath + pass);
+            Image.Assign(ImageConv);
+          finally
+            ImageConv.Free;
+          end;  //try
+        except
+          on E: Exception do begin
+            Main.Log('Load ' + pass+ ':' + E.Message);
+            FreeAndNil(Image);
+          end;
         end;  //try
-      end else if SameText(Ext, '.png') then
-      begin
+        PictViewList.AddObject(pass, Image);
+
+      end else if SameText(Ext, '.png') then begin
+
         Image := TPNGObject.Create;
         try
           Image.LoadFromFile(Config.SkinPath + pass);
-        finally
-          PictViewList.AddObject(pass, Image);
+        except
+          on E: Exception do begin
+            Main.Log('Load ' + pass+ ':' + E.Message);
+            FreeAndNil(Image);
+          end;
         end;  //try
-      end else if SameText(Ext, '.bmp') then
-      begin
+        PictViewList.AddObject(pass, Image);
+
+      end else if SameText(Ext, '.bmp') then begin
+
         Image := TBitmap.Create;
         try
           Image.LoadFromFile(Config.SkinPath + pass);
-        finally
-          PictViewList.AddObject(pass, Image);
+        except
+          on E: Exception do begin
+            Main.Log('Load ' + pass+ ':' + E.Message);
+            FreeAndNil(Image);
+          end;
         end;  //try
+        PictViewList.AddObject(pass, Image);
+
       end;
     end;
   end;
@@ -5009,17 +5030,6 @@ begin
   end;
 
   inherited Destroy;
-end;
-
-function TPictureViewList.FindPicture(APass: String): TGraphic;
-var
-  i: Integer;
-begin
-  i := IndexOf(APass);
-  if i <> -1 then
-    Result := TGraphic(Objects[i])
-  else
-    Result := nil;
 end;
 
 (*=======================================================*)
