@@ -88,6 +88,7 @@ type
     procedure SetWriteButtonEnabled(ABool: Boolean);
     procedure ChangeMainPageControlActiveTab(newTab: integer); override;
     procedure SetNameMailWarning(ABool: Boolean);
+    procedure SetStatusBarVisible(AVisible: Boolean);
 
     property board: TBoard read FBoard write SetBoard;
     property Parent2: TWinControl read FParent2;
@@ -115,6 +116,7 @@ procedure SetFocusToWriteMemo;
 procedure SetWriteButtonEnabled(ABool: Boolean);
 procedure ChangeMainPageControlActiveTab(newTab: integer);
 procedure SetNameMailWarning(AValue: Boolean);
+procedure SetStatusBarVisible(AVisible: Boolean);
 //---------------------------------------------------------------------------//
 
 implementation
@@ -1530,6 +1532,13 @@ begin
   ToolButton[6].Down := ABool;
 end;
 
+procedure TJLWritePanel.SetStatusBarVisible(AVisible: Boolean);
+begin
+  WStatusBar.Visible := AVisible;
+  if AVisible then
+    WStatusBar.Top := Self.ClientHeight;
+end;
+
 (* ----------------------- TJLWritePanel ----------------------------------- *)
 (* ------------------------------------------------------------------------- *)
 (* ------------------------------------------------------------------------- *)
@@ -1657,6 +1666,12 @@ begin
   WriteMemo.SetNameMailWarning(AValue);
 end;
 
+procedure SetStatusBarVisible(AVisible: Boolean);
+begin
+  if not Assigned(WriteMemo) then exit;
+
+  WriteMemo.SetStatusBarVisible(AVisible);
+end;
 
 end.
 

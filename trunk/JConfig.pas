@@ -210,7 +210,7 @@ type
     stlToolBarVisible: boolean;
     stlLinkBarVisible: boolean;
     stlAddressBarVisible: boolean;
-    stlTreeVisible: boolean;
+    //stlTreeVisible: boolean;
     stlThreadToolBarVisible: boolean;
     stlThreadTitleLabelVisible: boolean;
     stlClmnArray: array[0..11] of Integer;  //aiai
@@ -286,7 +286,6 @@ type
     {aiai}
     tstUseNews: Boolean;
     tstNewsInterval: integer;
-    tstNewsPos: Boolean;
 
     viewLinkAbone: Boolean;
     viewReadIfScrollBottom: Boolean;
@@ -711,11 +710,11 @@ begin
   {/beginner}
 
 
-  stlVerticalDivision := false;
+  stlVerticalDivision := true;
   stlToolBarVisible := true;
   stlLinkBarVisible := true;
   stlAddressBarVisible := true;
-  stlTreeVisible := false;
+  //stlTreeVisible := false;
   stlThreadToolBarVisible := true;
   stlThreadTitleLabelVisible := true;
 
@@ -799,7 +798,6 @@ begin
   {aiai}
   tstUseNews := false;
   tstNewsInterval := 10;
-  tstNewsPos := false;
 
   optWriteMemoImeMode := true;
   optShowOrHideOld := true;
@@ -1389,7 +1387,7 @@ begin
   stlToolBarVisible := ini.ReadBool(INI_STL_SECT, 'ToolBarVisible', stlToolBarVisible);
   stlLinkBarVisible := ini.ReadBool(INI_STL_SECT, 'LinkBarVisible', stlLinkBarVisible);
   stlAddressBarVisible := ini.ReadBool(INI_STL_SECT, 'AddressBarVisible', stlAddressBarVisible);
-  stlTreeVisible := ini.ReadBool(INI_STL_SECT, 'TreeVisible', stlTreeVisible);
+  //stlTreeVisible := ini.ReadBool(INI_STL_SECT, 'TreeVisible', stlTreeVisible);
   stlThreadToolBarVisible := ini.ReadBool(INI_STL_SECT, 'ThreadToolBarVisible', stlThreadToolBarVisible);
   stlThreadTitleLabelVisible := ini.ReadBool(INI_STL_SECT, 'ThreadTitleVisible', stlThreadTitleLabelVisible);
 
@@ -1456,7 +1454,6 @@ begin
   grepSaveHistroy := ini.ReadBool(INI_GREP_SECT, 'SaveHistroy', grepSaveHistroy);
 
   tstUseNews := ini.ReadBool(INI_TEST_SECT, 'UseNews', tstUseNews);
-  tstNewsPos := ini.ReadBool(INI_TEST_SECT, 'NewsPos', tstNewsPos);
   tstNewsInterval := ini.ReadInteger(INI_TEST_SECT, 'NewsInterval', tstNewsInterval);
   optWriteMemoImeMode := ini.ReadBool(INI_WRT_SECT, 'MemoImeMode', optWriteMemoImeMode);
   //optShowOrHideOld := ini.ReadBool(INI_OPT_SECT, 'ShowOrHideOld', optShowOrHideOld);
@@ -1905,7 +1902,7 @@ begin
   ini.WriteBool(INI_STL_SECT, 'ToolBarVisible', stlToolBarVisible);
   ini.WriteBool(INI_STL_SECT, 'LinkBarVisible', stlLinkBarVisible);
   ini.WriteBool(INI_STL_SECT, 'AddressBarVisible', stlAddressBarVisible);
-  ini.WriteBool(INI_STL_SECT, 'TreeVisible', stlTreeVisible);
+  //ini.WriteBool(INI_STL_SECT, 'TreeVisible', stlTreeVisible);
   ini.WriteBool(INI_STL_SECT, 'ThreadToolBarVisible', stlThreadToolBarVisible);
   ini.WriteBool(INI_STL_SECT, 'ThreadTitleVisible', stlThreadTitleLabelVisible);
   {beginner}
@@ -1955,7 +1952,6 @@ begin
   ini.WriteBool(INI_GREP_SECT, 'SaveHistroy', grepSaveHistroy);
 
   ini.WriteBool(INI_TEST_SECT, 'UseNews', tstUseNews);
-  ini.WriteBool(INI_TEST_SECT, 'NewsPos', tstNewsPos);
   ini.WriteInteger(INI_TEST_SECT, 'NewsInterval', tstNewsInterval);
 
   ini.WriteBool(INI_VIEW_SECT, 'ReadIfScrollBottom', viewReadIfScrollBottom);

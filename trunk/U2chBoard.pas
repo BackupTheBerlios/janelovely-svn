@@ -1138,10 +1138,6 @@ begin
     end;
   end;
 
-  //スレッドあぼ～ん
-  if FileExists(GetLogDir + SUBJECT_ABN) then
-    threadABoneList.LoadFromFile(GetLogDir + SUBJECT_ABN);
-
   strList.Free;
 end;
 
@@ -1166,13 +1162,19 @@ begin
   end;
 
   LoadIndex;
+  
+  {aiai} //スレッドあぼ～ん
+  if FileExists(GetLogDir + SUBJECT_ABN) then
+    threadABoneList.LoadFromFile(GetLogDir + SUBJECT_ABN);
   LoadSettingTXT;
-  (* DataBase (aiai) *)
+  (* DataBase *)
   if Config.ojvQuickMerge then
     LoadDataBase
   else
     SysUtils.DeleteFile(GetLogDir + BOARD_DB);
   (* //DataBase *)
+  {/aiai}
+
   modified := lastModified;
 
   Analyze(Txt, modified, (refcount <= 0) or refresh);
@@ -1201,10 +1203,6 @@ begin
     strList.Free;
     idxModified := false;
   end;
-  if threadABoneList.Count > 0 then
-    threadABoneList.SaveToFile(GetLogDir + SUBJECT_ABN)
-  else
-    SysUtils.DeleteFile(GetLogDir + SUBJECT_ABN);
 end;
 
 (* スレ一覧を保存する *)
@@ -1224,6 +1222,12 @@ begin
     datModified := false;
   end;
   SaveIndex;
+  {aiai} //スレッドあぼ～ん
+  if threadABoneList.Count > 0 then
+    threadABoneList.SaveToFile(GetLogDir + SUBJECT_ABN)
+  else
+    SysUtils.DeleteFile(GetLogDir + SUBJECT_ABN);
+  {/aiai}
 end;
 
 (*  *)

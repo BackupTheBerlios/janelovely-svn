@@ -36,7 +36,11 @@ procedure TNewsSettingForm.FormCloseQuery(Sender: TObject; var CanClose: Boolean
 begin
   inherited;
   if modalResult = mrOK then
+  begin
     Mynews.setChangeNewsTimerInterval(SpinEditNewsInterval.Value * 1000);
+    Config.tstNewsInterval := SpinEditNewsInterval.Value;
+    Config.Modified := True;
+  end;
 end;
 
 end.

@@ -45,7 +45,7 @@ object UIConfig: TUIConfig
     Top = 8
     Width = 393
     Height = 321
-    ActivePage = SheetPath
+    ActivePage = SheetNet
     Style = tsFlatButtons
     TabOrder = 1
     TabStop = False
@@ -1843,7 +1843,7 @@ object UIConfig: TUIConfig
           Height = 20
           Style = csDropDownList
           DropDownCount = 12
-          ItemHeight = 12
+          ItemHeight = 0
           TabOrder = 1
         end
         object ComboBoxMseGestures: TComboBox
@@ -1947,7 +1947,7 @@ object UIConfig: TUIConfig
           Height = 20
           Style = csDropDownList
           DropDownCount = 12
-          ItemHeight = 12
+          ItemHeight = 0
           TabOrder = 2
           OnDropDown = ComboBoxMseSubMenusDropDown
         end
@@ -2319,7 +2319,6 @@ object UIConfig: TUIConfig
         Width = 129
         Height = 17
         Caption = #12488#12524#12540#12473#12434#32302#23567#12377#12427
-        Enabled = False
         TabOrder = 9
       end
       object RadioButtonLogPanelUnderBoard: TRadioButton
@@ -2328,7 +2327,6 @@ object UIConfig: TUIConfig
         Width = 97
         Height = 17
         Caption = #26495#19968#35239#12398#19979
-        Enabled = False
         TabOrder = 10
       end
       object RadioButtonLogPanelUnderThread: TRadioButton
@@ -2337,7 +2335,6 @@ object UIConfig: TUIConfig
         Width = 105
         Height = 17
         Caption = #12473#12524#19968#35239#12398#19979
-        Enabled = False
         TabOrder = 11
       end
     end

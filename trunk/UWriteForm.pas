@@ -179,6 +179,7 @@ type
     procedure RequestToGetLocalRule;
     procedure PasteAAListItem;
     procedure SetNameBox(NameCombo: TComboboxEx; NameList: TStringList; const Board: string);  //beginner(by nono)
+    procedure WmSize(var Msg: TMessage); message WM_SIZE;  //aiai
 
   protected
     procedure CreateParams(var Params: TCreateParams); override;
@@ -2234,6 +2235,15 @@ begin
   Config.wrtNameMailWarning := not Config.wrtNameMailWarning;
   ToolButtonNameWarn.Down := Config.wrtNameMailWarning;
   JLWritePanel.SetNameMailWarning(Config.wrtNameMailWarning);
+end;
+
+//aiai
+procedure TWriteForm.WmSize(var Msg: TMessage);
+begin
+  inherited;
+
+  if Assigned(WStatusBar) then
+    WStatusBar.Invalidate;
 end;
 
 end.

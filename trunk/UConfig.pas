@@ -1994,7 +1994,7 @@ begin
     font := TFont.Create;
     Config.SetFont(font, Config.viewDefFontInfo);
     MainWnd.Font.Assign(font);
-    MainWnd.StatusBar.Font.Assign(font);
+    //MainWnd.StatusBar.Font.Assign(font); //aiai
     MainWnd.TabControl.Font.Assign(font);
     MainWnd.ListTabControl.Font.Assign(font);
     //MainWnd.TreeTabControl.Font.Assign(font); //aiai

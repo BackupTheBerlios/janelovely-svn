@@ -37,21 +37,17 @@ uses
   UAutoScrollSettingForm, ULovelyWebForm, UNews, UGetBoardListForm,
   UChottoForm, UImageViewCacheListForm,
   UCheckSeverDown,
-  JLWritePanel, JLRSPanel, JLTab, JLDualStateButton, JLToolButton;
+  JLWritePanel, JLTab, JLToolButton, JLSideBar, JLStatusBar;
   {/aiai}
 
 const
   VERSION  = '0.1.0.1';      (* Printable ASCIIコード厳守。')'はダメ *)
-  {$IFDEF IE}
   JANE2CH  = 'JaneLovely 0.1.0.1';
-  {$ELSE}
-  JANE2CH  = 'JaneLovely 0.1.0.1';
-  {$ENDIF}
   KEYWORD_OF_USER_AGENT = 'JaneLovely';      (*  *)
 
   DISTRIBUTORS_SITE = 'http://www.geocities.jp/openjane4714/';
 
-  Copyrights: array[0..17] of string
+  Copyrights: array[0..18] of string
     = ('Copyright (c) 2002 Project Open Jane - <a href="http://sakots.pekori.jp/OpenJane/">http://sakots.pekori.jp/OpenJane/</a> (<a href="https://sourceforge.jp/projects/jane/">SourceForge.jp</a>)',
        'Portions of this software are Copyright (c) 2001,2002 by Twiddle (Jane Classic) - <a href="http://hogehoge2001.tripod.co.jp/">http://hogehoge2001.tripod.co.jp/</a>',
        'Portions of this software are Copyright (c) 1993 - 2001, Chad Z. Hower (Kudzu) and the Indy Pit Crew - <a href="http://www.nevrona.com/Indy/">http://www.nevrona.com/Indy/</a>',
@@ -59,6 +55,7 @@ const
        'Portions of this software are Copyright (C) 2001 by <a href="http://pc.2ch.net/test/read.cgi/tech/981726544/931-">931</a> (Monazilla Project) - <a href="http://www.monazilla.org/">http://www.monazilla.org/</a>',
        'Portions of this software are Copyright (C) 1998 EarthWave Soft(IKEDA Takahiro) - <a href="http://www.os.rim.or.jp/~ikeda/">http://www.os.rim.or.jp/~ikeda/</a>',
        'Portions of this software are Copyright (C) 1999-2001 by Andrey V. Sorokin &lt;anso@mail.ru&gt; - <a href="http://anso.virtualave.net/">http://anso.virtualave.net/</a>',
+       'Portions of this software are Copyright (C) 2004 Gustavo Huffenbacher Daud - <a href="http://pngdelphi.sourceforge.net/">http://pngdelphi.sourceforge.net/</a>',
        'Portions of this software are Copyright (C) 2002 by <a href="http://pc.2ch.net/test/read.cgi/software/1008762486/816-817">◆816/bwNE</a>',
        'Portions of this software are Copyright (C) 2002 by <a href="http://www.geocities.co.jp/SiliconValley-Cupertino/2486/">◆test.lxc</a>',
        'Portions of this software are Copyright (C) 2002 by <a href="http://pc.2ch.net/test/read.cgi/software/1016729822/630-">630</a>',
@@ -76,7 +73,6 @@ type
   (*-------------------------------------------------------*)
   TMainWnd = class(TForm)
     MainMenu: TMainMenu;
-    StatusBar: TStatusBar;
     Panel1: TPanel;
     ListView: THogeListView;
     ThreadSplitter: TSplitter;
@@ -142,7 +138,7 @@ type
     FindGrep: TMenuItem;
     FindNavigate: TMenuItem;
     N8: TMenuItem;
-    TreePanel: TJLRSPanel;
+    TreePanel: TPanel;
     FavoriteView: TTreeView;
     ViewPopupFavorite: TMenuItem;
     PopupFavorites: TPopupMenu;
@@ -606,7 +602,6 @@ type
     PopupFavCopyTITLE: TMenuItem;
     actCopyTITLE: TAction;
     MenuCopyTITLE: TMenuItem;
-    MenuOptSetNewsPos: TMenuItem;
     N68: TMenuItem;
     ViewPopupCopyDAT: TMenuItem;
     ViewPopupCopyDI: TMenuItem;
@@ -681,32 +676,47 @@ type
     ToolBarTreeTitle: TToolBar;
     ToolButtonTreeTitle: TJLToolButton;
     LabelTreeTitle: TLabel;
-    ToolButtonTreeTitleAutoHide: TJLToolButton;
+    ToolButtonTreeTitleCanMove: TJLToolButton;
     ToolButtonTreeTitleClose: TJLToolButton;
     PanelTreeTitle: TPanel;
-    LeftPanel: TPanel;
+    LogSplitter: TSplitter;
+    Panel4: TPanel;
+    ool1: TMenuItem;
+    N1: TMenuItem;
+    N66: TMenuItem;
+    N83: TMenuItem;
+    N29: TMenuItem;
+    SideBar: TJLSideBar;
+    PopupStatusBar: TPopupMenu;
+    MenuStatusOpenByBrowser: TMenuItem;
+    N56: TMenuItem;
+    MenuStatusOpenByLovelyBrowser: TMenuItem;
+    BoardSplitter: TSplitter;
+    Panel6: TPanel;
     TreeViewTab: TJLTab;
     FavoriteViewTab: TJLTab;
-    BottomPanel: TPanel;
-    PostTab: TJLTab;
-    PreViewTab: TJLTab;
-    SettingtxtTab: TJLTab;
-    ResultTab: TJLTab;
-    WritePanel: TJLRSPanelEx;
+    MenuBoardCanMove: TMenuItem;
+    WritePanel: TPanel;
     WritePanelTitle: TPanel;
     LabelWriteTitle: TLabel;
     ToolBarWriteTitle: TToolBar;
     ToolButtonWriteTitle: TJLToolButton;
     ToolButtonWriteTitleAutoHide: TJLToolButton;
     ToolButtonWriteTitleClose: TJLToolButton;
-    LogSplitter: TSplitter;
-    Panel4: TPanel;
-    JLDualStateButton: TJLDualStateButton;
-    ool1: TMenuItem;
-    N1: TMenuItem;
-    N66: TMenuItem;
-    N83: TMenuItem;
-    N29: TMenuItem;
+    Panel5: TPanel;
+    JLTabWrite: TJLTab;
+    JLTabPreView: TJLTab;
+    JLTabSettingTXT: TJLTab;
+    JLTabResult: TJLTab;
+    WritePanelSplitter: TSplitter;
+    PopupWritePanel: TPopupMenu;
+    MenuWritePanelPos: TMenuItem;
+    MenuWritePanelCanMove: TMenuItem;
+    MenuWritePanelDisableStatusBar: TMenuItem;
+    MenuMemo: TMenuItem;
+    MenuMemoCanMove: TMenuItem;
+    MenuMemoPos: TMenuItem;
+    MenuMemoDisableStatusBar: TMenuItem;
     {/aiai}
     procedure FormCreate(Sender: TObject);
     procedure MenuToolsOptionsClick(Sender: TObject);
@@ -747,8 +757,8 @@ type
     procedure FindNextClick(Sender: TObject);
     procedure FindPrevClick(Sender: TObject);
     procedure FindNavigateClick(Sender: TObject);
-    procedure TreeTabSetChange(Sender: TObject; NewTab: Integer;
-      var AllowChange: Boolean);
+    //procedure TreeTabSetChange(Sender: TObject; NewTab: Integer;
+    //  var AllowChange: Boolean);
     procedure PopupFavNewClick(Sender: TObject);
     procedure PopupFavDeleteClick(Sender: TObject);
     procedure FavoriteViewEdited(Sender: TObject; Node: TTreeNode;
@@ -950,10 +960,6 @@ type
     procedure actDeleteFavoriteExecute(Sender: TObject);
     procedure ViewPopupDelFavClick(Sender: TObject);
     procedure actListDelFavExecute(Sender: TObject);
-    {aiai}
-    //procedure TreeTabControlMouseDown(Sender: TObject;
-    //  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    {/aiai}
     procedure MenuViewMenuToggleVisibleClick(Sender: TObject);
     procedure actCloseAllTabsExecute(Sender: TObject);
     procedure actListCloseAllTabsExecute(Sender: TObject);
@@ -1063,7 +1069,6 @@ type
     procedure MenuFavPatrolClick(Sender: TObject);
     procedure ViewPopupSetAlreadyClick(Sender: TObject);
     procedure ViewPopupNotCloseClick(Sender: TObject);
-    procedure StatusBarClick(Sender: TObject);
     procedure TextPopupExtractIDClick(Sender: TObject);        //更新チェック
     procedure PopupTreeOpenNewResThreadsClick(Sender: TObject);
     procedure PopupTreeOpenNewResFavoritesClick(Sender: TObject);
@@ -1081,16 +1086,10 @@ type
     procedure MenuFindeThreadTitleClick(Sender: TObject);
     procedure MenuOptUseNewsClick(Sender: TObject);
     procedure MenuOptSetNewsIntervalClick(Sender: TObject);
-    procedure MyNewsMouseUp(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
-    procedure MyNewsMouseMove(Sender: TObject;
-      Shift: TShiftState; X, Y: Integer);
     procedure actListCopyTITLEExecute(Sender: TObject);
     procedure PopupTreeCopyTITLEClick(Sender: TObject);
     procedure PopupFavCopyTITLEClick(Sender: TObject);
     procedure actCopyTITLEExecute(Sender: TObject);
-    procedure MenuOptSetNewsPosClick(Sender: TObject);
-    procedure MenuOptNewsClick(Sender: TObject);
     procedure ViewPopupCopyDATClick(Sender: TObject);
     procedure ViewPopupCopyDIClick(Sender: TObject);
     procedure actListCopyDatExecute(Sender: TObject);
@@ -1126,17 +1125,10 @@ type
     procedure PopupTaskTrayRestoreClick(Sender: TObject);
     procedure MenuViewClick(Sender: TObject);
     procedure PanelTitlePanelClick(Sender: TObject);
-    procedure TreeTabControlMouseEnter(Sender: TObject);
-    procedure BottomTabControlMouseEnter(Sender: TObject);
     procedure TreeViewTabMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure ToolButtonWriteTitleAutoHideClick(Sender: TObject);
-    procedure BottomTabControlMouseDown(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
     procedure ToolButtonWriteTitleCloseClick(Sender: TObject);
-    procedure LogSplitterMoved(Sender: TObject);
-    procedure JLDualStateButtonClick(Sender: TObject);
-    procedure BottomPanelResize(Sender: TObject);
     procedure WritePanelEnter(Sender: TObject);
     procedure WritePanelExit(Sender: TObject);
     procedure TreePanelExit(Sender: TObject);
@@ -1146,6 +1138,30 @@ type
     procedure LabelWriteTitleMouseDown(Sender: TObject;
       Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure ListViewDropFiles(Sender: TObject; FileList: TStringList);
+    procedure LabelWriteTitleMouseMove(Sender: TObject; Shift: TShiftState;
+      X, Y: Integer);
+    procedure LabelWriteTitleMouseUp(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure ToolButtonWriteTitleMouseDown(Sender: TObject;
+      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure JLTabControlMouseDown(Sender: TObject;
+      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure MenuViewWriteMemoToggleVisibleClick(Sender: TObject);
+    procedure ToolButtonTreeTitleMouseDown(Sender: TObject;
+      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure LabelTreeTitleMouseMove(Sender: TObject; Shift: TShiftState;
+      X, Y: Integer);
+    procedure LabelTreeTitleMouseUp(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure TreePanelResize(Sender: TObject);
+    procedure MenuBoardCanMoveClick(Sender: TObject);
+    procedure PopupStatusBarPopup(Sender: TObject);
+    procedure MenuStatusOpenByBrowserClick(Sender: TObject);
+    procedure MenuStatusOpenByLovelyBrowserClick(Sender: TObject);
+    procedure MenuWritePanelPosClick(Sender: TObject);
+    procedure MenuWritePanelDisableStatusBarClick(Sender: TObject);
+    procedure PopupWritePanelPopup(Sender: TObject);
+    procedure MenuMemoClick(Sender: TObject);
     {/aiai}
   private
   { Private 宣言 }
@@ -1206,11 +1222,23 @@ type
     FavPtrlCount: Integer;
     LovelyWebForm: TLovelyWebForm;
     preWindowState: TWindowState;
+
+    TreePanelVisible: Boolean;
     TreeTabControlIndex: Byte;
-    //BottomTabControlIndex: Byte;
-    TreePanelAutoHide: Boolean;
-    WritePanelAutoHide: Boolean;
+    TreePanelCanMove: Boolean;
+    TreePanelMouseDowned: Boolean;
+    TreePanelOriginalX: Integer;
+    TreePanelOriginalY: Integer;
+
+    WritePanelCanMove: Boolean;
     WritePanelMoving: Boolean;
+    WritePanelTabControlIndex: Byte;
+    WritePanelMouseDowned: Boolean;
+    WritePanelOriginalX: Integer;
+    WritePanelOriginalY: Integer;
+    WritePanelPos: Boolean;
+
+
     //改造▽ 追加 (スレビューに壁紙を設定する。Doe用)
     //改造メモ：メモリ節約対応。壁紙の保持をTHogeTextViewの外で行う
     BrowserWallPaper: TGraphic;
@@ -1221,6 +1249,7 @@ type
     BrowserLeftMargin: Integer;
     BrowserRightMargin: Integer;
     //BrowserMaxWidth: Integer;
+    StatusBar2: TJLStatusBar;
     {/aiai}
 
     procedure SaveWindowPos;
@@ -1268,8 +1297,6 @@ type
                                   relative: boolean = false;
                                   background: boolean = false;
                                   number: Integer = -1);
-    procedure SetTabSetIndex(index: integer);
-    procedure ChangeActiveTreePane(index: integer);
     procedure SetRPane(paneType: TPaneType);
     function TreeViewGetNode(sender: TObject): TTreeNode;
     procedure SetCaption(const BoardName: string);
@@ -1313,7 +1340,7 @@ type
     //※[457]
     procedure LoadSkin(skinPath: string);
 
-    procedure SetLPane(visible: boolean);
+    //procedure SetLPane(visible: boolean);
     procedure SetDivision(vertical: boolean);
     procedure SetPaneType(toggle: boolean);
     procedure SetStyle;
@@ -1326,9 +1353,7 @@ type
     function CutImenu(const s: string):string;
     procedure RedrawFavoriteButton;
     procedure PopupViewListChange(Sender: TObject);
-    {aiai}
-    //procedure SetTracePosition;  //beginner
-    {/aiai}
+    procedure SetTracePosition;  //beginner
 
     {ayaya}
     procedure LoadTraceString();
@@ -1347,11 +1372,23 @@ type
     procedure BrowserExit(Sender: TObject);
     procedure OpenChottoForm(chottoURL: String); (* ちょっと見るを開く (aiai) *)
     procedure MainWndRestore;
-    function CursorInTreePanel: Boolean;
-    function CursorInWritePanel: Boolean;
-    procedure AutoHideTreePanel;
-    procedure AutoHideWritePanel;
     procedure CloseThisTab(refresh: Boolean = True);
+    //▼ 板ツリー表示関連
+    procedure SetTabSetIndex(index: integer);
+    procedure ToggleTreePanel(AVisible: Boolean);
+    procedure ToggleTreePanelCanMove(ACanMove: Boolean);
+    //▲ 板ツリー表示関連
+    //▼ 書き込みパネル
+    procedure ToggleWritePanelVisible(AVisible: Boolean);
+    procedure ToggleWritePanelTabSheet(AIndex: Integer);
+    procedure ToggleWritePanelCanMove(ACanMove: Boolean);
+    procedure ToggleWritePanelPos(APos: Boolean);
+    //▲ 書き込みパネル
+    //▼ ステータスバー
+    procedure StatusBar2Click(Sender: TObject);
+    procedure StatusBar2RClick(Sender: TObject);
+    procedure MyNewsNews(Sender: TObject; News: String);
+    //▲ ステータスバー
     {/aiai}
   public
     { Public 宣言 }
@@ -1445,6 +1482,8 @@ const
   SW_SHOWMINNOACTIVE: integer = 7;
   SW_SHOWNA         : integer = 8;
   SW_SHOWDEFAULT    : integer =10;
+
+  ID_MAINSTATUSBAR = 501;
 
 var
   MainWnd: TMainWnd;
@@ -1713,7 +1752,8 @@ end;
 
 procedure TMainWnd.WriteStatus(const s: string);
 begin
-  StatusBar.Panels.Items[1].Text := s;
+  //StatusBar.Panels.Items[1].Text := s; //aiai
+  StatusBar2.Text[1] := s;
 end;
 
 procedure LogBeginQuery;
@@ -1758,7 +1798,8 @@ end;
 procedure StatLog(const str: string);
 begin
   Log(str);
-  MainWnd.StatusBar.Panels.Items[2].Text := str;
+  //MainWnd.StatusBar.Panels.Items[2].Text := str;  //aiai
+  MainWnd.StatusBar2.Text[2] := str;
 end;
 
 function IsPrimaryInstance: Boolean;
@@ -1894,7 +1935,8 @@ begin
   if useTrace[i] then
   begin
     daemon.Log(traceString[i] + str);
-    MainWnd.StatusBar.Panels.Items[2].Text := traceString[i] + str;
+    //MainWnd.StatusBar.Panels.Items[2].Text := traceString[i] + str;  //aiai
+    MainWnd.StatusBar2.Text[2] := traceString[i] + str;
   end;
 end;
 {//ayaya}
@@ -2528,33 +2570,32 @@ begin
 end;
 {/beginner}
 
-{aiai}
-//{beginner} //トレース画面の場所を設定する
-//procedure TMainWnd.SetTracePosition;
-//begin
-//  if Config.stlSmallLogPanel then begin
-//    if Config.stlLogPanelUnderThread then begin
-//      if Config.stlVerticalDivision then begin
-//        LogSplitter.Parent:=ListViewPanel;
-//        LogPanel.Parent:=ListViewPanel;
-//        LogPanel.Top := ListViewPanel.Top + ListViewPanel.Height; //aiai
-//      end else begin
-//        LogSplitter.Parent:=Panel2;
-//        LogPanel.Parent:=Panel2;
-//      end;
-//    end else begin
-//      LogSplitter.Parent:=TreePanel;
-//      LogPanel.Parent:=TreePanel;
-//    end;
-//  end else begin
-//    LogSplitter.Parent:=Panel0;
-//    LogPanel.Parent:=Panel0;
-//  end;
-//  LogSplitter.Top := LogPanel.Top;
-//end;
-//{/beginner}
-{/aiai}
-
+{beginner} //トレース画面の場所を設定する
+procedure TMainWnd.SetTracePosition;
+begin
+  if Config.stlSmallLogPanel then begin
+    if Config.stlLogPanelUnderThread then begin
+      if Config.stlVerticalDivision then begin
+        LogSplitter.Parent:=ListViewPanel;
+        LogPanel.Parent:=ListViewPanel;
+      end else begin
+        LogSplitter.Parent:=Panel2;
+        LogPanel.Parent:=Panel2;
+      end;
+    end else begin
+      LogSplitter.Parent:=TreePanel;
+      LogPanel.Parent:=TreePanel;
+      Panel9.BringToFront;
+      PanelTreeTitle.BringToFront;
+    end;
+  end else begin
+    LogSplitter.Parent:=Panel0;
+    LogPanel.Parent:=Panel0;
+  end;
+  LogPanel.Top := LogPanel.Parent.BoundsRect.Bottom - LogPanel.Height;
+  LogSplitter.Top := LogPanel.Top - LogSplitter.Height + 1;
+end;
+{/beginner}
 
 (* フォーム生成時 *)
 procedure TMainWnd.FormCreate(Sender: TObject);
@@ -2598,7 +2639,6 @@ begin
   {$IFDEF BENCH}
   InitBench;
   {$ENDIF}
-
   MyWindowHandle := nil;
   try
     MyWindowHandle
@@ -2641,6 +2681,19 @@ begin
   TabSwitchList.Add(nil);
   TabSwitchList.Add(Memo);
 
+  {aiai}
+  StatusBar2 := TJLStatusBar.Create(Self.Handle, ID_MAINSTATUSBAR);
+  With StatusBar2 do
+  begin
+   Parts := 4;
+   PartWidth[0] := 20;
+   PartWidth[1] := 100;
+   PartWidth[2] := 500;
+   OnClick := Statusbar2Click;
+   OnRClick := StatusBar2RClick;
+  end;
+  {/aiai}
+
   Application.UpdateFormatSettings := false;
 
   PopupHint := TImageHint.Create(Self); //Font,Color設定のため前に移動
@@ -2661,7 +2714,7 @@ begin
     font := TFont.Create;
     Config.SetFont(font, Config.viewDefFontInfo);
     Self.Font.Assign(font);
-    StatusBar.Font.Assign(font);
+    //StatusBar.Font.Assign(font);  //aiai
     TabControl.Font.Assign(font);
     ListTabControl.Font.Assign(font);
     //TreeTabControl.Font.Assign(font);  //aiai
@@ -2791,9 +2844,7 @@ begin
   requestingBoard     := nil;
 
   (*  *)
-  {aiai}
-  //SetTracePosition; //トレース画面の場所を設定する
-  {/aiai}
+  SetTracePosition; //トレース画面の場所を設定する
 
   {ayaya}
   (* トレース画面データ読み込み *)
@@ -2958,7 +3009,9 @@ begin
     inTaskTray := false
   else begin
     WindowState := preWindowState;
-    SetLPane(Config.stlTreeVisible);
+    ToggleTreePanel(TreePanelVisible);
+    if TreePanel.Visible then
+      SetTabSetIndex(TreeTabControlIndex);
 
     if viewList.Count > 0 then
     begin
@@ -3194,16 +3247,16 @@ begin
   iniFile.WriteInteger(INI_WIN_SECT, 'Height',R^.Bottom - R^.Top);
   iniFile.WriteInteger(INI_WIN_SECT, 'WindowState', Ord(WindowState)); //※[JS]
   (* LogArea *)
-  {aiai}
   iniFile.WriteInteger(INI_WIN_SECT, 'LogTop', LogPanel.Top);
   iniFile.WriteInteger(INI_WIN_SECT, 'LogHeight', LogPanel.Height);
-  {/aiai}
   (* TreeView / board list *)
   iniFile.WriteInteger(INI_WIN_SECT, 'TreeWidth', TreePanel.Width);
   {aiai}
-  //iniFile.WriteInteger(INI_WIN_SECT, 'TreeTab', TreeTabControl.TabIndex);
   iniFile.WriteInteger(INI_WIN_SECT, 'TreeTab', TreeTabControlIndex);
-  iniFile.WriteBool(INI_WIN_SECT, 'TreeAutoHide', TreePanelAutoHide);
+  //iniFile.WriteBool(INI_WIN_SECT, 'TreeAutoHide', TreePanelAutoHide);
+  //iniFile.WriteBool(INI_WIN_SECT, 'savedTreePanelVisible', savedTreePanelVisible);
+  iniFile.WriteBool(INI_STL_SECT, 'TreeVisible', TreePanel.Visible);
+  //iniFile.WriteBool(INI_WIN_SECT, 'TreeTabPanelVisible', LeftPanel.Visible);
   {/aiai}
   (* ListView / thread list *)
   if Config.oprToggleRView then
@@ -3227,8 +3280,8 @@ begin
   iniFile.WriteInteger(INI_WIN_SECT, 'WriteMemoHeight', WritePanel.Height);
   iniFile.WriteInteger(INI_WIN_SECT, 'WriteMemoWidth', WritePanel.Width);
   iniFile.WriteBool(INI_WIN_SECT, 'WriteMemoVisible', WritePanel.Visible);
-  iniFile.WriteBool(INI_WIN_SECT, 'WriteMemoAutoHide', WritePanelAutoHide);
-  iniFile.WriteBool(INI_WIN_SECT, 'WriteMemoLeftRight', JLDualStateButton.LeftRightState = lrLeft);
+  iniFile.WriteBool(INI_WIN_SECT, 'WriteMemoPos', WritePanelPos);
+  //iniFile.WriteBool(INI_WIN_SECT, 'WriteMemoCanMove', WritePanelCanMove);
 
 
   (* Columns *)
@@ -3249,7 +3302,6 @@ begin
   iniFile.WriteBool(INI_STL_SECT, 'ToolBarVisible',    Config.stlToolBarVisible);
   iniFile.WriteBool(INI_STL_SECT, 'LinkBarVisible',    Config.stlLinkBarVisible);
   iniFile.WriteBool(INI_STL_SECT, 'AddressBarVisible', Config.stlAddressBarVisible);
-  iniFile.WriteBool(INI_STL_SECT, 'TreeVisible',       Config.stlTreeVisible);
   iniFile.WriteBool(INI_STL_SECT, 'MenuVisible',       assigned(MainWnd.Menu));
   (* Write *)
   iniFile.WriteBool(INI_WRT_SECT, 'RecordNameMail', Config.wrtRecordNameMail); //521
@@ -3272,17 +3324,12 @@ var
   iniFile: TMemIniFile;
   procedure SetTreeTab;
   var
-    {index,} i: integer;
-    index: Byte; //aiai
+    i: integer;
   begin
-    index := iniFile.ReadInteger(INI_WIN_SECT, 'TreeTab', 0);
-    //if (index < 0) or (1 < index) then
-    if (index > 1) then
-      index := 0;
-    SetTabSetIndex(index);
-    ChangeActiveTreePane(index);
-    TreePanelAutoHide := iniFile.ReadBool(INI_WIN_SECT, 'TreeAutoHide', True); //aiai
-    //SetLPane(Config.stlTreeVisible);
+    TreeTabControlIndex := iniFile.ReadInteger(INI_WIN_SECT, 'TreeTab', 0);
+    if (TreeTabControlIndex > 1) then
+      TreeTabControlIndex := 0;
+    TreePanelVisible := iniFile.ReadBool(INI_STL_SECT, 'TreeVisible', True);  //aiai
     //if 0 < Main.initialURL.Count then
     if Assigned(Main.initialURL) then //aiai
     begin
@@ -3334,13 +3381,11 @@ begin
                                     'WindowState', Ord(WindowState))); //※[JS]
 
   (* LogArea *)
-  {aiai}
-  h := iniFile.ReadInteger(INI_WIN_SECT, 'LogHeight', 1);
-  if h < 1 then
+  h := iniFile.ReadInteger(INI_WIN_SECT, 'LogHeight', LogPanel.Height);
+  if h <= 0 then
     h := 1;
-  LogPanel.Top := ClientRect.Bottom - h;
+  LogPanel.Top := LogPanel.Parent.ClientHeight - h;
   LogPanel.Height := h;
-  {/aiai}
 
   (* TreeView / board list *)
   TreePanel.Width := iniFile.ReadInteger(INI_WIN_SECT, 'TreeWidth', TreePanel.Width);
@@ -3372,11 +3417,13 @@ begin
   (* Memo *)
   WritePanel.Height := iniFile.ReadInteger(INI_WIN_SECT, 'WriteMemoHeight', WriteMemo.Height);
   WritePanel.Width := iniFile.ReadInteger(INI_WIN_SECT, 'WriteMemoWidth', WriteMemo.Width);
-  WritePanelAutoHide := iniFile.ReadBool(INI_WIN_SECT, 'WriteMemoAutoHide', True);
-  if iniFile.ReadBool(INI_WIN_SECT, 'WriteMemoLeftRight', True) then
-    JLDualStateButton.LeftRightState := lrLeft
-  else
-    JLDualStateButton.LeftRightState := lrRight;
+  WritePanel.Visible := iniFile.ReadBool(INI_WIN_SECT, 'WriteMemoVisible', True);
+  WritePanelPos := iniFile.ReadBool(INI_WIN_SECT, 'WriteMemoPos', True);
+  //WritePanelCanMove := iniFile.ReadBool(INI_WIN_SECT, 'WriteMemoCanMove', True);
+  WritePanelCanMove := False;
+  ToggleWritePanelPos(WritePanelPos);
+  ToggleWritePanelVisible(WritePanel.Visible);
+
   MenuViewWriteMemoToggleVisible.Checked := WritePanel.Visible;
 
   (* Columns *)
@@ -3519,9 +3566,7 @@ begin
   mouseGestureEnable := Config.mseGestureList.Text <> '';
   SetupNGWords;
   Config.StyleChanged := false;
-  {aiai}
-  //SetTracePosition; //beginner
-  {/aiai}
+  SetTracePosition; //beginner
   ChangeWriteMemoStyle;  //aiai
 end;
 
@@ -4047,6 +4092,9 @@ procedure TMainWnd.TreeViewSelected(Sender: TObject; Node: TTreeNode;
 var
   board: TBoard;
 begin
+  if cmdType = gotNOP then
+    exit;
+
   board := TBoard(Node.Data);
   ListViewNavigate(board, cmdType,  //▼新しいタブで開くか
                    (Config.oprOpenBoardWNewTab xor (GetKeyState(VK_SHIFT) < 0)));
@@ -7636,12 +7684,12 @@ begin
     NavigateIntoView(target, gtOther, false, Config.oprAddrBgOpen);
 end;
 
-procedure TMainWnd.TreeTabSetChange(Sender: TObject; NewTab: Integer;
-  var AllowChange: Boolean);
-begin
-  (*  *)
-  ChangeActiveTreePane(NewTab);
-end;
+//procedure TMainWnd.TreeTabSetChange(Sender: TObject; NewTab: Integer;
+//  var AllowChange: Boolean);
+//begin
+//  (*  *)
+//  ChangeActiveTreePane(NewTab);
+//end;
 
 (* お気に入りの表示 *)
 procedure TMainWnd.UpdateFavorites;
@@ -8664,6 +8712,16 @@ end;
 
 procedure TMainWnd.FormResize(Sender: TObject);
 begin
+  if Assigned(StatusBar2) then
+  begin
+    Panel0.Width := ClientWidth;
+    Panel0.Height := ClientHeight - StatusBar2.Height;
+  end else
+  begin
+    Panel0.Width := ClientWidth;
+    Panel0.Height := ClientHeight - 26;
+  end;
+
   if Config.oprToggleRView then
   begin
     if mdRPane = ptList then
@@ -8719,6 +8777,8 @@ begin
 end;
 
 procedure TMainWnd.Panel1Resize(Sender: TObject);
+var
+  newTop, newLeft, newBottom, newRight: Integer;
 begin
   if Config.oprToggleRView and (mdRPane = ptList) then
   begin
@@ -8727,14 +8787,46 @@ begin
   end;
 
   {aiai}
-  if TreePanel.Visible and (TreePanel.Align = alNone) then
+  if TreePanelCanMove then
   begin
-    TreePanel.Visible := False;
-    TreePanel.Align := alLeft;
+  newBottom := TreePanel.Top + TreePanel.Height;
+  if newBottom > Panel1.ClientHeight then
+  begin
+    newTop := Panel1.ClientHeight - TreePanel.Height;
+    if newTop < 0 then
+      TreePanel.Top := 0
+    else
+      TreePanel.Top := newTop;
+  end;
+  newRight := TreePanel.Left + TreePanel.Width;
+  if newRight > Panel1.ClientWidth then
+  begin
+    newLeft := Panel1.ClientWidth - TreePanel.Width;
+    if newLeft < 0 then
+      TreePanel.Left := 0
+    else
+      TreePanel.Left := newLeft;
+  end;
   end;
 
-  if WritePanel.Visible then
-    WritePanel.Top := BottomPanel.Top - WritePanel.Height;
+  newBottom := WritePanel.Top + WritePanel.Height;
+  if newBottom > Panel1.ClientHeight then
+  begin
+    newTop := Panel1.ClientHeight - WritePanel.Height;
+    if newTop < 0 then
+      WritePanel.Top := 0
+    else
+      WritePanel.Top := newTop;
+  end;
+  newRight := WritePanel.Left + WritePanel.Width;
+  if newRight > Panel1.ClientWidth then
+  begin
+    newLeft := Panel1.ClientWidth - WritePanel.Width;
+    if newLeft < 0 then
+      WritePanel.Left := 0
+    else
+      WritePanel.Left := newLeft;
+  end;
   {/aiai}
 end;
 
@@ -9132,7 +9224,8 @@ procedure TMainWnd.ViewItemStateChanged;
     MenuThreChangeDrawLines.Enabled := false;
     MenuThreReadPos.Enabled := false;
     MenuThreCheckRes.Enabled := false;
-    StatusBar.Panels.Items[2].Text := '';
+    //StatusBar.Panels.Items[2].Text := '';  //aiai
+    StatusBar2.Text[2] := '';
     SetCaption(boardNameOfCaption);  //aiai
     {２ちゃんねるブラウザ「OpenJane」改造総合スレ
     http://pc3.2ch.net/test/read.cgi/win/1033913790/949から引用}
@@ -9155,7 +9248,8 @@ procedure TMainWnd.ViewItemStateChanged;
   begin
     if thread = nil then
     begin
-      StatusBar.Panels.Items[2].Text := '';
+      //StatusBar.Panels.Items[2].Text := '';  //aiai
+      StatusBar2.Text[2] := '';
       ThreadTitleLabel.Caption := '';   //※[JS]
       UrlEdit.Text := '';               //※[JS]
       exit;
@@ -9168,9 +9262,16 @@ procedure TMainWnd.ViewItemStateChanged;
       datSize := IntToStr(thread.dat.Size div 1024) + 'KB'
     else
       datSize := '';
-    StatusBar.Panels.Items[2].Text
+    {StatusBar.Panels.Items[2].Text
       := '[新' + IntToStr(thread.lines - thread.anchorLine) + ': 未' //aiai 未読数表示
       +  IntToStr(thread.lines - thread.oldLines) + ': 全'
+      +  IntToStr(thread.lines) + '] ' + HTML2String(thread.title)
+      +  s
+      + ' [' + TBoard(thread.board).name + '/'
+      + TCategory(TBoard(thread.board).category).name + ']  '
+      + datSize;}//aiai
+    StatusBar2.Text[2]
+      := '[新' + IntToStr(thread.lines - thread.anchorLine) + ': 全'
       +  IntToStr(thread.lines) + '] ' + HTML2String(thread.title)
       +  s
       + ' [' + TBoard(thread.board).name + '/'
@@ -9207,7 +9308,8 @@ begin
     SetUrlEdit(viewItem);
     if viewItem = nil then
     begin
-      StatusBar.Panels.Items[2].Text := '';
+      //StatusBar.Panels.Items[2].Text := '';  //aiai
+      StatusBar2.Text[2] := '';
       ThreadTitleLabel.Caption := '';   //※[JS]
       exit;
     end;
@@ -9691,25 +9793,6 @@ begin
   end;
 end;
 
-
-procedure TMainWnd.MenuWndBoardClick(Sender: TObject);
-begin
-  {aiai}
-  if not TreePanel.Visible then
-  begin
-    TreePanel.Align := alLeft;
-    TreePanel.Visible := True;
-    Config.stlTreeVisible :=  not Config.stlTreeVisible;
-    ToolButtonTreeTitleAutoHide.PictureIndex := 1;
-    actTreeToggleVisible.Checked := True;
-  end;
-  TreeTabControlIndex := (Sender as TComponent).Tag;
-  TreeViewTab.Checked := False;
-  FavoriteViewTab.Checked := False;
-  ChangeActiveTreePane(TreeTabControlIndex);
-  {/aiai}
-end;
-
 procedure TMainWnd.MenuWndThListClick(Sender: TObject);
 var
   item: TListItem;
@@ -10146,7 +10229,8 @@ end;
 
 procedure TMainWnd.UpdateIndicator;
 begin
-  StatusBar.Panels[0].Text := loginIndicator + IntToStr(AsyncManager.Count);
+  //StatusBar.Panels[0].Text := loginIndicator + IntToStr(AsyncManager.Count);//aiai
+  StatusBar2.Text[0] := loginIndicator + IntToStr(AsyncManager.Count);
 end;
 
 procedure TMainWnd.ON_WM_USER(var msg: TMessage);
@@ -10156,65 +10240,6 @@ begin
   INF_LOGIN: OnLogin(msg);
   FAV_OPR:   OnFavoritesOprMsg(msg);
   end;
-end;
-
-function TMainWnd.CursorInTreePanel: Boolean;
-var
-  Point: TPoint;
-  aTop, aRight, aBottom: integer;
-begin
-  Result := False;
-
-  if not GetCursorPos(Point) then exit;
-  if InvalidPoint(Point) then exit;
-
-  Point := ScreenToClient(Point);
-
-  if Point.X < 0 then exit;
-
-  aRight := Panel1.Left + TreePanel.BoundsRect.Right;
-  if Point.X > aRight + 6 then exit;
-
-  aTop := Panel1.Top;
-  if Point.Y < aTop - 6 then exit;
-
-  aBottom := Panel1.Top + TreePanel.BoundsRect.Bottom;
-  if Point.Y > aBottom - 1 then exit;
-
-  Result := True;
-end;
-
-function TMainWnd.CursorInWritePanel: Boolean;
-var
-  Point: TPoint;
-  aTop, aLeft, aRight, aBottom: integer;
-begin
-  Result := False;
-
-  if not GetCursorPos(Point) then exit;
-  if InvalidPoint(Point) then exit;
-
-  Point := ScreenToClient(Point);
-
-  if Point.X < 0 then exit;
-
-  if JLDualStateButton.LeftRightState = lrLeft then
-  begin
-    aRight := Panel0.Left + Panel1.Left + WritePanel.BoundsRect.Right;
-    if Point.X > aRight + 6 then exit;
-  end else
-  begin
-    aLeft := Panel0.Left +  Panel1.Left + WritePanel.Left;
-    if Point.X < aLeft - 6 then exit;
-  end;
-
-  aTop := Panel0.Top + Panel1.Top + WritePanel.Top;
-  if Point.Y < aTop - 6 then exit;
-
-  aBottom := Panel0.Top + Panel1.Top + BottomPanel.BoundsRect.Bottom;
-  if Point.Y > aBottom - 1 then exit;
-
-  Result := True;
 end;
 
 procedure TMainWnd.ApplicationEventsMessage(var Msg: tagMSG;
@@ -10306,19 +10331,6 @@ begin
         end;
       end;
     end;
-  {aiai}
-  WM_MOUSEMOVE:
-    begin
-      //TreePanelからマウスが出たら板ツリーを自動的に隠す
-      if TreePanel.Visible and (TreePanel.Align = alNone)
-          and not TreePanel.Resizing and not CursorInTreePanel then
-        AutoHideTreePanel;
-      //WritePanelからマウスが出たら書き込み用パネルを自動的に隠す
-      if WritePanelAutoHide and WritePanel.Visible and not WritePanel.Resizing
-          and not CursorInWritePanel then
-        AutoHideWritePanel;
-    end;
-  {/aiai}
   end; //case
 
   //▼マウスジェスチャー
@@ -10475,9 +10487,7 @@ begin
   if (Sender = PopupViewReplyOnWriteMemo) and WriteMemo.Enabled then
   begin
     ChangeWriteMemoText(Config.wrtReplyMark + IntToStr(TMenuItem(Sender).Tag) + #13#10);
-    if WritePanelAutoHide then
-      WritePanelAutoHide := False;
-    BottomTabControlMouseDown(PostTab, mbLeft, [], 0, 0);
+    ToggleWritePanelVisible(True);
   end else
   {/aiai}
   //▼開いているときは番号追加
@@ -10595,9 +10605,7 @@ begin
   strList.Free;
 
   ChangeWriteMemoText(Copy(s, 1, Length(s)));
-  if WritePanelAutoHide then
-    WritePanelAutoHide := False;
-  BottomTabControlMouseDown(PostTab, mbLeft, [], 0, 0);
+  ToggleWritePanelVisible(True);
 end;
 
 (* 既読にする *)//aiai
@@ -10613,6 +10621,7 @@ begin
   if thread = nil then
     exit;
   thread.oldLines := thread.lines;
+  thread.SaveIndexData;
 end;
 
 procedure TMainWnd.actGeneralUpdateExecute(Sender: TObject);
@@ -11049,8 +11058,15 @@ begin
     else s := ' ';
     if assigned(dat) then datSize := IntToStr(dat.Size div 1024) + 'KB'
     else datSize := '';
-    StatusBar.Panels.Items[2].Text
+    {StatusBar.Panels.Items[2].Text
       := '[新0: 未0: 全'
+      +  IntToStr(lines) + '] ' + HTML2String(title)
+      +  s
+      + ' [' + TBoard(board).name + '/'
+      + TCategory(TBoard(board).category).name + ']  '
+      + datSize;}//aiai
+    StatusBar2.Text[2]
+      := '[新0: 全'
       +  IntToStr(lines) + '] ' + HTML2String(title)
       +  s
       + ' [' + TBoard(board).name + '/'
@@ -13443,12 +13459,10 @@ procedure TMainWnd.MenuClearFindThreadResultClick(Sender: TObject);
 var
   i: Integer;
 begin
-  if currentBoard = nil then
+  if (currentBoard = nil) or not currentBoard.threadSearched then
     exit;
   for i := 0 to ListView.Items.Count - 1 do
     TThreadItem(ListView.Items[i].Data).liststate := 0;
-  //ListView.Sort(@ListCompareFuncNumber);
-  //currentSortColumn := 1;
   ListViewColumnSort(Config.stlDefSortColumn);
   currentBoard.threadSearched := false;
 end;
@@ -14238,9 +14252,7 @@ begin
     control.SetFocus;
   except
   end;
-  {aiai}
-  //SetTracePosition; //beginner
-  {/aiai}
+  SetTracePosition; //beginner
 end;
 
 
@@ -16016,31 +16028,6 @@ begin
   end;
 end;
 
-(* ステータスバーをクリックでメモ欄を隠すとか *)
-procedure TMainWnd.StatusBarClick(Sender: TObject);
-//var
-//  bool: Boolean;
-begin
-//  bool := not GetWriteMemoVisible;
-//  ChangeWriteMemoVisible(bool);
-  if WritePanelAutoHide then
-    WritePanelAutoHide := False;
-  if WritePanel.Visible then
-  begin
-    WritePanel.Visible := False;
-    PostTab.Checked := False;
-    PreViewTab.Checked := False;
-    SettingtxtTab.Checked := False;
-    ResultTab.Checked := False;
-  end else
-    BottomTabControlMouseDown(PostTab, mbLeft, [], 0, 0);
-end;
-
-procedure TMainWnd.MenuViewClick(Sender: TObject);
-begin
-  MenuViewWriteMemoToggleVisible.Checked := WritePanel.Visible;
-end;
-
 //↓すべて開く系
 (* 更新のあるスレッドをすべて開く *)
 procedure TMainWnd.PopupTreeOpenNewResThreadsClick(Sender: TObject);
@@ -16269,54 +16256,6 @@ begin
   Config.Modified := true;
 end;
 
-procedure TMainWnd.MenuOptSetNewsPosClick(Sender: TObject);
-begin
-  if MyNews = nil then
-    exit;
-
-  MenuOptSetNewsPos.Checked := not MenuOptSetNewsPos.Checked;
-  Config.tstNewsPos := MenuOptSetNewsPos.Checked;
-  if Config.tstNewsPos then begin
-    MyNews.Top := Panel0.BoundsRect.Bottom;
-    StatusBar.Top := MyNews.BoundsRect.Bottom;
-  end else begin
-    StatusBar.Top := Panel0.BoundsRect.Bottom;
-    MyNews.Top := StatusBar.BoundsRect.Bottom;
-  end;
-  Config.Modified := true;
-end;
-
-procedure TMainWnd.MenuOptNewsClick(Sender: TObject);
-begin
-  MenuOptSetNewsPos.Enabled := Assigned(MyNews);
-  MenuOptSetNewsPos.Checked := Config.tstNewsPos;
-end;
-
-procedure TMainWnd.MyNewsMouseUp(Sender: TObject; Button: TMouseButton;
-               Shift: TShiftState; X, Y: Integer);
-begin
-  if X <= (MyNews.Canvas.TextWidth(MyNews.getURI) - 50) then
-    case Button of
-    mbLeft:
-      begin
-        OpenByLovelyBrowser(MyNews.getURI);
-      end;
-//    mbRight: ShowMessage('right');
-    else exit;
-    end
-  else if Button = mbLeft then
-    StatusBarClick(Sender);
-end;
-
-procedure TMainwnd.MyNewsMouseMove(Sender: TObject;
-                Shift: TShiftState; X, Y: Integer);
-begin
-  if X <= (MyNews.Canvas.TextWidth(MyNews.getURI) - 50) then
-    MyNews.Cursor := crHandPoint
-  else
-    MyNews.Cursor := crDefault;
-end;
-
 procedure TMainWnd.MenuOptSetNewsIntervalClick(Sender: TObject);
 begin
   if MyNews <> nil then
@@ -16328,31 +16267,23 @@ begin
   if Config.tstUseNews then
    begin
     if MyNews = nil then begin
-      MyNews := TNews.Create(self);
-      MyNews.OnMouseMove := self.MyNewsMouseMove;
-      MyNews.OnMouseUp := self.MyNewsMouseUp;
+      MyNews := TNews.Create;
+      MyNews.OnNews := MyNewsNews;
+      StatusBar2.Parts := 4;
     end;
-    if Config.tstNewsPos then begin
-      MyNews.Top := Panel0.BoundsRect.Bottom;
-      StatusBar.Top := MyNews.BoundsRect.Bottom;
-    end else begin
-      StatusBar.Top := Panel0.BoundsRect.Bottom;
-      MyNews.Top := StatusBar.BoundsRect.Bottom;
-    end;
-    MyNews.Visible := true;
     MyNews.setChangeNewsTimerInterval(Config.tstNewsInterval * 1000);
     MyNews.resetChangeNewsTimer;
   end else
   begin
-    if MyNews <> nil then
-    begin
-      MyNews.Visible := false;
-      MyNews.ChangeNewsTimerStop;
-      MyNews.Free;
-      MyNews := nil;
-    end;
+    if Assigned(MyNews) then
+      FreeAndNil(MyNews);
+    StatusBar2.Parts := 3;
   end;
-  Config.Modified := true;
+end;
+
+procedure TMainWnd.MyNewsNews(Sender: TObject; News: String);
+begin
+  StatusBar2.Text[3] := News;
 end;
 //↑ニュース機能
 
@@ -16504,348 +16435,153 @@ end;
 
 //▼ 板ツリーの表示切替
 
+//TreeViewとFavoriteViewの切り替え
 procedure TMainWnd.SetTabSetIndex(index: integer);
 begin
   if (index < 0) or (1 < index) then
     exit;
-  {aiai}
-  //if TreeTabControl.TabIndex <> index then
-  //  TreeTabControl.TabIndex := index;
+
   if TreeTabControlIndex <> index then
     TreeTabControlIndex := index;
-  {/aiai}
-  ChangeActiveTreePane(index);
-end;
 
-procedure TMainWnd.ChangeActiveTreePane(index: integer);
-begin
   case index of
   0:
     begin
+      TreeView.DoubleBuffered := True;
       TreeView.BringToFront;
+      TreeView.Repaint;
+      TreeView.DoubleBuffered := False;
+      LabelTreeTitle.Caption := '  板一覧';
       TreeView.TabStop := true;
       FavoriteView.TabStop := false;
-      {aiai}
-      LabelTreeTitle.Caption := '  板一覧';
-      //if FavoriteView.Focused then
-      //  TreeView.SetFocus;
       try TreeView.SetFocus; except end;
       TreeViewTab.Checked := True;
-      {/aiai}
+      FavoriteViewTab.Checked := False;
     end;
   1:
     begin
+      FavoriteView.DoubleBuffered := True;
       FavoriteView.BringToFront;
+      FavoriteView.Repaint;
+      FavoriteView.DoubleBuffered := False;
+      LabelTreeTitle.Caption := '  お気に入り';
       FavoriteView.TabStop := true;
       TreeView.TabStop := false;
-      {aiai}
-      LabelTreeTitle.Caption := '  お気に入り';
-      //if TreeView.Focused then
-      //  FavoriteView.SetFocus;
       try FavoriteView.SetFocus; except end;
+      TreeViewTab.Checked := False;
       FavoriteViewTab.Checked := True;
-      {/aiai}
     end;
   end;
 end;
 
-procedure TMainWnd.SetLPane(visible: Boolean);
-var
-  viewItem: TViewItem;
+//TreePanelの表示切替
+procedure TMainWnd.ToggleTreePanel(AVisible: Boolean);
 begin
-  Config.stlTreeVisible := visible;
-  TreePanel.Visible := visible;
-  TreeViewTab.Checked := False;
-  FavoriteViewTab.Checked := False;
-  if visible then
-    ChangeActiveTreePane(TreeTabControlIndex)
-  else begin
-    TreeView.TabStop := false;
-    FavoriteView.TabStop := false;
-    try
-      ListView.SetFocus;
-    except
-      viewItem := GetActiveView;
-      if viewItem <> nil then try viewItem.browser.SetFocus; except end;
-    end;
+  if TreePanel.Visible = AVisible then
+    exit;
+
+  if AVisible then
+  begin
+    TreePanel.Visible := True;
+    actTreeToggleVisible.Checked := True;
+    SideBar.Checked := True;
+    BoardSplitter.Visible := not TreePanelCanMove;
+    BoardSplitter.Left := TreePanel.BoundsRect.Right;
+  end else
+  begin
+    TreePanel.Visible := False;
+    TreeViewTab.Checked := False;
+    FavoriteViewTab.Checked := False;
+    BoardSplitter.Visible := False;
+    actTreeToggleVisible.Checked := False;
+    SideBar.Checked := False;
   end;
-  actTreeToggleVisible.Checked := visible;
-  ToolButtonTreeTitleAutoHide.PictureIndex := 2 - Integer(visible);  //aiai]
-  //TreePanelAutoHide := False; //aiai
 end;
 
+//CanMove切り替え
+procedure TMainWnd.ToggleTreePanelCanMove(ACanMove: Boolean);
+var
+  ws: Integer;
+begin
+  if ACanMove then
+  begin
+    ws := GetWindowLong(TreePanel.Handle, GWL_STYLE);
+    ws := ws or WS_THICKFRAME;
+    SetWindowLong(TreePanel.Handle, GWL_STYLE, ws);
+    ToolButtonTreeTitleCanMove.PictureIndex := 2;
+    TreePanel.Align := alNone;
+    BoardSplitter.Visible := False;
+    TreePanel.Width := TreePanel.Width + 1;
+    TreePanel.Width := TreePanel.Width - 1;
+    MenuBoardCanMove.Checked := True;
+    TreePanel.BringToFront;
+  end else
+  begin
+    ws := GetWindowLong(TreePanel.Handle, GWL_STYLE);
+    ws := ws and (not WS_THICKFRAME);
+    SetWindowLong(TreePanel.Handle, GWL_STYLE, ws);
+    ToolButtonTreeTitleCanMove.PictureIndex := 1;
+    TreePanel.Align := alLeft;
+    BoardSplitter.Left := TreePanel.BoundsRect.Right;
+    BoardSplitter.Visible := TreePanel.Visible;
+    TreePanel.Width := TreePanel.Width + 1;
+    TreePanel.Width := TreePanel.Width - 1;
+    MenuBoardCanMove.Checked := False;
+    if WritePanel.Visible then
+      WritePanel.BringToFront;
+  end;
+end;
+
+
+//各種イベントハンドラ
 procedure TMainWnd.MenuViewTreeToggleVisibleClick(Sender: TObject);
 begin
-  SetLPane(not Config.stlTreeVisible);
+  ToggleTreePanel(not TreePanel.Visible);
+  if TreePanel.Visible then
+    SetTabSetIndex(TreeTabControlIndex);
+end;
+
+procedure TMainWnd.MenuWndBoardClick(Sender: TObject);
+begin
+  tag := TComponent(Sender).Tag;
+
+  TreeTabControlIndex := tag;
+  if not TreePanel.Visible then
+    ToggleTreePanel(True);
+
+  SetTabSetIndex(TreeTabControlIndex);
 end;
 
 procedure TMainWnd.TreeViewTabMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
-  //if TreePanelAutoHide then
-  //  exit;
-
-  if not TreePanel.Visible then
-  begin
-    TreePanel.Align := alLeft;
-    TreePanel.Visible := True;
-    Config.stlTreeVisible :=  not Config.stlTreeVisible;
-    ToolButtonTreeTitleAutoHide.PictureIndex := 1;
-    actTreeToggleVisible.Checked := True;
-  end;
-  TreeTabControlIndex := (Sender as TJLTab).Tag;
-  TreeViewTab.Checked := False;
-  FavoriteViewTab.Checked := False;
-  ChangeActiveTreePane(TreeTabControlIndex);
-end;
-
-procedure TMainWnd.TreeTabControlMouseEnter(Sender: TObject);
-begin
-  if not Application.Active then
-    exit;
-
-  if not TreePanelAutoHide then
-    exit;
-
-  if TreePanel.Visible then
-    exit;
-
-  TreePanel.Align := alNone;
-  TreePanel.Height := Panel1.ClientHeight - BottomPanel.Height;
-  Treepanel.Visible := True;
-  ChangeActiveTreePane(TreeTabControlIndex);
-
-  TreeTabControlIndex := (Sender as TJLTab).Tag;
-  TreeViewTab.Checked := False;
-  FavoriteViewTab.Checked := False;
-  ChangeActiveTreePane(TreeTabControlIndex);
+  MenuWndBoardClick(Sender);
 end;
 
 procedure TMainWnd.PanelTitlePanelClick(Sender: TObject);
-var
-  autohide: Boolean;
 begin
   //閉じるボタン
   if TToolButton(Sender) = ToolButtonTreeTitleClose then
-  begin
-    if TreePanel.Visible and (TreePanel.Align = alNone) then
-      AutoHideTreePanel
-    else
-      SetLPane(False);
-    TreeViewTab.Checked := False;
-    FavoriteViewTab.Checked := False;
-  end
+    ToggleTreePanel(False)
   //オートハイド切り替えボタン
-  else if TToolButton(Sender) = ToolButtonTreeTitleAutoHide then
+  else if TToolButton(Sender) = ToolButtonTreeTitleCanMove then
   begin
-    autohide := not Config.stlTreeVisible;
-    Config.stlTreeVisible := autohide;
-    TreePanelAutoHide := not autohide;
-    actTreeToggleVisible.Checked := autohide;
-    ToolButtonTreeTitleAutoHide.PictureIndex := 2 - Integer(autohide);
-    TreePanel.Align := TAlign(Integer(autohide) * 3);
+    TreePanelCanMove := not TreePanelCanMove;
+    ToggleTreePanelCanMove(TreePanelCanMove);
   end;
 end;
 
-//自動で隠す
-procedure TMainWnd.AutoHideTreePanel;
-var
-  viewItem: TViewItem;
+procedure TMainWnd.MenuBoardCanMoveClick(Sender: TObject);
 begin
-  TreePanel.Visible := False;
-  TreePanel.Align := alLeft;
-
-  try
-    ListView.SetFocus;
-  except
-    viewItem := GetActiveView;
-    if viewItem <> nil then try viewItem.browser.SetFocus; except end;
-  end;
-  TreeViewTab.Checked := False;
-  FavoriteViewTab.Checked := False;
-end;
-
-//▲ 板ツリーの表示切替
-
-
-//▼ 書き込みパネルの表示切替
-
-procedure TMainWnd.AutoHideWritePanel;
-var
-  viewItem: TViewItem;
-begin
-  WritePanel.Visible := False;
-  PostTab.Checked := False;
-  PreViewTab.Checked := False;
-  SettingtxtTab.Checked := False;
-  ResultTab.Checked := False;
-
-  viewItem := GetActiveView;
-  if viewItem <> nil then try viewItem.browser.SetFocus; except end;
-end;
-
-procedure TMainWnd.BottomTabControlMouseDown(Sender: TObject;
-  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-begin
-  //if WritePanelAutoHide then
-  //  exit;
-
-  if not WritePanel.Visible then
-  begin
-    if JLDualStateButton.LeftRightState = lrLeft then
-    begin
-      WritePanel.Left := 0;
-      WritePanel.VHandlePos := vhpRight;
-    end else
-    begin
-      WritePanel.Left := Panel1.ClientWidth - WritePanel.Width - 20;
-      WritePanel.VHandlePos := vhpLeft;
-    end;
-    WritePanel.Top := BottomPanel.Top - WritePanel.Height;
-    ToolButtonWriteTitleAutoHide.PictureIndex := 1 + Integer(WritePanelAutoHide);
-    WritePanel.Visible := True;
-  end;
-  ChangeMainPageControlActiveTab((Sender as TJLTab).Tag);
-  PostTab.Checked := False;
-  PreViewTab.Checked := False;
-  SettingtxtTab.Checked := False;
-  ResultTab.Checked := False;
-  (Sender as TJLTab).Checked := True;
-  //Case (Sender as TJLTab).Tag of
-  //  0: LabelWriteTitle.Caption := '  書き込み';
-  //  1: LabelWriteTitle.Caption := '  プレビュー';
-  //  2: LabelWriteTitle.Caption := '  SETTING.TXT';
-  //  3: LabelWriteTitle.Caption := '  書き込み結果';
-  //end; //Case
-end;
-
-procedure TMainWnd.BottomTabControlMouseEnter(Sender: TObject);
-begin
-  if not Application.Active then
-    exit;
-
-  if not WritePanelAutoHide then
-    exit;
-
-  if WritePanel.Visible then
-    exit;
-
-  if JLDualStateButton.LeftRightState = lrLeft then
-  begin
-    WritePanel.Left := 0;
-    WritePanel.VHandlePos := vhpRight;
-  end else
-  begin
-    WritePanel.Left := Panel1.ClientWidth - WritePanel.Width - 20;
-    WritePanel.VHandlePos := vhpLeft;
-  end;
-  WritePanel.Top := BottomPanel.Top - WritePanel.Height;
-  WritePanel.Visible := True;
-
-  ChangeMainPageControlActiveTab((Sender as TJLTab).Tag);
-  PostTab.Checked := False;
-  PreViewTab.Checked := False;
-  SettingtxtTab.Checked := False;
-  ResultTab.Checked := False;
-  (Sender as TJLTab).Checked := True;
-  //Case (Sender as TJLTab).Tag of
-  //  0: LabelWriteTitle.Caption := '  書き込み';
-  //  1: LabelWriteTitle.Caption := '  プレビュー';
-  //  2: LabelWriteTitle.Caption := '  SETTING.TXT';
-  //  3: LabelWriteTitle.Caption := '  書き込み結果';
-  //end; //Case
-end;
-
-//AutoHide切り替え
-procedure TMainWnd.ToolButtonWriteTitleAutoHideClick(Sender: TObject);
-begin
-  WritePanelAutoHide := not WritePanelAutoHide;
-  ToolButtonWriteTitleAutoHide.PictureIndex := 1 + Integer(WritePanelAutoHide);
-end;
-
-procedure TMainWnd.ToolButtonWriteTitleCloseClick(Sender: TObject);
-begin
-  AutoHideWritePanel;
-end;
-
-//▲ 書き込みパネルの表示切替
-
-//トレース画面のリサイズ後 WritePanelの位置をなおす
-procedure TMainWnd.LogSplitterMoved(Sender: TObject);
-begin
-  if WritePanel.Visible then
-    WritePanel.Top := BottomPanel.Top - WritePanel.Height;
-end;
-
-//BottomPanel上のタブの左揃え、右揃えの変更
-procedure TMainWnd.JLDualStateButtonClick(Sender: TObject);
-begin
-  //右揃えにする
-  if JLDualStateButton.LeftRightState = lrLeft then
-  begin
-    JLDualStateButton.LeftRightState := lrRight;
-    ResultTab.Left := BottomPanel.ClientWidth - ResultTab.Width - 2;
-    SettingtxtTab.Left := ResultTab.Left - SettingtxtTab.Width + 1;
-    PreViewTab.Left := SettingtxtTab.Left - PreViewTab.Width + 1;
-    PostTab.Left := PreViewTab.Left - PostTab.Width + 1;
-    JLDualStateButton.Left := PostTab.Left - JLDualStateButton.Width;
-    if WritePanel.Visible then
-    begin
-      WritePanel.Left := Panel1.ClientWidth - WritePanel.Width - 20;
-      WritePanel.VHandlePos := vhpLeft;
-    end;
-  //左揃えにする
-  end else
-  begin
-    JLDualStateButton.LeftRightState := lrLeft;
-    PostTab.Left := 0;
-    PreViewTab.Left := PostTab.Width - 1;
-    SettingtxtTab.Left := PreViewTab.Left + PreViewTab.Width - 1;
-    ResultTab.Left := SettingtxtTab.Left + SettingtxtTab.Width - 1;
-    JLDualStateButton.Left := ResultTab.Left + ResultTab.Width;
-    if WritePanel.Visible then
-    begin
-      WritePanel.Left := 0;
-      WritePanel.VHandlePos := vhpRight;
-    end;
-  end;
-end;
-
-procedure TMainWnd.BottomPanelResize(Sender: TObject);
-begin
-  if JLDualStateButton.LeftRightState = lrRight then
-  begin
-    ResultTab.Left := BottomPanel.ClientWidth - ResultTab.Width - 2;
-    SettingtxtTab.Left := ResultTab.Left - SettingtxtTab.Width + 1;
-    PreViewTab.Left := SettingtxtTab.Left - PreViewTab.Width + 1;
-    PostTab.Left := PreViewTab.Left - PostTab.Width + 1;
-    JLDualStateButton.Left := PostTab.Left - JLDualStateButton.Width;
-    WritePanel.Left := Panel1.ClientWidth - WritePanel.Width - 20;
-  end;
-end;
-
-procedure TMainWnd.WritePanelEnter(Sender: TObject);
-begin
-  WritePanelTitle.Color := clActiveCaption;
-  SetFocusToWriteMemo;
-  //LabelWriteTitle.Font.Color := clCaptionText;
-  //ToolButtonWriteTitle.PictureColor := clCaptionText;
-  //ToolButtonWriteTitleAutoHide.PictureColor := clCaptionText;
-  //ToolButtonWriteTitleClose.PictureColor := clCaptionText;
-end;
-
-procedure TMainWnd.WritePanelExit(Sender: TObject);
-begin
-  WritePanelTitle.Color := clInActiveCaption;
-  //LabelWriteTitle.Font.Color := clWindowText;
-  //ToolButtonWriteTitle.PictureColor := clWindowText;
-  //ToolButtonWriteTitleAutoHide.PictureColor := clWindowText;
-  //ToolButtonWriteTitleClose.PictureColor := clWindowText;
+  TreePanelCanMove := not TreePanelCanMove;
+  ToggleTreePanelCanMove(TreePanelCanMove);
 end;
 
 procedure TMainWnd.TreePanelEnter(Sender: TObject);
 begin
   PanelTreeTitle.Color := clActiveCaption;
+  if TreePanelCanMove then
+    TreePanel.BringToFront;
 end;
 
 procedure TMainWnd.TreePanelExit(Sender: TObject);
@@ -16860,15 +16596,324 @@ begin
     try TreeView.SetFocus; except end
   else
     try FavoriteView.SetFocus; except end;
+
+  if not TreePanelCanMove then
+    exit;
+
+  TreePanelOriginalX := X;
+  TreePanelOriginalY := Y;
+  TreePanelMouseDowned := True;
+end;
+
+procedure TMainWnd.LabelTreeTitleMouseMove(Sender: TObject;
+  Shift: TShiftState; X, Y: Integer);
+var
+  newLeft, newTop: Integer;
+begin
+  if not TreePanelMouseDowned then
+    exit;
+
+  if Panel1.ClientWidth < TreePanel.Width then
+    TreePanel.Left := 0
+  else
+  begin
+    newLeft := TreePanel.Left + X - TreePanelOriginalX;
+    if newLeft < 0 then
+      newLeft := 0
+    else if newLeft + TreePanel.Width > Panel1.ClientWidth then
+      newLeft := Panel1.ClientWidth - TreePanel.Width;
+    TreePanel.Left := newLeft;
+  end;
+
+  if Panel1.ClientHeight < TreePanel.Height then
+    TreePanel.Top := 0
+  else
+  begin
+    newTop := TreePanel.Top + Y - TreePanelOriginalY;
+    if newTop < 0 then
+      newTop := 0
+    else if newTop + TreePanel.Height > Panel1.ClientHeight then
+      newTop := Panel1.ClientHeight - TreePanel.Height;
+    TreePanel.Top := newTop;
+  end;
+
+  TreePanel.Update;
+  Panel1.Update;
+end;
+
+procedure TMainWnd.LabelTreeTitleMouseUp(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  TreePanelMouseDowned := False;
+end;
+
+
+procedure TMainWnd.ToolButtonTreeTitleMouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  if TreeTabControlIndex = 0 then
+    try TreeView.SetFocus; except end
+  else
+    try FavoriteView.SetFocus; except end;
+end;
+
+procedure TMainWnd.TreePanelResize(Sender: TObject);
+begin
+  if TreePanelCanMove then
+  begin
+   if TreePanel.Width < 20 then
+     TreePanel.Width := 20;
+   if TreePanel.Height < 20 then
+     TreePanel.Height := 20;
+  end;
+end;
+
+//▲ 板ツリーの表示切替
+
+
+//▼ 書き込みパネルの表示切替
+
+procedure TMainWnd.ToggleWritePanelVisible(AVisible: Boolean);
+var
+  viewItem: TViewItem;
+begin
+  if AVisible then
+  begin
+    ToggleWritePanelTabSheet(0);
+    ToolButtonWriteTitleAutoHide.PictureIndex := 1 + Integer(WritePanelCanMove);
+    JLWritePanel.SetStatusBarVisible(not Config.wrtDisableStatusBar);
+  end else
+  begin
+    viewItem := GetActiveView;
+    if viewItem <> nil then
+      try
+        viewItem.browser.SetFocus;
+      except
+      end;
+  end;
+
+  WritePanel.Visible := AVisible;
+  WritePanelSplitter.Visible := AVisible and not WritePanelCanMove;
+  WritePanelSplitter.Top := WritePanel.Top - WritePanelSplitter.Height;
+  if AVisible and not WritePanelPos then
+    SetTracePosition;
+end;
+
+procedure TMainWnd.ToggleWritePanelTabSheet(AIndex: Integer);
+begin
+  WritePanelTabControlIndex := AIndex;
+  ChangeMainPageControlActiveTab(WritePanelTabControlIndex);
+  JLTabWrite.Checked := False;
+  JLTabPreView.Checked := False;
+  JLTabSettingTXT.Checked := False;
+  JLTabResult.Checked := False;
+  Case WritePanelTabControlIndex of
+    0: JLTabWrite.Checked := True;
+    1: JLTabPreView.Checked := True;
+    2: JLTabSettingTXT.Checked := True;
+    3: JLTabResult.Checked := True;
+  end; //Case
+end;
+
+//CanMove切り替え
+procedure TMainWnd.ToggleWritePanelCanMove(ACanMove: Boolean);
+var
+  ws: Integer;
+begin
+  ws := GetWindowLong(WritePanel.Handle, GWL_STYLE);
+  if WritePanelCanMove then
+  begin
+    WritePanel.Align := alNone;
+    WritePanel.Parent := Panel1;
+    ToolButtonWriteTitleAutoHide.PictureIndex := 2;
+    WritePanelSplitter.Visible := False;
+    ws := ws or WS_THICKFRAME
+  end else
+  begin
+    {if WritePanelPos then
+      WritePanel.Parent := WebPanel
+    else
+      WritePanel.Parent := ListViewPanel;}
+    WritePanel.Align := alBottom;
+    ToolButtonWriteTitleAutoHide.PictureIndex := 1;
+    WritePanelSplitter.Visible := True;
+    WritePanelSplitter.Top := WritePanel.Top - WritePanelSplitter.Height;
+    ws := ws and not WS_THICKFRAME;
+  end;
+  SetWindowLong(WritePanel.Handle, GWL_STYLE, ws);
+  WritePanel.Height := WritePanel.Height + 1;
+  WritePanel.Height := WritePanel.Height - 1;
+end;
+
+//位置の変更
+procedure TMainWnd.ToggleWritePanelPos(APos: Boolean);
+begin
+  if APos then
+  begin
+    WritePanel.Parent := WebPanel;
+    WritePanelSplitter.Parent := WebPanel;
+  end else
+  begin
+    WritePanel.Parent := ListViewPanel;
+    WritePanelSplitter.Parent := ListViewPanel;
+  end;
+end;
+
+procedure TMainWnd.ToolButtonWriteTitleAutoHideClick(Sender: TObject);
+begin
+  WritePanelCanMove := not WritePanelCanMove;
+  ToggleWritePanelPos(WritePanelPos);
+  ToggleWritePanelCanMove(WritePanelCanMove);
+  ToggleWritePanelVisible(WritePanel.Visible);
+end;
+
+procedure TMainWnd.PopupWritePanelPopup(Sender: TObject);
+begin
+  MenuWritePanelCanMove.Checked := WritePanelCanMove;
+  MenuWritePanelPos.Checked := WritePanelPos;
+  MenuWritePanelDisableStatusBar.Checked := Config.wrtDisableStatusBar;
+  MenuWritePanelPos.Enabled := not WritePanelCanMove;
+end;
+
+procedure TMainWnd.MenuMemoClick(Sender: TObject);
+begin
+  MenuMemoCanMove.Checked := WritePanelCanMove;
+  MenuMemoPos.Checked := WritePanelPos;
+  MenuMemoDisableStatusBar.Checked := Config.wrtDisableStatusBar;
+  MenuMemoPos.Enabled := not WritePanelCanMove;
+end;
+
+
+procedure TMainWnd.ToolButtonWriteTitleCloseClick(Sender: TObject);
+begin
+  ToggleWritePanelVisible(False);
+end;
+
+procedure TMainWnd.JLTabControlMouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  if Button <> mbLeft then
+    exit;
+  ChangeMainPageControlActiveTab((Sender as TJLTab).Tag);
+  JLTabWrite.Checked := False;
+  JLTabPreView.Checked := False;
+  JLTabSettingTXT.Checked := False;
+  JLTabResult.Checked := False;
+  (Sender as TJLTab).Checked := True;
+end;
+
+procedure TMainWnd.ToolButtonWriteTitleMouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  try WritePanel.SetFocus; except end;
 end;
 
 procedure TMainWnd.LabelWriteTitleMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var
+  Point: TPoint;
 begin
-  //SetFocusToWriteMemo;
   try WritePanel.SetFocus; except end;
+  if (not WritePanelCanMove) or (Button <> mbLeft) then
+    exit;
+
+  Point := LabelWriteTitle.ScreenToClient(Mouse.CursorPos);
+  WritePanelOriginalX := Point.X;
+  WritePanelOriginalY := Point.Y;
+  WritePanelMouseDowned := True;
 end;
 
+procedure TMainWnd.LabelWriteTitleMouseMove(Sender: TObject;
+  Shift: TShiftState; X, Y: Integer);
+var
+  newTop, newLeft: Integer;
+begin
+  if not WritePanelMouseDowned then
+    exit;
+
+  if Panel1.ClientWidth < WritePanel.Width then
+    WritePanel.Left := 0
+  else
+  begin
+    newLeft := WritePanel.Left + X - WritePanelOriginalX;
+    if newLeft < 0 then
+      newLeft := 0
+    else if newLeft + WritePanel.Width > Panel1.ClientWidth then
+      newLeft := Panel1.ClientWidth - WritePanel.Width;
+    WritePanel.Left := newLeft;
+  end;
+
+  if Panel1.ClientHeight < WritePanel.Height then
+    WritePanel.Top := 0
+  else
+  begin
+    newTop := WritePanel.Top + Y - WritePanelOriginalY;
+    if newTop < 0 then
+      newTop := 0
+    else if newTop + WritePanel.Height > Panel1.ClientHeight then
+      newTop := Panel1.ClientHeight - WritePanel.Height;
+    WritePanel.Top := newTop;
+  end;
+
+  WritePanel.Update;
+  Panel1.Update;
+
+end;
+
+procedure TMainWnd.LabelWriteTitleMouseUp(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  if Button = mbLeft then
+    WritePanelMouseDowned := False;
+end;
+
+(* メニューから書き込みパネルを隠す *)
+procedure TMainWnd.MenuViewWriteMemoToggleVisibleClick(Sender: TObject);
+begin
+  ToggleWritePanelVisible(not WritePanel.Visible);
+end;
+
+procedure TMainWnd.MenuViewClick(Sender: TObject);
+begin
+  MenuViewWriteMemoToggleVisible.Checked := WritePanel.Visible;
+end;
+
+
+procedure TMainWnd.WritePanelEnter(Sender: TObject);
+begin
+  WritePanel.BringToFront;
+  WritePanelTitle.Color := clActiveCaption;
+  SetFocusToWriteMemo;
+end;
+
+procedure TMainWnd.WritePanelExit(Sender: TObject);
+begin
+  WritePanelTitle.Color := clInActiveCaption;
+end;
+
+procedure TMainWnd.MenuWritePanelPosClick(Sender: TObject);
+begin
+  if not WritePanel.Visible then
+    exit;
+
+  WritePanelPos := not WritePanelPos;
+  ToggleWritePanelPos(WritePanelPos);
+  ToggleWritePanelVisible(WritePanel.Visible);
+end;
+
+procedure TMainWnd.MenuWritePanelDisableStatusBarClick(Sender: TObject);
+begin
+  Config.wrtDisableStatusBar := not Config.wrtDisableStatusBar;
+  Config.Modified := True;
+  ToggleWritePanelVisible(WritePanel.Visible);
+end;
+
+
+//▲ 書き込みパネルの表示切替
+
+
+
+//スレ欄にドラッグ＆ドラップでログ追加
 procedure TMainWnd.ListViewDropFiles(Sender: TObject; FileList: TStringList);
 var
   board: TBoard;
@@ -16913,12 +16958,58 @@ begin
 
   board.MergeCacheFrequency(flist);
 
-  ListView.DoubleBuffered := True;
   UpdateListView;
-  ListView.DoubleBuffered := False;
 
   flist.Free;
 end;
+
+
+//▼ ステータスバー
+procedure TMainWnd.StatusBar2Click(Sender: TObject);
+begin
+  ToggleWritePanelVisible(not WritePanel.Visible);
+  if WritePanel.Visible then
+    JLTabControlMouseDown(JLTabWrite, mbLeft, [], 0, 0);
+end;
+
+procedure TMainWnd.StatusBar2RClick(Sender: TObject);
+var
+  Point: TPoint;
+begin
+  if not GetCursorPos(Point) then exit;
+  if InvalidPoint(Point) then exit;
+
+  PopupStatusBar.Popup(Point.X, Point.Y);
+end;
+
+procedure TMainWnd.PopupStatusBarPopup(Sender: TObject);
+begin
+  if Assigned(MyNews) then
+  begin
+    MyNews.TempBuffer := MyNews.NewsURI;
+    MenuStatusOpenByBrowser.Caption := MyNews.NewsText + 'をブラウザーで開く(&B)';
+    MenuStatusOpenByLovelyBrowser.Caption := MyNews.NewsText + 'をLovelyBrowserで開く(&L)';
+    MenuStatusOpenByBrowser.Visible := True;
+    MenuStatusOpenByLovelyBrowser.Visible := True;
+  end else
+  begin
+    MenuStatusOpenByBrowser.Visible := False;
+    MenuStatusOpenByLovelyBrowser.Visible := False;
+  end;
+end;
+
+procedure TMainWnd.MenuStatusOpenByBrowserClick(Sender: TObject);
+begin
+  OpenByBrowser(MyNews.TempBuffer);
+end;
+
+procedure TMainWnd.MenuStatusOpenByLovelyBrowserClick(Sender: TObject);
+begin
+  OpenByLovelyBrowser(MyNews.TempBuffer);
+end;
+
+//▲ ステータスバー
+
 
 initialization
   OleInitialize(nil);
@@ -16926,4 +17017,15 @@ finalization
   OleUninitialize;
 
 end.
+
+
+
+
+
+
+
+
+
+
+
 

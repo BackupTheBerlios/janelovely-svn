@@ -1,5 +1,5 @@
 object MainWnd: TMainWnd
-  Left = 203
+  Left = 209
   Top = 136
   AutoScroll = False
   Caption = 'Jane2ch'
@@ -28,13 +28,12 @@ object MainWnd: TMainWnd
     Left = 0
     Top = 0
     Width = 639
-    Height = 502
-    Align = alClient
+    Height = 496
     BevelOuter = bvNone
     TabOrder = 0
     object LogSplitter: TSplitter
       Left = 0
-      Top = 480
+      Top = 474
       Width = 639
       Height = 2
       Cursor = crVSplit
@@ -42,31 +41,39 @@ object MainWnd: TMainWnd
       AutoSnap = False
       MinSize = 1
       ResizeStyle = rsUpdate
-      OnMoved = LogSplitterMoved
     end
     object Panel1: TPanel
-      Left = 20
+      Left = 4
       Top = 51
-      Width = 619
-      Height = 429
+      Width = 635
+      Height = 423
       Align = alClient
       BevelOuter = bvNone
       ParentShowHint = False
       ShowHint = True
       TabOrder = 0
       OnResize = Panel1Resize
-      object Panel2: TPanel
+      object BoardSplitter: TSplitter
         Left = 120
         Top = 0
-        Width = 499
-        Height = 409
+        Width = 4
+        Height = 423
+        Cursor = crHSplit
+        AutoSnap = False
+        MinSize = 4
+      end
+      object Panel2: TPanel
+        Left = 124
+        Top = 0
+        Width = 511
+        Height = 423
         Align = alClient
         BevelOuter = bvNone
         TabOrder = 1
         object ThreadSplitter: TSplitter
           Left = 0
           Top = 145
-          Width = 499
+          Width = 511
           Height = 4
           Cursor = crVSplit
           Align = alTop
@@ -76,26 +83,34 @@ object MainWnd: TMainWnd
         object WebPanel: TPanel
           Left = 0
           Top = 149
-          Width = 499
-          Height = 260
+          Width = 511
+          Height = 274
           Align = alClient
           BevelOuter = bvNone
           Color = clWindow
-          Ctl3D = False
           Font.Charset = SHIFTJIS_CHARSET
           Font.Color = clWindowText
           Font.Height = -12
           Font.Name = 'MS UI Gothic'
           Font.Style = []
-          ParentCtl3D = False
           ParentFont = False
           TabOrder = 1
           OnEnter = WebPanelEnter
           OnResize = WebPanelResize
+          object WritePanelSplitter: TSplitter
+            Left = 0
+            Top = 126
+            Width = 511
+            Height = 2
+            Cursor = crVSplit
+            Align = alBottom
+            AutoSnap = False
+            MinSize = 25
+          end
           object Panel10: TPanel
             Left = 0
             Top = 0
-            Width = 499
+            Width = 511
             Height = 1
             Align = alTop
             BevelOuter = bvNone
@@ -104,7 +119,7 @@ object MainWnd: TMainWnd
           object Panel3: TPanel
             Left = 0
             Top = 1
-            Width = 499
+            Width = 511
             Height = 48
             Align = alTop
             Alignment = taLeftJustify
@@ -114,7 +129,7 @@ object MainWnd: TMainWnd
             object TabBarPanel: TPanel
               Left = 1
               Top = 1
-              Width = 497
+              Width = 509
               Height = 24
               Align = alTop
               BevelOuter = bvNone
@@ -122,7 +137,7 @@ object MainWnd: TMainWnd
               object TabPanel: TPanel
                 Left = 0
                 Top = 0
-                Width = 497
+                Width = 509
                 Height = 24
                 Align = alClient
                 ParentShowHint = False
@@ -134,7 +149,7 @@ object MainWnd: TMainWnd
                 object TabControl: TTabControl
                   Left = 1
                   Top = 1
-                  Width = 495
+                  Width = 507
                   Height = 22
                   Align = alClient
                   Images = ListImages
@@ -157,7 +172,7 @@ object MainWnd: TMainWnd
             object ThreadToolPanel: TPanel
               Left = 1
               Top = 25
-              Width = 497
+              Width = 509
               Height = 22
               Align = alTop
               Alignment = taLeftJustify
@@ -170,12 +185,12 @@ object MainWnd: TMainWnd
               ParentFont = False
               TabOrder = 0
               DesignSize = (
-                497
+                509
                 22)
               object ThreadTitleLabel: TLabel
                 Left = 8
                 Top = 0
-                Width = 654
+                Width = 666
                 Height = 22
                 Anchors = [akLeft, akTop, akRight, akBottom]
                 AutoSize = False
@@ -196,7 +211,7 @@ object MainWnd: TMainWnd
                 OnMouseMove = ThreadTitleLabelMouseMove
               end
               object ThreadToolBar: TToolBar
-                Left = 183
+                Left = 195
                 Top = 0
                 Width = 325
                 Height = 22
@@ -204,7 +219,6 @@ object MainWnd: TMainWnd
                 AutoSize = True
                 ButtonWidth = 26
                 Caption = 'ThreadToolBar'
-                Ctl3D = True
                 EdgeBorders = []
                 EdgeOuter = esNone
                 Flat = True
@@ -338,11 +352,175 @@ object MainWnd: TMainWnd
               end
             end
           end
+          object WritePanel: TPanel
+            Left = 0
+            Top = 128
+            Width = 511
+            Height = 146
+            Align = alBottom
+            Constraints.MinHeight = 25
+            Constraints.MinWidth = 25
+            TabOrder = 2
+            Visible = False
+            OnEnter = WritePanelEnter
+            OnExit = WritePanelExit
+            object WritePanelTitle: TPanel
+              Left = 1
+              Top = 1
+              Width = 509
+              Height = 17
+              Align = alTop
+              BevelOuter = bvNone
+              Color = clActiveCaption
+              TabOrder = 1
+              object LabelWriteTitle: TLabel
+                Left = 0
+                Top = 0
+                Width = 458
+                Height = 17
+                Align = alClient
+                AutoSize = False
+                Caption = '  '#26360#12365#36796#12415
+                Font.Charset = SHIFTJIS_CHARSET
+                Font.Color = clCaptionText
+                Font.Height = -12
+                Font.Name = 'MS UI Gothic'
+                Font.Style = []
+                ParentFont = False
+                Layout = tlCenter
+                OnMouseDown = LabelWriteTitleMouseDown
+                OnMouseMove = LabelWriteTitleMouseMove
+                OnMouseUp = LabelWriteTitleMouseUp
+              end
+              object ToolBarWriteTitle: TToolBar
+                Left = 458
+                Top = 0
+                Width = 51
+                Height = 17
+                Align = alRight
+                AutoSize = True
+                ButtonHeight = 16
+                ButtonWidth = 17
+                Caption = 'ToolBarWriteTitle'
+                EdgeBorders = []
+                Flat = True
+                TabOrder = 0
+                Transparent = True
+                object ToolButtonWriteTitle: TJLToolButton
+                  Left = 0
+                  Top = 0
+                  Caption = 'ToolButtonWriteTitle'
+                  DropdownMenu = PopupWritePanel
+                  ImageIndex = 0
+                  OnMouseDown = ToolButtonWriteTitleMouseDown
+                end
+                object ToolButtonWriteTitleAutoHide: TJLToolButton
+                  Left = 17
+                  Top = 0
+                  Caption = 'ToolButtonWriteTitleAutoHide'
+                  ImageIndex = 0
+                  OnClick = ToolButtonWriteTitleAutoHideClick
+                  OnMouseDown = ToolButtonWriteTitleMouseDown
+                  PictureIndex = 1
+                end
+                object ToolButtonWriteTitleClose: TJLToolButton
+                  Left = 34
+                  Top = 0
+                  Caption = 'ToolButtonWriteTitleClose'
+                  ImageIndex = 3
+                  OnClick = ToolButtonWriteTitleCloseClick
+                  OnMouseDown = ToolButtonWriteTitleMouseDown
+                  PictureIndex = 3
+                end
+              end
+            end
+            object Panel5: TPanel
+              Left = 1
+              Top = 18
+              Width = 509
+              Height = 20
+              Align = alTop
+              BevelOuter = bvNone
+              TabOrder = 0
+              object JLTabWrite: TJLTab
+                Left = 0
+                Top = 0
+                Width = 60
+                Height = 20
+                Caption = #26360#12365#36796#12415
+                Checked = True
+                LeftOffSet = 6
+                TopOffSet = 2
+                TabPosition = tpTop
+                Align = alLeft
+                Font.Charset = SHIFTJIS_CHARSET
+                Font.Color = cl3DDkShadow
+                Font.Height = -12
+                Font.Name = 'MS UI Gothic'
+                Font.Style = []
+                OnMouseDown = JLTabControlMouseDown
+              end
+              object JLTabPreView: TJLTab
+                Tag = 1
+                Left = 60
+                Top = 0
+                Width = 60
+                Height = 20
+                Caption = #12503#12524#12499#12517#12540
+                LeftOffSet = 6
+                TopOffSet = 2
+                TabPosition = tpTop
+                Align = alLeft
+                Font.Charset = SHIFTJIS_CHARSET
+                Font.Color = cl3DDkShadow
+                Font.Height = -12
+                Font.Name = 'MS UI Gothic'
+                Font.Style = []
+                OnMouseDown = JLTabControlMouseDown
+              end
+              object JLTabSettingTXT: TJLTab
+                Tag = 2
+                Left = 120
+                Top = 0
+                Width = 70
+                Height = 20
+                Caption = 'SETTING.TXT'
+                LeftOffSet = 4
+                TopOffSet = 1
+                TabPosition = tpTop
+                Align = alLeft
+                Font.Charset = SHIFTJIS_CHARSET
+                Font.Color = cl3DDkShadow
+                Font.Height = -11
+                Font.Name = 'Tahoma'
+                Font.Style = []
+                OnMouseDown = JLTabControlMouseDown
+              end
+              object JLTabResult: TJLTab
+                Tag = 3
+                Left = 190
+                Top = 0
+                Width = 80
+                Height = 20
+                Caption = #26360#12365#36796#12415#32080#26524
+                LeftOffSet = 6
+                TopOffSet = 2
+                TabPosition = tpTop
+                Align = alLeft
+                Font.Charset = SHIFTJIS_CHARSET
+                Font.Color = cl3DDkShadow
+                Font.Height = -12
+                Font.Name = 'MS UI Gothic'
+                Font.Style = []
+                OnMouseDown = JLTabControlMouseDown
+              end
+            end
+          end
         end
         object ListViewPanel: TPanel
           Left = 0
           Top = 0
-          Width = 499
+          Width = 511
           Height = 145
           Align = alTop
           BevelOuter = bvNone
@@ -352,7 +530,7 @@ object MainWnd: TMainWnd
           object ListView: THogeListView
             Left = 0
             Top = 23
-            Width = 499
+            Width = 511
             Height = 122
             Align = alClient
             BevelInner = bvLowered
@@ -447,7 +625,7 @@ object MainWnd: TMainWnd
           object Panel7: TPanel
             Left = 0
             Top = 0
-            Width = 499
+            Width = 511
             Height = 1
             Align = alTop
             BevelOuter = bvNone
@@ -456,7 +634,7 @@ object MainWnd: TMainWnd
           object ListTabPanel: TPanel
             Left = 0
             Top = 1
-            Width = 499
+            Width = 511
             Height = 22
             Align = alTop
             BevelInner = bvRaised
@@ -468,7 +646,7 @@ object MainWnd: TMainWnd
             object ListTabControl: TTabControl
               Left = 2
               Top = 2
-              Width = 495
+              Width = 507
               Height = 18
               Align = alClient
               Images = ListImages
@@ -487,30 +665,41 @@ object MainWnd: TMainWnd
           end
         end
       end
-      object TreePanel: TJLRSPanel
+      object TreePanel: TPanel
         Left = 0
         Top = 0
         Width = 120
-        Height = 409
+        Height = 423
         Align = alLeft
         BevelOuter = bvNone
-        Caption = 'TreePanel'
+        Constraints.MinHeight = 25
+        Constraints.MinWidth = 25
         TabOrder = 0
         OnEnter = TreePanelEnter
         OnExit = TreePanelExit
+        OnResize = TreePanelResize
+        object Panel8: TPanel
+          Left = 0
+          Top = 0
+          Width = 120
+          Height = 1
+          Align = alTop
+          BevelOuter = bvNone
+          TabOrder = 1
+        end
         object Panel9: TPanel
           Left = 0
           Top = 1
-          Width = 116
-          Height = 408
+          Width = 120
+          Height = 422
           Align = alClient
           BevelOuter = bvLowered
           TabOrder = 0
           object TreeView: TTreeView
             Left = 1
-            Top = 18
-            Width = 114
-            Height = 389
+            Top = 38
+            Width = 118
+            Height = 383
             Align = alClient
             BevelInner = bvNone
             BevelOuter = bvNone
@@ -541,9 +730,9 @@ object MainWnd: TMainWnd
           end
           object FavoriteView: TTreeView
             Left = 1
-            Top = 18
-            Width = 114
-            Height = 389
+            Top = 38
+            Width = 118
+            Height = 383
             Align = alClient
             BevelInner = bvNone
             BevelOuter = bvRaised
@@ -574,7 +763,7 @@ object MainWnd: TMainWnd
           object PanelTreeTitle: TPanel
             Left = 1
             Top = 1
-            Width = 114
+            Width = 118
             Height = 17
             Align = alTop
             BevelOuter = bvNone
@@ -583,22 +772,24 @@ object MainWnd: TMainWnd
             object LabelTreeTitle: TLabel
               Left = 0
               Top = 0
-              Width = 61
+              Width = 65
               Height = 17
               Align = alClient
               AutoSize = False
               Caption = '  '#26495#19968#35239
               Font.Charset = SHIFTJIS_CHARSET
-              Font.Color = clWhite
+              Font.Color = clCaptionText
               Font.Height = -12
               Font.Name = 'MS UI Gothic'
               Font.Style = []
               ParentFont = False
               Layout = tlCenter
               OnMouseDown = LabelTreeTitleMouseDown
+              OnMouseMove = LabelTreeTitleMouseMove
+              OnMouseUp = LabelTreeTitleMouseUp
             end
             object ToolBarTreeTitle: TToolBar
-              Left = 61
+              Left = 65
               Top = 0
               Width = 53
               Height = 17
@@ -614,14 +805,14 @@ object MainWnd: TMainWnd
                 Left = 0
                 Top = 0
                 ImageIndex = 0
-                OnMouseDown = LabelTreeTitleMouseDown
+                OnMouseDown = ToolButtonTreeTitleMouseDown
               end
-              object ToolButtonTreeTitleAutoHide: TJLToolButton
+              object ToolButtonTreeTitleCanMove: TJLToolButton
                 Left = 17
                 Top = 0
                 ImageIndex = 1
                 OnClick = PanelTitlePanelClick
-                OnMouseDown = LabelTreeTitleMouseDown
+                OnMouseDown = ToolButtonTreeTitleMouseDown
                 PictureIndex = 1
               end
               object ToolButtonTreeTitleClose: TJLToolButton
@@ -630,183 +821,53 @@ object MainWnd: TMainWnd
                 Caption = 'ToolButtonTreeTitleClose'
                 ImageIndex = 3
                 OnClick = PanelTitlePanelClick
-                OnMouseDown = LabelTreeTitleMouseDown
+                OnMouseDown = ToolButtonTreeTitleMouseDown
                 PictureIndex = 3
               end
             end
           end
-        end
-        object Panel8: TPanel
-          Left = 0
-          Top = 0
-          Width = 120
-          Height = 1
-          Align = alTop
-          BevelOuter = bvNone
-          TabOrder = 1
-        end
-      end
-      object BottomPanel: TPanel
-        Left = 0
-        Top = 409
-        Width = 619
-        Height = 20
-        Align = alBottom
-        BevelOuter = bvNone
-        TabOrder = 2
-        OnResize = BottomPanelResize
-        object PostTab: TJLTab
-          Left = 0
-          Top = 0
-          Width = 89
-          Height = 20
-          Caption = #26360#12365#36796#12415
-          LeftOffSet = 10
-          TopOffSet = 3
-          TabPosition = tpTop
-          OnMouseEnter = BottomTabControlMouseEnter
-          Font.Charset = SHIFTJIS_CHARSET
-          Font.Color = cl3DDkShadow
-          Font.Height = -12
-          Font.Name = #65325#65331' '#65328#12468#12471#12483#12463
-          Font.Style = []
-          OnMouseDown = BottomTabControlMouseDown
-        end
-        object PreViewTab: TJLTab
-          Tag = 1
-          Left = 88
-          Top = 0
-          Width = 97
-          Height = 20
-          Caption = #12503#12524#12499#12517#12540
-          LeftOffSet = 10
-          TopOffSet = 3
-          TabPosition = tpTop
-          OnMouseEnter = BottomTabControlMouseEnter
-          Font.Charset = SHIFTJIS_CHARSET
-          Font.Color = cl3DDkShadow
-          Font.Height = -12
-          Font.Name = #65325#65331' '#65328#12468#12471#12483#12463
-          Font.Style = []
-          OnMouseDown = BottomTabControlMouseDown
-        end
-        object SettingtxtTab: TJLTab
-          Tag = 2
-          Left = 184
-          Top = 0
-          Width = 105
-          Height = 20
-          Caption = 'SETTING.TXT'
-          LeftOffSet = 10
-          TopOffSet = 2
-          TabPosition = tpTop
-          OnMouseEnter = BottomTabControlMouseEnter
-          Font.Charset = SHIFTJIS_CHARSET
-          Font.Color = cl3DDkShadow
-          Font.Height = -11
-          Font.Name = 'Tahoma'
-          Font.Style = []
-          OnMouseDown = BottomTabControlMouseDown
-        end
-        object ResultTab: TJLTab
-          Tag = 3
-          Left = 288
-          Top = 0
-          Width = 105
-          Height = 20
-          Caption = #26360#12365#36796#12415#32080#26524
-          LeftOffSet = 10
-          TopOffSet = 3
-          TabPosition = tpTop
-          OnMouseEnter = BottomTabControlMouseEnter
-          Font.Charset = SHIFTJIS_CHARSET
-          Font.Color = cl3DDkShadow
-          Font.Height = -12
-          Font.Name = #65325#65331' '#65328#12468#12471#12483#12463
-          Font.Style = []
-          OnMouseDown = BottomTabControlMouseDown
-        end
-        object JLDualStateButton: TJLDualStateButton
-          Left = 393
-          Top = 2
-          Width = 20
-          Height = 20
-          OnClick = JLDualStateButtonClick
-        end
-      end
-      object WritePanel: TJLRSPanelEx
-        Left = 64
-        Top = 120
-        Width = 401
-        Height = 244
-        TabOrder = 3
-        Visible = False
-        OnEnter = WritePanelEnter
-        OnExit = WritePanelExit
-        object WritePanelTitle: TPanel
-          Left = 1
-          Top = 5
-          Width = 399
-          Height = 17
-          Align = alTop
-          BevelOuter = bvNone
-          Color = clActiveCaption
-          TabOrder = 1
-          object LabelWriteTitle: TLabel
-            Left = 0
-            Top = 0
-            Width = 348
-            Height = 17
-            Align = alClient
-            AutoSize = False
-            Caption = '  '#26360#12365#36796#12415
-            Font.Charset = SHIFTJIS_CHARSET
-            Font.Color = clWhite
-            Font.Height = -12
-            Font.Name = 'MS UI Gothic'
-            Font.Style = []
-            ParentFont = False
-            Layout = tlCenter
-            OnMouseDown = LabelWriteTitleMouseDown
-          end
-          object ToolBarWriteTitle: TToolBar
-            Left = 348
-            Top = 0
-            Width = 51
-            Height = 17
-            Align = alRight
-            AutoSize = True
-            ButtonHeight = 16
-            ButtonWidth = 17
-            Caption = 'ToolBarWriteTitle'
-            EdgeBorders = []
-            Flat = True
-            TabOrder = 0
-            Transparent = True
-            object ToolButtonWriteTitle: TJLToolButton
+          object Panel6: TPanel
+            Left = 1
+            Top = 18
+            Width = 118
+            Height = 20
+            Align = alTop
+            BevelOuter = bvNone
+            TabOrder = 3
+            object TreeViewTab: TJLTab
               Left = 0
               Top = 0
-              Caption = 'ToolButtonWriteTitle'
-              ImageIndex = 0
-              OnMouseDown = LabelWriteTitleMouseDown
+              Width = 50
+              Height = 20
+              Caption = #26495#19968#35239
+              LeftOffSet = 5
+              TopOffSet = 2
+              TabPosition = tpTop
+              Align = alLeft
+              Font.Charset = SHIFTJIS_CHARSET
+              Font.Color = cl3DDkShadow
+              Font.Height = -12
+              Font.Name = 'MS UI Gothic'
+              Font.Style = []
+              OnMouseDown = TreeViewTabMouseDown
             end
-            object ToolButtonWriteTitleAutoHide: TJLToolButton
-              Left = 17
+            object FavoriteViewTab: TJLTab
+              Tag = 1
+              Left = 50
               Top = 0
-              Caption = 'ToolButtonWriteTitleAutoHide'
-              ImageIndex = 2
-              OnClick = ToolButtonWriteTitleAutoHideClick
-              OnMouseDown = LabelWriteTitleMouseDown
-              PictureIndex = 2
-            end
-            object ToolButtonWriteTitleClose: TJLToolButton
-              Left = 34
-              Top = 0
-              Caption = 'ToolButtonWriteTitleClose'
-              ImageIndex = 3
-              OnClick = ToolButtonWriteTitleCloseClick
-              OnMouseDown = LabelWriteTitleMouseDown
-              PictureIndex = 3
+              Width = 65
+              Height = 20
+              Caption = #12362#27671#12395#20837#12426
+              LeftOffSet = 6
+              TopOffSet = 2
+              TabPosition = tpTop
+              Align = alLeft
+              Font.Charset = SHIFTJIS_CHARSET
+              Font.Color = cl3DDkShadow
+              Font.Height = -12
+              Font.Name = 'MS UI Gothic'
+              Font.Style = []
+              OnMouseDown = TreeViewTabMouseDown
             end
           end
         end
@@ -814,7 +875,7 @@ object MainWnd: TMainWnd
     end
     object LogPanel: TPanel
       Left = 0
-      Top = 482
+      Top = 476
       Width = 639
       Height = 20
       Align = alBottom
@@ -1066,76 +1127,27 @@ object MainWnd: TMainWnd
         OnResize = LinkBarResize
       end
     end
-    object LeftPanel: TPanel
+    object SideBar: TJLSideBar
       Left = 0
       Top = 51
-      Width = 20
-      Height = 429
+      Width = 4
+      Height = 423
+      Checked = True
+      FocusColor = clSkyBlue
       Align = alLeft
       BevelOuter = bvNone
-      TabOrder = 3
-      object TreeViewTab: TJLTab
-        Left = 0
-        Top = 0
-        Width = 20
-        Height = 82
-        Caption = #26495#19968#35239
-        LeftOffSet = 1
-        TopOffSet = 6
-        OnMouseEnter = TreeTabcontrolMouseEnter
-        Font.Charset = SHIFTJIS_CHARSET
-        Font.Color = cl3DDkShadow
-        Font.Height = -12
-        Font.Name = '@'#65325#65331' '#65328#12468#12471#12483#12463
-        Font.Style = []
-        OnMouseDown = TreeViewTabMouseDown
-      end
-      object FavoriteViewTab: TJLTab
-        Tag = 1
-        Left = 0
-        Top = 81
-        Width = 20
-        Height = 104
-        Caption = #12362#27671#12395#20837#12426
-        LeftOffSet = 1
-        TopOffSet = 7
-        OnMouseEnter = TreeTabcontrolMouseEnter
-        Font.Charset = SHIFTJIS_CHARSET
-        Font.Color = cl3DDkShadow
-        Font.Height = -12
-        Font.Name = '@'#65325#65331' '#65328#12468#12471#12483#12463
-        Font.Style = []
-        OnMouseDown = TreeViewTabMouseDown
-      end
+      OnClick = MenuViewTreeToggleVisibleClick
     end
-  end
-  object StatusBar: TStatusBar
-    Left = 0
-    Top = 502
-    Width = 639
-    Height = 18
-    Hint = #12513#12514#27396#12434#34920#31034'/'#38750#34920#31034
-    BorderWidth = 1
-    Panels = <
-      item
-        Width = 22
-      end
-      item
-        Width = 100
-      end
-      item
-        Width = 50
-      end>
-    ParentShowHint = False
-    ShowHint = True
-    SimplePanel = False
-    OnClick = StatusBarClick
   end
   object MainMenu: TMainMenu
     Left = 88
     Top = 24
     object MenuBoard: TMenuItem
       Caption = #26495#35239'(&B)'
+      object MenuBoardCanMove: TMenuItem
+        Caption = #26495#12484#12522#12540#12434#31227#21205#21487#33021#12395#12377#12427
+        OnClick = MenuBoardCanMoveClick
+      end
       object MenuBoardGetList: TMenuItem
         Caption = #26495#19968#35239#12398#26356#26032'(&U)'
         OnClick = GetBoard2ch
@@ -1581,6 +1593,22 @@ object MainWnd: TMainWnd
       Caption = #12362#27671#12395#20837#12426'(&F)'
       OnClick = FavMenuCreate
     end
+    object MenuMemo: TMenuItem
+      Caption = #12513#12514#27396'(&M)'
+      OnClick = MenuMemoClick
+      object MenuMemoCanMove: TMenuItem
+        Caption = #12513#12514#27396#12434#31227#21205#21487#33021#12395#12377#12427
+        OnClick = ToolButtonWriteTitleAutoHideClick
+      end
+      object MenuMemoPos: TMenuItem
+        Caption = #12513#12514#27396#12434#12473#12524#12499#12517#12540#12398#19979#12395#37197#32622#12377#12427
+        OnClick = MenuWritePanelPosClick
+      end
+      object MenuMemoDisableStatusBar: TMenuItem
+        Caption = #12473#12486#12540#12479#12473#12496#12540#38750#34920#31034
+        OnClick = MenuWritePanelDisableStatusBarClick
+      end
+    end
     object Find1: TMenuItem
       Caption = #26908#32034'(&S)'
       OnClick = Find1Click
@@ -1682,7 +1710,7 @@ object MainWnd: TMainWnd
       object MenuViewWriteMemoToggleVisible: TMenuItem
         Caption = #12513#12514#27396'(&W)'
         Checked = True
-        OnClick = StatusBarClick
+        OnClick = MenuViewWriteMemoToggleVisibleClick
       end
       object N47: TMenuItem
         Caption = '-'
@@ -1737,7 +1765,6 @@ object MainWnd: TMainWnd
       end
       object MenuOptNews: TMenuItem
         Caption = #12491#12517#12540#12473#27231#33021
-        OnClick = MenuOptNewsClick
         object MenuOptUseNews: TMenuItem
           Caption = #12491#12517#12540#12473#27231#33021#12434#26377#21177#12395#12377#12427
           OnClick = MenuOptUseNewsClick
@@ -1745,10 +1772,6 @@ object MainWnd: TMainWnd
         object MenuOptSetNewsInterval: TMenuItem
           Caption = #12491#12517#12540#12473#20999#26367#38291#38548#12398#35373#23450
           OnClick = MenuOptSetNewsIntervalClick
-        end
-        object MenuOptSetNewsPos: TMenuItem
-          Caption = #12491#12517#12540#12473#12496#12540#12434#12473#12486#12540#12479#12473#12496#12540#12398#19978#12395#34920#31034#12377#12427
-          OnClick = MenuOptSetNewsPosClick
         end
       end
       object MenuClearHistory: TMenuItem
@@ -2124,7 +2147,7 @@ object MainWnd: TMainWnd
     Interval = 300
     OnTimer = HintTimerTimer
     Left = 48
-    Top = 192
+    Top = 344
   end
   object ThreadPopupMenu: TPopupMenu
     OnPopup = ThreadPopupMenuPopup
@@ -2356,7 +2379,7 @@ object MainWnd: TMainWnd
   end
   object ActionList: TActionList
     Left = 48
-    Top = 160
+    Top = 312
     object actWriteRes: TAction
       Caption = #12524#12473'(&R)...'
       Enabled = False
@@ -2551,6 +2574,7 @@ object MainWnd: TMainWnd
     end
     object actTreeToggleVisible: TAction
       Caption = #26495#12484#12522#12540'(&B)'
+      Checked = True
       OnExecute = MenuViewTreeToggleVisibleClick
     end
     object actDivisionChange: TAction
@@ -2719,8 +2743,8 @@ object MainWnd: TMainWnd
   end
   object PopupFavorites: TPopupMenu
     OnPopup = PopupFavoritesPopup
-    Left = 84
-    Top = 72
+    Left = 80
+    Top = 246
     object PopupFavOpenNew: TMenuItem
       Caption = #26032#12375#12356#12479#12502#12391#38283#12367'(&N)'
       OnClick = PopupFavOpenNewClick
@@ -2782,7 +2806,7 @@ object MainWnd: TMainWnd
     Interval = 500
     OnTimer = DblClkTimerTimer
     Left = 80
-    Top = 192
+    Top = 344
   end
   object PopupTree: TPopupMenu
     OnPopup = PopupTreePopup
@@ -4479,8 +4503,8 @@ object MainWnd: TMainWnd
       000000000000}
   end
   object ThreadToolImages: TImageList
-    Left = 280
-    Top = 232
+    Left = 312
+    Top = 200
     Bitmap = {
       494C01010B000E00040010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000004000000001002000000000000040
@@ -5026,8 +5050,8 @@ object MainWnd: TMainWnd
   end
   object PopupTreeCategory: TPopupMenu
     OnPopup = PopupTreeCategoryPopup
-    Left = 40
-    Top = 92
+    Left = 48
+    Top = 246
     object PopupCatAddFav: TMenuItem
       Caption = #12362#27671#12395#20837#12426#12395#36861#21152'(&A)'
       OnClick = PopupCatAddFavClick
@@ -5056,7 +5080,7 @@ object MainWnd: TMainWnd
     Interval = 500
     OnTimer = ResJumpTimerTimer
     Left = 48
-    Top = 224
+    Top = 376
   end
   object PopupDrawLines: TPopupMenu
     Left = 280
@@ -5140,19 +5164,19 @@ object MainWnd: TMainWnd
     Interval = 80
     OnTimer = FavTreeScrlTimerTimer
     Left = 48
-    Top = 128
+    Top = 280
   end
   object FavTreeExpndTimer: TTimer
     Enabled = False
     OnTimer = FavTreeExpndTimerTimer
     Left = 80
-    Top = 128
+    Top = 280
   end
   object ApplicationEvents: TApplicationEvents
     OnMessage = ApplicationEventsMessage
     OnMinimize = ApplicationEventsMinimize
     Left = 80
-    Top = 160
+    Top = 312
   end
   object PopupTrush: TPopupMenu
     Left = 248
@@ -5163,7 +5187,7 @@ object MainWnd: TMainWnd
   end
   object MemoImageList: TImageList
     Left = 80
-    Top = 224
+    Top = 376
     Bitmap = {
       494C010107000900040010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000003000000001002000000000000030
@@ -5605,6 +5629,41 @@ object MainWnd: TMainWnd
     object PopupTaskTrayClose: TMenuItem
       Caption = #38281#12376#12427'(&C)'
       OnClick = PopupTaskTrayCloseClick
+    end
+  end
+  object PopupStatusBar: TPopupMenu
+    OnPopup = PopupStatusBarPopup
+    Left = 16
+    Top = 488
+    object MenuStatusOpenByBrowser: TMenuItem
+      AutoHotkeys = maManual
+      Caption = #12502#12521#12454#12470#12540#12391#38283#12367'(&B)'
+      OnClick = MenuStatusOpenByBrowserClick
+    end
+    object MenuStatusOpenByLovelyBrowser: TMenuItem
+      Caption = 'LovelyBrowser'#12391#38283#12367'(&L)'
+      OnClick = MenuStatusOpenByLovelyBrowserClick
+    end
+    object N56: TMenuItem
+      Caption = #12513#12514#27396#12434#34920#31034'(&M)'
+      OnClick = MenuViewWriteMemoToggleVisibleClick
+    end
+  end
+  object PopupWritePanel: TPopupMenu
+    OnPopup = PopupWritePanelPopup
+    Left = 560
+    Top = 344
+    object MenuWritePanelCanMove: TMenuItem
+      Caption = #31227#21205#21487#33021#12395#12377#12427
+      OnClick = ToolButtonWriteTitleAutoHideClick
+    end
+    object MenuWritePanelPos: TMenuItem
+      Caption = #12473#12524#12499#12517#12540#12398#19979#12395#37197#32622#12377#12427
+      OnClick = MenuWritePanelPosClick
+    end
+    object MenuWritePanelDisableStatusBar: TMenuItem
+      Caption = #12473#12486#12540#12479#12473#12496#12540#38750#34920#31034
+      OnClick = MenuWritePanelDisableStatusBarClick
     end
   end
 end

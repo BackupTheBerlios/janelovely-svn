@@ -17,31 +17,43 @@ uses
 
 type
 (* ----------------------------------------------*)
-  TNews = class(TStatusBar)
-    procedure ChangeNewsTimerOnTimer(Sender: TObject);
+  TNewsEvent = procedure (Sender: TObject; News: String) of Object;
+
+  TNews = class(TObject)
   protected
     FList: TStringList;
     FURLList: TStringList;
     FIndex: Integer;
     siteList: TStringList;
     siteIndex: Integer;
-  private
+    FNews: TNewsEvent;
+    ChangeNewsTimer: TTimer;
     procGet: TAsyncReq;
-    //storedSetting: TLocalCopy;
+
     procedure SetURIList;
     procedure LoadHtml(sender: TAsyncReq);
     procedure DisplayNews(News: String);
     procedure DownloadNews;
     procedure ChangeNewsTimerStart;
+    procedure ChangeNewsTimerOnTimer(Sender: TObject);
+
+    function GetNewsText: String;
+    function GetNewsURI: String;
+
   public
-    constructor Create(AOwner:TComponent); override;
+    TempBuffer: String;
+
+    constructor Create;
     destructor Destroy; override;
     procedure resetChangeNewsTimer;
     procedure ChangeNewsTimerStop;
     procedure setChangeNewsTimerInterval(interval: Cardinal);
     function getChangeNewsTimerInterval: Cardinal;
-    function getURI: String;
     procedure OpenSettingDlg;
+
+    property OnNews: TNewsEvent read FNews write FNews;
+    property NewsText: String read GetNewsText;
+    property NewsURI: String read GetNewsURI;
   end;
 
 (* ----------------------------------------------*)
@@ -51,27 +63,20 @@ implementation
 uses
   Main;
 
-var
-  ChangeNewsTimer: TTimer;
-
 (* ----------------------------------------------*)
 
-constructor TNews.Create(AOwner:TComponent);
+constructor TNews.Create;
 begin
-  inherited Create(AOwner);
-  self.Parent := TWinControl(AOwner);
-  self.SimplePanel := true;
-  self.Anchors := [akLeft,akTop,akRight];
-  self.Align := alBottom;
-
   FList := TStringList.Create;
   FURLList := TStringList.Create;
   FIndex := 0;
 
-  ChangeNewsTimer := TTimer.Create(MainWnd);
+  ChangeNewsTimer := TTimer.Create(nil);
   ChangeNewsTimer.Interval := Config.tstNewsInterval;
   ChangeNewsTimer.OnTimer := ChangeNewsTimerOnTimer;
   ChangeNewsTimer.Enabled := false;
+
+  TempBuffer := '';
 
   SetURIList;
 end;
@@ -145,21 +150,12 @@ begin
 
   if Sender.IdHTTP.ResponseCode <> 200 then
   begin
-   resetChangeNewsTimer;
+    //resetChangeNewsTimer;
+    DisplayNews('Error - ' + Sender.IdHTTP.ResponseText);
+    exit;
   end;
 
-  //storedSetting.Clear;
-  //storedSetting.WriteString(sender.Content);
-  //storedSetting.Info.Add('Sun, 14 Sep 1986 00:00:00 GMT');
-  //storedSetting.Save;
-
-  //if not FileExists(i2ch.GetLogDir + '\newsjane.tmp') then
-  //begin
-  //  Log(i2ch.GetLogDir + '\newsjane.tmp Not Fount');
-  //  exit;
-  //end;
-
-  ChangeNewsTimerStop;
+  ChangeNewsTimer.Enabled := False;
 
   if Flist.Count > 0 then begin
     Flist.Clear;
@@ -168,10 +164,8 @@ begin
   end;
 
   TmpList := TStringList.Create;
-  //TmpList.LoadFromFile(i2ch.GetLogDir + '\newsjane.tmp');
-  TmpList.Text := sender.Content;
-
-  parseHTML(TmpList);
+   TmpList.Text := sender.Content;
+   parseHTML(TmpList);
   TmpList.Free;
 
   ChangeNewsTimerOnTimer(nil);
@@ -182,18 +176,14 @@ procedure TNews.DownloadNews;
 var
   URI: String;
 begin
-  //if storedSetting = nil then
-  //begin
-    //storedSetting := TLocalCopy.Create(i2ch.GetLogDir + '\newsjane.tmp', '.idb');
-    //storedSetting.Load;
-  //end;
   URI := 'http://www.asahi.com/' + siteList.Strings[siteIndex] + '/list.html';
   procGet := AsyncManager.Get(URI, LoadHTML, ticket2ch.OnKuroPreConnect,'');
 end;
 
 procedure TNews.DisplayNews(News: String);
 begin
-  self.SimpleText := News;
+  if Assigned(FNews) then
+    FNews(Self, News);
 end;
 
 procedure TNews.setChangeNewsTimerInterval(interval: Cardinal);
@@ -212,15 +202,17 @@ end;
 
 procedure TNews.resetChangeNewsTimer;
 begin
-  self.SimpleText := 'Please Wait';
+  if Assigned(FNews) then
+    FNews(Self, 'Please Wait');
   siteIndex :=  Random(siteList.Count);
-  ChangeNewsTimerStop;
+  ChangeNewsTimer.Enabled := False;
   DownloadNews;
 end;
 
 procedure TNews.ChangeNewsTimerOnTimer(Sender: TObject);
 begin
-  if Flist.Count < 1 then begin ChangeNewsTimerStop; exit; end;
+  if Flist.Count < 1 then
+    ChangeNewsTimer.Enabled := false;
 
   if FIndex > FList.Count - 1 then
   begin
@@ -228,7 +220,7 @@ begin
     exit;
   end;
 
-  DisplayNews('http://www.asahi.com/' + siteList.Strings[siteIndex] + '/' + FURLList.Strings[FIndex] + ' - ' + FList.Strings[FIndex]);
+  DisplayNews(FList.Strings[FIndex]);
 
   Inc(FIndex);
 end;
@@ -251,15 +243,27 @@ var
 begin
   dlg := TNewsSettingForm.Create(MainWnd);
   dlg.ShowModal;
-  dlg.Free;
+  dlg.Release;
 end;
 
-function TNews.getURI: String;
+
+
+
+function TNews.GetNewsText: String;
+begin
+  Result := FList[FIndex - 1];
+end;
+
+function TNews.GetNewsURI: String;
 begin
   if FURLList.Count > 0 then
-    result := 'http://www.asahi.com/' + siteList.Strings[siteIndex] + '/update/' + FURLList.Strings[FIndex - 1]
+    Result := 'http://www.asahi.com/'
+            + siteList.Strings[siteIndex]
+            + '/update/'
+            + FURLList.Strings[FIndex - 1]
   else
-    result := '';
+    Result := '';
 end;
+
 
 end.

@@ -91,7 +91,9 @@ uses
   {$ELSE}
   sqlite in 'AIAI\sqlite.pas',
   {$ENDIF}
-  ClipBrdSub in 'AIAI\ClipBrdSub.pas';
+  ClipBrdSub in 'AIAI\ClipBrdSub.pas',
+  JLControls in 'AIAI\JLControls.pas',
+  JLStatusBar in 'AIAI\JLStatusBar.pas';
 
 {$R *.res}
 
