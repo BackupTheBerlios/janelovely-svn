@@ -10822,6 +10822,7 @@ begin
   begin
     ChangeWriteMemoText(Config.wrtReplyMark + IntToStr(TMenuItem(Sender).Tag) + #13#10);
     ToggleWritePanelVisible(True);
+    SetFocusToWriteMemo;
   end else
   {/aiai}
   //¥ŠJ‚¢‚Ä‚¢‚é‚Æ‚«‚Í”Ô†’Ç‰Á
@@ -10940,6 +10941,7 @@ begin
 
   ChangeWriteMemoText(Copy(s, 1, Length(s)));
   ToggleWritePanelVisible(True);
+  SetFocusToWriteMemo;
 end;
 
 (* Šù“Ç‚É‚·‚é *)//aiai

@@ -289,25 +289,37 @@ object WriteForm: TWriteForm
       object ToolButtonRecordNameMail: TToolButton
         Left = 0
         Top = 0
+        Hint = #12467#12486#12495#12531#35352#25014
         ImageIndex = 3
+        ParentShowHint = False
+        ShowHint = True
         OnClick = ToolButtonRecordNameMailClick
       end
       object ToolButtonTrim: TToolButton
         Left = 23
         Top = 0
+        Hint = #26411#23614#25972#24418
         ImageIndex = 4
+        ParentShowHint = False
+        ShowHint = True
         OnClick = ToolButtonTrimClick
       end
       object ToolButtonNameWarn: TToolButton
         Left = 46
         Top = 0
+        Hint = #12467#12486#12495#12531#35686#21578#26377#21177
         ImageIndex = 6
+        ParentShowHint = False
+        ShowHint = True
         OnClick = ToolButtonNameWarnClick
       end
       object ToolButtonBeLogin: TToolButton
         Left = 69
         Top = 0
+        Hint = 'BeLogin'
         ImageIndex = 7
+        ParentShowHint = False
+        ShowHint = True
         OnClick = ToolButtonBeLoginClick
       end
     end
