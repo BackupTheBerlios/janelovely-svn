@@ -371,7 +371,6 @@ type
     schMigemoDic: String;
     schMigemoPathTmp: String;
     schMigemoDicTmp: String;
-    schUseSearchBar: Boolean;
     schMultiWord: Boolean;
     schShowListToolbarOnStartup: Boolean;
     schShowToolbarOnStartup: Boolean;
@@ -839,8 +838,8 @@ begin
   optPopupSizeContrainX := 0;
   optPopupSizeContrainY := 0;
 
-  oprListReloadInterval := 15;
-  oprThreadReloadInterval := 5;
+  oprListReloadInterval := 2;
+  oprThreadReloadInterval := 1;
   oprAutoReloadInterval := 5;
   oprAutoScrollSpeed := 5;
 
@@ -884,7 +883,6 @@ begin
   schMigemoDic := '';
   schMigemoPathTmp := '';
   schMigemoDicTmp := '';
-  schUseSearchBar := True;
   schMultiWord := True;
   schIncremental := True;
   schShowListToolbarOnStartup := False;
@@ -1529,7 +1527,11 @@ begin
   optFavPatrolMessageBox := ini.ReadBool(INI_OPT_SECT, 'FavPatrolMessageBox', optFavPatrolMessageBox);
 
   oprListReloadInterval := ini.ReadInteger(INI_OPR_SECT, 'ListReloadInterval', oprListReloadInterval);
+  if oprListReloadInterval < 2 then
+    oprListReloadInterval := 2;
   oprThreadReloadInterval := ini.ReadInteger(INI_OPR_SECT, 'ThreadReloadInterval', oprThreadReloadInterval);
+  if oprThreadReloadInterval < 1 then
+    oprThreadReloadInterval := 1;
   oprAutoReloadInterval := ini.ReadInteger(INI_OPR_SECT, 'AutoReloadInterval', oprAutoReloadInterval);
   oprAutoScrollSpeed := ini.ReadInteger(INI_OPR_SECT, 'AutoScrollSpeed', oprAutoScrollSpeed);
   SetAutoScrollSpeed(oprAutoScrollSpeed);
@@ -1583,7 +1585,6 @@ begin
   schMigemoDic := ini.ReadString(INI_SCH_SECT, 'MigemoDic', schMigemoDic);
   schMigemoPathTmp := schMigemoPath;
   schMigemoDicTmp := schMigemoDic;
-  schUseSearchBar := ini.ReadBool(INI_SCH_SECT, 'UseSearchBar', schUseSearchBar);
   schMultiWord := ini.ReadBool(INI_SCH_SECT, 'MultiWord', schMultiWord);
   schIncremental := ini.ReadBool(INI_SCH_SECT, 'Incremental', schIncremental);
   schShowListToolbarOnStartup := ini.ReadBool(INI_SCH_SECT, 'ShowListToolbarOnStartup', schShowListToolbarOnStartup);
@@ -2066,7 +2067,6 @@ begin
   ini.WriteInteger(INI_SCH_SECT, 'DefaultSearch', schDefaultSearch);
   ini.WriteString(INI_SCH_SECT, 'MigemoPath', schMigemoPathTmp);
   ini.WriteString(INI_SCH_SECT, 'MigemoDic', schMigemoDicTmp);
-  ini.WriteBool(INI_SCH_SECT, 'UseSearchBar', schUseSearchBar);
   ini.WriteBool(INI_SCH_SECT, 'ShowListToolbarOnStartup', schShowListToolbarOnStartup);
   ini.WriteBool(INI_SCH_SECT, 'ShowToolbarOnStartup', schShowToolbarOnStartup);
   ini.WriteBool(INI_SCH_SECT, 'ShowTreeToolbarOnStartup', schShowTreeToolbarOnStartup);

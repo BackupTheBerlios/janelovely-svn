@@ -323,9 +323,6 @@ type
     LabelCheckNewThreadInHour: TLabel;
     CheckBoxStlSmallLogPanel: TCheckBox;
     SheetForView: TTabSheet;
-    CheckBoxAllowTreeDup: TCheckBox;
-    SpinEditLenofOutLineRes: TJLXPSpinEdit;
-    LabelLenofOutLineRes: TLabel;
     RadioButtonLogPanelUnderBoard: TRadioButton;
     RadioButtonLogPanelUnderThread: TRadioButton;
     SpinEditViewScrollSmoothness: TJLXPSpinEdit;
@@ -355,9 +352,6 @@ type
     Sheet_Option: TJLXPTabSheet;
     CheckBoxLinkAbone: TCheckBox;
     CheckBoxoptSetFocusOnWriteMemo: TCheckBox;
-    CheckBoxIDPopUp: TCheckBox;
-    SpinEditIDPopUpMaxCount: TJLXPSpinEdit;
-    Label58: TLabel;
     Label59: TLabel;
     SpinEditOpenNewResThreadLimit: TJLXPSpinEdit;
     CheckBoxOldOnCheckNew: TCheckBox;
@@ -371,14 +365,6 @@ type
     Label61: TLabel;
     Label62: TLabel;
     CheckBoxHideInTaskTray: TCheckBox;
-    CheckBoxColordNumber: TCheckBox;
-    ButtonColordNumber: TButton;
-    CheckBoxIDPopOnMOver: TCheckBox;
-    CheckBoxIDLinkColor: TCheckBox;
-    ButtonIDLinkColorMany: TButton;
-    ButtonIDLinkColorNone: TButton;
-    Label63: TLabel;
-    SpinEditIDLinkThreshold: TJLXPSpinEdit;
     CheckBoxQuickMerge: TCheckBox;
     ButtonWriteMemoFont: TButton;
     ButtonWriteMemoColor: TButton;
@@ -411,9 +397,6 @@ type
     LabelDisableWriteNoActive: TLabel;
     LabelWriteWait: TLabel;
     LabelAutoReload: TLabel;
-    LabelIDLinkColorMany: TLabel;
-    LabelIDLinkColorNone: TLabel;
-    LabelLinkedNumColor: TLabel;
     LabelTree: TLabel;
     LabelFavorite: TLabel;
     LabelList: TLabel;
@@ -429,12 +412,12 @@ type
     LabelListEven: TLabel;
     LabelKeywordBrushColor: TLabel;
     ButtonKeywordBrushColor: TButton;
-    JLXPGroupBox1: TJLXPGroupBox;
+    GroupBoxCheck: TJLXPGroupBox;
     CheckBoxFavPatrolCheckServerDown: TCheckBox;
     CheckBoxFavPatrolOpenNewResThread: TCheckBox;
     CheckBoxFavPatrolOpenBack: TCheckBox;
     CheckBoxFavPatrolMessageBox: TCheckBox;
-    JLXPGroupBox2: TJLXPGroupBox;
+    GroupBoxSearch: TJLXPGroupBox;
     ComboBoxDefaultSearch: TComboBox;
     Label52: TLabel;
     Label64: TLabel;
@@ -443,7 +426,6 @@ type
     EditMigemoDic: TEdit;
     ButtonMigemoPath: TButton;
     ButtonMigemoDic: TButton;
-    CheckBoxUseSearchBar: TCheckBox;
     GroupBoxBeLogin: TJLXPGroupBox;
     Label72: TLabel;
     Label73: TLabel;
@@ -469,6 +451,28 @@ type
     Label79: TLabel;
     Label80: TLabel;
     cmbThreAboneLevel: TComboBox;
+    SheetHint2: TTabSheet;
+    GroupBoxIDPopup: TJLXPGroupBox;
+    CheckBoxIDPopUp: TCheckBox;
+    Label58: TLabel;
+    SpinEditIDPopUpMaxCount: TJLXPSpinEdit;
+    CheckBoxIDPopOnMOver: TCheckBox;
+    CheckBoxIDLinkColor: TCheckBox;
+    LabelIDLinkColorMany: TLabel;
+    LabelIDLinkColorNone: TLabel;
+    ButtonIDLinkColorNone: TButton;
+    ButtonIDLinkColorMany: TButton;
+    Label63: TLabel;
+    SpinEditIDLinkThreshold: TJLXPSpinEdit;
+    GroupBoxTreePopup: TJLXPGroupBox;
+    CheckBoxAllowTreeDup: TCheckBox;
+    LabelLenofOutLineRes: TLabel;
+    SpinEditLenofOutLineRes: TJLXPSpinEdit;
+    CheckBoxColordNumber: TCheckBox;
+    LabelLinkedNumColor: TLabel;
+    ButtonColordNumber: TButton;
+    CheckBoxUpOpenThread: TCheckBox;
+    CheckBoxUpImportantThread: TCheckBox;
     procedure FormShow(Sender: TObject);
     procedure OkButtonClick(Sender: TObject);
     procedure CancelButtonClick(Sender: TObject);
@@ -1082,7 +1086,6 @@ begin
   Main.Config.schDefaultSearch := ComboBoxDefaultSearch.ItemIndex;
   Main.Config.schMigemoPathTmp := EditMigemoPath.Text;
   Main.Config.schMigemoDicTmp := EditMigemoDic.Text;
-  Main.Config.schUseSearchBar := CheckBoxUseSearchBar.Checked;
   Main.Config.schShowListToolbarOnStartup := CheckBoxShowListToolbarOnStartup.Checked;
   Main.Config.schShowToolbarOnStartup := CheckBoxShowToolbarOnStartup.Checked;
   Main.Config.schShowTreeToolbarOnStartup := CheckBoxShowTreeToolbarOnStartup.Checked;
@@ -1128,6 +1131,8 @@ begin
     Main.Config.TabColorChanged := false;
   end;
 
+  Main.Config.stlUpOpenThread := Self.CheckBoxUpOpenThread.Checked;
+  Main.Config.stlUpImportantThread := Self.CheckBoxUpImportantThread.Checked;
   {/aiai}
 
   ModalResult := mrOK;
@@ -1416,12 +1421,14 @@ begin
   {/beginner}
 
   {aiai}
+  Self.CheckBoxUpOpenThread.Checked := Main.Config.stlUpOpenThread;
+  Self.CheckBoxUpImportantThread.Checked := Main.Config.stlUpImportantThread;
+
   self.ShowDayOfWeekCheckBox.Checked := Main.Config.ojvShowDayOfWeek;
 
   self.ComboBoxDefaultSearch.ItemIndex := Main.Config.schDefaultSearch;
   self.EditMigemoPath.Text := Main.Config.schMigemoPathTmp;
   self.EditMigemoDic.Text := Main.Config.schMigemoDicTmp;
-  self.CheckBoxUseSearchBar.Checked := Main.Config.schUseSearchBar;
   self.CheckBoxShowListToolbarOnStartup.Checked := Main.Config.schShowListToolbarOnStartup;
   self.CheckBoxShowToolbarOnStartup.Checked := Main.Config.schShowToolbarOnStartup;
   self.CheckBoxShowTreeToolbarOnStartup.Checked := Main.Config.schShowTreeToolbarOnStartup;
@@ -1465,6 +1472,7 @@ begin
   TreeView.Items.AddChildObject(TreeView.Items.Item[2], SheetColors.Caption, SheetColors);
   TreeView.Items.AddChildObject(TreeView.Items.Item[2], SheetTabColor.Caption, SheetTabColor);  //aiai
   TreeView.Items.AddChildObject(TreeView.Items.Item[1], SheetHint.Caption, SheetHint);
+  TreeView.Items.AddChildObject(TreeView.Items.Item[1], SheetHint2.Caption, SheetHint2);
   TreeView.Items.AddChildObject(TreeView.Items.Item[1], SheetAbone.Caption, SheetAbone);
   TreeView.Items.AddChildObject(TreeView.Items.Item[1], SheetCommand.Caption, SheetCommand);
   TreeView.Items.AddChildObject(TreeView.Items.Item[1], SheetMouse.Caption, SheetMouse);

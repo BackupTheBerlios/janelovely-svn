@@ -2,7 +2,7 @@ object GetBoardListForm: TGetBoardListForm
   Left = 352
   Top = 279
   Width = 313
-  Height = 171
+  Height = 138
   Caption = #12508#12540#12489#19968#35239#12398#21462#24471
   Color = clBtnFace
   Font.Charset = SHIFTJIS_CHARSET
@@ -18,19 +18,13 @@ object GetBoardListForm: TGetBoardListForm
   object MessageLabel1: TLabel
     Left = 16
     Top = 16
-    Width = 4
+    Width = 209
     Height = 12
-  end
-  object MessageLabel2: TLabel
-    Left = 16
-    Top = 80
-    Width = 174
-    Height = 12
-    Caption = #12414#12391#12508#12540#12489#19968#35239#21462#12426#12395#34892#12367#12435#12420#12424#65374
+    Caption = #20197#19979#12398'URL'#12363#12425#12508#12540#12489#19968#35239#12434#21462#24471#12375#12414#12377#12290
   end
   object ComboBoxURL: TComboBox
     Left = 8
-    Top = 48
+    Top = 41
     Width = 289
     Height = 20
     ItemHeight = 12
@@ -38,7 +32,7 @@ object GetBoardListForm: TGetBoardListForm
   end
   object ButtonOK: TButton
     Left = 72
-    Top = 104
+    Top = 73
     Width = 75
     Height = 25
     Caption = 'OK'
@@ -47,7 +41,7 @@ object GetBoardListForm: TGetBoardListForm
   end
   object ButtonCancel: TButton
     Left = 168
-    Top = 104
+    Top = 73
     Width = 75
     Height = 25
     Caption = 'Cancel'
