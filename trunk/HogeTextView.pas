@@ -1496,7 +1496,7 @@ begin
     else
       ScrollPixel(Delta);
     {aiai}
-    if FCaretScrollSync then
+    if not FCaretScrollSync then
       SetLogicalCaret(FLogicalCaret, hscDONTSCROLL)
     else
     {/aiai}
@@ -1700,6 +1700,15 @@ begin
       if ssDouble in Shift then
         SelectWord(ClientToPhysicalCharPos(X, Y))
       else
+      {aiai}
+      if ssShift in Shift then begin
+        if not FSelecting then
+          FSelStart := FEditPoint;
+        SetLogicalCaret(ClientToLogical(X, Y), hscDONTSCROLL);
+        FDragging  := True;
+        CaretVisible(True);
+      end else
+      {/aiai}
       begin
         SetLogicalCaret(ClientToLogical(X, Y), hscDONTSCROLL);
         FSelStart := FEditPoint;

@@ -2104,7 +2104,7 @@ procedure TConvDatOut.ProcDATE;
       end;
       if (sep = 0) or ((index2 - sep - 1) <= 0) then
       begin
-        SetString(BEID, str + index, index2 - index);
+        SetString(BEID, str + index, index2 - index - 1);
         BEPOINT := ' '
       end else
       begin
