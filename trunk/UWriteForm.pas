@@ -1006,11 +1006,11 @@ begin
                          + '&bbs='  + board.bbs
                          + '&time=' + IntToStr(board.timeValue)
               else
-                postDat := 'subject=' + URLEncode(sjis2euc(EditSubjectBox.Text))
-                         + '&submit=' + URLEncode(sjis2euc('新規スレッド作成'))
+                postDat := 'subject=' + URLEncode(EditSubjectBox.Text)
+                         + '&submit=' + URLEncode('新規スレッド作成')
                          + '&FROM=' + encName
                          + '&mail=' + encMail
-                         + '&MESSAGE=' + URLEncode(sjis2euc(Memo.Text))
+                         + '&MESSAGE=' + URLEncode(Memo.Text)
                          + '&bbs='  + board.bbs
                          + '&time=' + IntToStr(board.timeValue);
             end;
