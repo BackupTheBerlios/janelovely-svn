@@ -16475,6 +16475,7 @@ begin
     ImageViewCacheListForm.MainWndOnShow;
   {/aiai}
   SetFocus;
+  Application.BringToFront;
 end;
 
 
