@@ -3738,6 +3738,18 @@ object MainWnd: TMainWnd
       object N2: TMenuItem
         Caption = '-'
       end
+      object MenuListCloseThisThread: TMenuItem
+        Action = actListCloseThisThread
+      end
+      object N94: TMenuItem
+        Caption = '-'
+      end
+      object MenuListCanClose: TMenuItem
+        Action = actListCanClose
+      end
+      object MenuListAlReady: TMenuItem
+        Action = actListAlready
+      end
       object MenuListToggleMarker: TMenuItem
         Action = actListToggleMarker
       end
@@ -4657,7 +4669,7 @@ object MainWnd: TMainWnd
   object ListPopupMenu: TPopupMenu
     OnPopup = ListPopupMenuPopup
     Left = 200
-    Top = 128
+    Top = 136
     object ListPopupHide: TMenuItem
       Action = actListOpenHide
     end
@@ -4669,6 +4681,15 @@ object MainWnd: TMainWnd
     end
     object N14: TMenuItem
       Caption = '-'
+    end
+    object ListPopupCloseThisThread: TMenuItem
+      Action = actListCloseThisThread
+    end
+    object N93: TMenuItem
+      Caption = '-'
+    end
+    object PopupListCanClose: TMenuItem
+      Action = actListCanClose
     end
     object ListPopupAlready: TMenuItem
       Action = actListAlready
@@ -5102,63 +5123,76 @@ object MainWnd: TMainWnd
       OnExecute = actStopExecute
     end
     object actListRefresh: TAction
+      Category = #12473#12524#27396
       Caption = #12473#12524#19968#35239#26356#26032'(&U)'
       OnExecute = actListRefreshExecute
     end
     object actListOpenNew: TAction
+      Category = #12473#12524#27396
       Caption = #26032#12375#12356#12479#12502#12391#38283#12367'(&N)'
       Enabled = False
       OnExecute = actListOpenNewExecute
     end
     object actListOpenCurrent: TAction
+      Category = #12473#12524#27396
       Caption = #20170#12398#12479#12502#12391#38283#12367'(&O)'
       Enabled = False
       OnExecute = actListOpenCurrentExecute
     end
     object actListOpenHide: TAction
+      Category = #12473#12524#27396
       Caption = #12496#12483#12463#12464#12521#12454#12531#12489#12391#38283#12367'(&H)'
       Enabled = False
       OnExecute = actListOpenHideExecute
     end
     object actListToggleMarker: TAction
+      Category = #12473#12524#27396
       Caption = #21360#12434#20184#12369#12427'(&M)'
       Enabled = False
       OnExecute = actListToggleMarkerExecute
     end
     object actListAddFav: TAction
+      Category = #12473#12524#27396
       Caption = #12362#27671#12395#20837#12426#12395#36861#21152'(&A)'
       Enabled = False
       OnExecute = actListAddFavExecute
     end
     object actListDelFav: TAction
+      Category = #12473#12524#27396
       Caption = #12362#27671#12395#20837#12426#12434#21066#38500'(&V)'
       Enabled = False
       OnExecute = actListDelFavExecute
     end
     object actListDelLog: TAction
+      Category = #12473#12524#27396
       Caption = #36984#25246#20013#12398#12525#12464#12434#21066#38500'(&D)'
       Enabled = False
       OnExecute = actListDelLogExecute
     end
     object actListCopyDat: TAction
+      Category = #12473#12524#27396
       Caption = 'dat'#12434#12463#12522#12483#12503#12508#12540#12489#12395#12467#12500#12540'(&D)'
       OnExecute = actListCopyDatExecute
     end
     object actListCopyDI: TAction
+      Category = #12473#12524#27396
       Caption = 'dat'#12392'idx'#12434#12463#12522#12483#12503#12508#12540#12489#12395#12467#12500#12540'(&I)'
       OnExecute = actListCopyDIExecute
     end
     object actListCopyURL: TAction
+      Category = #12473#12524#27396
       Caption = 'URL'#12434#12467#12500#12540'(&L)'
       Enabled = False
       OnExecute = actListCopyURLExecute
     end
     object actListCopyTITLE: TAction
+      Category = #12473#12524#27396
       Caption = #12479#12452#12488#12523#12434#12467#12500#12540'(&E)'
       Enabled = False
       OnExecute = actListCopyTITLEExecute
     end
     object actListCopyTU: TAction
+      Category = #12473#12524#27396
       Caption = #12479#12452#12488#12523#12392'URL'#12434#12467#12500#12540'(&T)'
       Enabled = False
       OnExecute = actListCopyTUExecute
@@ -5168,26 +5202,32 @@ object MainWnd: TMainWnd
       OnExecute = actGeneralUpdateExecute
     end
     object actListCloseThisTab: TAction
+      Category = #12473#12524#27396
       Caption = #12371#12398#12479#12502#12434#38281#12376#12427'(&C)'
       OnExecute = actListCloseThisTabExecute
     end
     object actListCloseOtherTabs: TAction
+      Category = #12473#12524#27396
       Caption = #12371#12398#12479#12502#20197#22806#12434#38281#12376#12427'(&W)'
       OnExecute = actListCloseOtherTabsExecute
     end
     object actListCloseAllTabs: TAction
+      Category = #12473#12524#27396
       Caption = #20840#12390#12398#12479#12502#12434#38281#12376#12427
       OnExecute = actListCloseAllTabsExecute
     end
     object actListCloseLeftTabs: TAction
+      Category = #12473#12524#27396
       Caption = #12371#12428#12424#12426#24038#12434#38281#12376#12427
       OnExecute = actListCloseLeftTabsExecute
     end
     object actListCloseRightTabs: TAction
+      Category = #12473#12524#27396
       Caption = #12371#12428#12424#12426#21491#12434#38281#12376#12427
       OnExecute = actListCloseRightTabsExecute
     end
     object actListOpenByBrowser: TAction
+      Category = #12473#12524#27396
       Caption = #12502#12521#12454#12470#12391#38283#12367'(&Z)'
       Enabled = False
       OnExecute = actListOpenByBrowserExecute
@@ -5335,6 +5375,7 @@ object MainWnd: TMainWnd
       OnExecute = actTabPtrlExecute
     end
     object actListAlready: TAction
+      Category = #12473#12524#27396
       Caption = #26082#35501#12395#12377#12427
       Enabled = False
       OnExecute = actListAlreadyExecute
@@ -5400,6 +5441,17 @@ object MainWnd: TMainWnd
       Caption = #12399#12365#12384#12417
       GroupIndex = 2
       OnExecute = actThreadAboneShowExecute
+    end
+    object actListCloseThisThread: TAction
+      Category = #12473#12524#27396
+      Caption = #36984#25246#20013#12398#12473#12524#12434#38281#12376#12427'(&Q)'
+      OnExecute = actListCloseThisThreadExecute
+    end
+    object actListCanClose: TAction
+      Category = #12473#12524#27396
+      Caption = #36984#25246#20013#12398#12473#12524#12399#38281#12376#12394#12356'(&B)'
+      Enabled = False
+      OnExecute = actListCanCloseExecute
     end
   end
   object PopupFavorites: TPopupMenu

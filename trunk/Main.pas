@@ -851,6 +851,15 @@ type
     TrayIcon: TJLTrayIcon;
     MenuBoardSep: TMenuItem;
     PopupFavRenewCheck: TMenuItem;
+    N93: TMenuItem;
+    ListPopupCloseThisThread: TMenuItem;
+    actListCloseThisThread: TAction;
+    actListCanClose: TAction;
+    PopupListCanClose: TMenuItem;
+    MenuListCloseThisThread: TMenuItem;
+    N94: TMenuItem;
+    MenuListAlReady: TMenuItem;
+    MenuListCanClose: TMenuItem;
     {/aiai}
     procedure FormCreate(Sender: TObject);
     procedure MenuToolsOptionsClick(Sender: TObject);
@@ -1339,6 +1348,8 @@ type
     procedure TrayIconMouseUp(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure PopupFavRenewCheckClick(Sender: TObject);
+    procedure actListCloseThisThreadExecute(Sender: TObject);
+    procedure actListCanCloseExecute(Sender: TObject);
     {/aiai}
   private
   { Private 宣言 }
@@ -4661,6 +4672,8 @@ var
           result := 'あぼ～ん'
         else
           result := HTML2String(thread.title);
+        if not thread.canclose then
+          result := '*' + result;
       end;
     LVSC_ITEMS:
       begin
@@ -6029,6 +6042,9 @@ begin
       self.actListCopyDat.Enabled := true;
       self.actListCopyDI.Enabled := true;
       self.actThreadAbone2.Enabled := true;
+      self.actListCloseThisThread.Enabled := True;
+      self.actListCanClose.Enabled := False;
+      self.actListCanClose.Checked := False;
       {/aiai}
     end
     else begin
@@ -6049,6 +6065,9 @@ begin
       self.actListCopyDat.Enabled := haveData;
       self.actListCopyDI.Enabled := haveData;
       self.actThreadAbone2.Enabled := thread.ThreAboneType and TThreABNFLAG = TThreABNFLAG;
+      self.actListCloseThisThread.Enabled := thread.Opened;
+      self.actListCanClose.Enabled := thread.Opened;
+      self.actListCanClose.Checked := not thread.canclose;
       {/aiai}
     end;
     self.actListCopyURL.Enabled := true;
@@ -6084,6 +6103,9 @@ begin
     self.actThreadAbone3.Enabled := false;
     self.actThreadAbone4.Enabled := false;
     self.actThreadAbone2.Visible := false;
+    self.actListCloseThisThread.Enabled := false;
+    self.actListCanClose.Enabled := False;
+    self.actListCanClose.Checked := False;
     {/aiai}
   end;
 end;
@@ -10398,11 +10420,68 @@ begin
   try MemoWriteMain.SetFocus; except end;
 end;
 
+(* スレ欄からスレッドを閉じる *) //aiai
+procedure TMainWnd.actListCloseThisThreadExecute(Sender: TObject);
+var
+  item: TListItem;
+  thread: TThreadItem;
+  index: Integer;
+begin
+  item := ListView.Selected;
+  thread := nil;
+
+  UILock := True;
+  StopAutoReSc;
+
+  while (item <> nil) and (item.Data <> thread) do
+  begin
+    thread := TThreadItem(item.Data);
+    if thread.canclose then
+    begin
+      thread.CancelAsyncRead;
+      index := viewList.FindViewItemIndex(thread);
+      if index <> -1 then
+      begin
+        DeleteView(index);
+      end;
+    end;
+    item := ListView.GetNextItem(item, sdBelow, [isSelected]);
+  end;
+
+  index := viewList.FindFirstViewItem;
+  if index >= 0 then
+    SetCurrentView(index);
+
+  ListView.DoubleBuffered := True;
+  ListView.Repaint;
+  ListView.DoubleBuffered := False;
+  UpdateTabTexts;
+
+  UILock := False;
+end;
+
+(* このタブは閉じない *) //aiai
+procedure TMainWnd.actListCanCloseExecute(Sender: TObject);
+var
+  item: TListItem;
+  thread: TThreadItem;
+begin
+  item := ListView.Selected;
+  if (item = nil) or (item.Data = nil) then
+    exit;
+  thread := TThreadItem(item.Data);
+
+  thread.canclose := not thread.canclose;
+  UpdateTabColor;
+  daemon.Post(ListViewRepaint);
+end;
+
 (* 既読にする *)//aiai
 procedure TMainWnd.actListAlreadyExecute(Sender: TObject);
 var
   item: TListItem;
   thread: TThreadItem;
+  viewItem: TViewItem;
 begin
   item := ListView.Selected;
   if item = nil then
@@ -10415,6 +10494,9 @@ begin
   thread.SaveIndexData;
   UpdateTabColor;
   ViewItemStateChanged;
+  viewItem := viewList.FindViewItem(thread);
+  if viewItem <> nil then
+    viewItem.LocalReload(viewItem.GetTopRes);
 end;
 
 procedure TMainWnd.actGeneralUpdateExecute(Sender: TObject);
@@ -15811,7 +15893,8 @@ begin
       currentBoard.ResetListState;
       UpdateListView;
       UILock := false;
-    end;
+    end else if (CurrentBoard is TFunctionalBoard) then
+      ListView.Invalidate;
 
     if (FavPtrlCount = 0) then   //更新ﾁｪｯｸ終わり
     begin
@@ -15903,7 +15986,8 @@ begin
   if (viewItem <> nil) and (viewItem.thread <> nil) then
   begin
     viewItem.thread.canclose := not viewItem.thread.canclose;
-    TabControl.Invalidate;
+    daemon.Post(TabControl.Repaint);
+    daemon.Post(ListViewRepaint);
   end;
 end;
 
