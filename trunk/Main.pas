@@ -11090,6 +11090,12 @@ begin
       + TCategory(TBoard(board).category).name + ']  '
       + datSize;
     TabControl.Refresh;
+    if not Config.oprCheckNewWRedraw then
+    begin
+      ListView.DoubleBuffered := True;
+      ListView.Repaint;
+      ListView.DoubleBuffered := False;
+    end;
   end;
 end;
 
