@@ -4606,8 +4606,13 @@ begin
 
   cx := MainWnd.MDIClientPanel.ClientWidth * 5 div 7;
   cy := MainWnd.MDIClientPanel.ClientHeight * 5 div 7;
-  x := (MainWnd.MDIClientPanel.ClientWidth - cx) div (wcnt - 1);
-  y := (MainWnd.MDIClientPanel.ClientHeight - cy) div (wcnt - 1);
+  if wcnt = 1 then begin
+    x := 0;
+    y := 0;
+  end else begin
+    x := (MainWnd.MDIClientPanel.ClientWidth - cx) div (wcnt - 1);
+    y := (MainWnd.MDIClientPanel.ClientHeight - cy) div (wcnt - 1);
+  end;
 
   for i := 0 to viewList.Count - 1 do begin
     browser := TMDITextView(Items[i].browser);
