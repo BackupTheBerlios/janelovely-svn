@@ -12,8 +12,7 @@ uses
   Types,
   Windows,
   StrSub,
-  UNGWordsAssistant,
-  HogeTextView;
+  UNGWordsAssistant;
 
 type
   (*-------------------------------------------------------*)

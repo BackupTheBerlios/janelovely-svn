@@ -86,7 +86,8 @@ uses
   UWriteForm in 'UWriteForm.pas' {WriteForm},
   sqlite in 'AIAI\sqlite.pas',
   ClipBrdSub in 'AIAI\ClipBrdSub.pas',
-  UMDITextView in 'AIAI\UMDITextView.pas';
+  UMDITextView in 'AIAI\UMDITextView.pas',
+  UMigemo in 'AIAI\UMigemo.pas';
 
 {$R *.res}
 

@@ -361,6 +361,14 @@ type
 
     stlDefSortColumn: integer;
     stlDefFuncSortColumn: integer;
+
+    schDefaultSearch: integer;
+    schMigemoPath: String;
+    schMigemoDic: String;
+    schMigemoPathTmp: String;
+    schMigemoDicTmp: String;
+    schUseSearchBar: Boolean;
+    schUseSearchBarTmp: Boolean;
     {/aiai}
 
     {$IFNDEF IE}
@@ -430,6 +438,7 @@ const
   INI_OJV_SECT: string = 'OJVIEW';
   INI_TCL_SECT: string = 'TABCOLOR';  //aiai
   INI_AA_SECT: string = 'AA';         // aiai
+  INI_SCH_SECT: string = 'SEARCH';  //aiai
 
   MOUSE_FILE: string = 'mouse.dat';
   COMMAND_FILE: string = 'command.dat';
@@ -859,6 +868,14 @@ begin
 
   stlDefSortColumn := 1;
   stlDefFuncSortColumn := 1;
+
+  schDefaultSearch := 1;
+  schMigemoPath := '';
+  schMigemoDic := '';
+  schMigemoPathTmp := '';
+  schMigemoDicTmp := '';
+  schUseSearchBar := True;
+  schUseSearchBarTmp := True;
   {/aiai}
 
   Modified := False;
@@ -1529,6 +1546,14 @@ begin
 
   stlDefSortColumn := ini.ReadInteger(INI_STL_SECT, 'DefSortColumn', stlDefSortColumn);
   stlDefFuncSortColumn := ini.ReadInteger(INI_STL_SECT, 'DefFuncSortColumn', stlDefFuncSortColumn);
+
+  schDefaultSearch := ini.ReadInteger(INI_SCH_SECT, 'DefaultSearch', schDefaultSearch);
+  schMigemoPath := ini.ReadString(INI_SCH_SECT, 'MigemoPath', schMigemoPath);
+  schMigemoDic := ini.ReadString(INI_SCH_SECT, 'MigemoDic', schMigemoDic);
+  schMigemoPathTmp := schMigemoPath;
+  schMigemoDicTmp := schMigemoDic;
+  schUseSearchBar := ini.ReadBool(INI_SCH_SECT, 'UseSearchBar', schUseSearchBar);
+  schUseSearchBarTmp := schUseSearchBar;
   {/aiai}
 
   setAutoScrollArray(ini);
@@ -2002,6 +2027,11 @@ begin
 
   ini.WriteInteger(INI_STL_SECT, 'DefSortColumn', stlDefSortColumn);
   ini.WriteInteger(INI_STL_SECT, 'DefFuncSortColumn', stlDefFuncSortColumn);
+
+  ini.WriteInteger(INI_SCH_SECT, 'DefaultSearch', schDefaultSearch);
+  ini.WriteString(INI_SCH_SECT, 'MigemoPath', schMigemoPathTmp);
+  ini.WriteString(INI_SCH_SECT, 'MigemoDic', schMigemoDicTmp);
+  ini.WriteBool(INI_SCH_SECT, 'UseSearchBar', schUseSearchBarTmp);
 
   setScrollSpeedArray(ini);
   {/aiai}

@@ -45,7 +45,7 @@ object UIConfig: TUIConfig
     Top = 8
     Width = 393
     Height = 321
-    ActivePage = SheetNet
+    ActivePage = SheetFavPatrol
     Style = tsFlatButtons
     TabOrder = 1
     TabStop = False
@@ -311,7 +311,7 @@ object UIConfig: TUIConfig
         Top = 191
         Width = 289
         Height = 20
-        ItemHeight = 0
+        ItemHeight = 12
         TabOrder = 5
       end
     end
@@ -1846,7 +1846,7 @@ object UIConfig: TUIConfig
           Height = 20
           Style = csDropDownList
           DropDownCount = 12
-          ItemHeight = 0
+          ItemHeight = 12
           TabOrder = 1
         end
         object ComboBoxMseGestures: TComboBox
@@ -1950,7 +1950,7 @@ object UIConfig: TUIConfig
           Height = 20
           Style = csDropDownList
           DropDownCount = 12
-          ItemHeight = 0
+          ItemHeight = 12
           TabOrder = 2
           OnDropDown = ComboBoxMseSubMenusDropDown
         end
@@ -3529,40 +3529,131 @@ object UIConfig: TUIConfig
       end
     end
     object SheetFavPatrol: TTabSheet
-      Caption = #26356#26032#65409#65386#65391#65400
+      Caption = #26908#32034#12539#26356#26032
       ImageIndex = 20
       TabVisible = False
-      object CheckBoxFavPatrolOpenNewResThread: TCheckBox
+      object JLXPGroupBox1: TJLXPGroupBox
         Left = 8
-        Top = 34
-        Width = 257
-        Height = 17
-        Caption = #26356#26032#65409#65386#65391#65400#24460#12395#26356#26032#12398#12354#12427#12473#12524#12483#12489#12434#12377#12409#12390#38283#12367
+        Top = 160
+        Width = 369
+        Height = 145
+        Caption = #26356#26032#12481#12455#12483#12463
         TabOrder = 0
+        object CheckBoxFavPatrolCheckServerDown: TCheckBox
+          Left = 17
+          Top = 20
+          Width = 288
+          Height = 18
+          Caption = #26356#26032#65409#65386#65391#65400#21069#12395#12469#12540#12496#12540#12364#33853#12385#12390#12394#12356#12363#12481#12455#12483#12463#12377#12427
+          TabOrder = 0
+        end
+        object CheckBoxFavPatrolOpenNewResThread: TCheckBox
+          Left = 17
+          Top = 52
+          Width = 257
+          Height = 18
+          Caption = #26356#26032#65409#65386#65391#65400#24460#12395#26356#26032#12398#12354#12427#12473#12524#12483#12489#12434#12377#12409#12390#38283#12367
+          TabOrder = 1
+        end
+        object CheckBoxFavPatrolOpenBack: TCheckBox
+          Left = 17
+          Top = 84
+          Width = 201
+          Height = 18
+          Caption = #26356#26032#65409#65386#65391#65400#12434#12496#12483#12463#12464#12521#12454#12531#12489#12391#34892#12358
+          TabOrder = 2
+        end
+        object CheckBoxFavPatrolMessageBox: TCheckBox
+          Left = 17
+          Top = 116
+          Width = 249
+          Height = 18
+          Caption = #26356#26032#65409#65386#65391#65400#23436#20102#12398#30906#35469#12480#12452#12450#12525#12464#12434#34920#31034#12377#12427
+          TabOrder = 3
+        end
       end
-      object CheckBoxFavPatrolMessageBox: TCheckBox
-        Left = 8
-        Top = 98
-        Width = 249
-        Height = 17
-        Caption = #26356#26032#65409#65386#65391#65400#23436#20102#12398#30906#35469#12480#12452#12450#12525#12464#12434#34920#31034#12377#12427
-        TabOrder = 1
-      end
-      object CheckBoxFavPatrolOpenBack: TCheckBox
-        Left = 8
-        Top = 66
-        Width = 201
-        Height = 17
-        Caption = #26356#26032#65409#65386#65391#65400#12434#12496#12483#12463#12464#12521#12454#12531#12489#12391#34892#12358
-        TabOrder = 2
-      end
-      object CheckBoxFavPatrolCheckServerDown: TCheckBox
+      object JLXPGroupBox2: TJLXPGroupBox
         Left = 8
         Top = 2
-        Width = 321
-        Height = 17
-        Caption = #26356#26032#65409#65386#65391#65400#21069#12395#12469#12540#12496#12540#12364#33853#12385#12390#12394#12356#12363#12481#12455#12483#12463#12377#12427
-        TabOrder = 3
+        Width = 369
+        Height = 153
+        Caption = #26908#32034#65288#20877#36215#21205#24460#26377#21177#65289
+        TabOrder = 1
+        object Label52: TLabel
+          Left = 16
+          Top = 47
+          Width = 112
+          Height = 12
+          Caption = #12487#12501#12457#12523#12488#12398#26908#32034#26041#27861
+        end
+        object Label64: TLabel
+          Left = 17
+          Top = 79
+          Width = 20
+          Height = 12
+          Caption = 'DLL'
+        end
+        object Label71: TLabel
+          Left = 16
+          Top = 104
+          Width = 24
+          Height = 12
+          Caption = #36766#26360
+        end
+        object ComboBoxDefaultSearch: TComboBox
+          Left = 144
+          Top = 42
+          Width = 145
+          Height = 20
+          Style = csDropDownList
+          ItemHeight = 12
+          TabOrder = 0
+          Items.Strings = (
+            #36890#24120#26908#32034
+            'Migemo'#26908#32034)
+        end
+        object EditMigemoPath: TEdit
+          Left = 56
+          Top = 77
+          Width = 217
+          Height = 20
+          TabOrder = 1
+        end
+        object EditMigemoDic: TEdit
+          Left = 55
+          Top = 100
+          Width = 218
+          Height = 20
+          TabOrder = 2
+        end
+        object ButtonMigemoPath: TButton
+          Tag = 1
+          Left = 273
+          Top = 79
+          Width = 25
+          Height = 17
+          Caption = '...'
+          TabOrder = 3
+          OnClick = ButtonMigemoPathClick
+        end
+        object ButtonMigemoDic: TButton
+          Tag = 2
+          Left = 274
+          Top = 102
+          Width = 25
+          Height = 17
+          Caption = '...'
+          TabOrder = 4
+          OnClick = ButtonMigemoPathClick
+        end
+        object CheckBoxUseSearchBar: TCheckBox
+          Left = 16
+          Top = 16
+          Width = 105
+          Height = 17
+          Caption = #26908#32034#12496#12540#12434#20351#12358
+          TabOrder = 5
+        end
       end
     end
   end

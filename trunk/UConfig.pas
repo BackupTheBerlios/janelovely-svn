@@ -385,7 +385,6 @@ type
     ButtonWriteMemoFont: TButton;
     ButtonWriteMemoColor: TButton;
     SheetFavPatrol: TTabSheet;
-    CheckBoxFavPatrolOpenNewResThread: TCheckBox;
     CheckBoxCheckThreadMadeAfterLstMdfy2: TCheckBox;
     GroupBox19: TJLXPGroupBox;
     Label65: TLabel;
@@ -398,9 +397,6 @@ type
     ComboBoxDefSortColumn: TComboBox;
     Label70: TLabel;
     ComboBoxDefFuncSortColumn: TComboBox;
-    CheckBoxFavPatrolMessageBox: TCheckBox;
-    CheckBoxFavPatrolOpenBack: TCheckBox;
-    CheckBoxFavPatrolCheckServerDown: TCheckBox;
     CheckBoxoptCheckNewResSingleClick: TCheckBox;
     CheckBoxWheelScrollUnderCursor: TCheckBox;
     NGThread: TTabSheet;
@@ -435,6 +431,21 @@ type
     LabelListEven: TLabel;
     LabelKeywordBrushColor: TLabel;
     ButtonKeywordBrushColor: TButton;
+    JLXPGroupBox1: TJLXPGroupBox;
+    CheckBoxFavPatrolCheckServerDown: TCheckBox;
+    CheckBoxFavPatrolOpenNewResThread: TCheckBox;
+    CheckBoxFavPatrolOpenBack: TCheckBox;
+    CheckBoxFavPatrolMessageBox: TCheckBox;
+    JLXPGroupBox2: TJLXPGroupBox;
+    ComboBoxDefaultSearch: TComboBox;
+    Label52: TLabel;
+    Label64: TLabel;
+    Label71: TLabel;
+    EditMigemoPath: TEdit;
+    EditMigemoDic: TEdit;
+    ButtonMigemoPath: TButton;
+    ButtonMigemoDic: TButton;
+    CheckBoxUseSearchBar: TCheckBox;
     procedure FormShow(Sender: TObject);
     procedure OkButtonClick(Sender: TObject);
     procedure CancelButtonClick(Sender: TObject);
@@ -512,6 +523,7 @@ type
     procedure ButtonIDLinkColorManyClick(Sender: TObject);
     procedure ButtonIDLinkColorNoneClick(Sender: TObject);
     procedure ButtonKeywordBrushColorClick(Sender: TObject);
+    procedure ButtonMigemoPathClick(Sender: TObject);
     {/aiai}
   private
     AboneListOnHint:TObject;
@@ -1027,6 +1039,13 @@ begin
 
   Main.Config.ojvShowDayOfWeek := self.ShowDayOfWeekCheckBox.Checked; //aiai
 
+  {aiai}
+  Main.Config.schDefaultSearch := ComboBoxDefaultSearch.ItemIndex;
+  Main.Config.schMigemoPathTmp := EditMigemoPath.Text;
+  Main.Config.schMigemoDicTmp := EditMigemoDic.Text;
+  Main.Config.schUseSearchBarTmp := CheckBoxUseSearchBar.Checked;
+  {/aiai}
+
   Main.Config.Save;
 
   UDat2HTML.ABONE := Main.Config.viewNGMsgMarker;
@@ -1086,6 +1105,7 @@ begin
     MainWnd.LoadColordIDSetting;
     Main.Config.Modified := true;
   end;
+
   {/aiai}
 
   ModalResult := mrOK;
@@ -1364,6 +1384,11 @@ begin
 
   {aiai}
   self.ShowDayOfWeekCheckBox.Checked := Main.Config.ojvShowDayOfWeek;
+
+  self.ComboBoxDefaultSearch.ItemIndex := Main.Config.schDefaultSearch;
+  self.EditMigemoPath.Text := Main.Config.schMigemoPathTmp;
+  self.EditMigemoDic.Text := Main.Config.schMigemoDicTmp;
+  self.CheckBoxUseSearchBar.Checked := Main.Config.schUseSearchBarTmp;
   {/aiai}
 
   Config.ColorChanged := false;
@@ -1376,6 +1401,7 @@ end;
 procedure TUIConfig.ButtonSelBrowserClick(Sender: TObject);
 begin
   OpenDialog.FileName := EditBrowserPath.Text;
+  OpenDialog.Filter := 'ブラウザ(*.exe)|*.exe|すべて(*.*)|*.*';
   if not OpenDialog.Execute then
     exit;
   EditBrowserPath.Text := OpenDialog.FileName;
@@ -2801,4 +2827,29 @@ begin
   end;
 end;
 
+procedure TUIConfig.ButtonMigemoPathClick(Sender: TObject);
+var
+  tag: integer;
+  Edit: TEdit;
+begin
+  tag := TComponent(Sender).Tag;
+  case tag of
+    1: begin
+      Edit := EditMigemoPath;
+      OpenDialog.Filter := 'DLL(*.dll)|*.dll';
+    end;
+    2: begin
+      Edit := EditMigemoDic;
+      OpenDialog.Filter := 'すべてのファイル(*.*)|*.*';
+    end;
+  else
+    exit;
+  end;
+
+  OpenDialog.FileName := Edit.Text;
+  if OpenDialog.Execute then
+    Edit.Text := OpenDialog.FileName;
+end;
+
 end.
+

@@ -32,17 +32,18 @@ uses
   {$ELSE}
   sqlite,
   {$ENDIF}
+  UMigemo, ComObj,
   ApiBmp, PNGImage, GIFImage, ClipBrdSub,
   UAAForm, UAddAAForm, UAutoReSc, UAutoReloadSettingForm,
   UAutoScrollSettingForm, ULovelyWebForm, UNews, UGetBoardListForm,
   UChottoForm, UImageViewCacheListForm,
-  UCheckSeverDown, UMDITextView,
+  UCheckSeverDown, UMDITextView, RegExpr,
   JLWritePanel, JLTab, JLToolButton, JLSideBar, JLXPComCtrls;
   {/aiai}
 
 const
-  VERSION  = '0.1.2.3';      (* Printable ASCIIコード厳守。')'はダメ *)
-  JANE2CH  = 'JaneLovely 0.1.2.3';
+  VERSION  = '0.1.3.0';      (* Printable ASCIIコード厳守。')'はダメ *)
+  JANE2CH  = 'JaneLovely 0.1.3.0';
   KEYWORD_OF_USER_AGENT = 'JaneLovely';      (*  *)
 
   DISTRIBUTORS_SITE = 'http://www.geocities.jp/openjane4714/';
@@ -746,6 +747,15 @@ type
     MenuMemoRestore: TMenuItem;
     N87: TMenuItem;
     MenuBoardRestore: TMenuItem;
+    SearchTimer: TTimer;
+    ListViewSearchToolBar: TJLXPToolBar;
+    ListViewSearchCloseButton: TToolButton;
+    ListViewSearchToolButton: TToolButton;
+    SearchImages: TImageList;
+    PopupListViewSearch: TPopupMenu;
+    MenuListViewSearchNormal: TMenuItem;
+    MenuListViewSearchMigemo: TMenuItem;
+    ListViewSearchEditBox: TComboBoxEx;
     {/aiai}
     procedure FormCreate(Sender: TObject);
     procedure MenuToolsOptionsClick(Sender: TObject);
@@ -1206,6 +1216,15 @@ type
     procedure MenuWindowRestoreAllClick(Sender: TObject);
     procedure MenuMemoRestoreClick(Sender: TObject);
     procedure MenuBoardRestoreClick(Sender: TObject);
+    procedure ListViewSearchEditBoxChange(Sender: TObject);
+    procedure SearchTimerTimer(Sender: TObject);
+    procedure ListViewSearchToolBarResize(Sender: TObject);
+    procedure ListViewSearchCloseButtonClick(Sender: TObject);
+    procedure MenuListViewSearchNormalClick(Sender: TObject);
+    procedure ListViewSearchEditBoxKeyDownMigemo(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure ListViewSearchEditBoxKeyDownNormal(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
     {/aiai}
   private
   { Private 宣言 }
@@ -1450,6 +1469,10 @@ type
     //▲ ステータスバー
     procedure BrowserActive(Sender: TObject);
     //procedure BrowserHide(Sender: TObject);
+    procedure InitMigemo;
+    procedure ListViewSearchSetSearch(index: integer);
+    procedure ListViewSearchMigemoSearch(Sender: TObject);
+    procedure ListViewSearchNormalSearch(Sender: TObject; target: String);
     {/aiai}
   public
     { Public 宣言 }
@@ -1596,6 +1619,9 @@ var
   MyNews: TNews;
   NGThreadItems: TStringList;
   PictViewList: TPictureViewList;
+
+  MigemoOBJ: TMigemo;
+  WSHRegExp: Variant;
   {/aiai}
 
 procedure SaveImeMode(wnd: HWND);
@@ -3023,6 +3049,14 @@ begin
   end;
   (* //DataBase *)
 
+  {aiai}
+  if Config.schUseSearchBar then
+  begin
+    InitMigemo;  //Migemo初期化
+    WSHRegExp := CreateOleObject('VBScript.RegExp');  //WSH
+    WSHRegExp.IgnoreCase := True;   //大文字小文字を区別しない
+  end;
+  {/aiai}
 
   OpenStartupThread;
   UpdateTabTexts;
@@ -3043,6 +3077,53 @@ begin
 
 //  Application.OnMessage := Self.OnMessage;
 end;
+
+//aiai
+procedure TMainWnd.InitMigemo;
+var
+  DicPath: String; //'\つきpath';
+begin
+  if Length(Config.schMigemoDic) > 0 then
+    DicPath := ExtractFilePath(Config.schMigemoDic);
+  MigemoOBJ := TMigemo.Create(Config.schMigemoPath,
+                              Config.schMigemoDic,
+                              DicPath + 'roma2hira.dat',
+                              DicPath + 'hira2kata.dat',
+                              DicPath + 'han2zen.dat');
+  ListViewSearchSetSearch(Config.schDefaultSearch);
+end;
+
+//aiai
+procedure TMainWnd.ListViewSearchSetSearch(index: integer);
+begin
+  ListViewSearchEditBox.Tag := index;
+  case index of
+  0: begin  //通常検索
+    ListViewSearchEditBox.OnChange := nil;
+    ListviewSearchEditBox.OnKeyDown := ListViewSearchEditBoxKeyDownNormal;
+    SearchTimer.Enabled := False;
+    ListViewSearchToolButton.ImageIndex := 0;
+    MenuListViewSearchNormal.Checked := True;
+  end;
+  1: begin  //Migemo
+    if MigemoOBJ.CanUse then begin
+      ListViewSearchToolButton.ImageIndex := 1;
+      ListViewSearchEditBox.OnChange := ListViewSearchEditBoxChange;
+      ListviewSearchEditBox.OnKeyDown := ListViewSearchEditBoxKeyDownMigemo;
+      SearchTimer.Enabled := False;
+    end else begin
+      ListViewSearchToolButton.ImageIndex := 2;
+      ListViewSearchEditBox.OnChange := nil;
+      ListviewSearchEditBox.OnKeyDown := ListViewSearchEditBoxKeyDownNormal;
+      SearchTimer.Enabled := False;
+    end;
+    MenuListViewSearchMigemo.Checked := True;
+  end;
+  else
+  end;
+end;
+
+
 
 //aiai
 procedure TMainWnd.LoadColordNumberSetting;
@@ -3265,6 +3346,11 @@ begin
     Finaldll;
   end;
   (* //DataBase *)
+  if Config.schUseSearchBar then
+  begin
+    MigemoOBJ.Free;
+    WSHRegExp := Unassigned;
+  end;
 end;
 
 
@@ -7348,7 +7434,22 @@ function ListCompareFuncSearchState(Item1, Item2: Pointer): integer;
 begin
   Result := TThreadItem(Item2).liststate - TThreadItem(Item1).liststate;
   if Result = 0 then
-    Result := ListCompareFuncNumber(Item1, Item2);
+    {aiai}
+    Case Config.stlDefSortColumn of
+      0          : Result := ListCompareFuncMarker(Item1, Item2);
+      LVSC_NUMBER: Result := ListCompareFuncNumber(Item1, Item2);
+      LVSC_TITLE : Result := ListCompareFuncTitle(Item1, Item2);
+      LVSC_ITEMS : Result := ListCompareFuncItems(Item1, Item2);
+      LVSC_LINES : Result := ListCompareFuncLines(Item1, Item2);
+      LVSC_NEW   : Result := ListCompareFuncNew(Item1, Item2);
+      LVSC_GOT   : Result := ListCompareFuncGot(Item1, Item2);
+      LVSC_WROTE : Result := ListCompareFuncWrote(Item1, Item2);
+      LVSC_DATE  : Result := ListCompareFuncSince(Item1, Item2);
+      LVSC_BOARD : Result := ListCompareFuncBoard(Item1, Item2);
+      LVSC_SPEED : Result := ListCompareFuncSpeed(Item1, Item2);
+      LVSC_GAIN  : Result := ListCompareFuncGain(Item1, Item2);
+    end;
+    {/aiai}
 end;
 
 
@@ -13530,13 +13631,22 @@ begin
 end;
 {$ENDIF}
 
-//※[457]
+//aiai
 procedure TMainWnd.MenuFindThreadClick(Sender: TObject);
 var
   rc: integer;
   target: string;
-  i: Integer;
 begin
+  if Config.schUseSearchBar then
+  begin
+    ListViewSearchToolBar.Visible := not ListViewSearchToolBar.Visible;
+    if ListViewSearchToolBar.Visible then
+      try
+        ListViewSearchEditBox.SetFocus;
+      except end;
+    exit;
+  end;
+
   if currentBoard = nil then
     exit;
 
@@ -13561,45 +13671,7 @@ begin
   searchTarget := Trim(GrepDlg.Edit.Text);
   target := StrUnify(searchTarget);
 
-  if currentBoard.threadSearched and (Sender = MenuFindThreadNew) then
-    for i := 0 to ListView.Items.Count -1 do
-      TThreadItem(LIstView.List[i]).liststate := 0;
-
-  if not currentBoard.threadSearched or (Sender = MenuFindThreadNew) then
-  begin
-    if target <> '' then
-      for i := 0 to ListView.Items.Count -1 do
-        with TThreadItem(LIstView.List[i]) do
-          if 0 < AnsiPos(target, StrUnify(HTML2String(title))) then
-            liststate := 1;
-  end else //絞り込み済みの場合更に絞り込む
-  begin
-    currentBoard.threadSearched := False;
-    for i := 0 to ListView.Items.Count -1 do
-      with TThreadItem(LIstView.List[i]) do
-        if (liststate <> 0) then
-        begin
-          if ((target = '') or (0 >= AnsiPos(target, StrUnify(HTML2String(title))))) then
-            liststate := 0
-          else
-            currentBoard.threadSearched := True;
-        end;
-  end;
-
-  if not assigned(ListView.OnCustomDrawItem) then
-    ListView.OnCustomDrawItem := ListViewCustomDrawItem;
-  ListView.Sort(@ListCompareFuncSearchState);
-  ListView.SetTopItem(ListView.Items[0]);
-  //ListView.Refresh;
-
-  currentBoard.threadSearched := (TThreadItem(ListView.Items[0].Data).liststate <> 0);
-  if currentBoard.threadSearched then
-    currentSortColumn := 100
-  else begin
-    if config.stlListViewUseExtraBackColor = false then
-      ListView.OnCustomDrawItem := nil;
-    currentSortColumn := 1;
-  end;
+  ListViewSearchNormalSearch(Sender, target);
 end;
 
 (* スレッドタイトル検索 *) //aiai
@@ -17471,12 +17543,180 @@ end;
 
 //▲ MDI
 
+procedure TMainWnd.ListViewSearchEditBoxChange(Sender: TObject);
+begin
+  SearchTimer.Enabled := False;
+  if currentBoard = nil then
+    exit;
+  SearchTimer.Enabled := True;
+end;
+
+procedure TMainWnd.SearchTimerTimer(Sender: TObject);
+begin
+  ListViewSearchMigemoSearch(Sender);
+end;
+
+procedure TMainWnd.ListViewSearchToolBarResize(Sender: TObject);
+begin
+  ListViewSearchEditBox.Width := ListViewSearchToolBar.ClientWidth
+    - ListViewSearchCloseButton.Width - ListViewSearchToolButton.Width;
+end;
+
+procedure TMainWnd.ListViewSearchEditBoxKeyDownMigemo(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if Key = VK_RETURN then
+    ListViewSearchMigemoSearch(Sender);
+end;
+
+procedure TMainWnd.ListViewSearchEditBoxKeyDownNormal(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+var
+  target: String;
+begin
+  if Key = VK_RETURN then begin
+    if currentBoard = nil then
+      exit;
+    searchTarget := Trim(ListViewSearchEditBox.Text);
+    target := StrUnify(searchTarget);
+    ListViewSearchNormalSearch(MenuFindThreadNew, target);
+  end;
+end;
+
+procedure TMainWnd.ListViewSearchCloseButtonClick(Sender: TObject);
+begin
+  ListViewSearchToolBar.Hide;
+end;
+
+procedure TMainWnd.ListViewSearchMigemoSearch(Sender: TObject);
+var
+  target: string;
+  i: Integer;
+  str: PChar;
+begin
+  SearchTimer.Enabled := False;
+
+  if currentBoard = nil then
+    exit;
+
+  if Length(ListViewSearchEditBox.Text) = 0 then
+  begin
+    ListView.DoubleBuffered := True;
+    for i := 0 to ListView.Items.Count - 1 do
+      TThreadItem(ListView.List[i]).liststate := 0;
+    if not assigned(ListView.OnCustomDrawItem) then
+      ListView.OnCustomDrawItem := ListViewCustomDrawItem;
+    ListView.Sort(@ListCompareFuncSearchState);
+    ListView.SetTopItem(ListView.Items[0]);
+    if config.stlListViewUseExtraBackColor = false then
+      ListView.OnCustomDrawItem := nil;
+    currentSortColumn := Config.stlDefSortColumn;
+    ListView.Repaint;
+    ListView.DoubleBuffered := False;
+    exit;
+  end;
+
+  if not MigemoOBJ.CanUse then exit;
+
+  str := MigemoOBJ.Query(ListViewSearchEditBox.Text);
+  target := Copy(str, 1, Length(str));
+  MigemoOBJ.Release(str);
+  try
+    WSHRegExp.Pattern := target;      //正規表現パターン
+  except
+    ListViewSearchEditBox.Brush.Color := clYellow;
+    exit;
+  end;
+  ListViewSearchEditBox.Brush.Color := clWhite;
+  ListView.DoubleBuffered := True;
+  if target <> '' then
+    for i := 0 to ListView.Items.Count -1 do
+      with TThreadItem(LIstView.List[i]) do
+        try
+          if WSHRegExp.Test(HTML2String(title)) then
+            liststate := 1
+          else
+            liststate := 0;
+        except
+          ListViewSearchEditBox.Brush.Color := clYellow;
+          exit;
+        end;
+  if not assigned(ListView.OnCustomDrawItem) then
+    ListView.OnCustomDrawItem := ListViewCustomDrawItem;
+  ListView.Sort(@ListCompareFuncSearchState);
+  ListView.SetTopItem(ListView.Items[0]);
+  //ListView.Refresh;
+
+  currentBoard.threadSearched := (TThreadItem(ListView.Items[0].Data).liststate <> 0);
+  if currentBoard.threadSearched then
+    currentSortColumn := 100
+  else begin
+    if config.stlListViewUseExtraBackColor = false then
+      ListView.OnCustomDrawItem := nil;
+    currentSortColumn := Config.stlDefSortColumn;
+  end;
+  ListView.Repaint;
+  ListView.DoubleBuffered := False;
+end;
+
+procedure TMainWnd.ListViewSearchNormalSearch(Sender: TObject; target: String);
+var
+  i: Integer;
+begin
+  if currentBoard.threadSearched and (Sender = MenuFindThreadNew) then
+    for i := 0 to ListView.Items.Count -1 do
+      TThreadItem(LIstView.List[i]).liststate := 0;
+
+  if not currentBoard.threadSearched or (Sender = MenuFindThreadNew) then
+  begin
+    if target <> '' then
+      for i := 0 to ListView.Items.Count -1 do
+        with TThreadItem(LIstView.List[i]) do
+          if 0 < AnsiPos(target, StrUnify(HTML2String(title))) then
+            liststate := 1;
+  end else //絞り込み済みの場合更に絞り込む
+  begin
+    currentBoard.threadSearched := False;
+    for i := 0 to ListView.Items.Count -1 do
+      with TThreadItem(LIstView.List[i]) do
+        if (liststate <> 0) then
+        begin
+          if ((target = '') or (0 >= AnsiPos(target, StrUnify(HTML2String(title))))) then
+            liststate := 0
+          else
+            currentBoard.threadSearched := True;
+        end;
+  end;
+
+  if not assigned(ListView.OnCustomDrawItem) then
+    ListView.OnCustomDrawItem := ListViewCustomDrawItem;
+  ListView.Sort(@ListCompareFuncSearchState);
+  ListView.SetTopItem(ListView.Items[0]);
+  //ListView.Refresh;
+
+  currentBoard.threadSearched := (TThreadItem(ListView.Items[0].Data).liststate <> 0);
+  if currentBoard.threadSearched then
+    currentSortColumn := 100
+  else begin
+    if config.stlListViewUseExtraBackColor = false then
+      ListView.OnCustomDrawItem := nil;
+    currentSortColumn := 1;
+  end;
+end;
+
+procedure TMainWnd.MenuListViewSearchNormalClick(Sender: TObject);
+begin
+  TMenuItem(Sender).Checked := True;
+  ListViewSearchSetSearch(TComponent(Sender).Tag);
+end;
+
 initialization
   OleInitialize(nil);
 finalization
   OleUninitialize;
 
 end.
+
 
 
 
