@@ -462,6 +462,11 @@ type
     CheckBoxShowTreeToolbarOnStartup: TCheckBox;
     CheckBoxCaretScrollSync: TCheckBox;
     CheckBoxHideHistoricalLog: TCheckBox;
+    Label77: TLabel;
+    SpinEditPopupSizeContrainX: TJLXPSpinEdit;
+    SpinEditPopupSizeContrainY: TJLXPSpinEdit;
+    Label78: TLabel;
+    Label79: TLabel;
     procedure FormShow(Sender: TObject);
     procedure OkButtonClick(Sender: TObject);
     procedure CancelButtonClick(Sender: TObject);
@@ -915,6 +920,8 @@ begin
   Main.Config.optSetFocusOnWriteMemo := self.CheckBoxoptSetFocusOnWriteMemo.Checked;
   Main.Config.optCheckNewResSingleClick := self.CheckBoxoptCheckNewResSingleClick.Checked;
   Main.Config.optHideInTaskTray := self.CheckBoxHideInTaskTray.Checked;
+  Main.Config.optPopupSizeContrainX := self.SpinEditPopupSizeContrainX.Value;
+  Main.Config.optPopupSizeContrainY := self.SpinEditPopupSizeContrainY.Value;
 
   Main.Config.ojvOpenNewResThreadLimit := self.SpinEditOpenNewResThreadLimit.Value;
 
@@ -973,7 +980,6 @@ begin
   Main.Config.wrtBEIDMDMD := self.EditCode_BEID_MDMD.Text;
   {/aiai}
 
-  {$IFNDEF IE}
   Main.Config.viewVerticalCaretMargin := StrToIntDef(self.EditViewVerticalCaretMargin.Text, Main.Config.viewVerticalCaretMargin);
   Main.Config.viewScrollLines := StrToIntDef(self.EditViewScrollLines.Text, Main.Config.viewScrollLines);
   Main.Config.viewPageScroll := self.RadioButtonViewPageScroll.Checked;
@@ -1019,7 +1025,6 @@ begin
   Config.viewZoomPointArray[2] := StrToIntDef(EditZoomPoint2.Text, Config.viewZoomPointArray[2]);
   Config.viewZoomPointArray[3] := StrToIntDef(EditZoomPoint3.Text, Config.viewZoomPointArray[3]);
   Config.viewZoomPointArray[4] := StrToIntDef(EditZoomPoint4.Text, Config.viewZoomPointArray[4]);
-  {$ENDIF}
 
   Main.Config.mseUseWheelTabChange := self.CheckBoxMseUseWheelTabChange.Checked;
   Main.Config.mseGestureMargin := StrToIntDef(self.EditMseGestureMargin.Text, Main.Config.mseGestureMargin);
@@ -1294,6 +1299,8 @@ begin
   self.CheckBoxoptSetFocusOnWriteMemo.Checked := Main.Config.optSetFocusOnWriteMemo;
   self.CheckBoxoptCheckNewResSingleClick.Checked := Main.Config.optCheckNewResSingleClick;
   self.CheckBoxHideInTaskTray.Checked := Main.Config.optHideInTaskTray;
+  self.SpinEditPopupSizeContrainX.Value := Main.Config.optPopupSizeContrainX;
+  self.SpinEditPopupSizeContrainY.Value := Main.Config.optPopupSizeContrainY;
 
   self.CheckBoxColordNumber.Checked := Main.Config.ojvColordNumber;
   self.LabelLinkedNumColor.Font.Color := Main.Config.ojvLinkedNumColor;
@@ -1381,7 +1388,6 @@ begin
   self.EditCode_BEID_MDMD.Text := Main.Config.wrtBEIDMDMD;
   {/aiai}
 
-  {$IFNDEF IE}
   self.EditViewVerticalCaretMargin.Text := IntToStr(Main.Config.viewVerticalCaretMargin);
   self.RadioButtonViewPageScroll.Checked := Main.Config.viewPageScroll;
   self.EditViewScrollLines.Text := IntToStr(Main.Config.viewScrollLines);
@@ -1398,7 +1404,6 @@ begin
   self.EditZoomPoint2.Text := IntToStr(Main.Config.viewZoomPointArray[2]);
   self.EditZoomPoint3.Text := IntToStr(Main.Config.viewZoomPointArray[3]);
   self.EditZoomPoint4.Text := IntToStr(Main.Config.viewZoomPointArray[4]);
-  {$ENDIF}
 
   self.CheckBoxMseUseWheelTabChange.Checked := Main.Config.mseUseWheelTabChange;
   self.EditMseGestureMargin.Text := IntToStr(Main.Config.mseGestureMargin);
@@ -1486,9 +1491,7 @@ begin
   TreeView.Items.AddChildObject(TreeView.Items.Item[0], SheetOperation.Caption, SheetOperation);
   TreeView.Items.AddChildObject(TreeView.Items.Item[0], SheetTabOperation.Caption, SheetTabOperation);
   TreeView.Items.AddChildObject(TreeView.Items.Item[0], SheetWrite.Caption, SheetWrite);
-  {$IFNDEF IE}
   TreeView.Items.AddChildObject(TreeView.Items.Item[0], SheetDoe.Caption, SheetDoe);
-  {$ENDIF}
   TreeView.Items.AddChildObject(TreeView.Items.Item[0], SheetForTest.Caption, SheetForTest);
   TreeView.Items.AddChildObject(TreeView.Items.Item[0], SheetUserInfo.Caption, SheetUserInfo);
   TreeView.FullExpand;
@@ -1944,9 +1947,7 @@ begin
     2: Lbl := LabelFavorite;
     3: Lbl := LabelList;
     4: Lbl := LabelLog;
-    {$IFNDEF IE}
     5: Lbl := LabelTextView;
-    {$ENDIF}
     10:Lbl := LabelTree;
     11: Lbl := LabelThreadTitle; //Å¶[457]
     101: Lbl := LabelListOdd;
@@ -1968,9 +1969,7 @@ begin
     LabelFavorite.Color := ColorDialog.Color;
     LabelList.Color := ColorDialog.Color;
     LabelLog.Color := ColorDialog.Color;
-    {$IFNDEF IE}
     LabelTextView.Color := ColorDialog.Color;
-    {$ENDIF}
     LabelThreadTitle.Color := ColorDialog.Color;
     LabelHint.Color := ColorDialog.Color;  //beginner
     LabelWriteMemo.Color := ColorDialog.Color; //aiai
@@ -2042,10 +2041,8 @@ end;
 
 //Å¶[457]//Å•
 procedure TUIConfig.SetMainwndColors;
-{$IFNDEF IE}
 var
   i: integer;
-{$ENDIF}
 begin
   if self.LabelList.Caption = '' then
     exit;
@@ -2055,13 +2052,11 @@ begin
   MainWnd.Memo.Color := self.LabelLog.Color;
   MainWnd.ThreadToolPanel.Color := self.LabelThreadTitle.Color;
   Config.wrtWritePanelColor := self.LabelWriteMemo.Color; //aiai
-  {$IFNDEF IE}
   Config.clViewColor := self.LabelTextView.Color;
   //Mainwnd.WebPanel.Color := Config.clViewColor;
   MainWnd.MDIClientPanel.Color := Config.clViewColor;  //aiai
   for i := 0 to viewList.Count -1 do
     viewList.Items[i].browser.Color := Config.clViewColor;
-  {$ENDIF}
   {beginner}
   MainWnd.PopupHint.Color := Self.LabelHint.Color;
   Config.clHintOnFix := Self.LabelHintFix.Color;
@@ -2381,12 +2376,7 @@ begin
     self.LabelList.Color := MainWnd.ListView.Color;
     self.LabelLog.Color := MainWnd.Memo.Color;
     self.LabelThreadTitle.Color := MainWnd.ThreadToolPanel.Color; //Å¶[457]
-    {$IFDEF IE}
-    self.ButtonTextColor.Enabled :=false;
-    self.ButtonTextColor.Visible :=false;
-    {$ELSE}
     self.LabelTextView.Color := Config.clViewColor;
-    {$ENDIF}
     self.LabelTree.Font := MainWnd.FavoriteView.Font;
     self.LabelFavorite.Font := MainWnd.FavoriteView.Font;
     self.LabelList.Font := MainWnd.ListView.Font;

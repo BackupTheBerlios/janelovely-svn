@@ -717,10 +717,6 @@ end;
 
 //デコードエラーの時はテキスト表示
 procedure TImageTabSheet.ShowTextView(Stream:TStream);
-{$IFDEF IE}
-begin
-end;
-{$ELSE}
 var
   buffer1, buffer2, tmp: string;
   p1, p2, pe:PChar;
@@ -1004,7 +1000,6 @@ begin
   TextView.SetPhysicalCaret(0,0);
 
 end;
-{$ENDIF}
 
 //TextView上でのマウス移動
 procedure TImageTabSheet.OnBrowserMouseMove(Sender: TObject; Shift: TShiftState;

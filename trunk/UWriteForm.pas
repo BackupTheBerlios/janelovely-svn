@@ -21,14 +21,8 @@ uses
   DateUtils,
   ActnList,
   Menus,
-  {$IFDEF IE}
-  OleCtrls,
-  SHDocVw_TLB,
-  MSHTML_TLB,
-  {$ELSE}
   HogeTextView,
   UTVSub,
-  {$ENDIF}
   StrUtils,
   IniFiles,
   U2chThread,
@@ -146,13 +140,8 @@ type
     //kakikomiFile: TFileStream;
     formType: TFormType;
     LoadText: TStringList;
-    {$IFDEF IE}
-    WebBrowser: TWebBrowser;
-    Preview: TWebBrowser;
-    {$ELSE}
     TextView: THogeTextView;
     Preview: THogeTextView;
-    {$ENDIF}
     LocalRuleViewItem: TFlexViewItem;
     PreviewItem: TFlexViewItem;
     HideOnApplicationMinimize: Boolean; //beginner
@@ -174,12 +163,6 @@ type
     procedure OnLocalRule(sender: TAsyncReq);
     procedure WritePreview;
     procedure MakePreview;
-    {$IFDEF IE}
-    procedure WebBrowserDocumentComplete(Sender: TObject;
-      const pDisp: IDispatch; var URL: OleVariant);
-    procedure PreviewBrowserDocumentComplete(Sender: TObject;
-      const pDisp: IDispatch; var URL: OleVariant);
-    {$ENDIF}
     procedure RequestToGetLocalRule;
     procedure PasteAAListItem;
     procedure SetNameBox(NameCombo: TComboboxEx; NameList: TStringList; const Board: string);  //beginner(by nono)
@@ -411,28 +394,6 @@ begin
   procGet := nil;
   procPost := nil;
   FormStyle := fsNormal; // http://pc2.2ch.net/test/read.cgi/win/1045044108/223
-  {$IFDEF IE}
-  WebBrowser := TWebBrowser.Create(TabSheetLocalRule);
-  TOleControl(WebBrowser).Parent := TabSheetLocalRule;
-  with WebBrowser do
-  begin
-    Align := alClient;
-    OnBeforeNavigate2  := MainWnd.WebBrowserBeforeNavigate2;
-    OnDownloadComplete := MainWnd.WebBrowserDownloadComplete;
-    OnDocumentComplete := WebBrowserDocumentComplete;
-    OnStatusTextChange := MainWnd.WebBrowserStatusTextChange;
-  end;
-  Preview := TWebBrowser.Create(TabSheetPreview);
-  TOleControl(Preview).Parent := TabSheetPreview;
-  with Preview do
-  begin
-    Align := alClient;
-    OnBeforeNavigate2  := MainWnd.WebBrowserBeforeNavigate2;
-    OnDownloadComplete := MainWnd.WebBrowserDownloadComplete;
-    OnDocumentComplete := PreviewBrowserDocumentComplete;
-    OnStatusTextChange := MainWnd.WebBrowserStatusTextChange;
-  end;
-  {$ELSE}
   TextView := THogeTextView.Create(TabSheetLocalRule);
   with TextView do
   begin
@@ -489,7 +450,6 @@ begin
     OnMouseDown :=  MainWnd.OnBrowserMouseDown;
     OnMouseHover := MainWnd.OnBrowserMouseHover;
   end;
-  {$ENDIF}
   PreviewItem := TFlexViewItem.Create;
   PreviewItem.PopUpViewList := Main.popupviewList;
   PreviewItem.browser := Preview;
@@ -497,7 +457,7 @@ begin
 
   LocalRuleViewItem := TFlexViewItem.Create;
   LocalRuleViewItem.PopUpViewList := Main.popupviewList;
-  LocalRuleViewItem.browser := {$IFDEF IE} WebBrowser; {$ELSE} TextView; {$ENDIF}
+  LocalRuleViewItem.browser := TextView;
   LocalRuleViewItem.RootControl := TabSheetLocalRule;
 
   if Config.viewDefFontInfo.face <> '' then
@@ -1540,42 +1500,12 @@ end;
 
 (* ローカルルール取得処理。 *)
 procedure TWriteForm.GetLocalRule;
-{$IFDEF IE}
-var
-  URL, flag: OleVariant;
-begin
-  if gotRule <> tpsNone then
-    exit;
-  LocalRuleViewItem.thread := nil;
-  LocalRuleViewItem.Base := '';
-  gotRule := tpsProgress;
-  URL := 'about:blank';
-  flag := $0E;
-  WebBrowser.Navigate2(URL, flag);
-  (* そのうちWebBrowserDocumentCompleteが呼ばれる *)
-end;
-{$ELSE}
 begin
   if gotRule <> tpsNone then
     exit;
   TextView.Clear;
   RequestToGetLocalRule;
 end;
-{$ENDIF}
-
-{$IFDEF IE}
-
-(* カキコ準備が出来たのでローカルルールを読みに行く *)
-(* メンドイからシーケンシャル *)
-procedure TWriteForm.WebBrowserDocumentComplete(Sender: TObject;
-  const pDisp: IDispatch; var URL: OleVariant);
-begin
-  (*  *)
-  if gotRule = tpsProgress then
-    RequestToGetLocalRule;
-end;
-
-{$ENDIF}
 
 procedure TWriteForm.RequestToGetLocalRule;
 var
@@ -1599,7 +1529,6 @@ end;
 
 (* ローカルルール取得完了ハンドラ *)
 procedure TWriteForm.OnLocalRule(sender: TAsyncReq);
-  {$IFNDEF IE}
   procedure WriteHTML(localRule: string);
   var
     ht2v: TSimpleDat2View;
@@ -1609,12 +1538,8 @@ procedure TWriteForm.OnLocalRule(sender: TAsyncReq);
     ht2v.Flush;
     ht2v.Free;
   end;
-  {$ENDIF}
 var
   localRule: string;
-  {$IFDEF IE}
-  URL, flag: OleVariant;
-  {$ENDIF}
 begin
   if procGet = sender then
   begin
@@ -1643,26 +1568,7 @@ begin
     localRule := storedRule.DataString;
 
     procGet := nil;
-    {$IFDEF IE}
-    (* 既に有る筈 *)
-    if Assigned(WebBrowser.Document) then
-    begin
-      OleVariant(WebBrowser.Document as IHTMLDocument2).write('<html><body>'#13#10);
-      if Config.viewDefFontInfo.face <> '' then
-      begin
-        OleVariant(WebBrowser.Document as IHTMLDocument2)
-          .write('<font face="' + Config.viewDefFontInfo.face + '">');
-      end;
-
-      OleVariant(WebBrowser.Document as IHTMLDocument2).write(localRule);
-      OleVariant(WebBrowser.Document as IHTMLDocument2).write('</body></html>'#13#10);
-      URL := 'JavaScript:location.reload()';
-      flag := $0E;
-      WebBrowser.Navigate2(URL, flag);
-    end;
-    {$ELSE}
     WriteHTML(localRule);
-    {$ENDIF}
     storedRule.Free;
     storedRule := nil;
     gotRule := tpsDone;
@@ -1750,25 +1656,8 @@ begin
   end;
   PreviewItem.Free;
   LocalRuleViewItem.Free;
-  {$IFDEF IE}
-  //▼ NightlyBuild Sun Aug 29 21:23:39 2004 UTC
-  (*IE版でタスクバーを使う設定のとき、
-    プレビューやローカルルールを表示した状態でJaneを
-    終了させるとエラーが出る不具合を修正 by view *)
-
-  //WebBrowser.Free;
-  //Preview.Free;
-  if Assigned(WebBrowser) then
-    WebBrowser.OnStatusTextChange := nil;
-  WebBrowser.Free;
-  if Assigned(Preview) then
-    Preview.OnStatusTextChange := nil;
-  Preview.Free;
-  //▲ NightlyBuild Sun Aug 29 21:23:39 2004 UTC
-  {$ELSE}
   TextView.Free;
   Preview.Free;
-  {$ENDIF}
   //▼コテハンリスト保存
   //if FileExists(Config.BasePath + 'name.dat') then
   //  EditNameBox.Items.SaveToFile(Config.BasePath + 'name.dat');
@@ -2007,28 +1896,7 @@ begin
   end;
 end;
 
-{$IFDEF IE}
-procedure TWriteForm.PreviewBrowserDocumentComplete(Sender: TObject;
-      const pDisp: IDispatch; var URL: OleVariant);
-begin
-  if URL = 'about:blank' then
-    WritePreview;
-end;
-{$ENDIF}
-
 procedure TWriteForm.MakePreview;
-{$IFDEF IE}
-var
-  URL: OleVariant;
-  flag: OleVariant;
-begin
-  PreviewItem.thread := thread;
-  PreviewItem.Base := '';
-  URL := 'about:blank';
-  flag := $0E;
-  Preview.Navigate2(URL, flag);
-end;
-{$ELSE}
 begin
   PreviewItem.thread := thread;
   PreviewItem.Base := '';
@@ -2036,7 +1904,6 @@ begin
   Preview.Clear;
   WritePreview;
 end;
-{$ENDIF}
 
 procedure TWriteForm.WritePreview;
   function MakeDummyDat(line: Integer):string;
@@ -2047,51 +1914,24 @@ procedure TWriteForm.WritePreview;
     Result := DupeString(dummyDat, line);
   end;
 const
-  {$IFDEF IE}
-  HeaderSkin = '<html><body bgcolor=#efefef LINK="blue" VLINK="blue" ALINK="blue" ><font face="ＭＳ Ｐゴシック"><dl>';
-  {$ELSE}
   HeaderSkin = '<html><body><font face="ＭＳ Ｐゴシック"><dl>';
-  {$ENDIF}
 var
   dat: TThreadData;
   ResSkin: string;
-  {$IFDEF IE}
-  TempStream: TWebOutBufferStream;
-  size, res: OleVariant;
-  {$ELSE}
   TempStream: TDat2View;
-  {$ENDIF}
   PreviewD2HTML: TDat2HTML;
 begin
-  {$IFDEF IE}
-  TempStream := TWebOutBufferStream.Create(Preview);
-  if EditMailBox.Text='' then
-    ResSkin := '<dt><font color=blue><u><b><PLAINNUMBER/></b></u></font> ：<font color=forestgreen><b><NAME/></b></b></font>[<MAIL/>] ：<DATE/></dt><dd><MESSAGE/><br><br></dd>'#10
-  else
-    ResSkin := '<dt><font color=blue><u><b><PLAINNUMBER/></b></u></font> ：<font color=blue><u><b><NAME/></b></u></b></font>[<MAIL/>] ：<DATE/></dt><dd><MESSAGE/><br><br></dd>'#10;
-  {$ELSE}
   TempStream := TDat2View.Create(Preview);
   if EditMailBox.Text='' then
     ResSkin := '<dt><SA i=1><b><PLAINNUMBER/></b><SA i=0> ：<SA i=2><b><NAME/></b></b><SA i=0>[<MAIL/>] ：<DATE/></dt><dd><MESSAGE/><br><br></dd>'#10
   else
     ResSkin := '<dt><SA i=1><b><PLAINNUMBER/></b><SA i=0> ：<SA i=1><b><NAME/></b></b><SA i=0>[<MAIL/>] ：<DATE/></dt><dd><MESSAGE/><br><br></dd>'#10;
-  {$ENDIF}
 
-  PreviewD2HTML := TDat2HTML.Create(resSkin);
+  PreviewD2HTML := TDat2HTML.Create(resSkin, Config.SkinPath);
   dat := TThreadData.Create;
   try
-    {$IFDEF IE}
-    if Preview.Document = nil then
-      exit;
-    size := 2; // 5;
-    try
-      Preview.ExecWB(OLECMDID_ZOOM , OLECMDEXECOPT_DONTPROMPTUSER, size, res);
-    except
-    end;
-    {$ELSE}
     Preview.ExternalLeading := ZoomToExternalLeading(Config.viewZoomSize);
     Preview.SetFont(Preview.Font.Name, ZoomToPoint(Config.viewZoomSize));
-    {$ENDIF}
     TempStream.WriteHTML(HeaderSkin);
     TempStream.Flush;
     if Assigned(thread) then
@@ -2104,9 +1944,6 @@ begin
       dat.Add(Res2Dat);
       PreviewD2HTML.ToDatOut(TempStream, dat, 1, 1);
     end;
-    //{$IFNDEF IE}
-    //Preview.Invalidate;
-    //{$ENDIF}
     TempStream.Flush;
   finally
     dat.Free;

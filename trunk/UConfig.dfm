@@ -4,7 +4,7 @@ object UIConfig: TUIConfig
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = #35373#23450
-  ClientHeight = 369
+  ClientHeight = 390
   ClientWidth = 512
   Color = clBtnFace
   Font.Charset = SHIFTJIS_CHARSET
@@ -29,7 +29,7 @@ object UIConfig: TUIConfig
   end
   object OkButton: TButton
     Left = 304
-    Top = 332
+    Top = 357
     Width = 81
     Height = 25
     Caption = #12424#12429#12375
@@ -39,7 +39,7 @@ object UIConfig: TUIConfig
   end
   object CancelButton: TButton
     Left = 400
-    Top = 332
+    Top = 357
     Width = 81
     Height = 25
     Cancel = True
@@ -51,8 +51,8 @@ object UIConfig: TUIConfig
     Left = 118
     Top = 8
     Width = 393
-    Height = 321
-    ActivePage = SheetNet
+    Height = 345
+    ActivePage = SheetOperation
     Style = tsFlatButtons
     TabOrder = 1
     TabStop = False
@@ -778,6 +778,7 @@ object UIConfig: TUIConfig
           Top = 23
           Width = 41
           Height = 21
+          MaxLength = 9999
           MaxValue = 0
           MinValue = 0
           TabOrder = 0
@@ -788,6 +789,7 @@ object UIConfig: TUIConfig
           Top = 61
           Width = 41
           Height = 21
+          MaxLength = 9999
           MaxValue = 0
           MinValue = 0
           TabOrder = 1
@@ -1346,9 +1348,30 @@ object UIConfig: TUIConfig
         Height = 12
         Caption = #24453#12385#26178#38291
       end
+      object Label77: TLabel
+        Left = 104
+        Top = 87
+        Width = 58
+        Height = 12
+        Caption = #12469#12452#12474#21046#38480
+      end
+      object Label78: TLabel
+        Left = 170
+        Top = 87
+        Width = 12
+        Height = 12
+        Caption = #24133
+      end
+      object Label79: TLabel
+        Left = 271
+        Top = 87
+        Width = 21
+        Height = 12
+        Caption = #39640#12373
+      end
       object GroupBox1: TJLXPGroupBox
         Left = 8
-        Top = 80
+        Top = 109
         Width = 361
         Height = 225
         Caption = #12401#12367#12426
@@ -1523,6 +1546,27 @@ object UIConfig: TUIConfig
         Caption = #12498#12531#12488
         TabOrder = 5
         OnClick = CheckBoxHintAutoEnableNestingClick
+      end
+      object SpinEditPopupSizeContrainX: TJLXPSpinEdit
+        Left = 192
+        Top = 83
+        Width = 73
+        Height = 21
+        MaxValue = 9999
+        MinValue = 0
+        TabOrder = 8
+        Value = 0
+      end
+      object SpinEditPopupSizeContrainY: TJLXPSpinEdit
+        Left = 297
+        Top = 82
+        Width = 73
+        Height = 21
+        MaxLength = 9999
+        MaxValue = 0
+        MinValue = 0
+        TabOrder = 9
+        Value = 0
       end
     end
     object SheetAbone: TTabSheet
@@ -1923,7 +1967,7 @@ object UIConfig: TUIConfig
           Height = 20
           Style = csDropDownList
           DropDownCount = 12
-          ItemHeight = 0
+          ItemHeight = 12
           TabOrder = 1
         end
         object ComboBoxMseGestures: TComboBox
@@ -2027,7 +2071,7 @@ object UIConfig: TUIConfig
           Height = 20
           Style = csDropDownList
           DropDownCount = 12
-          ItemHeight = 0
+          ItemHeight = 12
           TabOrder = 2
           OnDropDown = ComboBoxMseSubMenusDropDown
         end
@@ -3796,7 +3840,7 @@ object UIConfig: TUIConfig
     Left = 8
     Top = 8
     Width = 110
-    Height = 345
+    Height = 369
     HideSelection = False
     Indent = 19
     ReadOnly = True

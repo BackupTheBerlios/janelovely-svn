@@ -62,11 +62,11 @@ type
     function FetchID(line: Integer):string;
     function FetchMessage(line: Integer):string;
     {/nono}
+    function MatchID(const target: PChar; line: Integer): Boolean;
     property Lines: Integer read CalcLines;
     property Size: Cardinal read GetSize;
     property Position: Cardinal read GetPosition;
     property Consistent: Boolean read FConsistent write FConsistent;
-    function MatchID(var idlist: TStringList; line: Integer; target: string): Boolean; //aiai(test)
   end;
   (*-------------------------------------------------------*)
   TDatItemType = (ditNORMAL, ditNAME, ditDATE, ditMAIL, ditMSG, ditMAILNAME);
@@ -87,7 +87,6 @@ type
     procedure WriteAnchor(const Name: string;
                           const HRef: string;
                           str: PChar; size: integer); virtual; abstract;
-    procedure WriteID(ID: PChar; size: integer; line: Integer); virtual; abstract;
     procedure SetLine(line: integer); virtual; abstract;
     procedure Flush; virtual;
     property DisableLink: Boolean read FDisableLink write FDisableLink;
@@ -111,10 +110,12 @@ type
     function ProcURL: boolean; virtual;
     function ProcEntity: boolean; virtual;
     function ProcBlank: boolean; virtual;
+    function ProcDayOfWeek: Boolean; virtual;  //aiai
+    function ProcID: Boolean; virtual;  //aiai
     procedure ProcHTML; virtual;
-    procedure ProcHTMLB; virtual;
-    procedure ProcName; virtual;
-    procedure ProcDATE; //aiai
+    procedure ProcHTMLB;
+    procedure ProcName;
+    procedure ProcDate;  //aiai
     procedure AppendResNumList(num: Integer); overload; virtual;
     procedure AppendResNumList(num, num2: Integer); overload; virtual;
     function IsThisTag(substr, str: PChar; len: Integer): Boolean; virtual;
@@ -123,17 +124,6 @@ type
     procedure WriteItem(str: PChar; size: integer;
                          itemType: TDatItemType); override;
     procedure SetLine(line: integer); override;
-  end;
-  (*-------------------------------------------------------*)
-  THTMLDatOut = class(TConvDatOut)
-  protected
-    function ProcTag: boolean; override;
-  public
-    procedure WriteAnchor(const Name: string;
-                          const HRef: string;
-                          str: PChar; size: integer); override;
-    procedure WriteItem(str: PChar; size: integer;
-                        itemType: TDatItemType); override;
   end;
   (*-------------------------------------------------------*)
   TStrDatOut = class (TConvDatOut)
@@ -154,10 +144,29 @@ type
     procedure WriteAnchor(const Name: string;
                           const HRef: string;
                           str: PChar; size: integer); override;
-    procedure WriteID(ID: PChar; size: integer; line: Integer); override;//aiai
     procedure WriteItem(str: PChar; size: integer; itemType: TDatItemType); override;
     property Text: String read GetText;
   end;
+  (*-------------------------------------------------------*)
+  {aiai}
+  //ID抽出用
+  TIDDatOut = class(TConvDatOut)
+    FString: String;
+    FPosition: integer;
+    FSize: integer;
+    function ProcID: Boolean; override;
+    function GetText: String;
+  public
+    constructor Create;
+    destructor Destroy; override;
+    procedure WriteText(str: PChar; size: integer); override;
+    procedure WriteAnchor(const Name: string;
+                          const HRef: string;
+                          str: PChar; size: integer); override;
+    procedure WriteItem(str: PChar; size: integer; itemType: TDatItemType); override;
+    property Text: String read GetText;
+  end;
+  {/aiai}
   (*-------------------------------------------------------*)
   TTmplType = (TYPE_TEXT,
                TYPE_NUMBER,
@@ -207,7 +216,7 @@ type
                        datType: TDatType;
                        EnableNGToAbone: Boolean;       //beginner
                        AboneArray: TAboneArray = nil;
-                       NeedConvert: Boolean = False //aiai
+                       NeedConvert: Boolean = False  //aiai
                        ): Boolean;
   public
     NGItems: Array[TNGItemIdent] of TNGStringList; //beginner
@@ -226,8 +235,8 @@ type
     PermanentNG:Boolean;
     PermanentMarking:Boolean;
     {/beginner}
-    //idarray: array[0..1000] of string;  //aiai
-    constructor Create(body: string);
+    LinkABone: Boolean;  //aiai
+    constructor Create(body: string; skinpath: string);
     destructor Destroy; override;
     function ToDatOut(dest: TDatOut; dat: TThreadData;
                       startLine: Integer; lines: Integer;
@@ -237,6 +246,7 @@ type
     function PickUpRes(dest: TDatOut; dat: TThreadData; abonearray: TAboneArray; NeedConvert: Boolean;
                               startLine, endLine: integer): Integer;
     function ToString(dat: TThreadData; startLine, lines: Integer; NeedConvert: Boolean = False): String;
+    function ToID(dat: TThreadData; line: Integer): String;  //aiai
   end;
 
   (*-------------------------------------------------------*)
@@ -287,7 +297,7 @@ implementation
 (*=======================================================*)
 
 uses
-  U2chThread, Main, jconvert; //aiai
+  jconvert; //aiai
 
 procedure THogeMemoryStream.WriteString(const str: string);
 begin
@@ -1234,170 +1244,6 @@ begin
     result.Add(Strings[i]);
 end;
 
-
-
-//aiai
-function TThreadData.MatchID(var idlist: TStringList; line: Integer; target: string): Boolean;
-
-  (*
-  procedure Dat2ChGet2DelimiterForID(const AString: String;
-                                     startPos: integer;
-                                     var idStart, idSize: integer;
-                                     var idString: string);
-  var
-    i, endpos: integer;
-    p: PChar;
-  begin
-    p := @AString[startPos];
-    endPos := length(AString);
-    for i := startPos to endPos do
-    begin
-      if p^ = 'I' then
-      begin
-        idStart := i;
-        break;
-      end;
-      Inc(p);
-    end;
-    startPos := idStart;
-    idString := '';
-    for i := startPos to endPos do
-    begin
-      if p^ = '<' then
-      begin
-        if (i < endPos) and ((p+1)^ = '>') then
-        begin
-          idSize := i - startPos;
-          exit;
-        end;
-      end else if p^ = ' ' then
-      begin
-        idSize := i - startPos;
-        exit;
-      end;
-      idString := idString + p^;
-      Inc(p);
-    end;
-  end;
-
-  procedure Dat2ChGet2CommaDelimiterForID(const AString: string;
-                                          startPos: integer;
-                                          var idStart, idSize: integer);
-  var
-    i, endPos: integer;
-    p: PChar;
-  begin
-    p := @AString[startPos];
-    endPos := length(AString);
-    for i := startPos to endPos do
-    begin
-      if p^ = 'I' then
-      begin
-        idStart := i;
-        break;
-      end;
-      Inc(p);
-    end;
-    startPos := idStart;
-    for i := startPos to endPos do
-    begin
-      if p^ = ',' then
-      begin
-        idSize := i - startPos;
-        exit;
-      end;
-      Inc(p);
-    end;
-  end;
-
-  procedure Dat2ChFetchLineEx(const AString: String;
-                            startPos: integer;
-                            var nameStart, nameSize: integer;
-                            var mailStart, mailSize: integer;
-                            var dateStart, idStart, idSize:integer;
-                            var idstring: string);
-  var
-    index: integer;
-  begin
-    index := startPos;
-    nameStart := index;
-    nameSize := Dat2ChGet2Delimiter(AString, nameStart, index);
-    mailStart := index;
-    mailSize := Dat2ChGet2Delimiter(AString, mailStart, index);
-    dateStart := index;
-    Dat2ChGet2DelimiterForID(AString, dateStart, idStart, idSize, idstring);
-  end;
-
-  procedure Dat2ChFetchCommaDelimitedLineEx(
-                            const AString: String;
-                            startPos: integer;
-                            var nameStart, nameSize: integer;
-                            var mailStart, mailSize: integer;
-                            var dateStart, idStart, idSize: integer);
-  var
-    index: integer;
-  begin
-    index := startPos;
-    nameStart := index;
-    nameSize := Dat2ChGet2CommaDelimiter(AString, nameStart, index);
-    mailStart := index;
-    mailSize := Dat2ChGet2CommaDelimiter(AString, mailStart, index);
-    dateStart := index;
-    Dat2ChGet2CommaDelimiterForID(AString, dateStart, idStart, idSize);
-  end;
-  *)
-var
-  (*datType: TDatType;
-  dataString: string;
-  startPos: integer;
-  nameStart, nameSize: integer;
-  mailStart, mailSize: integer;
-  dateStart          : integer;
-  idStart,   idSize  : integer;*)
-  idString: string;
-begin
-  if idlist.Count < line then begin
-    (*
-    datType := GetDatType(Self);
-    if not FindLine(line) then
-    begin
-      Result := false;
-      exit;
-    end;
-    if Count <= FCacheInfo.FBlockIndex then
-    begin
-      Result := false;
-      exit;
-    end;
-
-    dataString := Strings[FCacheInfo.FBlockIndex];
-    startPos := FCacheInfo.FIndex;
-
-    if datType = dtComma then
-    begin
-      Dat2ChFetchCommaDelimitedLineEx(
-                    dataString, startPos,
-                    nameStart, nameSize,
-                    mailStart, mailSize,
-                    dateStart, idStart, idSize);
-    end
-    else begin
-      Dat2ChFetchLineEx(dataString, startPos,
-                       nameStart, nameSize,
-                       mailStart, mailSize,
-                       dateStart, idStart, idSize, idString);
-    end;
-
-    //idString := RightStr(idString, idSize - 3);
-    *)
-    idString := FetchID(line);
-    idlist.Add(idString);
-  end;
-
-  Result := (strComp(PChar(target) + 3, PChar(idlist.Strings[line - 1]) {+ 3}) = 0);
-
-end;
-
 {nono}
 function TThreadData.GetDatItem(line: Integer; DatItem: TDatItem):string;
 var
@@ -1468,10 +1314,14 @@ begin
                     mailStart, mailSize,
                     dateStart, dateSize,
                     msgStart, msgSize);
-    strName := Copy(dataString, nameStart, nameSize);
-    strMail := Copy(dataString, mailStart, mailSize);
-    strDate := Copy(dataString, dateStart, dateSize);
-    strMsg := Copy(dataString, msgStart, msgSize);
+    //strName := Copy(dataString, nameStart, nameSize);
+    //strMail := Copy(dataString, mailStart, mailSize);
+    //strDate := Copy(dataString, dateStart, dateSize);
+    //strMsg := Copy(dataString, msgStart, msgSize);
+    SetString(strName, PChar(dataString) + nameStart - 1, nameSize);
+    SetString(strMail, PChar(dataString) + mailStart - 1, mailSize);
+    SetString(strDate, PChar(dataString) + dateStart - 1, dateSize);
+    SetString(strMsg, PChar(dataString) + msgStart - 1, msgSize);
   end;
   if dateSize <= 0 then
   begin
@@ -1530,6 +1380,91 @@ begin
   Result := GetDatItem(line, diMsg);
 end;
 {/nono}
+
+function TThreadData.MatchID(const target: PChar; line: Integer): Boolean;
+var
+  datType: TDatType;
+  dataString: string;
+  startPos: integer;
+  nameStart, nameSize: integer;
+  mailStart, mailSize: integer;
+  dateStart, dateSize: integer;
+  msgStart,  msgSize : integer;
+  tmpbuffer: string;
+  date, id: PChar;
+  index, index2: integer;
+begin
+  Result := False;
+  datType := GetDatType(Self);
+  if not FindLine(line) then
+  begin
+    exit;
+  end;
+  if Count <= FCacheInfo.FBlockIndex then
+  begin
+    exit;
+  end;
+
+  dataString := Strings[FCacheInfo.FBlockIndex];
+  startPos := FCacheInfo.FIndex;
+  date := nil;
+  if datType = dtComma then
+  begin
+    Dat2ChFetchCommaDelimitedLine(
+                  dataString, startPos,
+                  nameStart, nameSize,
+                  mailStart, mailSize,
+                  dateStart, dateSize,
+                  msgStart, msgSize);
+   if 0 < FindPos('＠｀', dataString, dateStart, dateStart + dateSize -1) then
+    begin
+      tmpbuffer := AnsiReplaceStr(Copy(dataString, dateStart, dateSize), '＠｀', ',');
+      date := PChar(tmpbuffer);
+      dateSize := length(tmpbuffer);
+    end;
+  end
+  else begin
+    Dat2ChFetchLine(dataString, startPos,
+                    nameStart, nameSize,
+                    mailStart, mailSize,
+                    dateStart, dateSize,
+                    msgStart, msgSize);
+    date := PChar(dataString) + dateStart - 1;
+  end;
+  if dateSize <= 0 then
+  begin
+    Result := False;
+    exit;
+  end;
+
+  index := 0;
+  while index < dateSize do
+  begin
+    if (date + index)^ = 'I' then break;
+    Inc(index);
+  end;
+
+  id := date + index;
+  index2 := index;
+
+  if ((index2 + 3) < dateSize) and ((date + index2 + 1)^ = 'D')
+    and ((date + index2 + 2)^ = ':') and ((date + index2 + 3)^ <> '?')then
+  begin
+    Inc(index, 3);
+
+    (* IDの末尾を探す *)
+    while index2 < dateSize do
+    begin
+      if ((date + index2)^ in [' ']) then
+        break;
+      Inc(index2);
+    end;
+
+    //WriteID(id + index + 3, index - 3);
+    Result := StrLComp(target, id + 3, index2 - index - 3) = 0;
+  end;
+end;
+
 (*=======================================================*)
 constructor TDatOut.Create;
 begin
@@ -1850,6 +1785,18 @@ begin
   result := False;
 end;
 
+//aiai
+function TConvDatOut.ProcDayOfWeek: Boolean;
+begin
+  result := False;
+end;
+
+//aiai
+function TConvDatOut.ProcID: Boolean;
+begin
+  result := False;
+end;
+
 function TConvDatOut.DoRange(const prefix: string): boolean;
 var
   s, ANK: string;
@@ -2004,79 +1951,7 @@ begin
 end;
 
 {aiai}
-procedure TConvDatOut.ProcDATE;
-
-  (* 年は4桁,1月と2月は前の年の13月と14月とする *)
-  function CalcDayOfWeek(date: PChar; num:integer): string; (* 曜日だけ返す *)
-  var
-    intyear, intmon, intday, thedayofweek: Integer;
-  begin
-    case num of
-      2: begin //年が2桁の場合
-        intyear := (Ord(date^) - 48) * 10 + Ord((date+1)^) - 48;
-        intmon  := (Ord((date+3)^) - 48) * 10 + Ord((date+4)^) - 48;
-        intday  := (Ord((date+6)^) - 48) * 10 + Ord((date+7)^) - 48;
-
-        if intyear < 100 then // 90～99年は1990～1999年に、それ以外は2000年以降にする
-          if (intyear >= 90) and (intyear <= 99) then
-            Inc(intyear, 1900)
-          else
-            Inc(intyear, 2000);
-
-      end;
-      4: begin //年が4桁の場合
-        intyear := (Ord(date^) - 48) * 1000 + (Ord((date+1)^) - 48) * 100 + (Ord((date+2)^) - 48) * 10 + Ord((date+3)^) - 48;
-        intmon  := (Ord((date+5)^) - 48) * 10 + Ord((date+6)^) - 48;
-        intday  := (Ord((date+8)^) - 48) * 10 + Ord((date+9)^) - 48;
-
-      end;
-    else
-     begin
-      result := '';
-      exit;
-     end;
-    end;
-
-    if (intmon = 1) or (intmon = 2) then //1・2月は前年の13・14月
-    begin
-      Dec(intyear);
-      Inc(intmon, 12);
-    end;
-
-    thedayofweek := ( intday + (8 + 13 * intmon) div 5 + intyear
-                   + intyear div 4 - intyear div 100 + intyear div 400 ) mod 7;
-    (* thedayofweek: 0=Sun 1=Mon 2=Tue 3=Wed 4=Thu 5=Fri 6=Sat *)
-
-    result := Config.optDayOfWeekListForThreView.Strings[thedayofweek];
-  end;
-
-  function ProcID: Boolean;
-  var
-    index2: Integer;
-  begin
-    Result := False;
-    if not Config.ojvIDPopUp then
-      exit;
-    index2 := index;
-    if ((index2 + 3) < size) and ((str + index2 + 1)^ = 'D')
-      and ((str + index2 + 2)^ = ':') and ((str + index2 + 3)^ <> '?')then
-    begin
-      Inc(index2, 3);
-
-      (* IDの末尾を探す *)
-      while index2 < size do
-      begin
-        if ((str + index2)^ in [' ']) then
-          break;
-        Inc(index2);
-      end;
-
-      WriteID(str + index, index2 - index, line);
-      WriteText(str + index + 3, index2 - index - 3);
-      index := index2;
-      Result := True;
-    end;
-  end;
+procedure TConvDatOut.ProcDate;
 
   function ProcBE: Boolean;
   var
@@ -2084,8 +1959,6 @@ procedure TConvDatOut.ProcDATE;
     BEID, BEPOINT: String;
   begin
     Result := False;
-    if not Config.ojvIDPopUp then
-      exit;
     index2 := index;
     if ((index2 + 3) < size) and ((str + index2 + 1)^ = 'E')
       and ((str + index2 + 2)^ = ':') then
@@ -2121,35 +1994,9 @@ label
   ProcChar;
 var
   idx2: Integer;
-  i: integer;
-  alreadydayofweek: Boolean;
 begin
 
-  (* 曜日付きがどうか調べる *)
-  alreadydayofweek := false;
-  for i := 0 to size do
-  begin
-    if (str + i)^ in [#$8B..#$96] then
-    begin
-      alreadydayofweek := true;
-      break;
-    end;
-  end;
-
-  if Main.Config.ojvShowDayOfWeek and not alreadydayofweek then
-    (* 年が2桁の場合 *)
-    if (size > 8)  and ((str + 2)^ = '/') and ((str + 8)^ = ' ') then
-    begin
-      WriteText(str, 8);
-      WriteText(CalcDayOfWeek(str, 2));
-      Inc(index, 8);
-    (* 年が4桁の場合 *)
-    end else if (size > 10) and ((str + 4)^ = '/') and ((str + 10)^ = ' ') then
-    begin
-      WriteText(str, 10);
-      WriteText(CalcdayOfWeek(str, 4));
-      Inc(index, 10);
-    end;
+  ProcDayOfWeek;
 
   while (index < size) do
   begin
@@ -2200,60 +2047,7 @@ begin
 end;
 
 (*=======================================================*)
-function THTMLDatOut.ProcTag: boolean;
-var
-  tag: string;
-  i: integer;
-begin
-  if (str + index)^ = '<' then
-  begin
-    i := index;
-    Inc(index);
-    tag := GetTagName;
-    EndOfTag;
-    if (tag <> 'a') and (tag <> '/a') then
-      WriteText(str + i, index - i);
-    result := True;
-  end
-  else
-    result := false;
-end;
 
-procedure THTMLDatOut.WriteAnchor(const Name: string;
-                                  const HRef: string;
-                                  str: PChar; size: integer);
-var
-  s: string;
-begin
-  if 0 < length(Name) then
-    s := '<a name="' + Name + '"'
-  else
-    s := '<a';
-  if 0 < length(HRef) then
-  {$IFDEF IE}  // 「IEが#を含むURLのクリックに反応しない」問題の対策
-    s := s + ' href="' + HRef + '" target=_top';
-  {$ELSE}
-    s := s + ' href="' + HRef + '" ';
-  {$ENDIF}
-  s := s + '>';
-  WriteText(s);
-  WriteText(str, size);
-  WriteText('</a>');
-end;
-
-procedure THTMLDatOut.WriteItem(str: PChar; size: integer; itemType: TDatItemType);
-begin
-  Self.str   := str;
-  Self.index := 0;
-  Self.size  := size;
-  case itemType of
-  ditNORMAL: WriteText(str, size);
-  ditNAME:   ProcName;
-  ditDATE:   procDATE;
-  else       ProcHTML;
-  end;
-end;
-(*=======================================================*)
 constructor TStrDatOut.Create;
 begin
   inherited;
@@ -2417,12 +2211,6 @@ begin
   WriteText(str, size);
 end;
 
-//aiai
-procedure TStrDatOut.WriteID(ID: PChar; Size: Integer; line :integer);
-begin
-  WriteText('ID:', 3);
-end;
-
 function TStrDatOut.GetText: String;
 begin
   if FPosition <> FSize then
@@ -2454,16 +2242,92 @@ begin
   Self.index := 0;
   Self.size  := size;
   case itemType of
-  ditDATE: ProcDATE;
+  ditDATE: ProcDate;
   else
   ProcHTML;
   end;
 end;
 (*=======================================================*)
 
+{aiai}
+constructor TIDDatOut.Create;
+begin
+  inherited;
+  FString := '';
+  FPosition := 0;
+  FSize := 0;
+end;
+
+destructor TIDDatOut.Destroy;
+begin
+  inherited;
+end;
+
+function TIDDatOut.GetText: String;
+begin
+  if FPosition <> FSize then
+    SetLength(FString, FPosition);
+  result := FString;
+end;
+
+function TIDDatOut.ProcID: boolean;
+var
+  index2: Integer;
+begin
+  Result := False;
+  index2 := index;
+  if ((index2 + 3) < size) and ((str + index2 + 1)^ = 'D')
+    and ((str + index2 + 2)^ = ':') and ((str + index2 + 3)^ <> '?')then
+  begin
+    Inc(index2, 3);
+
+    (* IDの末尾を探す *)
+    while index2 < size do
+    begin
+      if ((str + index2)^ in [' ']) then
+        break;
+      Inc(index2);
+    end;
+
+    if FSize < FPosition + index2 - index - 3 then
+    begin
+      FSize := FPosition + index2 - index - 3 + 1024;
+      SetLength(FString, FSize);
+    end;
+    Move((str + index + 3)^, FString[FPosition+1], index2 - index - 3);
+    Inc(FPosition, index2 - index - 3);
+
+    index := index2;
+    Result := True;
+  end;
+end;
+
+procedure TIDDatOut.WriteText(str: PChar; size: integer);
+begin
+end;
+
+procedure TIDDatOut.WriteAnchor(const Name: string;
+                                 const HRef: string;
+                                 str: PChar; size: integer);
+begin
+end;
+
+procedure TIDDatOut.WriteItem(str: PChar; size: integer; itemType: TDatItemType);
+begin
+  case itemType of
+    ditDATE: begin
+      Self.str   := str;
+      Self.index := 0;
+      Self.size  := size;
+      ProcDate;
+    end;
+  end;
+end;
+{/aiai}
+
 (*=======================================================*)
 (*  *)
-constructor TDat2HTML.Create(body: string);
+constructor TDat2HTML.Create(body: string; skinpath: string);
   procedure Analize;
   var
     i, len: integer;
@@ -2498,14 +2362,8 @@ constructor TDat2HTML.Create(body: string);
           i := i + 13;
         end else if StartWith('<NAME/>', body, i) then
         begin
-          {$IFDEF IE}
-          s := s + '<b>';
-          {$ENDIF}
           Flush(TYPE_TEXT);
           Flush(TYPE_NAME);
-          {$IFDEF IE}
-          s := s + '</b>';
-          {$ENDIF}
           i := i + 6;
         end else if StartWith('<MAILNAME/>', body, i) then
         begin
@@ -2539,7 +2397,7 @@ constructor TDat2HTML.Create(body: string);
           i := i + 9;
         end else if StartWith('<SKINPATH/>', body, i) then
         begin
-          s := s + Config.SkinPath;
+          s := s + skinpath;
           i := i + 10;
         end
         else begin
@@ -2785,7 +2643,10 @@ begin
 //OpenJane Nida を優しく見守るスレ
 //http://jane.s28.xrea.com/test/read.cgi/bbs/1077287892/468,470
     // viewLinkAbone は jconfig.pas で Boolean で定義しておきます。
-    if Config.viewLinkAbone and (AboneArray <> nil) and (AboneType = 0) then
+    //if Config.viewLinkAbone and (AboneArray <> nil) and (AboneType = 0) then
+    {aiai}
+    if LinkAbone and (AboneArray <> nil) and (AboneType = 0) then
+    {/aiai}
     begin
       p := msg;
       q := msg + msgSize;
@@ -3045,6 +2906,18 @@ begin
   ToDatOut(strOut, dat, startLine, lines, nil, NeedConvert);
   result := strOut.Text;
   strOut.Free;
+end;
+
+//aiai
+//lineのIDをかえす
+function TDat2HTML.ToID(dat: TThreadData; line: Integer): String;
+var
+  idOut: TIDDatOut;
+begin
+  idOut := TIDDatOut.Create;
+  TodatOut(idOut, dat, line, 1);
+  result := idOut.Text;
+  idOut.Free;
 end;
 
 function HTML2String(const AString: string): string;

@@ -128,7 +128,7 @@ begin
   Preview.Clear;
   TempStream := TDat2PreViewView.Create(Preview);
   ResSkin := '<dt><SA i=1><b><PLAINNUMBER/></b><SA i=0> ÅF<SA i=2><b><NAME/></b></b><SA i=0>[<MAIL/>] ÅF<DATE/></dt><dd><MESSAGE/><br><br></dd>'#10;
-  PreviewD2HTML := TDat2HTML.Create(ResSkin);
+  PreviewD2HTML := TDat2HTML.Create(ResSkin, Config.SkinPath);
   dat := TThreadData.Create;
   try
     Preview.ExternalLeading := ZoomToExternalLeading(Config.viewZoomSize);

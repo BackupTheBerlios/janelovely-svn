@@ -210,7 +210,7 @@ begin
   PreView.Clear;
 
   TempStream := TDat2PreViewView.Create(PreView);
-  PreViewD2HTML := TDat2HTML.Create(NewRecHTML);
+  PreViewD2HTML := TDat2HTML.Create(NewRecHTML, Config.SkinPath);
   dat := TThreadData.Create;
 
   try

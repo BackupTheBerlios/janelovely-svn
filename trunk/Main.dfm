@@ -4527,6 +4527,9 @@ object MainWnd: TMainWnd
     object A1: TMenuItem
       Action = actThreadAbone
     end
+    object N96: TMenuItem
+      Action = actThreadAbone2
+    end
   end
   object HintTimer: TTimer
     Enabled = False
@@ -5134,6 +5137,14 @@ object MainWnd: TMainWnd
       Caption = #36942#21435#12525#12464#38750#34920#31034
       OnExecute = actHideHistoricalLogExecute
     end
+    object actShowThreadAbone: TAction
+      Caption = #12354#12412#65374#12435#12434#34920#31034
+      OnExecute = actShowThreadAboneExecute
+    end
+    object actThreadAbone2: TAction
+      Caption = #12473#12524#12483#12489#12354#12412#65374#12435#35299#38500
+      OnExecute = actThreadAbone2Execute
+    end
   end
   object PopupFavorites: TPopupMenu
     OnPopup = PopupFavoritesPopup
@@ -5322,6 +5333,9 @@ object MainWnd: TMainWnd
     end
     object PopupTreeHideHistoricalLog: TMenuItem
       Action = actHideHistoricalLog
+    end
+    object PopupTreeShowThreadAbone: TMenuItem
+      Action = actShowThreadAbone
     end
   end
   object PopupViewMenu: TPopupMenu

@@ -826,6 +826,10 @@ type
     MenuListHideHistoricalLog: TMenuItem;
     PopupTreeHideHistoricalLog: TMenuItem;
     actHideHistoricalLog: TAction;
+    PopupTreeShowThreadAbone: TMenuItem;
+    actShowThreadAbone: TAction;
+    N96: TMenuItem;
+    actThreadAbone2: TAction;
     {/aiai}
     procedure FormCreate(Sender: TObject);
     procedure MenuToolsOptionsClick(Sender: TObject);
@@ -912,10 +916,6 @@ type
     procedure ViewPopupDelClick(Sender: TObject);
     procedure PopupTreePopup(Sender: TObject);
     procedure PopupTreeAddFavClick(Sender: TObject);
-    {$IFDEF IE}
-    procedure WebBrowserEnter(Sender: TObject);
-    procedure WebBrowserDownloadComplete(Sender: TObject);
-    {$ENDIF}
     procedure ListViewKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure TreeViewKeyDown(Sender: TObject; var Key: Word;
@@ -1326,6 +1326,8 @@ type
       var Key: Char);
     procedure MenuListHideHistoricalLogClick(Sender: TObject);
     procedure actHideHistoricalLogExecute(Sender: TObject);
+    procedure actShowThreadAboneExecute(Sender: TObject);
+    procedure actThreadAbone2Execute(Sender: TObject);
     {/aiai}
   private
   { Private 宣言 }
@@ -1369,10 +1371,6 @@ type
 
     FResJumpNormalPopup: Boolean;
     FHovering: Boolean;
-    {$IFDEF IE}
-    FHoveringOn: TObject;
-    HoverTimer: TWaitTimer;
-    {$ENDIF}
 
     {beginner}
     NextClipBoardViewer: HWND;
@@ -1616,13 +1614,6 @@ type
     WriteWaitTimer: TWriteWaitTimer;
     {/aiai}
 
-    {$IFDEF IE}
-    procedure WebBrowserStatusTextChange(Sender: TObject;
-                                         const Text: WideString);
-		function OnContextMenu(Sender: TObject): WordBool;
-    function WebBrowserClick(Sender: TObject): WordBool;
-    function WebBrowserMouseMove(Sender: TObject): WordBool;
-    {$ENDIF}
     function NavigateIntoView(const URI: string; oprType: TGestureType; relative: boolean = false;
                               background: boolean = false): boolean; overload;
     function NavigateIntoView(const host, bbs, datnum: string;
@@ -1667,9 +1658,7 @@ type
     procedure DeleteTaskBarIcon;
     procedure TaskTrayWndProc(var Msg: TMessage);
     procedure ReleasePopupHint(viewItem: TBaseViewItem = nil; Force: Boolean = False);
-    {$IFNDEF IE}
     procedure SetviewListItemsColor;
-    {$ENDIF}
     {aiai}
     procedure StopAutoReSc;
     procedure PauseToggleAutoReSc(bool: Boolean);
@@ -2703,10 +2692,10 @@ begin
   NEWD2HTML.Free;
   POPUPD2HTML.Free;
   SEARCHD2HTML.Free;
-  D2HTML := TDat2HTML.Create(RecHTML);
-  NEWD2HTML := TDat2HTML.Create(NewRecHTML);
-  POPUPD2HTML := TDat2HTML.Create(PopupRecHTML); //ポップアップ用
-  SEARCHD2HTML := TDat2HTML.Create(PopupRecHTML); //検索用(ABoneArray,NGWordに結果と速度が影響されない)
+  D2HTML := TDat2HTML.Create(RecHTML, Config.SkinPath);
+  NEWD2HTML := TDat2HTML.Create(NewRecHTML, Config.SkinPath);
+  POPUPD2HTML := TDat2HTML.Create(PopupRecHTML, Config.SkinPath); //ポップアップ用
+  SEARCHD2HTML := TDat2HTML.Create(PopupRecHTML, Config.SkinPath); //検索用(ABoneArray,NGWordに結果と速度が影響されない)
 
   LoadCustomImageList;
   CreateToolBar(ToolBarMain, skinPath + 'mtoolbar.txt');
@@ -2793,6 +2782,11 @@ begin
   NEWD2HTML.PermanentMarking := Config.viewPermanentMarking;
   POPUPD2HTML.PermanentNG := False;
   POPUPD2HTML.PermanentMarking := False;
+  {aiai}
+  D2HTML.LinkABone := Config.viewLinkAbone;
+  NEWD2HTML.LinkABone := Config.viewLinkAbone;
+  POPUPD2HTML.LinkABone := False;
+  {/aiai}
 end;
 {/beginner}
 
@@ -2891,12 +2885,10 @@ begin
   AddAboutMenu;
 
   {beginner} //Doeはポップアップにあるメニューを削除
-  {$IFNDEF IE}
   MenuImageViewOpenSelectionURLs.Visible := False;
   MenuImageViewOpenSelectionURLs.Enabled := False;
   MenuImageViewOpenSelectionURL.Visible := False;
   MenuImageViewOpenSelectionURL.Enabled := False;
-  {$ENDIF}
   {/beginner}
 
   TabSwitchList := TList.Create;
@@ -3047,11 +3039,6 @@ begin
   HintTimer.Interval := Config.hintForURLWaitTime;
   popupviewList := TPopupViewList.Create;
   popupviewList.OnChange := PopupViewListChange;
-  {$IFDEF IE}
-  HoverTimer := TWaitTimer.Create;
-  HoverTimer.Interval := Config.hintHoverTime;
-  HoverTimer.OnTimer := HoverTimerTimer;
-  {$ENDIF}
 
   (* 非同期取得 *)
   AsyncManager := TAsyncManager.Create;
@@ -3376,9 +3363,6 @@ begin
   viewList.Free;
   viewList := nil;
   popupviewList.Free;
-  {$IFDEF IE}
-  HoverTimer.Free;
-  {$ENDIF}
 
   D2HTML.Free;
   NEWD2HTML.Free;
@@ -3424,14 +3408,12 @@ begin
   TabSwitchList.Free;
 
   //改造▽ 修正 (スレビューに壁紙を設定する。Doe用)
-  {$IFNDEF IE}
   //改造メモ：メモリ節約対応。壁紙の保持をTHogeTextViewの外で行う
   if Assigned(BrowserWallpaper) then begin
     FreeAndNil(BrowserWallpaper);
   end;
   if Assigned(PictViewList) then
     FreeAndNil(PictViewList);
-  {$ENDIF}
   //改造△ 修正 (スレビューに壁紙を設定する。Doe用)
 
   if Assigned(AutoReload) then
@@ -3875,9 +3857,6 @@ begin
     SetStyle;
 
   HintTimer.Interval := config.hintForURLWaitTime;
-  {$IFDEF IE}
-  HoverTimer.Interval := Config.hintHoverTime;
-  {$ENDIF}
   SetCaption(boardNameOfCaption);
   //Memo.TabStop := Config.oprTabStopOnTracePane;
 
@@ -5472,7 +5451,7 @@ var
   newView: TPopupViewItem;
 begin
   Result := False;
-  if (Sender is THogeTextView) {$IFDEF IE} or (Sender is TWebBrowser) {$ENDIF} then
+  if (Sender is THogeTextView) then
     viewItem := GetViewOf(TComponent(Sender))
   else
     viewItem := GetActiveView;
@@ -5642,10 +5621,13 @@ begin
     else if Config.ojvIDPopUp and Config.ojvIDPopOnMOver
               and AnsiStartsStr('ID:', Text) then
     begin
-      if (viewItem = nil) or (viewItem.thread = nil) then
+      if (viewItem.thread = nil) then
         exit;
       try
-        if ShowIDInfo(Point, Text, Text, viewItem,
+        s := RightStr(Text, Length(Text) - 3);
+        if Length(s) <= 0 then
+          exit;
+        if ShowIDInfo(Point, IdStr, s, viewItem,
                 Config.hintNestingPopUp and (GetKeyState(VK_SHIFT) >= 0)) then
         begin
           if Assigned(viewItem.PossessionView) then
@@ -5800,9 +5782,7 @@ begin
   Browser.TopMargin := 2;
   Browser.LeftMargin := 2;
   Browser.RightMargin := 2;
-  {$IFNDEF IE}
   Browser.VScrollLines := Config.viewScrollLines;
-  {$ENDIF}
   for i := 0 to 31 do begin
     Browser.TextAttrib[i].color := PopupHint.Font.Color;
     Browser.TextAttrib[i].style := PopupHint.Font.Style; //ヒントでboldは使わない
@@ -6356,9 +6336,12 @@ begin
     cancel := true;
     if (viewItem.thread = nil) then
       exit;
+    URI := RightStr(URL, Length(URL) - 3);
+    if Length(URI) <= 0 then
+      exit;
     newViewItem := NewPopUpView(viewItem);
     try
-      newViewItem.ExtractID(URI, viewItem.thread , URI,
+      newViewItem.ExtractID(URL, viewItem.thread , URI,
                              Config.ojvIDPopUpMaxCount, Point);
       if Assigned(viewItem.PossessionView) then
       begin
@@ -6414,6 +6397,7 @@ begin
       self.actListAlready.Enabled := false;
       self.actListCopyDat.Enabled := true;
       self.actListCopyDI.Enabled := true;
+      self.actThreadAbone2.Enabled := true;
       {/aiai}
     end
     else begin
@@ -6433,12 +6417,14 @@ begin
       self.actListAlready.Enabled := haveData and (thread.lines > thread.oldlines);
       self.actListCopyDat.Enabled := haveData;
       self.actListCopyDI.Enabled := haveData;
+      self.actThreadAbone2.Enabled := thread.IsThisAbone;
       {/aiai}
     end;
     self.actListCopyURL.Enabled := true;
     self.actListCopyTITLE.Enabled := true; //aiai
     self.actListCopyTU.Enabled := true;
     self.actThreadAbone.Enabled := not (CurrentBoard is TFunctionalBoard); //aiai
+    self.actThreadAbone2.Visible := not (CurrentBoard is TFunctionalBoard) and CurrentBoard.ShowThreadAbone;  //aiai
     currentBoard.selDatName := TThreadItem(Item.Data).datName;
   end
   else begin
@@ -6462,6 +6448,7 @@ begin
     self.actListCopyDat.Enabled := false;
     self.actListCopyDI.Enabled := false;
     self.actThreadAbone.Enabled := false;
+    self.actThreadAbone2.Visible := false;
     {/aiai}
   end;
 end;
@@ -6612,7 +6599,7 @@ function TMainWnd.Show2chInfo(const Point: TPoint; const IdStr: String;
   const URI: string; OwnerView: TBaseViewItem; Nesting: Boolean): boolean;
 var
   newView: TPopupViewItem;
-  dest: TStrDatOut;
+  dest: TStrDatOutForHint;  //aiai
   host, bbs, datnum: string;
   board: TBoard;
   thread: TThreadItem;
@@ -6658,7 +6645,7 @@ begin
       begin
         if Assigned(OwnerView) then
           OwnerView.ReleasePossessionView;
-        dest := TStrDatOut.Create;
+        dest := TStrDatOutForHint.Create;  //aiai
         try
           if Assigned(thread) and (not Assigned(thread.dat)) then
           begin
@@ -6667,7 +6654,7 @@ begin
             thread.Release;
           end else
             Make2chInfo(dest, URI, baseThread, board, thread, rangearray);
-          with dest as TStrDatOut do
+          with dest as TStrDatOutForHint do  //aiai
           begin
             if Text <> '' then
               ShowHint(Point, Text);
@@ -6683,13 +6670,13 @@ begin
   end;
 end;
 
-(* IDポップアップ *)
+//aiai (* IDポップアップ *)
 function TMainWnd.ShowIDInfo(const Point: TPoint; const IDStr: String;
         const URI: string; OwnerView: TBaseViewITem;
                 Nesting: Boolean): boolean;
 var
   newviewItem: TPopupViewItem;
-  dest: TStrDatOut;
+  dest: TStrDatOutForHint;
   thread: TThreadItem;
 begin
   result := false;
@@ -6705,10 +6692,10 @@ begin
     OwnerView.ReleasePossessionView;
     thread := OwnerView.thread;
     if thread <> nil then begin
-      dest := TStrDatOut.Create;
+      dest := TStrDatOutForHint.Create;
       try
         MakeIDInfo(dest, URI, OwnerView.thread, Config.ojvIDPopUpMaxCount);
-        with dest as TStrDatOut do
+        with dest as TStrDatOutForHint do
           if Text <> '' then ShowHint(Point, Text);
       finally
         dest.Free;
@@ -7740,6 +7727,7 @@ begin
   NewView.Grep(target, GrepDlg.targetBoardList, GrepDlg.CheckBoxRegularExpression.Checked, GrepDlg.RadioGroupSearchRange.ItemIndex=1,
                GrepDlg.CheckBoxPopup.Checked, GrepDlg.CheckBoxShowDirect.Checked, GrepDlg.CheckBoxIncludeRef.Checked,
                StrToInt(GrepDlg.PopupMaxSeqEdit.Text), StrToInt(GrepDlg.PopupEachThreMaxEdit.Text));
+  UpdateTabTexts;
 end;
 
 {beginner} // キーワード抽出
@@ -7764,17 +7752,14 @@ begin
     viewItem := GetViewOf(PopupTextMenu.PopupComponent)
   else
     viewItem := GetActiveView;
-  if (viewItem=nil) or (viewItem.thread=nil) then
+  if (viewItem = nil) then
     exit;
-
   target := viewItem.LinkText;
-  if not (Length(target) > 3) or not AnsiStartsStr('ID:', target) then
+  if not AnsiStartsStr('ID:', target) then
     exit;
-
   target := RightStr(target, Length(target) - 3);
-  if length(target) <= 0 then
+  if Length(target) <= 0 then
     exit;
-
   searchTarget := target;
 
   NewView(true).ExtractKeyword(target, viewItem.thread, false, false);
@@ -8016,47 +8001,6 @@ begin
 end;
 
 procedure TMainWnd.FindInView(forwardP: boolean);
-{$IFDEF IE}
-var
-  viewItem: TViewItem;
-  textRange: OleVariant;
-  b: boolean;
-  txt: string;
-begin
-  (* Range解放しないとリークしてんじゃないかなという気はするけど、
-     解放ってどうやってやるんだ? Release呼ぶのかな（笑）。
-     そんなに連続運用しないよね *)
-  viewItem := GetActiveView;
-  if viewItem = nil then
-    exit;
-  if length(searchTarget) <= 0 then
-    exit;
-  textRange := OleVariant(viewItem.browser.Document as IHTMLDocument2).selection;
-  textRange := textRange.createRange();
-  textRange.select();
-  if forwardP then
-  begin
-    textRange.moveStart('character');
-    textRange.moveEnd('textedit');
-    b := textRange.findText(searchTarget, 1);
-  end
-  else begin
-    txt := textRange.text;
-    if length(txt) <= 0 then
-      textRange := OleVariant(viewItem.browser.Document as IHTMLDocument2).body.createTextRange;
-    textRange.moveEnd('word', -1);
-    b := textRange.findText(searchTarget, -1);
-  end;
-  if b then
-  begin
-    //textRange.scrollIntoView(true);
-    textRange.select();
-    OleVariant(viewItem.browser.Document as IHTMLDocument2).body.scrollTop
-      := OleVariant(viewItem.browser.Document as IHTMLDocument2).body.scrollTop
-       + textRange.offsetTop - viewItem.browser.Height div 2;
-  end;
-end;
-{$ELSE}
 var
   viewItem: TViewItem;
 begin
@@ -8071,8 +8015,6 @@ begin
     viewItem.browser.SearchBackward(searchTarget);
   viewitem.browser.Invalidate;  //aiai
 end;
-{$ENDIF}
-
 
 procedure TMainWnd.FindNavigateClick(Sender: TObject);
 var
@@ -9514,6 +9456,8 @@ begin
     actRefreshIdxList.Enabled := b;
     actHideHistoricalLog.Enabled := b;
     actHideHistoricalLog.Checked := b and board.HideHistoricalLog;
+    actShowThreadAbone.Enabled := b;
+    actShowThreadAbone.Checked := b and board.ShowThreadAbone;
     {/aiai}
     PopupTreeDelBoard.Enabled := not (board is TFunctionalBoard) and not board.Refered;
     with board do
@@ -9539,9 +9483,13 @@ begin
     PopupTreeOpenCurrent.Enabled := false;
     PopupTreeOpenByBrowser.Enabled := false;
     PopupTreeDelBoard.Enabled := false;
-    actRefreshIdxList.Enabled := false;  //aiai
-    actHideHistoricalLog.Enabled := false;  //aiai
-    actHideHistoricalLog.Checked := false;  //aiai
+    {aiai}
+    actRefreshIdxList.Enabled := false;
+    actHideHistoricalLog.Enabled := false;
+    actHideHistoricalLog.Checked := false;
+    actShowThreadAbone.Enabled := false;
+    actShowThreadAbone.Checked := false;
+    {/aiai}
   end;
 end;
 
@@ -9821,58 +9769,6 @@ begin
   end;
 end;
 
-{$IFDEF IE}
-procedure TMainWnd.WebBrowserEnter(Sender: TObject);
-var
-  browser: TWebBrowser;
-  rect: TRect;
-  viewItem: TViewItem;
-begin
-  browser := TWebBrowser(Sender);
-  if browser.Document <> nil then
-  begin
-    Windows.GetClientRect(browser.Handle, rect);
-    (browser.Application as IOleObject).DoVerb(OLEIVERB_UIACTIVATE,   (* iVerb *)
-                                               nil,                   (* lpMsg *)
-                                               browser,               (* pActiveSite *)
-                                               0,                     (* lindex - reserved *)
-                                               browser.Handle,        (* hwndParent *)
-                                               rect);                 (* display rectangle *)
-    if not IsChild(browser.Handle, Windows.GetFocus) then
-      Windows.SetFocus(Windows.GetWindow(browser.Handle, GW_CHILD));
-    //▼SetCurrentView呼び出しでフォーカスを当てる
-    viewItem := GetActiveView;
-    if viewItem <> nil then
-    try
-      WebPanel.SetFocus;
-      viewItem.browser.SetFocus;
-    except
-    end;
-      //SetCurrentView(viewList.IndexOf(viewItem));
-  end;
-end;
-
-procedure TMainWnd.WebBrowserDownloadComplete(Sender: TObject);
-var
-  viewItem: TPlainViewItem;
-begin
-  try
-    viewItem := GetViewOf(TComponent(Sender)) as TPlainViewItem;
-  except
-    viewItem := nil;
-  end;
-  if viewItem = nil then
-    exit;
-  with viewItem do
-  begin
-    if event = nil then
-      event := THTMLDocumentEventSink.Create(browser, browser.Document, HTMLDocumentEvents2);
-    event.OnContextMenu := OnContextMenu;
-    event.OnClick := WebBrowserClick;
-    event.OnMouseMove := WebBrowserMouseMove;
-  end;
-end;
-{$ENDIF}
 
 (* なんか関数がありそうで前から探してんだけど見つからないタブ移動 *)
 {まだテスト中
@@ -11383,12 +11279,9 @@ procedure TMainWnd.OnBrowserMouseDown(Sender: TObject; Button: TMouseButton;
                                       Shift: TShiftState; X, Y: Integer);
 var
   Cancel: WordBool;
-  caretPt, distance: TPoint; //aiai
-  size: tagSIZE;
   viewItem: TBaseViewItem;
   tmpPopup: TPopupMenu;
-  DC: HDC;       //aiai
-  stext: string; //aiai
+  CursorPos: TPoint;  //aiai
 begin
   viewItem := GetViewOf(TComponent(Sender));
   if Assigned(viewItem) then
@@ -11410,7 +11303,6 @@ begin
         if Cancel then
           THogeTextView(Sender).Selecting := False;
       end;
-      //▼数字選択部分右クリックでポップアップ
     mbRight:
       begin
         tmpPopup := nil;
@@ -11420,65 +11312,27 @@ begin
           THogeTextView(Sender).PopupMenu := nil;
         end;
         try
-          {aiai}
-
-          //{beginner} //レス番右クリックでレスのツリーをポップアップ
-          //if ShowTreeHint(Sender, GetKeyState(VK_CONTROL) >= 0) then
-          //begin
-          //  restrainContext := true   //ポップアップメニューを消す
-          //end
-          //else
+        
+          {beginner} //レス番右クリックでレスのツリーをポップアップ
+          if ShowTreeHint(Sender, GetKeyState(VK_CONTROL) >= 0) then
+            restrainContext := true  //ポップアップメニューを消す
           {/beginner}
-          //begin //koreawatcher
-          //  caretPt := THogeTextView(Sender).ScreenCaret;
-          //  with Sender as THogeTextView do
-          //    GetTextExtentPoint32(GetDC(Handle), PChar(selection), length(selection), size);
-          //  mousePt := TControl(Sender).ScreenToClient(Mouse.CursorPos);
-          //  distance.X := mousePt.X - caretPt.X;
-          //  distance.Y := mousePt.Y - caretPt.Y;
-          //  if (distance.Y > 0) and  (distance.Y < size.cy) and
-          //     (abs(distance.X) < size.cx) and
-          //     PopupRes(Sender, GetKeyState(VK_CONTROL) < 0) then
-          //  begin
-          //    FStatusText := '';
-          //    restrainContext := true;   //ポップアップメニューを消す
-          //  end else
-          //    ReleasePopupHint(viewItem, True);  //ポップアップヒントを消す
-          //end //koreawatcher
 
-          //point := THogeTextView(Sender).ClientToPhysicalCharPos(X, Y);
-          //if not InvalidPoint(point)
-          //  and THogeTextView(Sender).InSelection(point.X, point.Y) then
-          //begin
-            //右クリックポイントが選択範囲内
-            //Nothing to do
-          //end else
+          {aiai} //数字選択部分右クリックでポップアップ
+          else
           begin
-            if ShowTreeHint(Sender, GetKeyState(VK_CONTROL) >= 0) then //レス番右クリックでレスのツリーをポップアップ
-              restrainContext := true  //ポップアップメニューを消す
-            else
+            CursorPos := THogeTextView(Sender).ClientToPhysicalCharPos(X, Y);
+            if not InvalidPoint(CursorPos)
+              and THogeTextView(Sender).InSelection(CursorPos.X, CursorPos.Y)
+                and Popupres(Sender, GetKeyState(VK_CONTROL) < 0) then
             begin
-              caretPt := THogeTextView(Sender).ScreenCaret;
-              with Sender as THogeTextView do begin
-                stext := selection;
-                DC := GetDC(Handle);
-                GetTextExtentPoint32(DC, PChar(stext), length(stext), size);
-                ReleaseDC(Handle, DC);
-              end;
-              distance.X := X - caretPt.X;
-              distance.Y := Y - caretPt.Y;
-              if (distance.Y > 0) and  (distance.Y < size.cy) and
-                 (abs(distance.X) < size.cx) and
-                 PopupRes(Sender, GetKeyState(VK_CONTROL) < 0) then
-              begin
-                FStatusText := '';
-                restrainContext := true;   //ポップアップメニューを消す
-              end else
-                ReleasePopupHint(viewItem, True);  //ポップアップヒントを消す
-            end;
+              FStatusText := '';
+              restrainContext := true;  //ポップアップメニューを消す
+             end else
+              ReleasePopupHint(viewItem, True); //ポップアップヒントを消す
           end;
-
           {/aiai}
+
         finally
           if Assigned(tmpPopup) then
             THogeTextView(Sender).PopupMenu := tmpPopup;
@@ -11724,8 +11578,8 @@ begin
   TextPopupExtractID.Visible := iding and threading;
   TextPopupCopyID.Visible := iding;
   TextPopupAddNGID.Visible := iding;
-  TextPopupIDAbone.Visible := iding and threading;
-  TextPopupIDAbone2.Visible := iding and threading;
+  TextPopupIDAbone.Visible := TextPopupExtractID.Visible;
+  TextPopupIDAbone2.Visible := TextPopupExtractID.Visible;
 
   //ID:の場合は外部コマンド遮断
   With PopupTextMenu do
@@ -12113,11 +11967,7 @@ procedure TMainWnd.OnGestureMessage(var Msg: TMsg; var Handled: boolean);
       ControlAtCursor:=Self;
       while ControlAtCursor.ControlAtPos(ControlAtCursor.ScreenToClient(Msg.pt),True,True) is TWinControl do
         ControlAtCursor:=TWinControl(ControlAtCursor.ControlAtPos(ControlAtCursor.ScreenToClient(Msg.pt),True,True));
-      {$IFDEF IE}
-      if ControlAtCursor is TWebBrowser then
-      {$ELSE}
       if ControlAtCursor is THogeTextView then
-      {$ENDIF}
         Result:='■'
       else if ControlAtCursor is THogeListView then
         Result:='▽'
@@ -12309,9 +12159,7 @@ procedure TMainWnd.CommandExecute(command: string; replace: boolean = true;
   var
     viewItem: TBaseViewItem;
     outText, select, url, repText: string;
-    {$IFNDEF IE}
     link: string;
-    {$ENDIF}
   begin
     outText := inText;
     if Assigned(PopupTextMenu.PopupComponent) then
@@ -12761,7 +12609,7 @@ var
   newView: TPopupViewItem;
 begin
   result := false;
-  if (Sender is THogeTextView) {$IFDEF IE} or (Sender is TWebBrowser) {$ENDIF} then
+  if (Sender is THogeTextView) then
     viewItem := GetViewOf(TComponent(Sender))
   else
     viewItem := GetActiveView;
@@ -12793,14 +12641,6 @@ begin
         viewItem.PossessionView.Enabled := True;
     end;
     FStatusText := '';
-  {$IFNDEF IE}
-{
-  end
-  else if ref = '' then
-  begin
-    BrowserStatusTextChange(Sender, viewItem.GetFocusedLink, Mouse.CursorPos, True);
-}
-  {$ENDIF}
   end;
 end;
 
@@ -14011,7 +13851,6 @@ begin
 end;
 
 //※[457]
-{$IFNDEF IE}
 procedure TMainWnd.SetviewListItemsColor;
 var
   i: Integer;
@@ -14019,7 +13858,6 @@ begin
   for i := 0 to viewList.Count -1 do
     viewList.Items[i].browser.Color := WebPanel.Color;
 end;
-{$ENDIF}
 
 //aiai
 procedure TMainWnd.MenuFindThreadClick(Sender: TObject);
@@ -14209,6 +14047,10 @@ begin
     Sender.Canvas.Font.Color := clRed;
     //ListView.Canvas.Brush.Color := clHighlight;
     //ListView.Canvas.Font.Color := clHighlightText;
+    sethotstate := true;
+  end else if TThreadItem(Item.Data).IsThisAbone then
+  begin
+    Sender.Canvas.Font.Color := clGray;
     sethotstate := true;
   end;
 (*
@@ -14502,12 +14344,13 @@ begin
   if viewItem = nil then
     exit;
   Item := viewItem.LinkText;
-  if Item = '' then exit;
-  Item := RightStr(Item, length(Item) - 3);
-  if Item = '' then exit;
-  NgList := NG_ITEM_ID;
+  if not AnsiStartsStr('ID:', Item) then
+    exit;
+  Item := RightStr(Item, Length(Item) - 3);
+  if Length(Item) <= 0 then
+    exit;
 
-  viewItem := GetActiveView;
+  NgList := NG_ITEM_ID;
 
   tmp := TMenuItem(Sender).Caption;
 
@@ -14520,9 +14363,7 @@ begin
   Repeat
     MResult := QuickAboneRegist.ShowModal;
     if MResult = mrCancel then
-    begin
       Exit;
-    end;
   until QuickAboneRegist.ItemView.SelText <> '';
 
   Item := StringReplace(QuickAboneRegist.ItemView.SelText,#13#10,' <br> ',[rfReplaceAll]);
@@ -14552,8 +14393,7 @@ begin
 
         NGItems[NgList].AddObject(item, NGItemData);
         NGItems[NgList].SaveToFile(config.basepath + NG_FILE[NgList]);
-        if Assigned(viewItem.thread) then
-          viewItem.LocalReload(viewItem.GetTopRes);
+        viewItem.LocalReload(viewItem.GetTopRes);
       end else begin
         MessageDlg('キーワード"'+Item+'"は登録済み',mtWarning,[mbOk],0);
       end;
@@ -14593,22 +14433,21 @@ begin
     viewItem := TViewItem(GetViewOf(PopupTextMenu.PopupComponent))
   else
     viewItem := GetActiveView;
-  if viewItem = nil then
+  if (viewItem = nil) then
     exit;
   Item := viewItem.LinkText;
-  if Item = '' then exit;
-  //Item := RightStr(Item, length(Item) - 3);
-  //if Item = '' then exit;
-
+  if not AnsiStartsStr('ID:', Item) then
+    exit;
   viewItem := GetActiveView;
-
-  if (viewItem.thread = nil) or (viewItem.thread.dat = nil) then
+  if (viewItem = nil) or (viewItem.thread = nil)
+    or (viewItem.thread.dat = nil) then
+    exit;
+  Item := RightStr(Item, Length(Item) - 3);
+  if Length(Item) <= 0 then
     exit;
 
-  dat := viewItem.thread.DupData;
-
   AboneType := TMenuItem(Sender).Tag;
-
+  dat := viewItem.thread.DupData;
   for i := 1 to viewItem.thread.lines do begin
     //if AnsiContainsStr(dat.FetchID(i), Item)
     if AnsiContainsStr(Item, dat.FetchID(i))
@@ -14877,11 +14716,7 @@ begin
     // 現在のフォーカスにあわせて切り替え先を変更
     if control = ListView then
       SetRPane(ptList)
-    {$IFDEF IE}
-    else if control is TWebBrowser then
-    {$ELSE}
     else if control is THogeTextView then
-    {$ENDIF}
       SetRPane(ptView)
     else
       SetRPane(mdRPane);
@@ -15475,7 +15310,6 @@ procedure TMainWnd.actHideHistoricalLogExecute(Sender: TObject);
 var
   board: TBoard;
   node: TTreeNode;
-  msg: PChar;
 begin
   if PopupTreeClose.Visible or (Sender = MenuListHideHistoricalLog) then
     board := TBoard(ListTabControl.Tabs.Objects[tabRightClickedIndex])
@@ -15499,6 +15333,40 @@ begin
     UILock := true;
     UpdateListView;
     UpdateTabTexts;
+    UILock := false;
+  end;
+end;
+
+(* あぼ～んを表示 *) //aiai
+procedure TMainWnd.actShowThreadAboneExecute(Sender: TObject);
+var
+  board: TBoard;
+  node: TTreeNode;
+begin
+  if PopupTreeClose.Visible or (Sender = MenuListHideHistoricalLog) then
+    board := TBoard(ListTabControl.Tabs.Objects[tabRightClickedIndex])
+  else begin
+    node := TreeView.Selected;
+    if node = nil then
+      exit;
+    if TObject(node.Data) is TBoard then
+      board := TBoard(node.Data)
+    else
+      board := nil;
+  end;
+
+  if (board = nil) or (board is TFunctionalBoard) then
+    exit;
+
+  board.ShowThreadAbone := not board.ShowThreadAbone;
+
+  if (currentBoard <> nil) and (board = currentBoard) then
+  begin
+    UILock := true;
+    board.Load(False);
+    UpdateListView;
+    UpdateTabTexts;
+    TabControl.Refresh;
     UILock := false;
   end;
 end;
@@ -15527,6 +15395,7 @@ begin
     PopupCatDelCategory.Enabled := false;
   end;
 end;
+
 
 procedure TMainWnd.TreeViewContextPopup(Sender: TObject; MousePos: TPoint;
   var Handled: Boolean);
@@ -15648,24 +15517,6 @@ begin
     drawline := 2;
   viewItem.LocalReload(viewItem.GetTopRes, drawline);
 end;
-
-(* IEの番号選択反転→右クリのポップアップ ･･･ (ヒ) ◆qLyuucaEEI氏 at GikoNavi *)
-{$IFDEF IE}
-function TMainWnd.OnContextMenu(Sender: TObject): WordBool;
-begin
-  Result := not PopupRes(Sender, GetKeyState(VK_CONTROL) < 0);
-end;
-
-function TMainWnd.WebBrowserClick(Sender: TObject): WordBool;
-begin
-  result := true;
-  if (Sender <> nil) and (Sender is TWebBrowser) then
-  try
-    TWebBrowser(Sender).SetFocus;
-  except
-  end;
-end;
-{$ENDIF}
 
 {beginner}
 procedure TMainWnd.OnAboutToFormShow(var Message: TMessage);
@@ -17137,6 +16988,57 @@ begin
   end;
   CurrentBoard.ThreadAbone(deleteList);
   deleteList.Free;
+
+  UpdateListView;
+  UpdateTabTexts;
+
+  UILock := False;
+end;
+
+(* スレッドあぼーん解除 *)
+procedure TMainWnd.actThreadAbone2Execute(Sender: TObject);
+var
+  listItem: TListItem;
+  thread: TThreadItem;
+  index: Integer;
+  threadABoneList: TStringList;
+begin
+  if (CurrentBoard = nil) or (CurrentBoard is TFunctionalBoard) then Exit;
+
+  listItem := ListView.Selected;
+  thread := nil;
+
+  UILock := True;
+  StopAutoReSc;
+
+  threadABoneList := TStringList.Create;
+  if FileExists(CurrentBoard.GetLogDir + '\subject.abn') then
+    threadABoneList.LoadFromFile(CurrentBoard.GetLogDir + '\subject.abn')
+  else
+  begin
+    threadABoneList.Free;
+    exit;
+  end;
+
+  while (listItem <> nil) and (listItem.Data <> thread) do begin
+    thread := TThreadItem(listItem.Data);
+    if (thread <> nil) and thread.IsThisAbone then
+    begin
+      index := threadABoneList.IndexOfName(thread.datName);
+      if index >= 0 then
+      begin
+        threadABoneList.Delete(index);
+        thread.IsThisAbone := False;
+      end;
+    end;
+    listItem := ListView.GetNextItem(listItem, sdBelow, [isSelected]);
+  end;
+
+  if threadABoneList.Count > 0 then
+    threadABoneList.SaveToFile(CurrentBoard.GetLogDir + '\subject.abn')
+  else
+    SysUtils.DeleteFile(CurrentBoard.GetLogDir + '\subject.abn');
+  threadABoneList.Free;
 
   UpdateListView;
   UpdateTabTexts;

@@ -10,9 +10,7 @@ uses
   UDoLib,
   UCryptAuto,
   USynchro,
-  {$IFNDEF IE}
   HogeTextView,
-  {$ENDIF}
   StrSub,
   UBase64;
 
@@ -193,7 +191,6 @@ type
     viewListMarkerMarkedNoUpdate: string;
     viewListMarkerNewThread: string; //beginner
     viewListMarkerNewThread2: string; //aiai
-    {$IFNDEF IE}
     viewVerticalCaretMargin: integer;
     viewScrollLines: integer;
     viewPageScroll: boolean;
@@ -207,7 +204,6 @@ type
     {aiai}
     viewCaretScrollSync: Boolean;
     {/aiai}
-    {$ENDIF}
     viewZoomPointArray: array[0..5] of integer;
     viewKeywordBrushColor: TColor;  //aiai
 
@@ -282,9 +278,7 @@ type
     mseGestureList: TStringList;
     mseWheelScrollUnderCursor: boolean;
 
-    {$IFNDEF IE}
     clViewColor: TColor;
-    {$ENDIF}
     clListViewOddBackColor: TColor;
     clListViewEvenBackColor: TColor;
     clHintOnFix: TColor;
@@ -312,6 +306,8 @@ type
     optCheckNewResSingleClick: Boolean;
     optSetFocusOnWriteMemo: Boolean;
     optOldOnCheckNew: Boolean;
+    optPopupSizeContrainX: Integer;
+    optPopupSizeContrainY: Integer;
 
     oprListReloadInterval: integer;
     oprThreadReloadInterval: integer;
@@ -385,14 +381,6 @@ type
     schEnableMigemoTmp: Boolean;
     schIgnoreFullHalf: Boolean;
     {/aiai}
-
-    {$IFNDEF IE}
-    //改造▽ 追加 (スレビューに壁紙を設定する。Doe用)
-    //viewBrowserWallpaperEnabled: Boolean;
-    //viewBrowserWallpaperAlign: TWallpaperAlign;
-    //viewBrowserWallpaperName: string;
-    //改造△ 追加 (スレビューに壁紙を設定する。Doe用)
-    {$ENDIF}
 
     cmdExecuteList: TStringList;
     cmdConfigList:  TStringList;
@@ -528,7 +516,6 @@ end;
 procedure TJaneConfig.Initialize;
 var
   i: integer;
-  {$IFNDEF IE}
   procedure InitTextAttrib;
   var
     i: integer;
@@ -550,7 +537,6 @@ var
     viewTextAttrib[5].color := RGB($22,$8B,$22);
     viewTextAttrib[5].style := [fsBold];
   end;
-  {$ENDIF}
 begin
   BasePath := ExtractFilePath(Application.ExeName);
   IniPath := ChangeFileExt(Application.ExeName, '.ini');
@@ -708,7 +694,6 @@ begin
   viewListMarkerNewThread :='○';   //beginner
   viewListMarkerNewThread2 := '●'; //aiai
 
-  {$IFNDEF IE}
   viewVerticalCaretMargin := 1;
   viewScrollLines := 3;
   viewPageScroll := false;
@@ -722,14 +707,7 @@ begin
   viewCaretScrollSync := false;
   {/aiai}
 
-  //改造▽ 追加 (スレビューに壁紙を設定する。Doe用)
-  //viewBrowserWallpaperEnabled := false;
-  //viewBrowserWallpaperAlign := walRightBottom;
-  //viewBrowserWallpaperName    := '';
-  //改造△ 追加 (スレビューに壁紙を設定する。Doe用)
-
   InitTextAttrib;
-  {$ENDIF}
 
   {beginner} //上のifndefから移動
   viewZoomPointArray[0] := -9;
@@ -814,9 +792,7 @@ begin
   mseGestureList := TStringList.Create;
   mseWheelScrollUnderCursor := true;
 
-  {$IFNDEF IE}
   clViewColor := clWindow;
-  {$ENDIF}
   clListViewOddBackColor := $00FFEFFF;  //aiai
   clListViewEvenBackColor := $00FFFFFF;   //aiai
   clHintOnFix := $00efffef;
@@ -849,6 +825,8 @@ begin
   optCheckNewResSingleClick := true;
   optSetFocusOnWriteMemo := false;
   optOldOnCheckNew := false;
+  optPopupSizeContrainX := 0;
+  optPopupSizeContrainY := 0;
 
   oprListReloadInterval := 15;
   oprThreadReloadInterval := 5;
@@ -977,7 +955,6 @@ procedure TJaneConfig.Load;
     strList.Free;
   end;
 
-  {$IFNDEF IE}
   procedure LoadTextAttribute(ini: TMemIniFile);
   var
     sl: TStringList;
@@ -1020,7 +997,6 @@ procedure TJaneConfig.Load;
     end;
     sl.Free;
   end;
-  {$ENDIF}
 
   procedure LoadAccount;
   var
@@ -1093,11 +1069,9 @@ procedure TJaneConfig.Load;
     MainWnd.ThreadToolPanel.Color := HexToInt(ini.ReadString(INI_CL_SECT, 'ThreadTitleViewColor', '00ACACAC'));  //aiai
     MainWnd.ThreadToolPanel.Tag := MainWnd.ThreadToolPanel.Color; //beginner
     wrtWritePanelColor := HexToInt(ini.ReadString(INI_CL_SECT, 'MemoColor', '80000005')); //aiai
-    {$IFNDEF IE}
     clViewColor := HexToInt(ini.ReadString(INI_CL_SECT, 'TextViewColor', '00EFEFEF'));   //aiai
     //MainWnd.WebPanel.Color := clViewColor;
     MainWnd.MDIClientPanel.Color := clViewColor;  //aiai
-    {$ENDIF}
     c := ini.ReadString(INI_CL_SECT, 'ListViewOddBackColor', '');
     if c <> '' then
       clListViewOddBackColor  := HexToInt(c);
@@ -1417,7 +1391,6 @@ begin
   viewListMarkerMarkedNoUpdate:= ini.ReadString(INI_VIEW_SECT, 'ListMarkerMarkedNoUpdate', viewListMarkerMarkedNoUpdate);
   viewListMarkerNewThread := ini.ReadString(INI_VIEW_SECT, 'ListMarkerNewThread', viewListMarkerNewThread); //aiai
   viewListMarkerNewThread2:= ini.ReadString(INI_VIEW_SECT, 'ListMarkerNewThread2',viewListMarkerNewThread2);//aiai
-  {$IFNDEF IE}
   viewVerticalCaretMargin := ini.ReadInteger(INI_VIEW_SECT, 'CaretMargin', viewVerticalCaretMargin);
   viewScrollLines := ini.ReadInteger(INI_VIEW_SECT, 'ScrollLines', viewScrollLines);
   viewPageScroll := ini.ReadBool(INI_VIEW_SECT, 'PageScroll', viewPageScroll);
@@ -1439,7 +1412,6 @@ begin
   //viewBrowserWallpaperName := ini.ReadString(INI_VIEW_SECT, 'BrowserWallpaperName', viewBrowserWallpaperName);
   //改造△ 追加 (スレビューに壁紙を設定する。Doe用)
 
-  {$ENDIF}
   LoadZoomPoint(ini); //コンパイル条件式の外に移動
 
   stlVerticalDivision := ini.ReadBool(INI_STL_SECT, 'VerticalDivision', stlVerticalDivision);
@@ -1527,6 +1499,8 @@ begin
   optCheckNewResSingleClick := ini.ReadBool(INI_OPT_SECT, 'CheckNewResSingleClick', optCheckNewResSingleClick);
   optSetFocusOnWriteMemo := ini.ReadBool(INI_OPT_SECT, 'SetFocusOnWriteMemo', optSetFocusOnWriteMemo);
   optOldOnCheckNew := ini.ReadBool(INI_OPT_SECT, 'OldOnCheckNew', optOldOnCheckNew);
+  optPopupSizeContrainX := ini.ReadInteger(INI_OPT_SECT, 'PopupSizeContrainX', optPopupSizeContrainX);
+  optPopupSizeContrainY := ini.ReadInteger(INI_OPT_SECT, 'PopupSizeContrainY', optPopupSizeContrainY);
 
   optFavPatrolCheckServerDown := ini.ReadBool(INI_OPT_SECT, 'FavPatrolCheckServerDown', optFavPatrolCheckServerDown);
   optFavPatrolOpenNewResThread := ini.ReadBool(INI_OPT_SECT, 'FavPatrolOpenNewResThread', optFavPatrolOpenNewResThread);
@@ -1605,13 +1579,11 @@ begin
 
   ini.Free;
 
-  {$IFNDEF IE}
   ini := TMemIniFile.Create(GetFullPath(SkinPath) + ATTRIBUTE_FILE);
   LoadTextAttribute(ini);
   if ini.SectionExists(INI_CL_SECT) then
     clViewColor := HexToInt(ini.ReadString(INI_CL_SECT, 'TextViewColor', IntToHex(clViewColor, 6)));
   ini.Free;
-  {$ENDIF}
 
 
   try
@@ -1667,7 +1639,6 @@ procedure TJaneConfig.Save;
     strList.Free;
   end;
 
-  {$IFNDEF IE}
   procedure SaveTextAttrib(ini: TMemIniFile);
   var
     index: integer;
@@ -1682,7 +1653,6 @@ procedure TJaneConfig.Save;
       end;
     end;
   end;
-  {$ENDIF}
 
   procedure SaveAccount;
   var
@@ -1722,9 +1692,7 @@ procedure TJaneConfig.Save;
     ini.WriteString(INI_CL_SECT, 'TraceViewColor', IntToHex(MainWnd.Memo.Color, 8));
     ini.WriteString(INI_CL_SECT, 'ThreadTitleViewColor', IntToHex(MainWnd.ThreadToolPanel.Color, 8)); //※[457]
     ini.WriteString(INI_CL_SECT, 'MemoColor', IntToHex(wrtWritePanelColor, 8)); //aiai
-    {$IFNDEF IE}
     ini.WriteString('COLOR', 'TextViewColor', IntToHex(Config.clViewColor, 8));
-    {$ENDIF}
     ini.WriteString(INI_CL_SECT, 'ListViewOddBackColor', IntToHex(clListViewOddBackColor, 8));
     ini.WriteString(INI_CL_SECT, 'ListViewEvenBackColor', IntToHex(clListViewEvenBackColor, 8));
     ini.WriteString(INI_CL_SECT, 'HintColor', IntToHex(MainWnd.PopupHint.Color, 8));
@@ -1954,7 +1922,6 @@ begin
   ini.WriteString(INI_VIEW_SECT, 'ListMarkerMarkedNoUpdate', viewListMarkerMarkedNoUpdate);
   ini.WriteString(INI_VIEW_SECT, 'ListMarkerNewThread', viewListMarkerNewThread); //aiai
   ini.WriteString(INI_VIEW_SECT, 'ListMarkerNewThread2',viewListMarkerNewThread2);//aiai
-  {$IFNDEF IE}
   ini.WriteInteger(INI_VIEW_SECT, 'CaretMargin', viewVerticalCaretMargin);
   ini.WriteInteger(INI_VIEW_SECT, 'ScrollLines', viewScrollLines);
   ini.WriteBool(INI_VIEW_SECT, 'PageScroll', viewPageScroll);
@@ -1970,13 +1937,6 @@ begin
 
   ini.WriteInteger(INI_VIEW_SECT, 'KeywordBrushColor', viewKeywordBrushColor);
 
-  //改造▽ 追加 (スレビューに壁紙を設定する。Doe用)
-  //ini.WriteBool(INI_VIEW_SECT, 'BrowserWallpaperEnabled', viewBrowserWallpaperEnabled);
-  //ini.WriteInteger(INI_VIEW_SECT, 'BrowserWallpaperAlign', Integer(viewBrowserWallpaperAlign));
-  //ini.WriteString(INI_VIEW_SECT, 'BrowserWallpaperName', viewBrowserWallpaperName);
-  //改造△ 追加 (スレビューに壁紙を設定する。Doe用)
-
-  {$ENDIF}
   SaveZoomPoint(ini); //beginner コンパイル条件式の外に
 
   ini.WriteBool(INI_STL_SECT,'VerticalDivision', stlVerticalDivision);
@@ -2047,6 +2007,8 @@ begin
   ini.WriteBool(INI_OPT_SECT, 'CheckNewResSingleClick', optCheckNewResSingleClick);
   ini.WriteBool(INI_OPT_SECT, 'SetFocusOnWriteMemo', optSetFocusOnWriteMemo);
   ini.WriteBool(INI_OPT_SECT, 'OldOnCheckNew', optOldOnCheckNew);
+  ini.WriteInteger(INI_OPT_SECT, 'PopupSizeContrainX', optPopupSizeContrainX);
+  ini.WriteInteger(INI_OPT_SECT, 'PopupSizeContrainY', optPopupSizeContrainY);
 
   ini.WriteBool(INI_OPT_SECT, 'FavPatrolCheckServerDown', optFavPatrolCheckServerDown);
   ini.WriteBool(INI_OPT_SECT, 'FavPatrolOpenNewResThread', optFavPatrolOpenNewResThread);
@@ -2094,7 +2056,6 @@ begin
   ini.UpdateFile;
   ini.Free;
 
-  {$IFNDEF IE}
   if DirectoryExists(SkinPath) and not FileExists(SkinPath + ATTRIBUTE_FILE) then
   begin
     ini := TMemIniFile.Create(SkinPath + ATTRIBUTE_FILE);
@@ -2102,7 +2063,6 @@ begin
     ini.UpdateFile;
     ini.Free;
   end;
-  {$ENDIF}
 
   if wrtNameList.Text <> '' then
     wrtNameList.SaveToFile(BasePath + 'name.dat');

@@ -12,12 +12,6 @@ uses
    ExtCtrls,
    AppEvnts,
    Messages,
-   {$IFDEF IE}
-   SHDocVw_TLB,
-   MSHTML_TLB,
-   ActiveX,
-   HTMLDocumentEvent,
-   {$ENDIF}
    HogeTextView,
    UTVSub,
    UPopupTextView,
@@ -33,39 +27,6 @@ uses
   SYRUPTESTVER = 'Syrup_test35';}
 type
   ECancelViewException = class (Exception);
-
-  {$IFDEF IE}
-  (* WebBrowserにWriteする前にバッファリングするストリーム *)
-  (* 一時ファイルを作っていた頃の名残 *)
-  TWebOutBufferStream = class(THTMLDatOut)
-  protected
-    FStream: TMemoryStream;
-    browser: TWebBrowser;
-    //hintForProcessMessages: integer;
-    re_entrant: integer;
-    canceled: boolean;
-  public
-    //flushThreshold: integer;
-    constructor Create(browser: TWebBrowser);
-    destructor Destroy; override;
-    function ExtractCache: string;
-    procedure WriteText(str: PChar; size: integer); override;
-    procedure Flush; override;
-    procedure Cancel;
-  end;
-
-  {beginner}
-  TWebOutBufferStreamForExtraction = class(TWebOutBufferStream)
-  public
-    Base:string;
-    BBSType: TBBSType;
-    procedure WriteAnchor(const Name: string;
-                          const HRef: string;
-                          str: PChar; size: integer); override;
-  end;
-  {/beginner}
-
-  {$ENDIF}
 
   TDat2View = class(TConvDatOut)
   protected
@@ -86,6 +47,8 @@ type
     function ProcTag: boolean; override;
     function ProcEntity: boolean; override;
     function ProcBlank: boolean; override;
+    function ProcDayOfWeek: Boolean; override;  //aiai
+    function ProcID: Boolean; override;  //aiai
     procedure BeginAnchor; virtual;
     procedure EndAnchor; virtual;
     procedure AppendResNumList(num: Integer); override;
@@ -99,8 +62,8 @@ type
     procedure WriteAnchor(const Name: string;
                           const HRef: string;
                           str: PChar; size: integer); override;
-    procedure WriteID(ID: PChar; size: integer; line: Integer); override;//aiai
     procedure WriteChar(c: Char); override;
+    procedure WriteID(str: PChar; size: integer); virtual;  //aiai
     procedure WriteUNICODE(str: PChar; size: integer);
     procedure WriteBR;
     procedure WriteHR(color: Integer; custom: Boolean);  //aiai
@@ -115,10 +78,9 @@ type
   public
     function ProcBlank: boolean; override;
     procedure WriteChar(c: Char); override;
-    procedure WriteID(ID: PChar; size: integer; line: Integer); override;
+    procedure WriteID(str: PChar; size: integer); override;  //aiai
   end;
 
-  {$IFNDEF IE}
   TDat2ViewForExtraction = class(TDat2View)
   public
     Base:string;
@@ -126,10 +88,9 @@ type
     procedure WriteAnchor(const Name: string;
                           const HRef: string;
                           str: PChar; size: integer); override;
-    procedure WriteID(ID: PChar; size: integer; line: Integer); override;
     procedure Flush; override;
+    procedure WriteID(str: PChar; size: integer); override;  //aiai
   end;
-  {$ENDIF}
 
   TSimpleDat2View = class(TDat2View)
   protected
@@ -139,9 +100,11 @@ type
     procedure EndAnchor; override;
   public
     procedure Flush; override;
+    procedure WriteID(str: PChar; size: integer); override;  //aiai
   end;
 
-  {aiai}//とりあえずプレビュー用
+  {aiai}
+  //とりあえずプレビュー用
   TDat2PreViewView = class(TDat2View)
   protected
     procedure AppendResNumList(num: Integer); override;
@@ -150,7 +113,13 @@ type
     procedure WriteAnchor(const Name: string;
                           const HRef: string;
                           str: PChar; size: integer); override;
-    procedure WriteID(ID: PChar; size: integer; line: Integer); override;
+    procedure WriteID(str: PChar; size: integer); override;
+  end;
+
+  //ヒント、検索用
+  TStrDatOutForHint = class(TStrDatOut)
+  protected
+    function ProcDayOfWeek: Boolean; override;
   end;
   {/aiai}
 
@@ -179,7 +148,6 @@ type
     procedure WriteAnchor(const Name: string;
                           const HRef: string;
                           str: PChar; size: integer); override;
-    procedure WriteID(ID: PChar; size: integer; line: Integer); override;//aiai
     procedure Build(thread: TThreadItem; Start: Integer);
     function TreeDatOut(Dest: TDatOut;
                         Index: Integer = -1;
@@ -258,35 +226,17 @@ type
   TPlainViewItem = class(TBaseViewItem)
   protected
     FRootControl: TWinControl;
-    {$IFDEF IE}
-    FBrowser: TWebBrowser;
-    FStream: TWebOutBufferStream;
-    FEvent: THTMLDocumentEventSink;
-    {$ELSE}
     FBrowser: THogeTextView;
     FStream: TDat2View;
-    {$ENDIF}
-    {$IFDEF IE}
-    procedure SetBrowser(value: TWebBrowser);
-    {$ELSE}
     procedure SetBrowser(value: THogeTextView);
-    {$ENDIF}
     function GetBaseItem: TBaseViewItem; override;
     function GetRootControl: TWinControl; override;
     function GetDerivativeBrowser: TControl; override;
     function GetDerivativeStream: TDatOut; override;
     function GetStreamCanceled: Boolean; override;
   public
-    {$IFDEF IE}
-    constructor Create;
-    destructor Destroy; override;
-    property browser: TWebBrowser read FBrowser write SetBrowser;
-    property stream: TWebOutBufferStream read FStream;
-    property event: THTMLDocumentEventSink read FEvent write FEvent;
-    {$ELSE}
     property browser: THogeTextView read FBrowser write SetBrowser;
     property stream: TDat2View read FStream;
-    {$ENDIF}
     function GetSelection: String; override;
     procedure Cancel; override;
     property RootControl: TWinControl read GetRootControl write FRootControl;
@@ -390,11 +340,7 @@ type
     destructor Destroy; override;
     procedure Delete(index: integer);
     procedure Clear; override;
-    {$IFDEF IE}
-    function NewView(browser: TWebBrowser; index: integer = -1): TViewItem;
-    {$ELSE}
     function NewView(browser: THogeTextView; index: integer = -1): TViewItem;
-    {$ENDIF}
     function FindViewItem(thread: TThreadItem): TViewItem; overload;
     function FindViewitem(browser: TComponent): TViewItem; overload;
     function FindFirstViewItem: Integer; //aiai viewListにあるViewのうちで最も高いZオーダーをもつViewのインデックスを返す
@@ -606,130 +552,8 @@ const
 
 {beginner}
 const
-  {$IFDEF IE}
-  DEF_TREE_HTML    = '<dt><NUMBER/> 名前：<font color=forestgreen><b><NAME/></b></b></font>[<MAIL/>] 投稿日：<DATE/></dt><dd><MESSAGE/><br><br></dd>'#10;
-  {$ELSE}
   DEF_TREE_HTML    = '<dt><NUMBER/> 名前：<SA i=2><b><NAME/></b></b><SA i=0>[<MAIL/>] 投稿日：<DATE/></dt><dd><MESSAGE/><br><br></dd>'#10;
-  {$ENDIF}
 {/beginner}
-
-{$IFDEF IE}
-(*  *)
-constructor TWebOutBufferStream.Create(browser: TWebBrowser);
-begin
-  inherited Create;
-  FStream := TMemoryStream.Create;
-  FStream.Size := 4096;
-  self.browser := browser;
-  //hintForProcessMessages := 0;
-  canceled := false;
-  //flushThreshold := 3 * 1024;  (* これ以上のバイト数が溜まったらflushする *)
-  re_entrant := 0;
-end;
-
-(*  *)
-destructor TWebOutBufferStream.Destroy;
-begin
-  FStream.Free;
-  inherited;
-end;
-
-
-(*  *)
-function TWebOutBufferStream.ExtractCache: string;
-var
-  len: integer;
-begin
-  with FStream do
-  begin
-    len := Position;
-    if 0 < len then
-    begin
-      Position := 0;
-      SetLength(result, len);
-      ReadBuffer(result[1], len);
-      Position := 0;
-    end
-    else begin
-      result := '';
-    end;
-  end;
-end;
-
-(*  *)
-procedure TWebOutBufferStream.WriteText(str: PChar; size: integer);
-begin
-  FStream.WriteBuffer(str^, size);
-  //Inc(hintForProcessMessages, size);
-end;
-
-
-(*  *)
-procedure TWebOutBufferStream.Flush;
-var
-  str: string;
-  i: integer;
-begin
-  str := ExtractCache;
-  if length(str) <= 0 then
-    exit;
-  for i := 1 to length(str) do
-  begin
-    if (str[i] < ' ') and (not (str[i] in [#10, #13])) then
-      str[i] := ' ';
-  end;
-  Inc(re_entrant);
-  if assigned(browser) and assigned(browser.document) then
-  begin
-    olevariant(browser.document as IHTMLDocument2).write(str);
-    Application.ProcessMessages;
-    if canceled then
-      raise ECancelViewException.Create('navigation canceled')
-  end;
-  Dec(re_entrant);
-end;
-
-(*  *)
-procedure TWebOutBufferStream.Cancel;
-begin
-  canceled := true;
-end;
-
-{beginner}
-procedure TWebOutBufferStreamForExtraction.WriteAnchor(const Name: string;
-                      const HRef: string;
-                      str: PChar; size: integer);
-var
-  ModifHref:string;
-  Hyphen: Integer;
-begin
-  ModifHref := HRef;
-  if (HRef<>'') then begin
-    if HRef[1] = '#' then
-      case BBSType of
-        bbsJBBS, bbsMachi: begin
-          Hyphen := Pos('-', HRef);
-          if Hyphen > 0 then
-            ModifHref := Base + '&START=' + copy(HRef, 2, Hyphen - 2) + '&END=' + copy(HRef, Hyphen + 1, High(Integer))
-          else
-            ModifHref := Base + '&START=' + copy(HRef, 2, High(Integer)) + '&END=' + copy(HRef, 2, High(Integer));
-        end;
-      else
-        ModifHref := Base + copy(HRef, 2, High(Integer));
-      end
-    else if StrLIComp('menu:', pchar(HRef), 5) = 0 then
-      case BBSType of
-        bbsJBBS, bbsMachi:
-          ModifHref := Base + '&START=' + copy(HRef, 6, High(Integer)) + '&END=' + copy(HRef, 6, High(Integer));
-      else
-        ModifHref := Base + copy(HRef, 6, High(Integer));
-      end;
-  end;
-  inherited WriteAnchor(Name,ModifHref,str,size);
-end;
-{/beginner}
-
-{$ENDIF}
 
 (* =========================================================== *)
 function ZoomToPoint(zoom: integer): Integer;
@@ -1288,6 +1112,115 @@ begin
   WriteChar(' ')
 end;
 
+//aiai
+(* dateのサイズチェックは呼び出し側ですること *)
+(* 年は4桁,1月と2月は前の年の13月と14月とする *)
+function CalcDayOfWeek(date: PChar; num:integer): string; (* 曜日だけ返す *)
+var
+  intyear, intmon, intday, thedayofweek: Integer;
+begin
+  case num of
+    2: begin //年が2桁の場合
+      intyear := (Ord(date^) - 48) * 10 + Ord((date+1)^) - 48;
+      intmon  := (Ord((date+3)^) - 48) * 10 + Ord((date+4)^) - 48;
+      intday  := (Ord((date+6)^) - 48) * 10 + Ord((date+7)^) - 48;
+
+      if intyear < 100 then // 90～99年は1990～1999年に、それ以外は2000年以降にする
+        if (intyear >= 90) and (intyear <= 99) then
+          Inc(intyear, 1900)
+        else
+          Inc(intyear, 2000);
+
+    end;
+
+    4: begin //年が4桁の場合
+      intyear := (Ord(date^) - 48) * 1000 + (Ord((date+1)^) - 48) * 100 + (Ord((date+2)^) - 48) * 10 + Ord((date+3)^) - 48;
+      intmon  := (Ord((date+5)^) - 48) * 10 + Ord((date+6)^) - 48;
+      intday  := (Ord((date+8)^) - 48) * 10 + Ord((date+9)^) - 48;
+
+    end;
+
+  else
+    begin
+      result := '';
+      exit;
+    end;
+  end;
+
+  if (intmon = 1) or (intmon = 2) then //1・2月は前年の13・14月
+  begin
+    Dec(intyear);
+    Inc(intmon, 12);
+  end;
+
+  thedayofweek := ( intday + (8 + 13 * intmon) div 5 + intyear
+                 + intyear div 4 - intyear div 100 + intyear div 400 ) mod 7;
+  (* thedayofweek: 0=Sun 1=Mon 2=Tue 3=Wed 4=Thu 5=Fri 6=Sat *)
+
+  result := Main.Config.optDayOfWeekListForThreView.Strings[thedayofweek];
+end;
+
+//aiai
+function TDat2View.ProcDayOfWeek: Boolean;
+var
+  i: integer;
+begin
+  Result := False;
+  if not Main.Config.ojvShowDayOfWeek then
+    exit;
+
+  (* 曜日付きがどうか調べる *)
+  for i := 0 to size do
+  begin
+    if (str + i)^ in [#$8B..#$96] then
+      exit;
+  end;
+
+  (* 年が2桁の場合 *)
+  if (size > 8)  and ((str + 2)^ = '/') and ((str + 8)^ = ' ') then
+  begin
+    WriteText(str, 8);
+    WriteText(CalcDayOfWeek(str, 2) + ' ');
+    Inc(index, 9);
+  (* 年が4桁の場合 *)
+  end else if (size > 10) and ((str + 4)^ = '/') and ((str + 10)^ = ' ') then
+  begin
+    WriteText(str, 10);
+    WriteText(CalcdayOfWeek(str, 4) + ' ');
+    Inc(index, 11);
+  end;
+  Result := True;
+end;
+
+//aiai
+function TDat2View.ProcID: Boolean;
+var
+  index2: Integer;
+begin
+  Result := False;
+  if not Config.ojvIDPopUp then
+    exit;
+  index2 := index;
+  if ((index2 + 3) < size) and ((str + index2 + 1)^ = 'D')
+    and ((str + index2 + 2)^ = ':') and ((str + index2 + 3)^ <> '?')then
+  begin
+    Inc(index2, 3);
+
+    (* IDの末尾を探す *)
+    while index2 < size do
+    begin
+      if ((str + index2)^ in [' ']) then
+        break;
+      Inc(index2);
+    end;
+
+    WriteID(str + index + 3, index2 - index - 3);
+
+    index := index2;
+    Result := True;
+  end;
+end;
+
 procedure TDat2View.AppendResNumList(num: Integer);
 begin
   if (num > 0) and (num < line) then
@@ -1328,18 +1261,6 @@ begin
   FBrowser.nAppend(str, size, FBold or ATTRIB_LINK or user);
   FBrowser.Append(Name, ATTRIB_ANCHOR_NAME or htvHIDDEN);
   FBrowser.Append(Href, ATTRIB_ANCHOR_HREF or htvHIDDEN);
-
-  FBiteSpaces := False;
-end;
-
-
-(* IDポップアップ用 (aiai) *)
-procedure TDat2View.WriteID(ID: PChar; size: integer; line: Integer);
-begin
-  Flush;
-
-  FBrowser.nIDAppend('ID:', 3, FBold or ATTRIB_LINK or htvUSER);
-  FBrowser.nIDHrefAppend(ID, size, line, ATTRIB_ANCHOR_HREF or htvHIDDEN);
 
   FBiteSpaces := False;
 end;
@@ -1481,6 +1402,26 @@ begin
     FStream.WriteChar(c);
 end;
 
+//aiai
+//strはID:を含まない
+procedure TDat2View.WriteID(str: PChar; size: integer);
+var
+  idstring: string;
+begin
+  SetString(idstring, str, size);
+  WriteAnchor('', 'ID:' + idstring, 'ID:', 3);
+  WriteText(str, size);
+
+  if Config.ojvIDLinkColor then
+  begin
+    while FBrowser.IDList.Count > line - 1 do
+      FBrowser.IDList.Delete(line - 1);
+    while FBrowser.IDList.Count < line - 1 do
+      FBrowser.IDList.Append('');
+    FBrowser.IDList.Append(idstring);
+  end;
+end;
+
 procedure TDat2View.WriteUNICODE(str: PChar; size: integer);
 begin
   Flush;
@@ -1499,14 +1440,12 @@ begin
     FBrowser.nAppend(FStream.Memory, FStream.Position, FBold or FAttribute);
   FStream.Position := 0;
   Inc(flushCount);
-  {$IFNDEF IE}
   if (flushCount mod 256) = 0 then
   begin
     Inc(re_entrant);
     Application.ProcessMessages;
     Dec(re_entrant);
   end;
-  {$ENDIF}
 end;
 
 procedure TDat2View.Cancel;
@@ -1527,20 +1466,17 @@ begin
     FStream.WriteChar(c);
 end;
 
-(* WriteAnchorと同じ *)
-procedure TDat2PopupView.WriteID(ID: PChar; size: Integer; line: Integer);
+procedure TDat2PopupView.WriteID(str: PChar; size: integer);
+var
+  idstring: string;
 begin
-  Flush;
-
-  FBrowser.nAppend('ID:', 3, FBold or ATTRIB_LINK or htvUSER);
-  FBrowser.nAppend(ID, size, ATTRIB_ANCHOR_HREF or htvHIDDEN);
-
-  FBiteSpaces := False;
+  SetString(idstring, str, size);
+  WriteAnchor('', 'ID:' + idstring, 'ID:', 3);
+  WriteText(str, size);
 end;
 
 (*=======================================================*)
 
-{$IFNDEF IE}
 procedure TDat2ViewForExtraction.WriteAnchor(const Name: string;
                       const HRef: string;
                       str: PChar; size: integer);
@@ -1573,24 +1509,20 @@ begin
   inherited WriteAnchor(Name,ModifHref,str,size);
 end;
 
-(* WriteAnchorと同じ *)
-procedure TDat2ViewForExtraction.WriteID(ID: PChar; size: Integer; line: Integer);
-begin
-  Flush;
-
-  FBrowser.nAppend('ID:', 3, FBold or ATTRIB_LINK or htvUSER);
-  FBrowser.nAppend(ID, size, ATTRIB_ANCHOR_HREF or htvHIDDEN);
-
-  FBiteSpaces := False;
-end;
-
 procedure TDat2ViewForExtraction.Flush;
 begin
   FBrowser.Invalidate;
   inherited;
 end;
 
-{$ENDIF}
+procedure TDat2ViewForExtraction.WriteID(str: PChar; size: integer);
+var
+  idstring: string;
+begin
+  SetString(idstring, str, size);
+  WriteAnchor('', 'ID:' + idstring, 'ID:', 3);
+  WriteText(str, size);
+end;
 
 (*=======================================================*)
 
@@ -1687,6 +1619,12 @@ begin
   inherited;
 end;
 
+procedure TSimpleDat2View.WriteID(str: PChar; size: integer);
+begin
+  WriteAnchor('', '', 'ID:', 3);
+  WriteText(str, size);
+end;
+
 (*=======================================================*)
 
 {aiai}//とりあえずプレビュー用Dat2View
@@ -1722,14 +1660,45 @@ begin
   FBiteSpaces := False;
 end;
 
-//IDポップアップしない
-procedure TDat2PreViewView.WriteID(ID: PChar; size :integer; line: integer);
+procedure TDat2PreViewView.WriteID(str: PChar; size: integer);
 begin
-  Flush;
+  WriteAnchor('', '', 'ID:', 3);
+  WriteText(str, size);
+end;
 
-  FBrowser.Append('ID:', FBold or ATTRIB_LINK);
 
-  FBiteSpaces := False;
+ { TStrDatOutForHint }
+
+// TDatOut.ProcDayOfWeekと同じ
+function TStrDatOutForHint.ProcDayOfWeek: Boolean;
+var
+  i: integer;
+begin
+  Result := False;
+  if not Main.Config.ojvShowDayOfWeek then
+    exit;
+
+  (* 曜日付きがどうか調べる *)
+  for i := 0 to size do
+  begin
+    if (str + i)^ in [#$8B..#$96] then
+      exit;
+  end;
+
+  (* 年が2桁の場合 *)
+  if (size > 8)  and ((str + 2)^ = '/') and ((str + 8)^ = ' ') then
+  begin
+    WriteText(str, 8);
+    WriteText(CalcDayOfWeek(str, 2) + ' ');
+    Inc(index, 9);
+  (* 年が4桁の場合 *)
+  end else if (size > 10) and ((str + 4)^ = '/') and ((str + 10)^ = ' ') then
+  begin
+    WriteText(str, 10);
+    WriteText(CalcdayOfWeek(str, 4) + ' ');
+    Inc(index, 11);
+  end;
+  Result := True;
 end;
 
 {/aiai}
@@ -1850,17 +1819,6 @@ begin
   end;
 end;
 
-(* IDポップアップ用 (aiai) *)
-procedure TIndexTree.WriteID(ID: PChar; size: integer; line: Integer);
-begin
-{  Flush;
-
-  FBrowser.nIDAppend('ID:', 3, FBold or ATTRIB_LINK or htvUSER);
-  FBrowser.nIDHrefAppend(ID, size, line, ATTRIB_ANCHOR_HREF or htvHIDDEN);
-
-  FBiteSpaces := False;}
-end;
-
 //ツリーをレス形式で出力
 function TIndexTree.TreeDatOut(Dest: TDatOut;
                                Index: Integer = -1;
@@ -1908,7 +1866,7 @@ var
   i: Integer;
 begin
 
-  D2HTMLForTree := TDat2HTML.Create(DEF_TREE_HTML);
+  D2HTMLForTree := TDat2HTML.Create(DEF_TREE_HTML, Config.SkinPath);
   D2HTMLForTree.NGItems := D2HTML.NGItems;
   D2HTMLForTree.AboneLevel := D2HTML.AboneLevel;
   D2HTMLForTree.TransparencyAbone := D2HTML.TransparencyAbone;
@@ -2214,17 +2172,16 @@ end;
 function TBaseViewItem._ExtractID(thread: TThreadItem; dest: TDatOut;
   target:string; Max: Integer; IncludeRef: Boolean = false): Integer;
   procedure ShowTitle(ID: String; Count: Integer);
-  var
+  {var
     pid: PChar;
-    size: integer;
+    size: integer;}
   begin
-    //dest.WriteHTML('抽出' + ID + ' (' + IntToStr(Count) + '回)<br><br>');
-    pid := PChar(ID);
+    dest.WriteHTML('抽出 ID:' + ID + ' (' + IntToStr(Count) + '回)<br><br>');
+    {pid := PChar(ID);
     size := Length(ID);
     dest.WriteText('抽出');
-    dest.WriteID(pid, size, 129);
-    dest.WriteText(pid + 3, size - 3);
-    dest.WriteHTML(' (' + IntToStr(Count) + '回)<br><br>');
+    dest.WriteText(pid, size);
+    dest.WriteHTML(' (' + IntToStr(Count) + '回)<br><br>');}
   end;
 
   function GetThreadMaxNum: integer;
@@ -2240,14 +2197,19 @@ var
   i: Integer;
   list: array of integer;
   dup: TThreadData;
+  s: string;
 begin
+  Result := 0;
+  if (Length(target) <= 0) or (thread = nil) or (thread.dat = nil) then
+    exit;
   dup := thread.DupData;
   SetLength(list, GetThreadMaxNum);
   try
     Result := 0;
     for i := 1 to thread.lines do
     begin
-      if dup.MatchID(thread.idlist, i, target) then
+      s := SEARCHD2HTML.ToID(dup, i);
+      if StrComp(PChar(s), PChar(target)) = 0 then
       begin
         list[result] := i;
         Inc(result);
@@ -2371,48 +2333,16 @@ end;
 { TPlainViewItem }
 
 
-{$IFDEF IE}
-constructor TPlainViewItem.Create;
-begin
-  inherited;
-  FEvent := nil;
-end;
-
-destructor TPlainViewItem.Destroy;
-begin
-  FEvent.Free;
-  inherited;
-end;
-{$ENDIF}
-
 
 function TPlainViewItem.GetSelection: String;
-{$IFDEF IE}
-var
-  textRange: OleVariant;
-begin
-  if Assigned(browser) then
-  begin
-    textRange := OleVariant(browser.Document as IHTMLDocument2).selection;
-    textRange := textRange.createRange();
-    Result := textRange.text;
-  end else
-    Result := '';
-end;
-{$ELSE}
 begin
   if Assigned(browser) then
     Result := browser.Selection
   else
     Result := '';
 end;
-{$ENDIF}
 
-{$IFDEF IE}
-procedure TPlainViewItem.SetBrowser(value: TWebBrowser);
-{$ELSE}
 procedure TPlainViewItem.SetBrowser(value: THogeTextView);
-{$ENDIF}
 begin
   if Assigned(FBrowser) then
     FBrowser.Tag := 0;
@@ -2532,63 +2462,6 @@ end;
 
 (* このルーチンは怪しい *)
 function TViewItem.GetTopRes: integer; // 521 SaveViewPosから独立
-{$IFDEF IE}
-var
-  anchors: OleVariant;
-  top, i, len: integer;
-
-  function GetItemTop(item: OleVariant): integer;
-  begin
-    result := 0;
-    try
-      repeat
-        result := result + item.offsetTop;
-        item := item.offsetParent;
-      until  AnsiCompareText(item.tagName, 'body') = 0;
-    except
-    end;
-  end;
-
-  function search(base, size: integer): integer;
-  var
-    off: integer;
-//    anchorTop: integer;
-//    item: OleVariant;
-  begin
-    if size <= 1 then
-    begin
-      result := base;
-      exit;
-    end;
-    off := size div 2;
-    if top < GetItemTop(anchors.item(IntToStr(base + off))) then
-      result := search(base, off)
-    else
-      result := search(base + off, size - off);
-  end;
-
-begin
-  result := 0;
-  try
-    top := olevariant(IHTMLDocument2(browser.Document)).body.scrollTop;
-    anchors := OleVariant(browser.Document as IHTMLDocument2).anchors;
-    //len := anchors.length;
-    len := FThread.lines;
-    i := search(0, len) -1;
-    if i < 0 then i := 0;
-    while i < len do
-    begin
-      result := i;
-      inc(i);
-      if (top <= GetItemTop(anchors.item(IntToStr(i)))) then
-        break;
-    end;
-    //if 0 < result then
-    //  inc(result, FThread.lines - len); // 521 苦し紛れ
-  except
-  end;
-end;
-{$ELSE}
 var
   i, line: Integer;
   startPos, size: integer;
@@ -2623,19 +2496,9 @@ begin
   if result < 0 then
     result := 0;
 end;
-{$ENDIF}
 
 (*  *)
 procedure TViewItem.SaveViewPos;
-{$IFDEF IE}
-begin
-  if Assigned(thread) and Assigned(browser) and Assigned(browser.Document) then
-  begin
-    thread.SetViewPos(GetTopRes);
-    thread.SaveIndexData;
-  end;
-end;
-{$ELSE}
 begin
   if Assigned(thread) and Assigned(browser) then
   begin
@@ -2643,7 +2506,6 @@ begin
     thread.SaveIndexData;
   end;
 end;
-{$ENDIF}
 
 
 function TViewItem.GetBaseThread: TThreadItem;
@@ -2682,9 +2544,6 @@ function TViewItem.Drain: boolean;
       result := true;
     end
     else begin
-      {$IFDEF IE}
-      FreeStream;
-      {$ENDIF}
       FreeThread;
       if assigned(browser) then
       begin
@@ -2747,11 +2606,6 @@ procedure TViewItem.NewRequest(thread: TThreadItem; oprType: TGestureOprType;
   end;
 
   procedure DeleteNewRes;
-  {$IFDEF IE}
-  begin
-    ClearBrowser;
-  end;
-  {$ELSE}
   var
     s: string;
     line, len: integer;
@@ -2790,7 +2644,6 @@ procedure TViewItem.NewRequest(thread: TThreadItem; oprType: TGestureOprType;
     currentStartLine := 1;
     ClearBrowser;
   end;
-  {$ENDIF}
 
   function CalcDrawStartline: integer;
   begin
@@ -2883,12 +2736,7 @@ begin
     if (checkNew {aiai}or (oprType = gotLocal){/aiai})
             and redraw and (FThread.lines > FThread.oldLines) then
     begin
-      FBrowser.BeginUpdate; //aiai
-      {$IFDEF IE}
-      currentStartLine := 1;
-      {$ELSE}
       currentStartLine := FThread.oldLines +1;
-      {$ENDIF}
       if FNavigateToViewPos then
       begin
         FThread.oldLines := FThread.lines;
@@ -2899,11 +2747,7 @@ begin
 
       if currentStartLine = 1 then
       begin
-        {$IFDEF IE}
-        FNaviStat := tpsProgress;
-        {$ELSE}
         FNaviStat := tpsDone;
-        {$ENDIF}
         FPreStat := tpsProgress;
       end
       else begin
@@ -2920,11 +2764,7 @@ begin
       else
         FPreStat := tpsDone;
     end;
-    {$IFDEF IE}
-    FStream := TWebOutBufferStream.Create(FBrowser);
-    {$ELSE}
     FStream := TDat2View.Create(FBrowser);
-    {$ENDIF}
   end
   else begin
     currentStartLine := 1;
@@ -2938,22 +2778,13 @@ begin
     thread.anchorLine := thread.oldLines;
 
     FPreStat := tpsProgress;
-    {$IFDEF IE}
-    FStream := TWebOutBufferStream.Create(FBrowser);
-    {$ELSE}
     FStream := TDat2View.Create(FBrowser);
-    {$ENDIF}
 
     (* 画面クリア *)
-    {$IFDEF IE}
-    FNaviStat := tpsProgress;
-    {$ELSE}
     //FNaviStat := tpsDone;
     FNaviStat := tpsProgress;
     //OnNavigateDone;
     daemon.Post(OnNavigateDone);
-    {$ENDIF}
-    FBrowser.BeginUpdate; //aiai
     ClearBrowser;
     SetLength(backStack, 0);
     SetLength(forwordStack, 0);
@@ -3099,9 +2930,7 @@ begin
           Inc(currentStartLine, lines);
       end;
       FThread.ChkConsistency;
-      {$IFNDEF IE}
       FBrowser.Invalidate;
-      {$ENDIF}
       FStream.Flush;
       if not FNavigateToViewPos and Config.oprScrollToNewRes and (pumpCount = 0) then
         ScrollToNewRes;
@@ -3123,9 +2952,7 @@ procedure TViewItem.DoWorking;
     FPreStat := tpsWorking;
     ZoomBrowser(Config.viewZoomSize);
 
-    {$IFNDEF IE}
     FStream.EnableFontTag := true;
-    {$ENDIF}
     if (FThread.board <> nil) and
        (0 < length(TBoard(FThread.board).customHeader)) then
     begin
@@ -3134,9 +2961,7 @@ procedure TViewItem.DoWorking;
     end
     else
       WriteSkin(@HeaderHTML[1], length(HeaderHTML));
-    {$IFNDEF IE}
     FStream.EnableFontTag := false;
-    {$ENDIF}
     FPreStat := tpsReady;
     FStream.Flush;
   end;
@@ -3230,7 +3055,6 @@ procedure TViewItem.DoWorking;
        Assigned(FThread) and (FThread.oldLines <= FThread.viewPos) then
       SetViewPos;
 
-    FBrowser.EndUpdate; //aiai
     FBrowser.Invalidate;
     FProgress := tpsNone;
     FNaviStat:= tpsNone;
@@ -3292,48 +3116,19 @@ end;
 
 (* スレ内容表示位置の設定 *)
 function TViewItem.SetViewPos: boolean;
-{$IFDEF IE}
-var
-  doc: IDispatch;
-begin
-  result := false;
-  //if not Config.oprScrollToPreviousRes then
-  //  exit;
-  doc := FBrowser.Document;
-  if assigned(doc) then
-  begin
-    result := ScrollToAnchor(FThread.viewPos, true, false);
-  end;
-end;
-{$ELSE}
 begin
   //result := false;
   //if not Config.oprScrollToPreviousRes then
   //  exit;
   result := ScrollToAnchor(FThread.viewPos, true, false);
 end;
-{$ENDIF}
 
 (* 文字の大きさ変更 *)
 procedure TViewItem.ZoomBrowser(zoom: integer);
-{$IFDEF IE}
-var
-  size, res: OleVariant;
-begin
-  if browser.Document = nil then
-    exit;
-  size := zoom;
-  try
-    browser.ExecWB(OLECMDID_ZOOM , OLECMDEXECOPT_DONTPROMPTUSER, size, res);
-  except
-  end;
-end;
-{$ELSE}
 begin
   FBrowser.ExternalLeading := ZoomToExternalLeading(Config.viewZoomSize);
   FBrowser.SetFont(FBrowser.Font.Name, ZoomToPoint(Config.viewZoomSize));
 end;
-{$ENDIF}
 
 (* 新着へスクロール *)
 function TViewItem.ScrollToNewRes: boolean;
@@ -3342,7 +3137,6 @@ begin
   if FThread = nil then
     exit;
   result := ScrollToAnchor(FThread.anchorLine, Config.oprScrollTop, false);
-  {$IFNDEF IE}
   if not result then
   begin
     FBrowser.EndOfBuffer;
@@ -3350,68 +3144,10 @@ begin
     SetLength(backStack, length(backStack) +1);
     backStack[length(backStack) -1] := FBrowser.LogicalTopLine;
   end;
-  {$ENDIF}
 end;
 
 (* アンカーへのスクロール *)
 function TViewItem.ScrollToAnchor(num: integer; isTop: boolean; redraw: boolean): boolean;
-{$IFDEF IE}
-var
-  doc: IDispatch;
-  item: OleVariant;
-  top: integer;
-  thread: TThreadItem;
-  //len: integer;
-  //anchor: string;
-begin
-  result := false;
-  if FThread = nil then
-    exit;
-  doc := browser.Document;
-  if doc = nil then
-    exit;
-  if FThread.lines -1 < num then
-    num := FThread.lines -1;
-  //※[457]
-//  if Config.viewTransparencyAbone then
-  num := FThread.ABoneArray.GetNearNotAboneResNumber(num+1) - 1;
-  if num < 0 then
-    exit;
-
-  if (num + 1 < drawStartLine) and (num <> 0) and redraw then
-  begin
-    thread := FThread;
-    FThread.CancelAsyncRead;
-    FreeThread(false);
-    NewRequest(thread, gotLOCAL, num, false, false);
-    result := true;
-    exit;
-  end;
-
-  try
-    (* 位置を計算する。補正項は何とかしたい *)
-    {len := OleVariant(doc as IHTMLDocument2).anchors.length;
-    if num < len then
-    begin}
-      (*OleVariant(doc as IHTMLDocument2).anchors.item(num).scrollIntoView(true);*)
-      SetLength(forwordStack, 0);
-      SetLength(backStack, length(backStack) +1);
-      backStack[length(backStack) -1] := OleVariant(doc as IHTMLDocument2).body.scrollTop;
-      top := 0;
-      item := OleVariant(doc as IHTMLDocument2).anchors.item(IntToStr(num + 1));
-      repeat
-        top := top + item.offsetTop;
-        item := item.offsetParent;
-      until  AnsiCompareText(item.tagName, 'body') = 0;
-      if not isTop then
-        Dec(top, browser.Height - 40);
-      OleVariant(doc as IHTMLDocument2).body.scrollTop := top - 10;
-      result := true;
-    //end;
-  except
-  end;
-end;
-{$ELSE}
 var
   s: string;
   line, len: integer;
@@ -3475,25 +3211,8 @@ begin
   end else
     result := false;
 end;
-{$ENDIF}
 
 procedure TViewItem.GoBack;
-{$IFDEF IE}
-var
-  doc: IDispatch;
-begin
-  doc := FBrowser.Document;
-  if doc = nil then
-    exit;
-  if length(backStack) > 0 then
-  begin
-    SetLength(forwordStack, length(forwordStack) +1);
-    forwordStack[length(forwordStack) -1] := OleVariant(doc as IHTMLDocument2).body.scrollTop;
-    OleVariant(doc as IHTMLDocument2).body.scrollTop := backStack[length(backStack) -1];
-    SetLength(backStack, length(backStack) -1);
-  end;
-end;
-{$ELSE}
 begin
   if length(backStack) > 0 then
   begin
@@ -3504,7 +3223,6 @@ begin
     SetLength(backStack, length(backStack) -1);
   end;
 end;
-{$ENDIF}
 
 function TViewItem.CanGoBack: boolean;
 begin
@@ -3512,22 +3230,6 @@ begin
 end;
 
 procedure TViewItem.GoForword;
-{$IFDEF IE}
-var
-  doc: IDispatch;
-begin
-  doc := FBrowser.Document;
-  if doc = nil then
-    exit;
-  if length(forwordStack) > 0 then
-  begin
-    SetLength(backStack, length(backStack) +1);
-    backStack[length(backStack) -1] := OleVariant(doc as IHTMLDocument2).body.scrollTop;
-    OleVariant(doc as IHTMLDocument2).body.scrollTop := forwordStack[length(forwordStack) -1];
-    SetLength(forwordStack, length(forwordStack) -1);
-  end;
-end;
-{$ELSE}
 begin
   if length(forwordStack) > 0 then
   begin
@@ -3538,7 +3240,6 @@ begin
     SetLength(forwordStack, length(forwordStack) -1);
   end;
 end;
-{$ENDIF}
 
 function TViewItem.CanGoForword: boolean;
 begin
@@ -3562,14 +3263,10 @@ end;
 procedure TViewItem.ExtractKeyword(const target:string; ExThread:TThreadItem; RegExpMode: Boolean; IncludeRef: Boolean);
 var
   count: Integer;
-  {$IFDEF IE}
-  ExtStream :TWebOutBufferStreamForExtraction;
-  {$ELSE}
   ExtStream :TDat2ViewForExtraction;
-  {$ENDIF}
   RegExp: TRegExpr;
-  //baseViewItem: TViewItem;
-  //baseBrowser: THogeTextView;
+  baseViewItem: TViewItem;
+  baseBrowser: THogeTextView;
 begin
   if ExThread = nil then
     exit;
@@ -3579,40 +3276,23 @@ begin
   ExThread.AddRef;
   ExThread.CancelAsyncRead;
 
-  {$IFDEF IE}
-  if browser.Document = nil then
-  begin
-    FProgress := tpsWorking;
-    ClearBrowser;
-    while browser.Document = nil do
-    begin
-      if MessageLoop then
-        exit;
-    end;
-  end;
-  {$ELSE}
   ClearBrowser;
-  {$ENDIF}
   ZoomBrowser(Config.viewZoomSize);
 
-  //if Config.ojvIDLinkColor then
-  //begin
-  // baseViewItem := viewList.FindViewItem(ExThread);
-  //  if baseViewItem <> nil then
-  //  begin
-  //    baseBrowser := baseViewItem.browser;
-  //    FBrowser.IDLinkColor := True;
-  //    FBrowser.IDLinkColorNone := baseBrowser.IDLinkColorNone;
-  //    FBrowser.IDLinkColorMany := baseBrowser.IDLinkColorMany;
-  //    FBrowser.IDListArray := baseBrowser.IDListArray;
-  //  end;
-  //end;
+  if Config.ojvIDLinkColor then
+  begin
+   baseViewItem := viewList.FindViewItem(ExThread);
+    if baseViewItem <> nil then
+    begin
+      baseBrowser := baseViewItem.browser;
+      FBrowser.IDLinkColor := True;
+      FBrowser.IDLinkColorNone := baseBrowser.IDLinkColorNone;
+      FBrowser.IDLinkColorMany := baseBrowser.IDLinkColorMany;
+      FBrowser.IDList.Assign(baseBrowser.IDList);
+    end;
+  end;
 
-  {$IFDEF IE}
-  ExtStream := TWebOutBufferStreamForExtraction.Create(FBrowser);
-  {$ELSE}
   ExtStream := TDat2ViewForExtraction.Create(FBrowser);
-  {$ENDIF}
   FStream := ExtStream;
 
   ExtStream.Base:= ExThread.ToURL;
@@ -3621,9 +3301,7 @@ begin
   if AnsiPos(#13,ExtStream.Base)>0 then
     ExtStream.Base := copy(ExtStream.Base, 1, AnsiPos(#13, ExtStream.Base) - 1);
 
-  {$IFNDEF IE}
   ExtStream.EnableFontTag := true;
-  {$ENDIF}
   if (ExThread.board <> nil) and
      (0 < length(TBoard(ExThread.board).customHeader)) then
   begin
@@ -3634,9 +3312,7 @@ begin
   else
     //ExtStream.WriteHTML(@HeaderHTML[1], length(HeaderHTML));
     WriteSkin(@HeaderHTML[1], length(HeaderHTML), ExThread);
-  {$IFNDEF IE}
   ExtStream.EnableFontTag := false;
-  {$ENDIF}
 
   ExtStream.WriteHTML('【レス抽出】<br>対象スレ： ');
   ExtStream.WriteAnchor('',ExtStream.Base,pchar(ExThread.title), length(ExThread.title));
@@ -3676,10 +3352,8 @@ begin
   ExtStream.Free;
   RegExp.Free;
   FStream := nil;
-  {$IFNDEF IE}
   FBrowser.SetTop(0);
   FBrowser.SetPhysicalCaret(0,0);
-  {$ENDIF}
 
   FProgress := tpsNone;
 end;
@@ -3689,12 +3363,7 @@ var
   count: Integer;
   Mask: TBits;
   Tree: TIndexTree;
-  {$IFDEF IE}
-  ExtStream :TWebOutBufferStreamForExtraction;
-  Dummy: OleVariant;
-  {$ELSE}
   ExtStream :TDat2ViewForExtraction;
-  {$ENDIF}
 begin
   if ExThread = nil then
     exit;
@@ -3710,39 +3379,19 @@ begin
   end;
   ExThread.AddRef;
 
-  {$IFDEF IE}
-  if browser.Document = nil then
-  begin
-    FProgress := tpsWorking;
-    ClearBrowser;
-    while browser.Document = nil do
-    begin
-      if MessageLoop then
-        exit;
-    end;
-  end;
-  browser.OnDocumentComplete(browser, nil, dummy);
-  {$ELSE}
   ClearBrowser;
-  {$ENDIF}
 
   ZoomBrowser(Config.viewZoomSize);
 
 
-  {$IFDEF IE}
-  ExtStream := TWebOutBufferStreamForExtraction.Create(FBrowser);
-  {$ELSE}
   ExtStream := TDat2ViewForExtraction.Create(FBrowser);
-  {$ENDIF}
 
   ExtStream.Base:= ExThread.ToURL;
 
   if AnsiPos(#13,ExtStream.Base)>0 then
     ExtStream.Base:=copy(ExtStream.Base, 1, AnsiPos(#13, ExtStream.Base) - 1);
 
-  {$IFNDEF IE}
   ExtStream.EnableFontTag := true;
-  {$ENDIF}
   if (ExThread.board <> nil) and
      (0 < length(TBoard(ExThread.board).customHeader)) then
   begin
@@ -3751,9 +3400,7 @@ begin
     end
   else
     ExtStream.WriteHTML(@HeaderHTML[1], length(HeaderHTML));
-  {$IFNDEF IE}
   ExtStream.EnableFontTag := false;
-  {$ENDIF}
 
   ExtStream.Flush;
 
@@ -3785,10 +3432,8 @@ begin
   ExtStream.flush;
   ExtStream.Free;
 
-  {$IFNDEF IE}
   FBrowser.SetTop(0);
   FBrowser.SetPhysicalCaret(0,0);
-  {$ENDIF}
 
   FProgress := tpsNone;
 
@@ -3801,11 +3446,7 @@ procedure TViewItem.Grep(const target: string; targetBoardList: TList; RegExpMod
                const popupmaxseq: Integer = 5; const popupeachthremax: Integer = 10);
 var
   thread: TThreadItem;
-  {$IFNDEF IE}
   tvc: TSimpleDat2View;
-  {$ELSE}            //beginner
-  dummy: OleVariant; //beginner
-  {$ENDIF}
 
   procedure ShowEntry(const additional: string = ''; first: boolean = false);
   var
@@ -3820,24 +3461,6 @@ var
     else
       brd := board.name;
     {beginner}
-    {$IFDEF IE}
-    if ShowDirect then
-      OleVariant(browser.Document as IHTMLDocument2).write(
-                 '</dl><br><br><b>=================================================<br>'#13#10)
-    else
-      OleVariant(browser.Document as IHTMLDocument2).write('<li>');
-    OleVariant(browser.Document as IHTMLDocument2).write(
-               category.name + ' ['+ brd + ']' + additional
-               + '  '
-               + '<a href="' + thread.ToURL(false, false) + '">'
-               + thread.title + '</a>'
-              );
-    if ShowDirect then
-      OleVariant(browser.Document as IHTMLDocument2).write(
-                 '<br>=================================================</b><br><br>'#13#10'<dl>')
-    else
-      OleVariant(browser.Document as IHTMLDocument2).write('</li>'#10);
-    {$ELSE}
     if ShowDirect then
       tvc.WriteHTML('</dl><br><br><b>=================================================<br>'#13#10);
     tvc.WriteHTML(
@@ -3848,24 +3471,16 @@ var
               );
     if ShowDirect then
       tvc.WriteHTML('=================================================</b><br><br>'#13#10'<dl>');
-    {$ENDIF}
     {/beginner}
   end;
 
   //※[457]
   procedure ShowPopUpEntry(const numberstr: string);
   begin
-    {$IFDEF IE}
-    OleVariant(browser.Document as IHTMLDocument2).write(
-               '<a href="' + thread.ToURL(false, false, numberstr) + '">'
-               + numberstr + '</a> '#10
-              );
-    {$ELSE}
     tvc.WriteHTML(
                '<a href="' + thread.ToURL(false, false, numberstr) + '">'
                + numberstr + '</a> '
               );
-    {$ENDIF}
   end;
 var
   index: integer;
@@ -3884,11 +3499,7 @@ var
   tmpDat: TThreadData;
   {beginner}
   EntryFlag: Boolean;
-  {$IFDEF IE}
-  ExtStream :TWebOutBufferStreamForExtraction;
-  {$ELSE}
   ExtStream :TDat2ViewForExtraction;
-  {$ENDIF}
   RegExp: TRegExpr;
   TickCount: Cardinal;
   {/beginner}
@@ -3923,41 +3534,6 @@ begin
 
   ClearBrowser; //beginner
 
-  {$IFDEF IE}
-  if browser.Document = nil then
-  begin
-    FProgress := tpsWorking;
-    ClearBrowser;
-    while browser.Document = nil do
-    begin
-      if MessageLoop then
-        exit;
-    end;
-  end;
-  browser.OnDocumentComplete(browser, nil, Dummy);
-  ZoomBrowser(Config.viewZoomSize);
-
-  {beginner}
-  if ShowDirect then begin
-    ExtStream := TWebOutBufferStreamForExtraction.Create(FBrowser);
-    ExtStream.WriteHTML(@HeaderHTML[1], length(HeaderHTML));
-  end else begin
-    ExtStream := nil;
-  end;
-  if hasTarget then begin
-    if ShowDirect then
-      OleVariant(browser.Document as IHTMLDocument2).write(
-                 '<html><body><p>【'+ tgt +'】の検索</p>'#10)
-    else
-      OleVariant(browser.Document as IHTMLDocument2).write(
-                 '<html><body><p>【'+ tgt +'】の検索</p><ul>'#10);
-    if RegExpMode and (RegExp = nil) then
-      OleVariant(browser.Document as IHTMLDocument2).write('キーワードは有効な正規表現ではありません');
-  end else
-    OleVariant(browser.Document as IHTMLDocument2).write(
-               '<html><body><p>【取得済みログ一覧】</p><ul>'#10);
-  {/beginner}
-  {$ELSE}
   ZoomBrowser(Config.viewZoomSize);
 
   tvc := TSimpleDat2View.Create(FBrowser);
@@ -3977,7 +3553,6 @@ begin
   end else
   {/beginner}
     tvc.WriteHTML('<html><body><p>【取得済みログ一覧】</p><ul>'#10);
-  {$ENDIF}
 
   for i := 0 to targetBoardList.Count -1 do
   begin
@@ -3988,27 +3563,11 @@ begin
     MainWnd.WriteStatus(board.name);
     if MessageLoop then
     begin
-      {$IFNDEF IE}
       tvc.Free;
-      {$ENDIF}
       exit;
     end;
     if hasTarget and ((Assigned(RegExp) and RegExp.Exec(board.name)) or (0 < FindPosIC(tgt, board.name, 1))) then //beginner
     begin
-      {$IFDEF IE}
-      if ShowDirect then
-        OleVariant(browser.Document as IHTMLDocument2).write('<b>')
-      else
-        OleVariant(browser.Document as IHTMLDocument2).write('<li>');
-      OleVariant(browser.Document as IHTMLDocument2).write(
-        category.name + ' [' + '<a href="http://' + board.host + '/'+ board.bbs + '/"> '
-        + board.name + '</a>]'
-      );
-      if Assigned(RegExp) then
-        OleVariant(browser.Document as IHTMLDocument2).write('</b>')
-      else
-        OleVariant(browser.Document as IHTMLDocument2).write('</li>'#10);
-      {$ELSE}
       if ShowDirect then
         tvc.WriteHTML('<b>');
       tvc.WriteHTML(
@@ -4018,7 +3577,6 @@ begin
       );
       if Assigned(RegExp) then
         tvc.WriteHTML('</b>');
-      {$ENDIF}
       Inc(totalCount);
     end;
     countInBoard := 0;
@@ -4105,11 +3663,7 @@ begin
                   end;
                   if popupcountthread >= popupeachthremax then
                   begin
-                    {$IFDEF IE}
-                    OleVariant(browser.Document as IHTMLDocument2).write('(以下略)');
-                    {$ELSE}
                     tvc.WriteHTML('(以下略)');
-                    {$ENDIF}
                     popupbreak := true;
                     break;
                   end;
@@ -4126,11 +3680,7 @@ begin
 
                 if popupcountthread > 0 then
                 begin
-                  {$IFDEF IE}
-                  OleVariant(browser.Document as IHTMLDocument2).write('<BR>'#10);
-                  {$ELSE}
                   tvc.WriteHTML('<BR>');
-                  {$ENDIF}
                 end;
               end;
 
@@ -4148,27 +3698,16 @@ begin
           if writepopup then
           begin
             ShowPopUpEntry('1-' + IntToStr(Min(popupmaxseq, thread.lines)));
-            {$IFDEF IE}
-            OleVariant(browser.Document as IHTMLDocument2).write('<BR>'#10);
-            {$ELSE}
             tvc.WriteHTML('<BR>');
-            {$ENDIF}
           end;
         end;
       end;
     end;
     board.Release;
   end;
-  {$IFDEF IE}
-  OleVariant(browser.Document as IHTMLDocument2).write(
-        '</ul><br><p>【' + IntToStr(totalCount) + ' 件見つかりました】(検索時間:' + IntToStr((GetTickCount - TickCount) div 1000) + '秒)</p>');
-  {$ELSE}
   tvc.WriteHTML(
         '</ul><br><p>【' + IntToStr(totalCount) + ' 件見つかりました】(検索時間:' + IntToStr((GetTickCount - TickCount) div 1000) + '秒)</p>');
-  {$ENDIF}
-  {$IFNDEF IE}
   tvc.Free;
-  {$ENDIF}
   {beginner}
   ExtStream.Free;
   RegExp.Free;
@@ -4221,45 +3760,6 @@ begin
 end;
 
 procedure TViewItem.About;
-{$IFDEF IE}
-var
-  index: integer;
-  doc: OleVariant;
-begin
-  index := viewList.IndexOf(self);
-  MainWnd.TabControl.Tabs.Strings[index] := 'ABOUT';
-  SetWindowText(FBrowser.Handle, 'ABOUT');  //aiai
-  if browser.Document = nil then
-  begin
-    FProgress := tpsWorking;
-    ClearBrowser;
-    //browser.Navigate('about:blank');
-    while browser.Document = nil do
-    begin
-      if MessageLoop then
-        exit;
-    end;
-  end;
-  doc := OleVariant(browser.Document as IHTMLDocument2);
-  doc.write('<html><head><META http-equiv="Content-Type" content="text/html; charset=Shift_JIS">'#10 +
-            '<style type="text/css"><!--'#10 +
-            'li { font-family:Verdana }'#10 +
-            'p { font-family:Verdana }'#10 +
-            '--></style></head>'#10 +
-            '<body><H1><a href="' + Main.DISTRIBUTORS_SITE + '">' + Main.JANE2CH + '</a></H1>'#10);
-            {  + '(<a href="http://www.geocities.co.jp/SiliconValley-Cupertino/2486/">' + TESTVER + '</a>)'
-              + '(<a href="http://tokyo.cool.ne.jp/ymf754/">' + SYRUPTESTVER + '</a>)</H1>'#10);}
-  doc.write('<p>Powered by <a href="http://www.monazilla.org/">Monazilla Project</a>.</p>'#10);
-  doc.write('<hr>'#10'<ul>'#10);
-  for index := 0 to length(Main.Copyrights) -1 do
-  begin
-    doc.write('<li>' + AnsiReplaceText(Main.Copyrights[index], '(c)', '&copy;') + '</li>'#10);
-  end;
-  doc.write('</ul>'#10'<hr>'#10);
-  doc.write('</body></html>');
-  ZoomBrowser(Config.viewZoomSize);
-end;
-{$ELSE}
 var
   stv: TSimpleDat2View;
   i: Integer;
@@ -4289,34 +3789,9 @@ begin
   end;
   stv.Free;
 end;
-{$ENDIF}
 
 //rika
 procedure TViewItem.Viewidx(idxhtml: string;title: string);
-{$IFDEF IE}
-var
-  index: integer;
-  doc: OleVariant;
-begin
-  index := viewList.IndexOf(self);
-  MainWnd.TabControl.Tabs.Strings[index] := title;
-  SetWindowText(FBrowser.Handle, PChar(title));  //aiai
-  if browser.Document = nil then
-  begin
-    FProgress := tpsWorking;
-    ClearBrowser;
-    //browser.Navigate('about:blank');
-    while browser.Document = nil do
-    begin
-      if MessageLoop then
-        exit;
-    end;
-  end;
-  doc := OleVariant(browser.Document as IHTMLDocument2);
-  doc.write(idxhtml);
-  ZoomBrowser(Config.viewZoomSize);
-end;
-{$ELSE}
 var
   stv: TSimpleDat2View;
   i: Integer;
@@ -4334,23 +3809,11 @@ begin
   end;
   stv.Free;
 end;
-{$ENDIF}
 
 procedure TViewItem.ClearBrowser;
-{$IFDEF IE}
-var
-  URL: OleVariant;
-  flag: OleVariant;
-begin
-  URL := 'about:blank';
-  flag := $0E;
-  FBrowser.Navigate2(URL, flag);
-end;
-{$ELSE}
 begin
   FBrowser.Clear;
 end;
-{$ENDIF}
 
 procedure TViewItem.WriteSkin(str: PChar; size: integer; thread: TThreadItem = nil);
 var
@@ -4512,11 +3975,7 @@ end;
 
 
 (* 新規ビュー生成 *)
-{$IFDEF IE}
-function TViewList.NewView(browser: TWebBrowser; index: integer = -1): TViewItem;
-{$ELSE}
 function TViewList.NewView(browser: THogeTextView; index: integer = -1): TViewItem;
-{$ENDIF}
 var
   viewItem: TViewItem;
 begin
@@ -4996,6 +4455,7 @@ var
   Rect: TRect;
   Monitor: TMonitor;
   MonitorRect: TRect;
+  X, Y, yoffset1, yoffset2: Integer;  //aiai
 begin
   Monitor := Screen.MonitorFromPoint(Point);
   if Assigned(Monitor) then
@@ -5003,16 +4463,33 @@ begin
   else
     MonitorRect := Screen.WorkAreaRect;
 
-  Rect := FBrowser.CalcAdjstableSize(MonitorRect.Bottom - MonitorRect.Top,
-    MonitorRect.Right - MonitorRect.Left);
-  AdjustToTextViewLine(Point, Rect);
+  {aiai}
+  if Config.optPopupSizeContrainX > 0 then
+    X := Config.optPopupSizeContrainX
+  else
+    X := MonitorRect.Right - MonitorRect.Left;
+  if Config.optPopupSizeContrainY > 0 then
+    Y := Config.optPopupSizeContrainY
+  else
+    Y := MonitorRect.Bottom - MonitorRect.Top;
+  Rect := FBrowser.CalcAdjstableSize(Y, X);
+  AdjustToTextViewLine(Point, Rect, yoffset1, yoffset2);
+  {/aiai}
   Dec(Point.X, 32);
   if Point.X < MonitorRect.Left then
     Point.X := MonitorRect.Left
   else if Rect.Right + Point.X > MonitorRect.Right then
     Point.X := MonitorRect.Right - Rect.Right;
-  if Rect.Top + Point.Y < MonitorRect.Top then
-    Point.Y := MonitorRect.Top -Rect.Top;
+  {aiai}
+  if Point.Y - (Rect.Bottom - Rect.Top) - yoffset1 < MonitorRect.Top then
+  begin
+    if Point.Y + (Rect.Bottom - Rect.Top) + yoffset2 < MonitorRect.Bottom then
+      Inc(Point.Y, yoffset2)
+    else
+      Point.Y := MonitorRect.Top - Rect.Top;
+  end else
+    Dec(Point.Y, Rect.Bottom - Rect.Top + yoffset1);
+  {/aiai}
   OffsetRect(Rect, Point.X, Point.Y);
   FBrowser.PopUp(Rect);
 end;
@@ -5030,9 +4507,6 @@ begin
   begin
     if Assigned(FOnEnabled) then
       FOnEnabled(Self);
-    {$IFDEF IE}
-    HadPointed := True;
-    {$ENDIF}
   end;
   if not Value then
     ReleasePossessionView;
@@ -5241,7 +4715,7 @@ begin
         FBrowser.IDLinkColorNone := Config.ojvIDLinkColorNone;
         FBrowser.IDLinkColorMany := Config.ojvIDLinkColorMany;
         FBrowser.IDLinkThreshold := Config.ojvIDLinkThreshold;
-        FBrowser.IDListArray := baseBrowser.IDListArray;
+        FBrowser.IDList.Assign(baseBrowser.IDList);
       end;
     end;
   end;
@@ -5505,7 +4979,7 @@ procedure MakeIDInfo(dest: TDatOut; const URI: String;
         const thread: TThreadItem; Max: integer);
   procedure ShowTitle(ID: String; Count: Integer);
   begin
-    dest.WriteHTML('抽出' + ID + ' (' + IntToStr(Count) + '回)<br><br>');
+    dest.WriteHTML('抽出 ID:' + ID + ' (' + IntToStr(Count) + '回)<br><br>');
   end;
 
   function GetThreadMaxNum: integer;
@@ -5522,16 +4996,20 @@ var
   list: array of integer;
   dup: TThreadData;
   index: integer;
+  s: String;
 begin
+  if (thread = nil) or (thread.dat = nil) then
+    exit;
   dup := thread.DupData;
   setLength(list, GetThreadMaxNum);
   try
     index := 0;
     for i := 1 to thread.lines do
     begin
-      if dup.MatchID(thread.idlist, i, URI) then
+      s := SEARCHD2HTML.ToID(dup, i);
+      if StrComp(PChar(s), PChar(URI)) = 0 then
       begin
-        list[index] := i;
+        list[index] := i ;
         Inc(index);
       end;
     end;

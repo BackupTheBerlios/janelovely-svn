@@ -111,7 +111,7 @@ type
     selectedaboneline: Integer;
     ABoneArray: TABoneArray;
 
-    idlist: TStringList;  //aiai(test)
+    IsThisAbone: Boolean;  //aiai
 
     constructor Create(board: TObject);
     destructor Destroy; override;
@@ -501,7 +501,6 @@ begin
   logmoved := false;
   canclose := true;    //aiai
   datbreak := false;  //aiai
-  idlist := TStringList.Create; //aiai(test)
 end;
 
 (*  *)
@@ -512,8 +511,6 @@ begin
   if assigned(asyncObj) then
     asyncObj.Free;
   AboneArray.Free;
-  if idlist <> nil then
-    idlist.Free;  //aiai(test)
   inherited;
 end;
 
@@ -1115,9 +1112,6 @@ begin
     dat := nil;
 //    SaveAboneData; //Å¶[457]
   end;
-
-  if idlist <> nil then
-    idlist.Clear;   //aiai(test)
 end;
 
 

@@ -50,6 +50,7 @@ type
     //ngthreadlist: TStringList;  //aiai NGThread
     FNeedConvert: Boolean;  //aiai
     FHideHistoricalLog: Boolean;  //aiai
+    FShowThreadAbone: Boolean;  //aiai
     function GetItems(index: integer): TThreadItem;
     procedure SetItems(index: integer; value: TThreadItem);
     procedure MergeCache;
@@ -132,6 +133,7 @@ type
     property settingText: TStringList read settingTXT write settingTXT;
     property NeedConvert: Boolean read FNeedConvert; //aiai
     property HideHistoricalLog: Boolean read FHideHistoricalLog write FHideHistoricalLog;  //aiai
+    property ShowThreadAbone: Boolean read FShowThreadAbone write FShowThreadAbone;  //aiai
   end;
 
   (*-------------------------------------------------------*)
@@ -284,7 +286,8 @@ begin
   if Config.ojvQuickMerge then
     IdxDataBase := TSQLite.Create;
   (* //DataBase *)
-  SettingTxtLoaded := Config.stlHideHistoricalLog;
+  SettingTxtLoaded := false;
+  FHideHistoricalLog := Config.stlHideHistoricalLog;
 end;
 
 (* 破棄 *)
@@ -517,6 +520,7 @@ var
     nums: string;
     num: integer;
     idx: integer;
+    abone: boolean;
   begin
     (* dat-name delimiter subject space (num) *)
     (* dat *)
@@ -526,13 +530,18 @@ var
       exit;
     datName := ChangeFileExt(Copy(txt, refPos, refEnd - refPos), '');
     //改造▽ 追加 (スレッドあぼ～ん)
+    abone := False;
     idx := threadABoneList.IndexOfName(datName);
     if idx >= 0 then
     begin
       threadABoneNext.Add(threadABoneList.Strings[idx]); //ヒットしたスレを加える
       //threadABoneList.Delete(idx);  //ヒットしたスレはリストから削除
-      Inc(threadABoneCount);  //スレッドあぼ～んカウンタをインクリメント
-      Exit;
+      if not FShowThreadAbone then
+      begin
+        Inc(threadABoneCount);  //スレッドあぼ～んカウンタをインクリメント
+        Exit;
+      end else
+        abone := True;
     end;
     //改造△ 追加 (スレッドあぼ～ん)
     (* subject *)
@@ -540,14 +549,19 @@ var
     refEnd := endOfSubject(refPos, endOfRec);
     subject := Copy(txt, refPos, refEnd - refPos);
     {aiai} //NGThread
-    for idx := 0 to Main.NGThreadItems.Count - 1 do
-    begin
-      if 0 < AnsiPos(Main.NGThreadItems.Strings[idx], subject) then
+    if not abone then
+      for idx := 0 to Main.NGThreadItems.Count - 1 do
       begin
-        Inc(threadABoneCount);  //スレッドあぼ～んカウンタをインクリメント
-       exit;
+        if 0 < AnsiPos(Main.NGThreadItems.Strings[idx], subject) then
+        begin
+          if not FShowThreadAbone then
+          begin
+            Inc(threadABoneCount);  //スレッドあぼ～んカウンタをインクリメント
+            exit;
+          end else
+            abone := True;
+        end;
       end;
-    end;
     {/aiai}
     (* numを取得 *)
     refPos := topOfNums(refEnd, endOfRec);
@@ -568,6 +582,7 @@ var
     item.datName := datName;
     item.previousitemCount := item.itemCount;    //aiai
     item.itemCount := num;
+    item.IsThisAbone := abone;  //aiai
     //item.contemporary := true;
     Add(item);
     {aiai}
@@ -1719,7 +1734,21 @@ begin
           storedSettingTxt.Info.Add(lastModified);
           storedSettingTxt.Save;
           ChangeWriteMemoSettingText(Self);
-         end;
+        end;
+      302: (* Not Foundの時はそのことを保存 *)
+        begin
+          storedSettingTxt.Clear;
+          storedSettingTxt.Info.Add(GetURIBase + '/SETTING.TXT');
+          storedSettingTxt.Info.Add(sender.GetLastModified);
+          storedSettingTxt.Save;
+          SettingTxt.Text := storedSettingTxt.DataString;
+          BBSLineNumuber  := StrToIntDef(SettingTxt.Values[BBS_LINE_NUMBER], 0);
+          BBSMessageCount := StrToIntDef(SettingTxt.Values[BBS_MESSAGE_COUNT], 0);
+          BBSSubjectCount := StrToIntDef(SettingTxt.Values[BBS_SUBJECT_COUNT], High(Integer));
+          BBSNameCount    := StrToIntDef(SettingTxt.Values[BBS_NAME_COUNT], High(Integer));
+          BBSMailCount    := StrToIntDef(SettingTxt.Values[BBS_MAIL_COUNT], High(Integer));
+          ChangeWriteMemoSettingText(Self);
+        end;
     end;
     FreeAndNil(storedSettingTxt);
     procGetSettingTxt := nil;

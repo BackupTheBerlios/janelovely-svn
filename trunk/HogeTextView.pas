@@ -81,11 +81,6 @@ type
                      str: PChar;
                      cbStr: Integer;
                      attrib: Integer = 0);
-    procedure IDInsert(index: Integer;
-                       str: PChar;
-                       cbStr: integer;
-                       line: integer;
-                       attrib: Integer = 0);
     procedure Add(str: PChar;
                   cbStr: Integer;
                   attrib: Integer = 0);
@@ -102,13 +97,6 @@ type
 
   (*-------------------------------------------------------*)
 
-  THogeIDList = record
-    bool: Boolean;
-    Item: THogeTVItem;
-    Position: Integer;
-  end;
-
-  THogeIDListArray = array of THogeIDList;
   THogeResNumArray = array of Boolean;
 
   (*-------------------------------------------------------*)
@@ -217,8 +205,8 @@ type
     {aiai}
     FOnScrollEnd: TNotifyEvent;
 
-    FIDListArray: THogeIDListArray;
     FResNumArray: THogeResNumArray;
+    FIDList: TStringList;
 
     FColordNumber: Boolean;
     FLinkedNumColor: TColor;
@@ -228,7 +216,6 @@ type
     FIDLinkColorMany: TColor;
     FIDLinkThreshold: Integer;
 
-    CanRepain: Boolean;
     FHighlightTarget: String;
     FKeywordBrushColor: TColor;
     {/aiai}
@@ -340,8 +327,8 @@ type
     procedure PageDown;
     procedure PageUp;
     procedure SetTop(line: integer);
-    procedure ScrollLine(advance: integer);
-    procedure ScrollPixel(advance: integer); //beginner
+    procedure ScrollLine(advance: integer; movecaret: Boolean = False);
+    procedure ScrollPixel(advance: integer; movecaret: Boolean = False); //beginner
     procedure CopySelection;
     function  GetSelection: String;
     function  SearchForward (const AString: String): Boolean;
@@ -376,26 +363,15 @@ type
     function  nAppend2(pstr: PChar;
                       count: Integer;
                       attrib: Integer = 0): TPoint;
-    (* IDポップアップ用 *)
-    function nIDAppend(pstr: PChar;
-                       count: integer;
-                       attrib: integer = 0): TPoint;
-    function nIDHrefAppend(pstr: PChar;
-                           count: integer;
-                           line: integer;
-                           attrib: integer = 0): TPoint;
     {/aiai}
     procedure SetFont(FaceName: String; Size: Integer);
     procedure SelectWord(physicalPos: TPoint);
 
     {aiai}
     procedure AutoScrollLines(ScrollLines: Integer);
-    procedure BeginUpdate;
-    procedure EndUpdate;
     procedure DownLine;
-    procedure SetIDList(bool: Boolean; Item: THogeTVItem;
-                          Position, Line: Integer);
     procedure SetResNum(ResNumber: Integer);
+    property IDList: TStringList read FIDList write FIDList;
     {/aiai}
 
     property Strings: THogeTVItems read FStrings;
@@ -410,7 +386,6 @@ type
     property HoverTime: Cardinal read GetHoverTime write SetHoverTime;
     property Fraction: Integer read FFraction; //beginner
     property ResNumArray: THogeResNumArray read FResNumArray write FResNumArray;
-    property IDListArray: THogeIDListArray read FIDListArray write FIDListArray;
     property HighlightTarget: String read FHighlightTarget write FHighlightTarget;  //aiai
   published
     { Published 宣言 }
@@ -481,7 +456,8 @@ type
 
 procedure Register;
 
-procedure AdjustToTextViewLine(var Point: TPoint; Rect: TRect);
+procedure AdjustToTextViewLine(const Point: TPoint; const Rect: TRect;
+  var offset1: Integer; var offset2: Integer);
 
 const
   htvATTMASK  = $1F;
@@ -571,35 +547,6 @@ begin
   end;
   Move(str^, FText[index], insLen);
   FillChar(FAttrib[index], insLen, attrib);
-end;
-
-procedure THogeTVItem.IDInsert(index: Integer;
-                             str: PChar;
-                             cbStr: integer;
-                             line: integer;
-                             attrib: Integer = 0);
-var
-  orgLen, insLen, size: integer;
-begin
-  insLen := cbStr;
-  orgLen := length(FText);
-  if index <= 0 then
-    index := 1
-  else if orgLen < index then
-    index := orgLen + 1;
-  size := orgLen + insLen;
-
-  SetLength(FText, size);
-  SetLength(FAttrib, size);
-  if index <= orgLen then
-  begin
-    Move(FText[index], FText[index + insLen], orgLen - index +1);
-    Move(FAttrib[index], FAttrib[index + insLen], orgLen - index +1);
-  end;
-  Move(str^, FText[index], insLen);
-  FillChar(FAttrib[index], insLen, attrib);
-
-  FView.SetIDList(True, Self, index, line);
 end;
 
 procedure THogeTVItem.Add(str: PChar;
@@ -991,11 +938,10 @@ begin
   FIDLinkColorNone := $00000000;
   FIDLinkColorMany := $000000FF;
   FIDLinkThreshold := 5;
-  SetLength(FIDListArray, 0);
+  FIDList := TStringList.Create;
 
   FKeywordBrushColor := clYellow;
 
-  CanRepain := True;
   //FMaxWidth := 0;
   FHighlightTarget := '';
   {/aiai}
@@ -1029,6 +975,7 @@ begin
   Timer.Free; //beginner
   FStrings.Free;
   FBitmap.Free;
+  FIDList.Free;
   inherited;
 end;
 
@@ -1450,7 +1397,7 @@ begin
   if Assigned(FOnScrollEnd) then FOnScrollEnd(self);
 end;
 
-procedure THogeTextView.ScrollLine(advance: integer);
+procedure THogeTextView.ScrollLine(advance: integer; movecaret: Boolean = False);
 var
   i :Integer;
   Delta: Integer;
@@ -1492,15 +1439,15 @@ begin
     DoWait := ((High(Cardinal) - FWaitTime * 10) > Wait) and (tFrames > 1);
 
     if i <= PixelMod then
-      ScrollPixel(Delta + ModDelta)
+      ScrollPixel(Delta + ModDelta, movecaret)
     else
-      ScrollPixel(Delta);
+      ScrollPixel(Delta, movecaret);
     {aiai}
-    if not FCaretScrollSync then
-      SetLogicalCaret(FLogicalCaret, hscDONTSCROLL)
+    if FCaretScrollSync or movecaret then
+      SetLogicalCaret(FLogicalCaret)
     else
+      SetLogicalCaret(FLogicalCaret, hscDONTSCROLL);
     {/aiai}
-      SetLogicalCaret(FLogicalCaret);
     if i < tFrames then
       Update;
 
@@ -1514,7 +1461,7 @@ begin
 end;
 
 {beginner}
-procedure THogeTextView.ScrollPixel(advance: integer);
+procedure THogeTextView.ScrollPixel(advance: integer; movecaret: Boolean = False);
 var
   bs: Integer;
   TopPixel: Integer;
@@ -1532,12 +1479,12 @@ begin
 
   FLogicalTopLine := TopPixel div bs;
   FFraction := TopPixel mod bs;
-  if FCaretScrollSync then  //aiai
+  if FCaretScrollSync or movecaret then  //aiai
     FLogicalCaret.Y := FLogicalTopLine + ScreenCurretLine;
 
   ModifyLogicalLine(FLogicalTopLine, FTopLine, FTopLineOffset);
   UpdateBottomLine;
-  if FCaretScrollSync then //aiai
+  if FCaretScrollSync or movecaret then //aiai
     FLogicalCaret.X := FCaretSavedX;
   SetLogicalCaret(FLogicalCaret, hscDONTSCROLL);
   Invalidate;
@@ -1546,13 +1493,13 @@ end;
 
 procedure THogeTextView.PageDown;
 begin
-  ScrollLine(VisibleLines - GetMargin);
+  ScrollLine(VisibleLines - GetMargin, True);
   AnalyzeScrollInfo;
 end;
 
 procedure THogeTextView.PageUp;
 begin
-  ScrollLine(GetMargin - VisibleLines);
+  ScrollLine(GetMargin - VisibleLines, True);
 end;
 
 procedure THogeTextView.SetTop(line: integer);
@@ -1881,6 +1828,7 @@ procedure THogeTextView.KeyDown(var Key: Word; Shift: TShiftState);
       FSelStart := FEditPoint;
     end;
   end;
+
 begin
   AutoScroll := False; //beginner
   CaretVisible(True);
@@ -1895,23 +1843,31 @@ begin
     end;
   VK_DOWN:
     begin
-      ProcSelection;
       if not FConfCaretVisible or (ssCtrl in Shift) then
       begin
+        if FCaretScrollSync then
+          ProcSelection;
         ScrollLine(FVScrollLines); //521
         AnalyzeScrollInfo;
-      end
-      else
+      end else
+      begin
+        ProcSelection;
         ForwardLine(1);
+      end;
       Key := 0;
     end;
   VK_UP:
     begin
-      ProcSelection;
       if not FConfCaretVisible or (ssCtrl in Shift) then
+      begin
+        if FCaretScrollSync then
+          ProcSelection;
         ScrollLine(-FVScrollLines) //521
-      else
+      end else
+      begin
+        ProcSelection;
         ForwardLine(-1);
+      end;
       Key := 0;
     end;
   VK_RIGHT: begin ProcSelection; ForwardChar(1);  Key := 0; end;
@@ -2094,8 +2050,15 @@ begin
       AnalyzeScrollInfo;
     end;
   SB_LINEUP:   ScrollLine(-FVScrollLines);
-  SB_PAGEDOWN: PageDown;
-  SB_PAGEUP:   PageUp;
+  SB_PAGEDOWN:
+    begin
+      ScrollLine(VisibleLines - GetMargin);
+      AnalyzeScrollInfo;
+    end;
+  SB_PAGEUP:
+    begin
+      SCrollLine(GetMargin - VisibleLines);
+    end;
   SB_THUMBPOSITION,
   SB_THUMBTRACK:
     begin
@@ -2189,14 +2152,14 @@ end;
 procedure THogeTextView.PaintWindow(DC: HDC);
 {aiai}
 type
-  hlightrange = record   //1ベースインデックス
+  trange = record   //1ベースインデックス
     startp: Integer;
     endp: Integer;
   end;
 var
   len: integer;
   HighlightP: Boolean;
-  hlightl: array of hlightrange;
+  hlightl: array of trange;
 
   procedure SetNumberColor(item: THogeTVItem; startPos: integer);
   var
@@ -2215,10 +2178,11 @@ var
 
   procedure SetIDColor(item: THogeTVItem; startPos: Integer);
   var
-    endPos, IDFreq, ListCount, index, startPos2: Integer;
-    item2: THogeTVItem;
-    idp, idp2: PChar;
+    endPos, IDFreq, ListCount, index: Integer;
+    idp: PChar;
   begin
+    if not Assigned(FIDList) then
+      exit; 
     endPos := startPos + 3;
     while (Ord(item.FAttrib[endPos]) and htvVMASK = htvHIDDEN)
            and (endpos <= len) do
@@ -2226,17 +2190,16 @@ var
     if endpos > len then
       exit;
     IDFreq := 0;
-    ListCount := Length(FIDListArray);
+    ListCount := FIDList.Count;
     idp  := @item.FText[startPos + 3];
     for index := 0 to  ListCount - 1 do
     begin
-      if not FIDListArray[index].bool then
-        Continue;
-      item2 := FIDListArray[index].Item;
-      startPos2 := FIDListArray[index].Position;
-      idp2 := @item2.FText[startPos2 + 3];
-      if (0 = StrLComp(idp, idp2, endPos - startPos)) then
+      if (0 = StrLComp(idp, PChar(FIDList.Strings[index]), endpos - startpos - 3)) then
+      begin
         Inc(IDFreq);
+        if IDFreq = FIDLinkThreshold then
+          break;
+      end;
     end;
     if IDFreq = 1 then
       FBitmap.Canvas.Font.Color := FIDLinkColorNone
@@ -2244,8 +2207,7 @@ var
       FBitmap.Canvas.Font.Color := FIDLinkColorMany;
   end;
 
-
-  procedure CreateHLightList(str: String);
+  procedure CreateHLightList(const str: String);
   var
     sp, tlen, lsize: Integer;
   begin
@@ -2465,7 +2427,7 @@ begin
                       and (Ord(attrib[position]) and htvVMASK = htvHIDDEN) then
                 SetNumberColor(item, position);
             end;
-            if CanRepain and FIDLinkColor then
+            if FIDLinkColor then
             begin
               position := Pos('ID:ID:', item.FText);
               if (position > 0) and ((index - position) in [0..2])
@@ -3089,46 +3051,6 @@ begin
   result := nAppend2(@AString[1], length(AString), attrib);
 end;
 
-(* IDポップアップ用 *)
-function THogeTextView.nIDAppend(pstr: PChar;
-                                 count: integer;
-                                 attrib: integer = 0): TPoint;
-var
-  point: TPoint;
-  item: THogeTVItem;
-begin
-  point.Y := FStrings.Count -1;
-  point.X := length(FStrings[point.Y].FText);
-  point := Normalize(point);
-
-  item := FStrings[point.Y];
-  item.Insert(point.X + 1, pstr, count, attrib);
-
-  result := point;
-end;
-
-function THogeTextView.nIDHrefAppend(pstr: PChar;
-                                    count: integer;
-                                    line: integer;
-                                    attrib: integer = 0): TPoint;
-var
-  point: TPoint;
-  item: THogeTVItem;
-begin
-  point.Y := FStrings.Count -1;
-  point.X := length(FStrings[point.Y].FText);
-  point := Normalize(point);
-
-  item := FStrings[point.Y];
-
-  if FIDLinkColor then
-    item.IDInsert(point.X + 1, pstr, count, line, attrib)
-  else
-    item.Insert(point.X + 1, pstr, count, attrib);
-
-  result := point;
-end;
-
 {/aiai}
 
 procedure THogeTextView.Clear;
@@ -3147,8 +3069,8 @@ begin
   FFraction := 0;
   {/beginner}
   SetLength(FResNumArray, 0); //aiai
-  SetLength(FIDListArray, 0);  //aiai
   FHighlightTarget := '';
+  FIDList.Clear;
 end;
 
 function THogeTextView.CharWidth(p: PChar; attrib: Integer): Integer;
@@ -3343,20 +3265,26 @@ end;
 
 
 //HogeTextViewの行間を探す補助手続き
-procedure AdjustToTextViewLine(var Point: TPoint; Rect: TRect);
+//カーソルの上に表示するときのオフセットと下に表示するときのオフセット (aiai)
+procedure AdjustToTextViewLine(const Point: TPoint; const Rect: TRect;
+  var offset1: Integer; var offset2: Integer);
 var
   VCLWindow: TWinControl;
   LaidView: THogeTextView;
+  ClientPt: TPoint;
 begin
   VCLWindow := FindVCLWindow(Point);
   if Assigned(VCLWindow) and (VCLWindow is THogeTextView) then
   begin
     LaidView := THogeTextView(VCLWindow);
-    Point := LaidView.ScreenToClient(Point);
-    Dec(Point.Y, (Point.Y - LaidView.TopMargin) mod LaidView.BaseLineSkip + Rect.Bottom);
-    Point := LaidView.ClientToScreen(Point);
+    ClientPt := LaidView.ScreenToClient(Point);
+    offset1 := (ClientPt.Y - LaidView.TopMargin) mod LaidView.BaseLineSkip;
+    offset2 := LaidView.BaselineSkip - offset1;
   end else
-    Dec(Point.Y, Rect.Bottom + 8);
+  begin
+    offset1 := 8;
+    offset2 := 8;
+  end;
 end;
 
 {beginner}
@@ -3420,33 +3348,11 @@ begin
 //  ScrollPixel(ScrollLines);
 end;
 
-procedure THogeTextView.SetIDList(bool: Boolean; Item: THogeTVItem;
-                                                   Position, Line: Integer);
-begin
-  if not IDLinkColor then
-    exit;
-  if Length(FIDListArray) < Line then
-    SetLength(FIDListArray, Line + 50);
-  FIDListArray[Line - 1].Position := Position;
-  FIDListArray[Line - 1].Item := Item;
-  FIDListArray[Line - 1].bool := True;
-end;
-
 procedure THogeTextView.SetResNum(ResNumber: Integer);
 begin
   if Length(FResNumArray) < ResNumber then
     SetLength(FResNumArray, ResNumber);
   FResNumArray[ResNumber - 1] := True;
-end;
-
-procedure THogeTextView.BeginUpdate;
-begin
- CanRepain := false;
-end;
-
-procedure THogeTextView.EndUpdate;
-begin
- CanRepain := true;
 end;
 
 procedure THogeTextView.DownLine;
