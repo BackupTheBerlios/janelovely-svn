@@ -79,6 +79,8 @@ type
     property NGData[Index: Integer]:TExNGItem read GetNGData write SetNGData;
   end;
 
+  Type
+    TNGList = Array[TNGItemIdent] of TNGStringList;
 
 function DateTimeToFmtStr(DateTime:TDateTime):String;
 

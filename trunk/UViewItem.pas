@@ -43,6 +43,7 @@ type
     FUser: integer;
     FHref: string;
     EnableFontTag: boolean;
+    EnableBodyTag: boolean;
     FDDOffsetLeft: Integer;
     function GetRange(var ANK: string): Boolean; override;
     function ProcTag: boolean; override;
@@ -69,6 +70,7 @@ type
     procedure WriteBR;
     procedure WriteHR(color: Integer; custom: Boolean);  //aiai
     procedure WritePicture(pass: String; overlap: Boolean);  //aiai
+    procedure WriteWallPaper(const pass: string);
     procedure SetBold(boldP: boolean);
     procedure Flush; override;
     procedure Cancel;
@@ -337,6 +339,7 @@ type
     procedure Viewidx(idxhtml: string;title: string); //rika
   end;
   (*-------------------------------------------------------*)
+  TPictureViewList = class;
   (* TWebBrowser一覧 *)
     TViewList = class(TList)
   private
@@ -345,6 +348,7 @@ type
     function GetItems(index: integer): TViewItem;
     procedure SetItems(index: integer; viewItem: TViewItem);
   public
+    wallPaperList: TPictureViewList;
     constructor Create;
     destructor Destroy; override;
     procedure Delete(index: integer);
@@ -470,12 +474,27 @@ type
   public
     destructor Destroy; override;
   end;
+
+  TSkinCollection = class(TObject)
+  public
+    Section: String;
+    HeaderHTML: String;
+    RecHTML: String;
+    NewRecHTML: String;
+    BookMarkHTML: String;
+    NewMarkHTML: String;
+    PopupRecHTML: String;
+  end;
   {/aiai}
 
-  procedure Make2chInfo(dest: TDatOut; URI: string; basethread: TThreadItem;
-    board: TBoard; thread: TThreadItem; RangeArray: TRangeArray);
-  procedure MakeIDInfo(dest: TDatOut; const URI: String;
-    const thread: TThreadItem; Max: integer);
+  TDat2HTMLType = (dhtRes, dhtNewRes, dhtPopupRes, dhtSearchRes);
+
+procedure Make2chInfo(dest: TDatOut; URI: string; basethread: TThreadItem;
+  board: TBoard; thread: TThreadItem; RangeArray: TRangeArray);
+procedure MakeIDInfo(dest: TDatOut; const URI: String;
+  const thread: TThreadItem; Max: integer);
+function PickUpRes(thread: TThreadItem; startLine, endLine: integer): string;
+function SetUpDat2HTML(const body: string; d2htype: TDat2HTMLType): TDat2HTML;
 
 
 (*=======================================================*)
@@ -624,8 +643,6 @@ begin
   else
     result := false;
 end;
-
-(* =========================================================== *)
 
 (* =========================================================== *)
 
@@ -824,6 +841,51 @@ function TDat2View.ProcTag: boolean;
         FBrowser.SetFont(value, ZoomToPoint(Config.viewZoomSize));
         break;
       end;
+    end;
+  end;
+
+  procedure SetBody;
+  var
+    name, value: string;
+  begin
+    if not EnableBodyTag then
+      exit;
+    while GetAttribPair(name, value) do
+    begin
+      if (name = 'background') and (length(value) > 0) then
+      begin
+        WriteWallPaper(value);
+      end else if (name = 'valign') and (length(value) > 0) then
+      begin
+        if value = 'top' then
+          FBrowser.WallpaperVAlign := walVTop
+        else if value = 'center' then
+          FBrowser.WallpaperVAlign := walVCenter
+        else if value = 'bottom' then
+          FBrowser.WallpaperVAlign := walVBottom
+        else
+          FBrowser.WallpaperVAlign := walVTop;
+      end else if (name = 'halign') and (length(value) > 0) then
+      begin
+        if value = 'left' then
+          FBrowser.WallpaperHAlign := walHLeft
+        else if value = 'center' then
+          FBrowser.WallpaperHAlign := walHCenter
+        else if value = 'right' then
+          FBrowser.WallpaperHAlign := walHRight
+        else
+          FBrowser.WallpaperHAlign := walHLeft;
+      end else if (name = 'leftmargin') and (length(value) > 0) then
+      begin
+        FBrowser.LeftMargin := StrToIntDef(value, 8);
+      end else if (name = 'rightmargin') and (length(value) > 0) then
+      begin
+        FBrowser.RightMargin := StrToIntDef(value, 8);
+      end;
+      //end else if name = 'maxwidth' then
+      //begin
+      //  BrowserMaxWidth := StrToIntDef(value, 0);
+      //end;
     end;
   end;
 
@@ -1046,6 +1108,9 @@ begin
       end else if IsThisTag('a', str + index, 1) then begin
         Inc(index);
         BeginAnchor;
+      end else if IsThisTag('body', str + index, 4) then begin
+        Inc(index, 4);
+        SetBody;
       end;
     end;
     EndOfTag;
@@ -1477,6 +1542,90 @@ begin
   FBiteSpaces := FBrowser.AppendPicture(Image, overlap);
 end;
 
+procedure TDat2View.WriteWallPaper(const pass: string);
+var
+  Image, ImageConv: TGraphic;
+  Ext: String;
+  index: Integer;
+begin
+  if not Assigned(viewList.wallPaperList) then
+    viewList.wallPaperList := TPictureViewList.Create;
+  Image := nil;
+  index := viewList.wallPaperList.IndexOf(pass);
+  if index <> -1 then
+    Image := TGraphic(viewList.wallPaperList.Objects[index])
+  else
+  begin
+    Ext := ExtractFileExt(Config.SkinPath + pass);
+    if FileExists(Config.SkinPath + pass) then
+    begin
+      if SameText(Ext, '.jpg') or SameText(Ext, '.jpeg') then begin
+
+        Image := TBitmap.Create;
+        ImageConv := TApiBitmap.Create;
+        try
+          try
+            ImageConv.LoadFromFile(Config.SkinPath + pass);
+            Image.Assign(ImageConv);
+          finally
+            ImageConv.Free;
+          end;  //try
+        except
+          on E: Exception do begin
+            Main.Log('Load ' + pass+ ':' + E.Message);
+            FreeAndNil(Image);
+          end;
+        end;  //try
+        viewList.wallPaperList.AddObject(pass, Image);
+
+      end else if SameText(Ext, '.png') then begin
+
+        Image := TPNGObject.Create;
+        try
+          Image.LoadFromFile(Config.SkinPath + pass);
+        except
+          on E: Exception do begin
+            Main.Log('Load ' + pass+ ':' + E.Message);
+            FreeAndNil(Image);
+          end;
+        end;  //try
+        viewList.wallPaperList.AddObject(pass, Image);
+
+      end else if SameText(Ext, '.gif') then begin
+
+        Image := TGifImage.Create;
+        TGifImage(Image).Animate := False;
+        try
+          Image.LoadFromFile(Config.SkinPath + pass);
+        except
+          on E: Exception do begin
+            Main.Log('Load ' + pass+ ':' + E.Message);
+            FreeAndNil(Image);
+          end;
+        end;  //try
+        viewList.wallPaperList.AddObject(pass, Image);
+
+      end else if SameText(Ext, '.bmp') then begin
+
+        Image := TBitmap.Create;
+        try
+          Image.LoadFromFile(Config.SkinPath + pass);
+        except
+          on E: Exception do begin
+            Main.Log('Load ' + pass+ ':' + E.Message);
+            FreeAndNil(Image);
+          end;
+        end;  //try
+        viewList.wallPaperList.AddObject(pass, Image);
+      end else
+        exit;
+    end else
+      exit;
+  end;
+
+  FBrowser.Wallpaper := Image;
+end;
+
 procedure TDat2View.SetBold(boldP: boolean);
 begin
   Flush;
@@ -1845,6 +1994,8 @@ end;
 
 
 procedure TIndexTree.Build(thread: TThreadItem; Start: Integer);
+var
+  D2HTML: TDat2HTML;
 begin
 
   if (thread = nil) or (thread.dat = nil) then
@@ -1866,8 +2017,9 @@ begin
 
   FtmpDat.Free;
   FtmpDat := thread.DupData;
-
+  D2HTML := SetUpDat2HTML(TSkinCollection(SkinCollectionList.Items[TBoard(FThread.board).CustomSkinIndex]).RecHTML, dhtRes);
   D2HTML.ToDatOut(Self, FtmpDat ,Pos, thread.lines - Pos + 1, FThread.ABoneArray, FThread.NeedConvert);
+  D2HTML.Free;
 end;
 
 
@@ -1990,9 +2142,9 @@ var
 begin
 
   D2HTMLForTree := TDat2HTML.Create(DEF_TREE_HTML, Config.SkinPath);
-  D2HTMLForTree.NGItems := D2HTML.NGItems;
-  D2HTMLForTree.AboneLevel := D2HTML.AboneLevel;
-  D2HTMLForTree.TransparencyAbone := D2HTML.TransparencyAbone;
+  D2HTMLForTree.NGItems := Main.NGItems;
+  D2HTMLForTree.AboneLevel := Main.AboneLevel;
+  D2HTMLForTree.TransparencyAbone := Config.viewTransparencyAbone;
 
   Result := 0;
   if Index = -1 then begin
@@ -2321,12 +2473,16 @@ var
   list: array of integer;
   dup: TThreadData;
   s: string;
+  SEARCHD2HTML: TDat2HTML;
+  POPUPD2HTML: TDat2HTML;
 begin
   Result := 0;
   if (Length(target) <= 0) or (thread = nil) or (thread.dat = nil) then
     exit;
   dup := thread.DupData;
   SetLength(list, GetThreadMaxNum);
+  SEARCHD2HTML := SetUpDat2HTML('<DATE/>', dhtSearchRes);
+  POPUPD2HTML := SetUpDat2HTML(TSkinCollection(SkinCollectionList.Items[TBoard(FThread.board).CustomSkinIndex]).PopupRecHTML, dhtPopupRes);
   try
     Result := 0;
     for i := 1 to thread.lines do
@@ -2346,6 +2502,8 @@ begin
     end;
   finally
     dup.Free;
+    SEARCHD2HTML.Free;
+    POPUPD2HTML.Free;
     SetLength(list, 0);
   end;
 end;
@@ -2372,10 +2530,14 @@ var
   dup: TThreadData;
   Mask: TBits;
   Tree: TIndexTree;
+  SEARCHD2HTML: TDat2HTML;
+  D2HTML: TDat2HTML;
 begin
   dup := thread.DupData;
   Mask := nil;
   Tree := nil;
+  SEARCHD2HTML := SetUpDat2HTML(TSkinCollection(SkinCollectionList.Items[TBoard(thread.board).CustomSkinIndex]).PopupRecHTML, dhtSearchRes);
+  D2HTML := SetUpDat2HTML(TSkinCollection(SkinCollectionList.Items[TBoard(thread.board).CustomSkinIndex]).RecHTML, dhtRes);
   try
     if IncludeRef then
     begin
@@ -2448,6 +2610,8 @@ begin
     Mask.Free;
     Tree.Free;
     dup.Free;
+    SEARCHD2HTML.Free;
+    D2HTML.Free;
   end;
 end;
 
@@ -3018,6 +3182,9 @@ end;
 procedure TViewItem.PumpChunk;
 var
   lines: integer;
+  NEWD2HTML: TDat2HTML;
+  NewMarkHTML: PChar;
+  BookMarkHTML: PChar;
 begin
   if (FThread = nil) or (FThread.dat = nil) then
     exit;
@@ -3030,9 +3197,14 @@ begin
     if useTrace[39] then
       Log(Format(traceString[39], [FThread.dat.Size - FThread.dat.Position+1]));
     {//ayaya}
+    NEWD2HTML := SetUpDat2HTML(TSkinCollection(SkinCollectionList.Items[TBoard(FThread.board).CustomSkinIndex]).NewRecHTML, dhtNewRes);
+    try
     try
       if currentStartLine = FThread.anchorLine +1 then
-        WriteSkin(PChar(NewMarkHTML), length(NewMarkHTML));
+      begin
+        NewMarkHTML := PChar(TSkinCollection(SkinCollectionList.Items[TBoard(FThread.board).CustomSkinIndex]).NewMarkHTML);
+        WriteSkin(NewMarkHTML, Length(NewMarkHTML));
+      end;
       //NEWD2HTML.AboneArray := FThread.AboneArray; //※[457]
       //NEWD2HTML.thread :=  FThread;
       if (0 < FThread.readPos) and (currentStartLine <= FThread.readPos) then
@@ -3041,7 +3213,8 @@ begin
         Inc(currentStartLine, lines);
         if currentStartLine - 1 = FThread.readPos then
         begin
-          WriteSkin(PChar(BookMarkHTML),length(BookMarkHTML)); // ここまで読んだ
+          BookMarkHTML := PChar(TSkinCollection(SkinCollectionList.Items[TBoard(FThread.board).CustomSkinIndex]).BookMarkHTML);
+          WriteSkin(BookMarkHTML, length(BookMarkHTML)); // ここまで読んだ
           lines := NEWD2HTML.ToDatOut(FStream, FThread.dat, FThread.readPos + 1, High(integer), FThread.AboneArray, FThread.NeedConvert);
         end;
         if 0 < lines then
@@ -3063,6 +3236,9 @@ begin
         Log(Format('stream exception: may be canceled: %s', [e.Message]));
       end;
     end;
+    finally
+      NEWD2HTML.Free;
+    end;
     Inc(pumpCount);
   end;
 end;
@@ -3071,11 +3247,16 @@ end;
 (* スレ表示：状態毎の処理 *)
 procedure TViewItem.DoWorking;
   procedure StartWriting;
+  var
+    HeaderHTML: PChar;
   begin
     FPreStat := tpsWorking;
     ZoomBrowser(Config.viewZoomSize);
 
+    FBrowser.Wallpaper := nil;
+
     FStream.EnableFontTag := true;
+    FStream.EnableBodyTag := true;
     if (FThread.board <> nil) and
        (0 < length(TBoard(FThread.board).customHeader)) then
     begin
@@ -3083,17 +3264,27 @@ procedure TViewItem.DoWorking;
         WriteSkin(@customHeader[1], length(customHeader));
     end
     else
-      WriteSkin(@HeaderHTML[1], length(HeaderHTML));
+    begin
+      if FThread.board <> nil then
+        With TBoard(FThread.board) do
+          HeaderHTML := PChar(TSkinCollection(SkinCollectionList.Items[CustomSkinIndex]).HeaderHTML)
+      else
+        HeaderHTML := PChar(TSkinCollection(SkinCollectionList.Items[0]).HeaderHTML);
+      WriteSkin(HeaderHTML, length(HeaderHTML));
+    end;
     FStream.EnableFontTag := false;
+    FStream.EnableBodyTag := false;
     FPreStat := tpsReady;
     FStream.Flush;
   end;
 
   procedure PumpPreContents;
-  {$IFDEF BENCH}
   var
+    {$IFDEF BENCH}
     index: integer;
-  {$ENDIF}
+    {$ENDIF}
+    D2HTML: TDat2HTML;
+    BookMarkHTML: PChar;
   begin
     FPreStat := tpsWorking;
     if (currentStartLine <= FThread.oldLines) and
@@ -3108,11 +3299,12 @@ procedure TViewItem.DoWorking;
       if useTrace[40] then
         Log(Format(traceString[40], [FThread.dat.Size]));
       {//ayaya}
+      D2HTML := SetUpDat2HTML(TSkinCollection(SkinCollectionList.Items[TBoard(FThread.board).CustomSkinIndex]).RecHTML, dhtRes);
       if currentStartLine = 1 then
       begin
         D2HTML.ToDatOut(FStream, FThread.dat, 1, 1, FThread.AboneArray, FThread.NeedConvert);
         if FThread.readPos = 1 then
-          FStream.WriteHTML(PChar(BookMarkHTML),length(BookMarkHTML));
+          FStream.WriteHTML(PChar(TSkinCollection(SkinCollectionList.Items[TBoard(FThread.board).CustomSkinIndex]).BookMarkHTML),length(TSkinCollection(SkinCollectionList.Items[TBoard(FThread.board).CustomSkinIndex]).BookMarkHTML));
         Inc(currentStartLine);
       end;
       if currentStartLine < drawStartLine then // 表示レス数指定
@@ -3122,12 +3314,14 @@ procedure TViewItem.DoWorking;
       begin
         D2HTML.ToDatOut(FStream, FThread.dat,
                         currentStartLine, FThread.readPos - currentStartLine + 1, FThread.AboneArray, FThread.NeedConvert);
-        WriteSkin(PChar(BookMarkHTML),length(BookMarkHTML)); // ここまで読んだ
+        BookMarkHTML := PChar(TSkinCollection(SkinCollectionList.Items[TBoard(FThread.board).CustomSkinIndex]).BookMarkHTML);
+        WriteSkin(BookMarkHTML,length(BookMarkHTML)); // ここまで読んだ
         D2HTML.ToDatOut(FStream, FThread.dat,
                         FThread.readPos + 1, FThread.oldLines - FThread.readPos, FThread.AboneArray, FThread.NeedConvert);
       end else
         D2HTML.ToDatOut(FStream, FThread.dat,
                         currentStartLine, FThread.oldLines - currentStartLine + 1, FThread.AboneArray{※[457]}, FThread.NeedConvert); (* 再入する *)
+      D2HTML.Free;
       FThread.ChkConsistency;
       currentStartLine := FThread.oldLines + 1;
       FStream.Flush;
@@ -3390,6 +3584,7 @@ var
   RegExp: TRegExpr;
   baseViewItem: TViewItem;
   baseBrowser: THogeTextView;
+  HeaderHTML: PChar;
 begin
   if ExThread = nil then
     exit;
@@ -3425,17 +3620,25 @@ begin
     ExtStream.Base := copy(ExtStream.Base, 1, AnsiPos(#13, ExtStream.Base) - 1);
 
   ExtStream.EnableFontTag := true;
+  ExtStream.EnableBodyTag := true;
+  FBrowser.Wallpaper := nil;
   if (ExThread.board <> nil) and
      (0 < length(TBoard(ExThread.board).customHeader)) then
   begin
     with TBoard(ExThread.board) do
-      //ExtStream.WriteHTML(@customHeader[1], length(customHeader));
       WriteSkin(@customHeader[1], length(customHeader), ExThread);
     end
   else
-    //ExtStream.WriteHTML(@HeaderHTML[1], length(HeaderHTML));
-    WriteSkin(@HeaderHTML[1], length(HeaderHTML), ExThread);
+  begin
+    if (ExThread.board <> nil) then
+      With TBoard(ExThread.board) do
+        HeaderHTML := PChar(TSkinCollection(SkinCollectionList.Items[CustomSkinIndex]).HeaderHTML)
+    else
+      HeaderHTML := PChar(TSkinCollection(SkinCollectionList.Items[0]).HeaderHTML);
+    WriteSkin(HeaderHTML, length(HeaderHTML), ExThread);
+  end;
   ExtStream.EnableFontTag := false;
+  ExtStream.EnableBodyTag := true;
 
   ExtStream.WriteHTML('【レス抽出】<br>対象スレ： ');
   ExtStream.WriteAnchor('',ExtStream.Base,pchar(ExThread.title), length(ExThread.title));
@@ -3487,6 +3690,7 @@ var
   Mask: TBits;
   Tree: TIndexTree;
   ExtStream :TDat2ViewForExtraction;
+  HeaderHTML: PChar;
 begin
   if ExThread = nil then
     exit;
@@ -3515,6 +3719,8 @@ begin
     ExtStream.Base:=copy(ExtStream.Base, 1, AnsiPos(#13, ExtStream.Base) - 1);
 
   ExtStream.EnableFontTag := true;
+  ExtStream.EnableBodyTag := true;
+  FBrowser.Wallpaper := nil;
   if (ExThread.board <> nil) and
      (0 < length(TBoard(ExThread.board).customHeader)) then
   begin
@@ -3522,8 +3728,15 @@ begin
       ExtStream.WriteHTML(@customHeader[1], length(customHeader));
     end
   else
-    ExtStream.WriteHTML(@HeaderHTML[1], length(HeaderHTML));
+  begin
+    if ExThread.board <> nil then
+      HeaderHTML := PChar(TSkinCollection(SkinCollectionList.Items[TBoard(ExThread.board).CustomSkinIndex]).HeaderHTML)
+    else
+      HeaderHTML := PChar(TSkinCollection(SkinCollectionList.Items[0]).HeaderHTML);
+    ExtStream.WriteHTML(HeaderHTML, length(HeaderHTML));
+  end;
   ExtStream.EnableFontTag := false;
+  ExtStream.EnableBodyTag := false;
 
   ExtStream.Flush;
 
@@ -3626,6 +3839,9 @@ var
   RegExp: TRegExpr;
   TickCount: Cardinal;
   {/beginner}
+  SEARCHD2HTML: TDat2HTML;
+  POPUPD2HTML: TDat2HTML;
+  HeaderHTML: PChar;
 
 begin
   TickCount := GetTickCount;
@@ -3662,9 +3878,10 @@ begin
   tvc := TSimpleDat2View.Create(FBrowser);
   {beginner}
   if ShowDirect then begin
+    HeaderHTML := PChar(TSkinCollection(SkinCollectionList.Items[0]).HeaderHTML);
     ExtStream := TDat2ViewForExtraction.Create(FBrowser);
     ExtStream.EnableFontTag := True;
-    ExtStream.WriteHTML(@HeaderHTML[1], length(HeaderHTML));
+    ExtStream.WriteHTML(HeaderHTML, length(HeaderHTML));
     ExtStream.EnableFontTag := False;
   end else begin
     ExtStream := nil;
@@ -3676,6 +3893,9 @@ begin
   end else
   {/beginner}
     tvc.WriteHTML('<html><body><p>【取得済みログ一覧】</p><ul>'#10);
+
+  SEARCHD2HTML := SetUpDat2HTML(TSkinCollection(SkinCollectionList.Items[TBoard(FThread.board).CustomSkinIndex]).PopupRecHTML, dhtSearchRes);
+  POPUPD2HTML := SetUpDat2HTML(TSkinCollection(SkinCollectionList.Items[TBoard(FThread.board).CustomSkinIndex]).PopupRecHTML, dhtPopupRes);
 
   for i := 0 to targetBoardList.Count -1 do
   begin
@@ -3828,6 +4048,8 @@ begin
     end;
     board.Release;
   end;
+  SEARCHD2HTML.Free;
+  POPUPD2HTML.Free;
   tvc.WriteHTML(
         '</ul><br><p>【' + IntToStr(totalCount) + ' 件見つかりました】(検索時間:' + IntToStr((GetTickCount - TickCount) div 1000) + '秒)</p>');
   tvc.Free;
@@ -3865,7 +4087,10 @@ procedure TViewItem.LocalReload(line: Integer; drawline: integer = -1);
 var
   thread: TThreadItem;
 begin
-  if FThread = nil then
+  //
+  // PumpPreChuck中の場合はスキップ by aiai
+  //
+  if (FThread = nil) or (FPreStat = tpsWorking) then
     exit;
 
   if drawline > 0 then
@@ -3940,8 +4165,7 @@ end;
 
 procedure TViewItem.WriteSkin(str: PChar; size: integer; thread: TThreadItem = nil);
 var
-  i, j: integer;
-  s: TStringList;
+  i: integer;
 begin
   if thread = nil then
     thread := FThread;
@@ -3959,19 +4183,7 @@ begin
       if StartWithP('<THREADURL/>', str+i, size-i) then
       begin
         FStream.WriteHTML(str, i);
-        {aiai}
-        s := TStringList.Create;
-        s.Text := thread.ToURL;
-        if s.Count = 1 then
-          FStream.WriteHTML(s[0])
-        else if s.Count = 2 then begin
-          FStream.WriteHTML(s[0] + '<br>');
-          FStream.WriteHTML(s[1]);
-        end else
-          for j := 0 to s.Count - 1 do
-            FStream.WriteHTML(s[j] + '<br>');
-        s.Free;
-        {/aiai}
+        FStream.WriteHTML(thread.ToURL);
         str := str +i +12;
         Dec(size, i+12);
         i := 0;
@@ -4014,6 +4226,7 @@ begin
   inherited;
   synchro := THogeMutex.Create;
   garbageList := TList.Create;
+  wallPaperList := nil;
 end;
 
 (* 消滅 *)
@@ -4022,6 +4235,8 @@ var
   i: integer;
 begin
   Clear;
+  if Assigned(wallPaperList) then
+    wallPaperList.Free;
   for i := 0 to garbageList.Count -1 do
     TViewItem(garbageList.Items[i]).Free;
   garbageList.Free;
@@ -5059,6 +5274,7 @@ procedure Make2chInfo(dest: TDatOut; URI: string; basethread: TThreadItem;
     dat: TThreadData;
     ThreadURL: String;
     i: Integer;
+    POPUPD2HTML: TDat2HTML;
   begin
     if (thread <> basethread) or (rangearray[0].st = -1) then
     begin
@@ -5072,12 +5288,14 @@ procedure Make2chInfo(dest: TDatOut; URI: string; basethread: TThreadItem;
     if Config.hintForOtherThread or (thread = BaseThread) then
     begin
       dat := thread.DupData;
+      POPUPD2HTML := SetUpDat2HTML(TSkinCollection(SkinCollectionList.Items[TBoard(thread.board).CustomSkinIndex]).PopupRecHTML, dhtPopupRes);
       try
       if RangeArray[0].st >= 0 then
         for i := 0 to Length(RangeArray) - 1 do
           POPUPD2HTML.PickUpRes(dest, dat, thread.ABoneArray, thread.NeedConvert, RangeArray[i].st, RangeArray[i].ed);
       finally
         dat.Free;
+        POPUPD2HTML.Free;
       end;
     end;
   end;
@@ -5120,11 +5338,15 @@ var
   dup: TThreadData;
   index: integer;
   s: String;
+  SEARCHD2HTML: TDat2HTML;
+  POPUPD2HTML: TDat2HTML;
 begin
   if (thread = nil) or (thread.dat = nil) then
     exit;
   dup := thread.DupData;
   setLength(list, GetThreadMaxNum);
+  SEARCHD2HTML := SetUpDat2HTML('<DATE/>', dhtSearchRes);
+  POPUPD2HTML := SetUpDat2HTML(TSkinCollection(SkinCollectionList.Items[TBoard(thread.board).CustomSkinIndex]).PopupRecHTML, dhtPopupRes);
   try
     index := 0;
     for i := 1 to thread.lines do
@@ -5144,8 +5366,58 @@ begin
     end;
   finally
     dup.Free;
+    SEARCHD2HTML.Free;
+    POPUPD2HTML.Free;
     SetLength(list, 0);
   end;
 end;
 
+(* ポップアップ用範囲指定レス抽出 *)
+function PickUpRes(thread: TThreadItem; startLine, endLine: integer): string;
+var
+  dest: TStrDatOut;
+  dup: TThreadData;
+  POPUPD2HTML: TDat2HTML;
+begin
+  if thread = nil then
+    exit;
+  dest := TStrDatOut.Create;
+  dup := thread.DupData;
+  POPUPD2HTML := SetUpDat2HTML(TSkinCollection(SkinCollectionList.Items[TBoard(thread.board).CustomSkinIndex]).PopupRecHTML, dhtPopupRes);
+  try
+    POPUPD2HTML.PickUpRes(dest, dup, thread.abonearray, thread.NeedConvert, startLine, endLine);
+    Result := dest.Text;
+  finally
+    dup.Free;
+    dest.Free;
+    POPUPD2HTML.Free;
+  end;
+end;
+
+function SetUpDat2HTML(const body: string; d2htype: TDat2HTMLType): TDat2HTML;
+var
+  d2html: TDat2HTML;
+begin
+  d2html := TDat2HTML.Create(body, Config.SkinPath);
+  if d2htype <> dhtSearchRes then
+  begin
+    d2html.NGItems := Main.NGItems;
+    d2html.ExNGList := Main.ExNGList;
+    if d2htype = dhtPopupRes then
+    begin
+      d2html.AboneLevel := 127;
+      d2html.VisibleAbone := True;
+    end else
+    begin
+      d2html.AboneLevel := Main.AboneLevel;
+      d2html.TransparencyAbone := Config.viewTransparencyAbone;
+      d2html.PermanentNG := Config.viewPermanentNG;
+      d2html.PermanentMarking := Config.viewPermanentMarking;
+      d2html.LinkABone := Config.viewLinkAbone;
+    end;
+  end;
+  result := d2html;
+end;
+
 end.
+

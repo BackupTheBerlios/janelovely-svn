@@ -175,7 +175,7 @@ type
     viewNGMsgMarker: string;
     viewTransparencyAbone: boolean;
     {beginner}
-    viewAboneLevel:Integer;
+    viewAboneLevel: ShortInt;
     viewNGLifeSpan: array[0..4] of Integer;
     viewPermanentNG:Boolean;
     viewPermanentMarking:Boolean;
@@ -572,8 +572,8 @@ begin
   *)
 
   hintEnabled := true;
-  hintHoverTime := 0;  //aiai
-  hintHintHoverTime := 300;
+  hintHoverTime := 300;  //aiai
+  hintHintHoverTime := 500;
   hintForOtherThread := true;
   hintNestingPopUp := true;
   hintAutoEnableNesting := true;      //aiai
@@ -795,7 +795,7 @@ begin
   clViewColor := clWindow;
   clListViewOddBackColor := $00FFEFFF;  //aiai
   clListViewEvenBackColor := $00FFFFFF;   //aiai
-  clHintOnFix := $00efffef;
+  //clHintOnFix := $00DDFFDD;
 
   cmdExecuteList := TStringList.Create;
   cmdConfigList :=  TStringList.Create;
@@ -1083,8 +1083,8 @@ procedure TJaneConfig.Load;
     if c <> '' then
       MainWnd.PopupHint.Color := HexToInt(c)
     else
-      MainWnd.PopupHint.Color := clInfoBk;
-    clHintOnFix := HexToInt(ini.ReadString(INI_CL_SECT, 'HintColorFix', '00efffef'));
+      MainWnd.PopupHint.Color := $00DDFFFF;
+    clHintOnFix := HexToInt(ini.ReadString(INI_CL_SECT, 'HintColorFix', '00DDFFDD'));
     {/beginner}
   end;
 

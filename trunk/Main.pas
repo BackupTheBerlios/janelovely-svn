@@ -42,8 +42,8 @@ uses
   {/aiai}
 
 const
-  VERSION  = '0.1.3.11';      (* Printable ASCIIコード厳守。')'はダメ *)
-  JANE2CH  = 'JaneLovely 0.1.3.11';
+  VERSION  = '0.1.3.12';      (* Printable ASCIIコード厳守。')'はダメ *)
+  JANE2CH  = 'JaneLovely 0.1.3.12';
   KEYWORD_OF_USER_AGENT = 'JaneLovely';      (*  *)
 
   DISTRIBUTORS_SITE = 'http://www.geocities.jp/openjane4714/';
@@ -524,8 +524,6 @@ type
     TextPopupOpenByBrowser: TMenuItem;
     TextPopupOpenByViewer: TMenuItem;
     VN1: TMenuItem;
-    MenuImageViewOpenSelectionURL: TMenuItem;
-    MenuImageViewOpenSelectionURLs: TMenuItem;
     PopupViewShowResTree: TMenuItem;
     MenuShowResTree: TMenuItem;
     MenuShowOutLine: TMenuItem;
@@ -659,7 +657,6 @@ type
     N72: TMenuItem;
     TextPopupIDAbone: TMenuItem;
     TextPopupIDAbone2: TMenuItem;
-    N77: TMenuItem;
     MenuImageViewOpenCacheList: TMenuItem;
     SortSpeed: TMenuItem;
     SortGain: TMenuItem;
@@ -835,16 +832,15 @@ type
     actThreadAboneTranseparency: TAction;
     actThreadAboneIgnore: TAction;
     actThreadAboneOnly: TAction;
+    PopupTreeSetCustomSkin: TMenuItem;
+    PopupTreeCustomSkinDefault: TMenuItem;
+    PopupViewCopyURL: TMenuItem;
+    TextPopupTrensferToWriteMemo: TMenuItem;
     {/aiai}
     procedure FormCreate(Sender: TObject);
     procedure MenuToolsOptionsClick(Sender: TObject);
     procedure GetBoard2ch(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
-    procedure WebBrowserDocumentComplete(Sender: TObject;
-      const pDisp: IDispatch; var URL: OleVariant);
-    procedure WebBrowserBeforeNavigate2(Sender: TObject;
-      const pDisp: IDispatch; var URL, Flags, TargetFrameName, PostData,
-      Headers: OleVariant; var Cancel: WordBool);
     procedure ListViewSelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
     procedure FormDeactivate(Sender: TObject);
@@ -1333,6 +1329,8 @@ type
     procedure actHideHistoricalLogExecute(Sender: TObject);
     procedure actThreadAbone2Execute(Sender: TObject);
     procedure actThreadAboneShowExecute(Sender: TObject);
+    procedure PopupTreeCustomSkinClick(Sender: TObject);
+    procedure PopupViewCopyURLClick(Sender: TObject);
     {/aiai}
   private
   { Private 宣言 }
@@ -1411,14 +1409,7 @@ type
     //改造▽ 追加 (スレビューに壁紙を設定する。Doe用)
     //改造メモ：メモリ節約対応。壁紙の保持をTHogeTextViewの外で行う
     BrowserWallPaper: TGraphic;
-    BrowserWallPaperVAlign: TWallpaperVAlign;
-    BrowserWallPaperHAlign: TWallpaperHAlign;
-    BrowserWallPaperName: String;
     //改造△ 追加 (スレビューに壁紙を設定する。Doe用)
-    BrowserLeftMargin: Integer;
-    BrowserRightMargin: Integer;
-    //BrowserMaxWidth: Integer;
-    //StatusBar2: TJLStatusBar;
 
     CanAutoCheckNewRes: Boolean; //更新のあるスレを選択するだけでリロード可能してよいかどうか
 
@@ -1443,7 +1434,6 @@ type
     procedure OnSubject(sender: TAsyncReq);
     procedure OnMovedSubject(sender: TAsyncReq);
     procedure UpdateListView;
-    procedure LoadString(const fname: string; var str: string);
     function NewView(relative: boolean = false; background: boolean = false;
       Left: integer = 0; Top: integer = 0;
       Right: integer = 0; Bottom: integer = 0;
@@ -1519,12 +1509,12 @@ type
     procedure ListTabLineAdjust;
     procedure UpdateListTab; (* スレ覧タブとboardList,currentBoardの同期 *)
     function PopupRes(Sender: TObject; Extract: Boolean): boolean;
-    function PickUpRes(thread: TThreadItem; startLine, endLine: integer): string;
     procedure OnGestureMessage(var Msg: TMsg; var Handled: boolean);
     procedure MoveGesture(pt: TPoint);
     procedure GestureExecute(Name: string);
     //※[457]
     procedure LoadSkin(skinPath: string);
+    procedure SetCustomSkinToBoard;
 
     //procedure SetLPane(visible: boolean);
     procedure SetDivision(vertical: boolean);
@@ -1603,6 +1593,7 @@ type
     procedure WriteWaitTimerEnd(Sender: TObject);
     //▲ WriteWaitTimerのイベントハンドラ
     {/aiai}
+    procedure CopyResToClipBrd(title, uri, res: boolean; num: integer);
   public
     { Public 宣言 }
     //ListFontColor: TColor; //※[457]
@@ -1656,7 +1647,6 @@ type
     procedure PopupAddFavClick(Sender: TObject);
     //※[457]
     procedure SetupNGWords; //(configから使うので移動)
-    procedure SetupNGConfig; //beginner
     function Show2chInfo(const Point: TPoint; const IdStr: String; const URI: string;
       OwnerView: TBaseViewItem; Nesting: Boolean): boolean;
     function ShowIDInfo(const Point: TPoint; const IDStr: String; const URI: string;
@@ -1671,8 +1661,6 @@ type
     procedure PauseToggleAutoReSc(bool: Boolean);
     procedure OpenByLovelyBrowser(URI: String = '');
     function  MyMessageDlg(messageLabel: String): Word;
-    procedure LoadColordNumberSetting;
-    procedure LoadColordIDSetting;
     procedure FavPtrlManager(Count: Integer;
                   PatrolType: TPatrolType; board: TBoard);
     procedure UpdateListViewColumns;
@@ -1692,13 +1680,8 @@ const
 var
   MainWnd: TMainWnd;
   Config: TJaneConfig;
-  HeaderHTML: string;
-  RecHTML: string;
-  NewRecHTML: string;
-  PopupRecHTML: string;
-  BookMarkHTML: string;
-  NewMarkHTML: string;
-  D2HTML, NEWD2HTML, POPUPD2HTML, SEARCHD2HTML: TDat2Html;
+  SkinCollectionList: TList;
+  AboneLevel: ShortInt;
   AsyncManager: TAsyncManager;
   HeaderFile: string;
   urlHeadCache: TUrlHeadCache;
@@ -1744,6 +1727,8 @@ var
 
   MigemoOBJ: TMigemo;
 //  WSHRegExp: Variant;
+  NGItems: TNGList;
+  ExNGList: TExNGList;
   {/aiai}
 
 procedure SaveImeMode(wnd: HWND);
@@ -1876,9 +1861,11 @@ var
   HogeMutex: THogeMutex;  (* 二重起動防止用 *)
   TabSwitchList: TList;
   TimeZoneBias: integer;
+  (*==================*)
+  //NGItems, ExNGListはグローバルにしました by aiai
   {beginner}
-  NGItems: array[TNGItemIdent] of TNGStringList;
-  ExNGList: TExNGList;
+  //NGItems: array[TNGItemIdent] of TNGStringList;
+  //ExNGList: TExNGList;
   {/beginner}
   sharedResourceName: string;
   initialURL: TStringList;
@@ -2464,235 +2451,46 @@ var
     ThreadToolPanel.Height := ThreadToolBar.ButtonHeight;
   end;
 
-  (* タグ名取得(小文字化) *)
-  function GetTagName(var index, size: Integer; str: PChar): string;
+  //
+  // TMainWndのPrivateメソッドでしたがここでしか使われていないので移動しました
+  // by aiai
+  //
+  (* 何だこれは。まあいいか *)
+  procedure LoadString(const fname: string; var str: string);
   var
-    i: integer;
-    tag: string;
+    pss: TPSStream;
   begin
-    for i := index to size - 1 do
-    begin
-      case (str + i)^ of
-      '>', ' ', #1..#$1F, '=':
-        begin
-          index := i;
-          result := LowerCase(tag);
-          exit;
-        end;
-      else tag := tag + (str + i)^;
-      end;
+    pss := TPSStream.Create('');
+    try
+      pss.LoadFromFile(fname);
+      str := pss.DataString;
+    except
     end;
-    result := LowerCase(tag);
-    index := size;
+    pss.Free;
   end;
 
-  procedure SkipSpaces(var index, size: Integer; str: PChar);
-  var
-    i: integer;
-  begin
-    for i := index to size -1 do
-    begin
-      case (str + i)^ of
-      #0..#$20:;
-      else
-        begin
-          index := i;
-          exit;
-        end;
-      end;
-    end;
-  end;
-
-  function GetAttribPair(var index, size: Integer;
-      str: PChar; var name, value: string): Boolean;
-  var
-    i: integer;
-  label GOTVALUE;
-  begin
-    while (index < size -1) and ((str + index)^ <> '>') do
-    begin
-      SkipSpaces(index, size, str);
-      if (index < size -1) then
-      begin
-        name := GetTagName(index, size, str);
-        SkipSpaces(index, size, str);
-        if (index < size -1) and ((str + index)^ = '=') then
-        begin
-          Inc(index);
-          SkipSpaces(index, size, str);
-          value := '';
-          if (index < size -1) and ((str + index)^ = '"') then
-          begin
-            for i := index + 1 to size -1 do
-            begin
-              case (str + i)^ of
-              '>': begin index := i; goto GOTVALUE;; end;
-              '"': begin index := i + 1; goto GOTVALUE; end;
-              else value := value + (str + i)^;
-              end;
-            end;
-            index := size -1;
-          end
-          else
-            value := GetTagName(index, size, str);
-          GOTVALUE:
-            result := True;
-            exit;
-        end;
-      end;
-    end;
-    result := False;
-  end;
-
-  (* Header.htmlのbodyタグの解釈 (aiai) *)
-  procedure ProcTag(header: String);
-  var
-    str: PChar;
-    index, size: Integer;
-    tag, name, value: String;
-  begin
-    str := PChar(header);
-    size := Length(header);
-    index := 0;
-    BrowserWallPaperName := '';
-    BrowserWallPaperVAlign := walVTop;
-    BrowserWallPaperHAlign := walHLeft;
-    BrowserLeftMargin := 8;
-    BrowserRightMargin := 8;
-    //BrowserMaxWidth := 0;
-    while index < size do
-    begin
-      if (str + index)^ = '<' then
-      begin
-        Inc(index);
-        tag := GetTagName(index, size, str);
-        if tag = 'body' then
-        begin
-          while GetAttribPair(index, size, str, name, value) do
-          begin
-            if name = 'background' then
-            begin
-              BrowserWallPaperName := Config.SkinPath + value;
-            end else if name = 'valign' then
-            begin
-              if value = 'top' then
-                BrowserWallPaperVAlign := walVTop
-              else if value = 'center' then
-                BrowserWallPaperVAlign := walVCenter
-              else if value = 'bottom' then
-                BrowserWallPaperVAlign := walVBottom
-              else
-                BrowserWallPaperVAlign := walVTop;
-            end else if name = 'halign' then
-            begin
-              if value = 'left' then
-                BrowserWallPaperHAlign := walHLeft
-              else if value = 'center' then
-                BrowserWallPaperHAlign := walHCenter
-              else if value = 'right' then
-                BrowserWallPaperHAlign := walHRight
-              else
-                BrowserWallPaperHAlign := walHLeft;
-            end else if name = 'leftmargin' then
-            begin
-              BrowserLeftMargin := StrToIntDef(value, 8);
-            end else if name = 'rightmargin' then
-            begin
-              BrowserRightMargin := StrToIntDef(value, 8);
-            end;
-            //end else if name = 'maxwidth' then
-            //begin
-            //  BrowserMaxWidth := StrToIntDef(value, 0);
-            //end;
-          end;
-          break;
-        end;
-      end;
-      Inc(index);
-    end;
-  end;
-
-  //aiai
-  procedure LoadWallPaper;
-  var
-    ImageConv: TGraphic;
-    FileExt: String;
-  begin
-
-    if not FileExists(BrowserWallpaperName) then
-      exit;
-
-    FileExt := ExtractFileExt(BrowserWallpaperName);
-
-    if SameText(FileExt, '.jpg') or SameText(FileExt, '.jpeg') then
-    begin
-
-      BrowserWallpaper := TBitmap.Create;
-      ImageConv := TApiBitmap.Create;
-      try
-        try
-          ImageConv.LoadFromFile(BrowserWallpaperName);
-          BrowserWallpaper.Assign(ImageConv);
-        finally
-          ImageConv.Free;
-        end;
-      except
-        on E: Exception do begin
-          Log(E.Message);
-          FreeAndNil(BrowserWallpaper);
-        end;
-      end;
-
-    end else if SameText(FileExt, '.png') then
-    begin
-
-      BrowserWallpaper := TPNGObject.Create;
-      try
-        BrowserWallpaper.LoadFromFile(BrowserWallpaperName);
-      except
-        on E: Exception do begin
-          Log(E.Message);
-          FreeAndNil(BrowserWallpaper);
-        end;
-      end;
-
-    end else if SameText(FileExt, '.gif') then
-    begin
-
-      BrowserWallpaper := TGifImage.Create;
-      TGifImage(BrowserWallpaper).Animate := False;
-      try
-        BrowserWallpaper.LoadFromFile(BrowserWallpaperName);
-      except
-        on E: Exception do begin
-          Log(E.Message);
-          FreeAndNil(BrowserWallpaper);
-        end;
-      end;
-
-    end else if SameText(FileExt, '.bmp') then
-    begin
-
-      BrowserWallpaper := TBitmap.Create;
-      try
-        BrowserWallpaper.LoadFromFile(BrowserWallpaperName);
-      except
-        on E: Exception do begin
-          Log(E.Message);
-          FreeAndNil(BrowserWallpaper);
-        end;
-      end;
-
-    end;
-  end;
-
+var
+  Skin: TSkinCollection;
+  ini: TMemIniFile;
+  i: integer;
+  SectionList: TStringList;
+  MenuItem: TMenuItem;
+  HeaderHTML: string;
+  RecHTML: string;
+  NewRecHTML: string;
+  PopupRecHTML: string;
+  BookMarkHTML: string;
+  NewMarkHTML: string;
 begin
+  SkinCollectionList := TList.Create;
+
+  Skin := TSkinCollection.Create;
+
   HeaderHTML := DEF_HEADER_HTML;
   RecHTML    := DEF_REC_HTML;
   NewRecHTML := DEF_NEWREC_HTML;
   BookMarkHTML := DEF_BOOKMARK_HTML;
   NewMarkHTML  := DEF_NEWMARK_HTML;
-  //HeaderFile := skinPath + HTML_HEADER_TEMPLATE;
   LoadString(skinPath + HTML_HEADER_TEMPLATE, HeaderHTML);
   LoadString(skinPath + HTML_BODY_TEMPLATE, RecHTML);
   LoadString(skinPath + HTML_NEWBODY_TEMPLATE, NewRecHTML);
@@ -2701,19 +2499,43 @@ begin
   PopupRecHTML := RecHTML;
   LoadString(skinPath + HTML_POPUP_TEMPLATE, PopupRecHTML);
 
-  {aiai}
-  ProcTag(HeaderHTML);
-  LoadWallPaper;
-  {/aiai}
+  Skin.HeaderHTML := HeaderHTML;
+  Skin.RecHTML := RecHTML;
+  Skin.NewRecHTML := NewRecHTML;
+  Skin.BookMarkHTML := BookMarkHTML;
+  Skin.NewMarkHTML := NewMarkHTML;
+  Skin.PopupRecHTML := PopupRecHTML;
 
-  D2HTML.Free;
-  NEWD2HTML.Free;
-  POPUPD2HTML.Free;
-  SEARCHD2HTML.Free;
-  D2HTML := TDat2HTML.Create(RecHTML, Config.SkinPath);
-  NEWD2HTML := TDat2HTML.Create(NewRecHTML, Config.SkinPath);
-  POPUPD2HTML := TDat2HTML.Create(PopupRecHTML, Config.SkinPath); //ポップアップ用
-  SEARCHD2HTML := TDat2HTML.Create(PopupRecHTML, Config.SkinPath); //検索用(ABoneArray,NGWordに結果と速度が影響されない)
+  SkinCollectionList.Add(Skin);
+
+  (* カスタムスキン *)
+  if FileExists(Config.SkinPath + 'CustomSkin.ini') then
+  begin
+    ini := TMemIniFile.Create(Config.SkinPath + 'CustomSkin.ini');
+    SectionList := TStringList.Create;
+    ini.ReadSections(SectionList);
+    for i := 0 to SectionList.Count - 1 do
+    begin
+      Skin := TSkinCollection.Create;
+      Skin.Section := SectionList.Strings[i];
+      Skin.HeaderHTML := ini.ReadString(SectionList.Strings[i], 'Header', HeaderHTML);
+      Skin.RecHTML := ini.ReadString(SectionList.Strings[i], 'Res', RecHTML);
+      Skin.NewRecHTML := ini.ReadString(SectionList.Strings[i], 'NewRes', NewRecHTML);
+      Skin.BookMarkHTML := ini.ReadString(SectionList.Strings[i], 'BookMark', BookMarkHTML);
+      Skin.NewMarkHTML := ini.ReadString(SectionList.Strings[i], 'NewMark', NewMarkHTML);
+      Skin.PopupRecHTML := ini.ReadString(SectionList.Strings[i], 'PopupRes', PopupRecHTML);
+      SkinCollectionList.Add(Skin);
+      MenuItem := TMenuItem.Create(PopupTreeSetCustomSkin);
+      MenuItem.Caption := SectionList.Strings[i];
+      MenuItem.Tag := i + 1;
+      MenuItem.GroupIndex := 1;
+      MenuItem.RadioItem := True;
+      PopupTreeSetCustomSkin.Add(MenuItem);
+      MenuItem.OnClick := PopupTreeCustomSkinClick;
+    end;
+    SectionList.Free;
+    ini.Free;
+  end;
 
   LoadCustomImageList;
   CreateToolBar(ToolBarMain, skinPath + 'mtoolbar.txt');
@@ -2721,6 +2543,54 @@ begin
   //if toolbarResized then
     ThreadToolBarResize;
 end;
+
+procedure TMainWnd.SetCustomSkinToBoard;
+var
+  boardlist: TStringList;
+  i, j: integer;
+  str, uri, section: string;
+  board: TBoard;
+  host, bbs, datnum: string;
+  startIndex, endIndex: integer;
+  oldLog: Boolean;
+begin
+  if (SkinCollectionList.Count <= 1) //必ずデフォルトのスキンがある
+    or not FileExists(Config.SkinPath + 'BoardToSkin.ini') then
+    exit;
+  boardlist := TStringList.Create;
+  try
+    boardlist.LoadFromFile(Config.SkinPath + 'BoardToSkin.ini');
+  except
+    boardlist.Free;
+    exit;
+  end;
+  for i := 0 to boardlist.Count - 1 do
+  begin
+    str := boardlist.Strings[i];
+    if length(str) <= 0 then
+      continue;
+    uri := boardlist.Names[i];
+    if uri[length(uri)] <> '/' then
+      uri := uri + '/';
+    Get2chInfo(uri, host, bbs, datnum, startIndex, endIndex, oldLog);
+    board := i2ch.FindBoard(host, bbs);
+    if board = nil then
+      continue;
+    section := boardlist.Values[boardlist.Names[i]];
+    if length(section) <= 0 then
+      continue;
+    for j := 1 to SkinCollectionList.Count - 1 do
+    begin
+      if AnsiSameText(section, TSkinCollection(SkinCollectionList.Items[j]).Section) then
+      begin
+        board.CustomSkinIndex := j;
+        continue;
+      end;
+    end;
+  end;
+  boardlist.Free;
+end;
+
 
 
 //※[457](TMainWnd.OnCreateから外に出した)
@@ -2762,17 +2632,11 @@ begin
   for i := low(TNGItemIdent) to High(TNGItemIdent) do begin
     SetupNGStringList(NGItems[i], NG_FILE[i], Ord(i));
     SetupBMSearch(NGItems[i], (i <> NG_ITEM_ID));
-    D2HTML.NGItems[i]      := NGItems[i];
-    NEWD2HTML.NGItems[i]   := NGItems[i];
-    POPUPD2HTML.NGItems[i] := NGItems[i];
   end;
 
   SetupNGStringList(ExNGList, NG_EX_FILE, Ord(High(TNGItemIdent)) + 1);
   for j := 0 to ExNGList.Count - 1 do
     ExNGList.NGData[j].MakeSearchObj;
-  D2HTML.ExNGList := ExNGList;
-  NEWD2HTML.ExNGList := ExNGList;
-  POPUPD2HTML.ExNGList := ExNGList;
 
   {aiai}
   if FileExists(Config.BasePath + NG_THREAD_FILE) then
@@ -2782,31 +2646,8 @@ begin
     end;
   {/aiai}
 
-  //※[457]
-  D2HTML.TransparencyAbone := Config.viewTransparencyAbone;
-  NEWD2HTML.TransparencyAbone := Config.viewTransparencyAbone;
-  POPUPD2HTML.VisibleAbone := True;
-  POPUPD2HTML.TransparencyAbone := False;
 {/beginner}
 end;
-
-
-{beginner}
-procedure TMainWnd.SetupNGConfig;
-begin
-  D2HTML.PermanentNG := Config.viewPermanentNG;
-  D2HTML.PermanentMarking := Config.viewPermanentMarking;
-  NEWD2HTML.PermanentNG := Config.viewPermanentNG;
-  NEWD2HTML.PermanentMarking := Config.viewPermanentMarking;
-  POPUPD2HTML.PermanentNG := False;
-  POPUPD2HTML.PermanentMarking := False;
-  {aiai}
-  D2HTML.LinkABone := Config.viewLinkAbone;
-  NEWD2HTML.LinkABone := Config.viewLinkAbone;
-  POPUPD2HTML.LinkABone := False;
-  {/aiai}
-end;
-{/beginner}
 
 {beginner} //トレース画面の場所を設定する
 procedure TMainWnd.SetTracePosition;
@@ -2902,13 +2743,6 @@ begin
   (*  *)
   AddAboutMenu;
 
-  {beginner} //Doeはポップアップにあるメニューを削除
-  MenuImageViewOpenSelectionURLs.Visible := False;
-  MenuImageViewOpenSelectionURLs.Enabled := False;
-  MenuImageViewOpenSelectionURL.Visible := False;
-  MenuImageViewOpenSelectionURL.Enabled := False;
-  {/beginner}
-
   TabSwitchList := TList.Create;
   TabSwitchList.Add(TreeView);
   TabSwitchList.Add(FavoriteView);
@@ -2916,20 +2750,6 @@ begin
   //TabSwitchList.Add(TabControl);
   TabSwitchList.Add(nil);
   TabSwitchList.Add(Memo);
-
-  {aiai}
-  {StatusBar2 := TJLStatusBar.Create(Self.Handle);
-  With StatusBar2 do
-  begin
-   Parts := 4;
-   PartWidth[0] := 20;
-   PartWidth[1] := 70;
-   PartWidth[2] := 500;
-   OnClick := Statusbar2Click;
-   OnRClick := StatusBar2RClick;
-   OnReSize := StatusBar2ReSize;
-  end;}
-  {/aiai}
 
   Application.UpdateFormatSettings := false;
 
@@ -2951,7 +2771,7 @@ begin
     font := TFont.Create;
     Config.SetFont(font, Config.viewDefFontInfo);
     Self.Font.Assign(font);
-    //StatusBar.Font.Assign(font);  //aiai
+    StatusBar.Font.Assign(font);
     TabControl.Font.Assign(font);
     ListTabControl.Font.Assign(font);
     //TreeTabControl.Font.Assign(font);  //aiai
@@ -3026,15 +2846,6 @@ begin
   (* ビューア設定 *)
   LoadSkin(Config.SkinPath);
 
-  {aiai} //スレッドあぼ～ん表示レベルの初期設定
-  LocalThreadAboneSetting := 0;
-  case LocalThreadAboneSetting of
-    0: actThreadAboneTranseparency.Checked := True;
-    1: actThreadAboneIgnore.Checked := True;
-    2: actThreadAboneOnly.Checked := True;
-  end;
-  {/aiai}
-
   NGItems[NG_ITEM_NAME] := TNGStringList.Create;
   NGItems[NG_ITEM_MAIL] := TNGStringList.Create;
   NGItems[NG_ITEM_MSG ] := TNGStringList.Create;
@@ -3044,21 +2855,8 @@ begin
 
   SetupNGWords;
 
-  {beginner} //あぼーん表示レベルの初期設定
-  case Config.viewAboneLevel of
-    -1 :actTransparencyAbone.Checked:=True;
-     0 :actNormalAbone.Checked:=True;
-     1 :actHalfAbone.Checked:=True;
-     2 :actIgnoreAbone.Checked:=True;
-     3 :actImportantResOnly.Checked:=True;
-  end;
-  D2HTML.AboneLevel:=Config.viewAboneLevel;
-  NEWD2HTML.AboneLevel:=Config.viewAboneLevel;
-  POPUPD2HTML.AboneLevel := 255;
-
-  SetupNGConfig;
-  //PopupHint.Dat2HTML := POPUPD2HTML;
-  {/beginner}
+  LocalThreadAboneSetting := 0; //スレッドあぼ～ん表示レベルの初期設定
+  AboneLevel := Config.viewAboneLevel;  //あぼーん表示レベルの初期設定
 
   (* ヒント *)
   urlHeadCache := TUrlHeadCache.Create;
@@ -3116,6 +2914,8 @@ begin
   //▼ログフォルダ指定
   i2ch := TCategoryList.Create(Config.LogBasePath);
   boardLoaded := i2ch.Load;
+
+  SetCustomSkinToBoard;
 
   UpdateTreeView;
 
@@ -3231,33 +3031,6 @@ begin
 //  Application.OnMessage := Self.OnMessage;
 end;
 
-
-
-
-//aiai
-procedure TMainWnd.LoadColordNumberSetting;
-var
-  intIndex: integer;
-begin
-  for intIndex := 0 to (viewList.Count - 1) do begin
-    viewList.Items[intIndex].browser.ColordNumber := Config.ojvColordNumber;
-    viewList.Items[intIndex].browser.LinkedNumColor := Config.ojvLinkedNumColor;
-  end;
-end;
-
-//aiai
-procedure TMainWnd.LoadColordIDSetting;
-var
-  intIndex: integer;
-begin
-  for intIndex := 0 to (viewList.Count - 1) do begin
-    viewList.Items[intIndex].browser.IDLinkColor := Config.ojvIDLinkColor;
-    viewList.Items[intIndex].browser.IDLinkColorNone := Config.ojvIDLinkColorNone;
-    viewList.Items[intIndex].browser.IDLinkColorMany := Config.ojvIDLinkColorMany;
-    viewList.Items[intIndex].browser.IDLinkThreshold := Config.ojvIDLinkThreshold;
-  end;
-end;
-
 procedure TMainWnd.FormShow(Sender: TObject);
 var
   i: integer;
@@ -3294,6 +3067,20 @@ begin
       SetRPane(ptList);
 
     CanAutoCheckNewRes := True;  //aiai
+
+    case LocalThreadAboneSetting of
+      0: actThreadAboneTranseparency.Checked := True;
+      1: actThreadAboneIgnore.Checked := True;
+    end;
+    {beginner}
+    case AboneLevel of
+      -1 :actTransparencyAbone.Checked:=True;
+       0 :actNormalAbone.Checked:=True;
+       1 :actHalfAbone.Checked:=True;
+       2 :actIgnoreAbone.Checked:=True;
+       3 :actImportantResOnly.Checked:=True;
+    end;
+    {/beginner}
 
     try
       DebugTmp.Visible := Config.tstDebugEnabled;
@@ -3347,7 +3134,12 @@ end;
 procedure TMainWnd.FormDestroy(Sender: TObject);
 var
   i: TNGItemIdent;
+  j: integer;
 begin
+  for j := 0 to SkinCollectionList.Count - 1 do
+    TSkinCollection(SkinCollectionList.Items[j]).Free;
+  SkinCollectionList.Free;
+
   UILock := True;
   {aiai}
   MyNews.Free;
@@ -3390,11 +3182,6 @@ begin
   viewList.Free;
   viewList := nil;
   popupviewList.Free;
-
-  D2HTML.Free;
-  NEWD2HTML.Free;
-  POPUPD2HTML.Free;
-  SEARCHD2HTML.Free;
 
   {beginner}
   for i := Low(TNGItemIdent) to High(TNGItemIdent) do begin
@@ -5401,20 +5188,6 @@ begin
   end;
 end;
 
-(* 何だこれは。まあいいか *)
-procedure TMainWnd.LoadString(const fname: string; var str: string);
-var
-  pss: TPSStream;
-begin
-  pss := TPSStream.Create('');
-  try
-    pss.LoadFromFile(fname);
-    str := pss.DataString;
-  except
-  end;
-  pss.Free;
-end;
-
 (*  *)
 procedure TMainWnd.ShowHint(Point: TPoint; const str: string;
   MaxWidth: integer; MaxHeight: integer; ForceCursorPos: Boolean);
@@ -5675,24 +5448,6 @@ begin
   end;
 end;
 
-(* ポップアップ用範囲指定レス抽出 *)
-function TMainWnd.PickUpRes(thread: TThreadItem; startLine, endLine: integer): string;
-var
-  dest: TStrDatOut;
-  dup: TThreadData;
-begin
-  dest := TStrDatOut.Create;
-  dup := thread.DupData;
-  try
-    POPUPD2HTML.PickUpRes(dest, dup, thread.abonearray, thread.NeedConvert, startLine, endLine);
-    Result := dest.Text;
-  finally
-    dup.Free;
-    dest.Free;
-  end;
-end;
-
-
 (*  *)
 function TMainWnd.NewView(relative: boolean = false;
   background: boolean = false; Left: integer = 0; Top: integer = 0;
@@ -5718,26 +5473,10 @@ begin
     browser.OnMaximizeWindow := actMaxViewExecute;
     browser.OnDbClickTBar := actMaxViewExecute;
     browser.OnActive := BrowserActive;
-    //browser.OnHide := BrowserHide;
     browser.OnScrollEnd := BrowserScrollEnd;
     browser.OnEnter     := BrowserEnter;
     browser.OnExit      := BrowserExit;
     {/aiai}
-    browser.LeftMargin := BrowserLeftMargin;
-    browser.RightMargin := BrowserRightMargin;
-    //browser.MaxWidth := BrowserMaxWidth;
-    browser.TopMargin := 4;
-
-    //改造▽ 修正 (スレビューに壁紙を設定する。Doe用)
-    browser.WallpaperVAlign  := BrowserWallPaperVAlign;
-    browser.WallpaperHAlign := BrowserWallPaperHAlign;
-    browser.Wallpaper         := BrowserWallpaper;
-    //改造△ 修正 (スレビューに壁紙を設定する。Doe用)
-
-    browser.ExternalLeading := 1;
-    //browser.VerticalCaretMargin := Config.viewVerticalCaretMargin;
-    //browser.WheelPageScroll := Config.viewPageScroll;
-    //browser.VScrollLines := Config.viewScrollLines;
     Move(Config.viewTextAttrib, browser.TextAttrib, SizeOf(browser.TextAttrib));
     browser.SetFont(Font.Name, Font.Size);
     browser.OnMouseMove := OnBrowserMouseMove;
@@ -5752,6 +5491,11 @@ begin
   //▼ブラウザ部の色指定
   result.browser.Color := Config.clViewColor;
   {aiai}
+  result.browser.LeftMargin := 8;
+  result.browser.RightMargin := 8;
+  result.browser.Wallpaper := nil;
+  result.browser.WallpaperVAlign := walVTop;
+  result.browser.WallpaperHAlign := walHLeft;
   result.browser.ColordNumber := Config.ojvColordNumber;       //レス番着色
   result.browser.LinkedNumColor := Config.ojvLinkedNumColor;   //レス番着色
   result.browser.IDLinkColor := Config.ojvIDLinkColor;         //ID着色
@@ -5995,20 +5739,6 @@ begin
 end;
 
 
-(*  *)
-procedure TMainWnd.WebBrowserDocumentComplete(Sender: TObject;
-  const pDisp: IDispatch; var URL: OleVariant);
-var
-  viewItem: TViewItem;
-begin
-  try
-    viewItem := GetViewOf(TComponent(Sender)) as TViewItem;
-    if Assigned(viewItem) then
-      viewItem.OnNavigateDone;
-  except
-  end;
-end;
-
 
 function TMainWnd.NavigateIntoView(const URI: string; oprType: TGestureType; relative: boolean = false;
                                    background: boolean = false): boolean;
@@ -6128,15 +5858,6 @@ begin
     board.Release;
   end;
 end;
-
-(*  *)
-procedure TMainWnd.WebBrowserBeforeNavigate2(Sender: TObject;
-  const pDisp: IDispatch; var URL, Flags, TargetFrameName, PostData,
-  Headers: OleVariant; var Cancel: WordBool);
-begin
-  BrowserBeforeNavigate(Sender, URL, Mouse.CursorPos, Cancel, False);
-end;
-
 
 procedure TMainWnd.BrowserBeforeNavigate(Sender: TObject; const URL: String;
   Point: TPoint; var Cancel: WordBool; MustGo: Boolean);
@@ -6280,6 +6001,7 @@ begin
       //PopupViewAddAAList.Enabled := PopupViewReply.Enabled;
       PopupViewCopyData.Tag := PopupViewReply.Tag;
       PopupViewCopyRD.Tag := PopupViewReply.Tag;
+      PopupViewCopyURL.Tag := PopupViewReply.Tag;
       {/aiai}
       PopupViewCopyReference.Tag := PopupViewReply.Tag;//▼
       PopupViewAbone.Tag := PopupViewReply.Tag;//※[457]
@@ -6451,7 +6173,7 @@ begin
     self.actListCopyTITLE.Enabled := true; //aiai
     self.actListCopyTU.Enabled := true;
     self.actThreadAbone.Enabled := not (CurrentBoard is TFunctionalBoard); //aiai
-    //self.actThreadAbone2.Visible := not (CurrentBoard is TFunctionalBoard) and CurrentBoard.ShowThreadAbone;  //aiai
+    self.actThreadAbone2.Visible := not (CurrentBoard is TFunctionalBoard) and (LocalThreadAboneSetting > 0);  //aiai
     currentBoard.selDatName := TThreadItem(Item.Data).datName;
   end
   else begin
@@ -6526,7 +6248,6 @@ begin
     viewList.Items[i].ZoomBrowser(Config.viewZoomSize);
   end;
   viewListLock.Release;
-  ChangeWriteMemoStyle; //aiai
   Config.Save;
 end;
 
@@ -9512,6 +9233,9 @@ begin
     actHideHistoricalLog.Checked := b and board.HideHistoricalLog;
     //actShowThreadAbone.Enabled := b;
     ///actShowThreadAbone.Checked := b and board.ShowThreadAbone;
+    PopupTreeSetCustomSkin.Enabled := b;
+    if board.CustomSkinIndex < PopupTreeSetCustomSkin.Count then
+      PopupTreeSetCustomSkin.Items[board.CustomSkinIndex].Checked := True;
     {/aiai}
     PopupTreeDelBoard.Enabled := not (board is TFunctionalBoard) and not board.Refered;
     with board do
@@ -9543,6 +9267,7 @@ begin
     actHideHistoricalLog.Checked := false;
     //actShowThreadAbone.Enabled := false;
     //actShowThreadAbone.Checked := false;
+    PopupTreeSetCustomSkin.Enabled := false;
     {/aiai}
   end;
 end;
@@ -10918,14 +10643,6 @@ begin
   ReleasePopupHint(nil, True);
 end;
 
-function GetThreadMessageText(thread: TThreadItem; line: integer): string;
-begin
-  result := '';
-  if thread.dat = nil then
-    exit;
-  result := thread.ToString(POPUPD2HTML, line, 1);
-end;
-
 procedure TMainWnd.PopupViewReplyWithQuotationClick(Sender: TObject);
 var
   viewItem: TBaseViewItem;
@@ -10940,12 +10657,9 @@ begin
   if not assigned(viewItem.thread.dat) then
     exit;
   strList := TStringList.Create;
-  strList.Text := StripBlankLinesForHint(GetThreadMessageText(viewItem.thread,
-                                                              TMenuItem(Sender).Tag),
-                                         High(integer));
-  //s := '>' + IntToStr(TMenuItem(Sender).Tag) + #13#10;
+  strList.Text := viewItem.thread.ToString('<MESSAGE/><br>', TMenuItem(Sender).Tag, 1);
   s := Config.wrtReplyMark + IntToStr(TMenuItem(Sender).Tag) + #13#10;
-  for i := 1 to strList.Count -1 do
+  for i := 0 to strList.Count - 1 do
     s := s + '> ' + strList.Strings[i] + #13#10;
   strList.Free;
 
@@ -10975,13 +10689,9 @@ begin
     exit;
 
   strList := TStringList.Create;
-  strList.Text := StripBlankLinesForHint(GetThreadMessageText(viewItem.thread,
-                                                              TMenuItem(Sender).Tag),
-                                         High(integer));
-
+  strList.Text := viewItem.thread.ToString('<MESSAGE/><br>', TMenuItem(Sender).Tag, 1);
   s := Config.wrtReplyMark + IntToStr(TMenuItem(Sender).Tag) + #13#10;
-
-  for i := 1 to strList.Count -1 do
+  for i := 0 to strList.Count -1 do
     s := s + '> ' + strList.Strings[i] + #13#10;
   strList.Free;
 
@@ -11365,25 +11075,26 @@ begin
           THogeTextView(Sender).PopupMenu := nil;
         end;
         try
-        
-          {beginner} //レス番右クリックでレスのツリーをポップアップ
-          if ShowTreeHint(Sender, GetKeyState(VK_CONTROL) >= 0) then
-            restrainContext := true  //ポップアップメニューを消す
-          {/beginner}
 
-          {aiai} //数字選択部分右クリックでポップアップ
-          else
+          {aiai}
+          //////////////////////////////////////////////////////////////////////
+          //選択範囲右クリック→レス番ポップアップ
+          //レス番右クリック→ツリー・アウトラインポップアップ
+          //ポップアップメニュー
+          //リンクが'menu:xx'ならばおそらくShowTreeHintはTrueをかえす
+          //////////////////////////////////////////////////////////////////////
+
+          CursorPos := THogeTextView(Sender).ClientToPhysicalCharPos(X, Y);
+          if not InvalidPoint(CursorPos)
+            and THogeTextView(Sender).InSelection(CursorPos.X, CursorPos.Y)
+              and Popupres(Sender, GetKeyState(VK_CONTROL) < 0) then
           begin
-            CursorPos := THogeTextView(Sender).ClientToPhysicalCharPos(X, Y);
-            if not InvalidPoint(CursorPos)
-              and THogeTextView(Sender).InSelection(CursorPos.X, CursorPos.Y)
-                and Popupres(Sender, GetKeyState(VK_CONTROL) < 0) then
-            begin
-              FStatusText := '';
-              restrainContext := true;  //ポップアップメニューを消す
-             end else
-              ReleasePopupHint(viewItem, True); //ポップアップヒントを消す
-          end;
+            FStatusText := '';
+            restrainContext := true;  //ポップアップメニューを消す
+          end else if ShowTreeHint(Sender, GetKeyState(VK_CONTROL) >= 0) then
+            restrainContext := true  //ポップアップメニューを消す
+          else
+            ReleasePopupHint(viewItem, True); //ポップアップヒントを消す
           {/aiai}
 
         finally
@@ -11431,7 +11142,7 @@ begin
   begin
 
     if Config.oprCheckNewWRedraw then
-      viewItem.NewRequest(viewItem.thread, gotLocal, -1, false, true, false);
+      viewItem.NewRequest(viewItem.thread, gotLocal, viewItem.thread.lines - 1, false, true, false);
 
     oldLines := lines;
     anchorLine := lines;
@@ -11677,6 +11388,14 @@ begin
   If SelString[Length(SelString)] = #10 then
     SelString := copy(SelString, 1, Length(SelString) - 2);
 
+  {aiai}
+  if TMenuItem(Sender).Tag = 1 then
+  begin
+    ChangeWriteMemoText('> ' + StringReplace(SelString, #13#10, #13#10'> ', [rfReplaceAll]) + #13#10);
+    ToggleWritePanelVisible(True);
+    SetFocusToWriteMemo;
+  end else
+  {/aiai}
   if (WriteForm <> nil) and WriteForm.Visible then
   begin
     WriteForm.Memo.Lines.Add('> ' + StringReplace(SelString, #13#10, #13#10'> ', [rfReplaceAll]));
@@ -11741,10 +11460,13 @@ end;
 procedure TMainWnd.TextPopupAddAAListClick(Sender: TObject);
 var
   dlg: TAddAAForm;
-  viewItem: TViewItem;
+  viewItem: TBaseViewItem;
   s: String;
 begin
-  viewItem := GetActiveView;
+  if PopupTextMenu.PopupComponent is THogeTextView then
+    viewItem := GetViewOf(PopupTextMenu.PopupComponent)
+  else
+    viewItem := GetActiveView;
 
   if viewItem = nil then exit;
 
@@ -11923,24 +11645,29 @@ end;
 procedure TMainWnd.TextPopupCopyLinkClick(Sender: TObject);
 var
   viewItem: TBaseViewItem;
-  link: string;  //aiai
+  link: string;
 begin
   if PopupTextMenu.PopupComponent is THogeTextView then
     viewItem := GetViewOf(PopupTextMenu.PopupComponent)
   else
     viewItem := GetActiveView;
-  if viewItem = nil then
-    exit;
-  {aiai}
   link := viewItem.LinkText;
-  if AnsiStartsStr('BE:', link) then
+  if (viewItem = nil) or (viewItem.thread = nil) then
+  begin
+     Clipboard.AsText := link;
+    exit;
+  end;
+  if AnsiStartsStr('#', link) then
+  begin
+    link := Copy(link, 2, Length(link) - 1);
+    Clipboard.AsText := viewItem.thread.ToURL(true, false, link);
+  end else if AnsiStartsStr('BE:', link) then
     Clipboard.AsText := 'http://be.2ch.net/test/p.php?i='
       + Copy(link, 4, Length(link) - 3)
         + '&u=d:'
           + viewItem.thread.ToURL(true, true)
   else
     Clipboard.AsText := link;
-  {/aiai}
 end;
 
 
@@ -12879,7 +12606,7 @@ begin
   else
     viewItem.thread.readPos := line;
   dec(line);
-  if 1 < Length(BookMarkHTML) then
+  if 1 < Length(TSkinCollection(SkinCollectionList.Items[TBoard(viewItem.thread.board).CustomSkinIndex]).BookMarkHTML) then
     viewItem.LocalReload(line);
 end;
 
@@ -12925,7 +12652,7 @@ begin
   if (0 < viewItem.thread.readPos) then
   begin
     viewItem.thread.readPos := 0;
-    if 1 < Length(BookMarkHTML) then
+    if 1 < Length(TSkinCollection(SkinCollectionList.Items[TBoard(viewItem.thread.board).CustomSkinIndex]).BookMarkHTML) then
       viewItem.LocalReload(viewItem.GetTopRes);
   end;
 end;
@@ -13735,8 +13462,17 @@ begin
   end;
 end;
 
-//▼参照コピー
-procedure TMainWnd.PopupViewCopyReferenceClick(Sender: TObject);
+////////////////////////////////////////////////////////////////////////////////
+//
+//このレスをコピー
+//CopyResToClipBrd()
+//PopupViewCopyReferenceClick()
+//PopupViewCopyDataClick()
+//PopupViewCopyURLClick()
+//PopupViewCopyRDClick()
+//
+
+procedure TMainWnd.CopyResToClipBrd(title, uri, res: boolean; num: integer);
 var
   viewItem: TBaseViewItem;
   list: string;
@@ -13748,103 +13484,45 @@ begin
   if not assigned(viewItem.thread) then
     exit;
 
-  with viewItem do
-    list := HTML2String(thread.title) + #13#10
-          + thread.ToURL(true, false, IntToStr(TMenuItem(Sender).Tag)) + #13#10;
-  Clipboard.AsText := list;
+  if title then
+    list := HTML2String(viewItem.thread.title) + #13#10;
+  if uri then
+  begin
+    list := list + viewItem.thread.ToURL(true, false, IntToStr(num)) + #13#10;
+    if res then
+      list := list + #13#10;
+  end;
+  if res then
+    list := list + StripBlankLinesForHint(viewItem.thread.ToString(DEF_REC_HTML,
+      num, 1), High(Integer));
+  ClipBoard.AsText := list;
 end;
 
-//aiai 内容をコピー
+//スレタイとレスのURLをコピー
+procedure TMainWnd.PopupViewCopyReferenceClick(Sender: TObject);
+begin
+  CopyResToClipBrd(true, true, false, TMenuItem(Sender).Tag);
+end;
+
+//レスの内容をコピー
 procedure TMainWnd.PopupViewCopyDataClick(Sender: TObject);
-var
-  viewItem: TBaseViewItem;
-  strList: TStringList;
 begin
-  if PopupViewMenu.PopupComponent is THogeTextView then
-    viewItem := GetViewOf(TComponent(PopupViewMenu.PopupComponent))
-  else
-    viewItem := GetActiveView;
-
-  if (viewItem = nil) or (viewItem.thread = nil) or (viewItem.thread.dat = nil) then
-    exit;
-
-  strList := TStringList.Create;
-  strList.Text := GetThreadMessageText(viewItem.thread, TMenuItem(Sender).Tag);
-
-  if strList.Text = '' then
-  begin
-    strList.Free;
-    exit;
-  end;
-
-  //strList.Delete(strList.Count - 1);
-  //
-  //if strList.Text = '' then
-  //begin
-  //  strList.Free;
-  //  exit;
-  //end;
-  //
-  //if (TBoard(viewItem.thread.board).GetBBSType = bbs2ch) then
-  //  for i := 1 to strList.Count -1 do
-  //  begin
-  //    len := length(strList.Strings[i]);
-  //    if len > 1 then
-  //     strList.Strings[i] := Copy(strList.Strings[i], 2, len - 2);
-  //  end;
-
-  Clipboard.AsText := strList.Text;
-
-  strList.Free;
+  CopyResToClipBrd(false, false, true, TMenuItem(Sender).Tag);
 end;
 
-//aiai 参照と内容をコピー
+//レスのURLをコピー
+procedure TMainWnd.PopupViewCopyURLClick(Sender: TObject);
+begin
+  CopyResToClipBrd(false, true, false, TMenuItem(Sender).Tag);
+end;
+
+//スレタイとレスのURLとレスの内容をコピー
 procedure TMainWnd.PopupViewCopyRDClick(Sender: TObject);
-var
-  viewItem: TBaseViewItem;
-  strList: TStringList;
 begin
-  if PopupViewMenu.PopupComponent is THogeTextView then
-    viewItem := GetViewOf(TComponent(PopupViewMenu.PopupComponent))
-  else
-    viewItem := GetActiveView;
-
-  if (viewItem = nil) or (viewItem.thread = nil) or (viewItem.thread.dat = nil) then
-    exit;
-
-  strList := TStringList.Create;
-  strList.Text := GetThreadMessageText(viewItem.thread, TMenuItem(Sender).Tag);
-
-  if strList.Text = '' then
-  begin
-    strList.Free;
-    exit;
-  end;
-
-  //strList.Delete(strList.Count - 1);
-  //
-  //if strList.Text = '' then
-  //begin
-  //  strList.Free;
-  //  exit;
-  //end;
-  //
-  //if (TBoard(viewItem.thread.board).GetBBSType = bbs2ch) then
-  //  for i := 1 to strList.Count -1 do
-  //  begin
-  //    len := length(strList.Strings[i]);
-  //   if len > 1 then
-  //      strList.Strings[i] := Copy(strList.Strings[i], 2, len - 2);
-  //  end;
-  //
-  strList.Insert(0, HTML2String(viewItem.thread.title));
-  strList.Insert(1, viewItem.thread.ToURL(true, false, IntToStr(TMenuItem(Sender).Tag)));
-  strList.insert(2, '');
-
-  Clipboard.AsText := strList.Text;
-
-  strList.Free;
+  CopyResToClipBrd(true, true, true, TMenuItem(Sender).Tag);
 end;
+
+
 
 procedure TMainWnd.SetMouseGesture;
   function FindCommandMenu(parent: TMenuItem; number: integer): TMenuItem;
@@ -14520,7 +14198,6 @@ var
   dlg: TAddAAForm;
   viewItem: TBaseViewItem;
   strList: TStringList;
-  i, len: Integer;
 begin
   if PopupViewMenu.PopupComponent is THogeTextView then
     viewItem := GetViewOf(TComponent(PopupViewMenu.PopupComponent))
@@ -14533,45 +14210,20 @@ begin
     exit;
 
   strList := TStringList.Create;
-  strList.Text := StripBlankLinesForHint(GetThreadMessageText(viewItem.thread,
-      TMenuItem(Sender).Tag), High(Integer));
+  strList.Text := viewItem.thread.ToString('<MESSAGE/><br>', TMenuItem(Sender).Tag, 1);
 
   if strList.Text = '' then
   begin
     strList.Free;
     exit;
   end;
-
-  strList.Delete(0);
-
-  if strList.Text = '' then
-  begin
-    strList.Free;
-    exit;
-  end;
-
-  //strList.Delete(strList.Count - 1);
-  //
-  //if strList.Text = '' then
-  //begin
-  //  strList.Free;
-  //  exit;
-  //end;
-  //
-  if (TBoard(viewItem.thread.board).GetBBSType = bbs2ch) then
-    for i := 0 to strList.Count -1 do
-    begin
-      len := length(strList.Strings[i]);
-     if len > 1 then
-        strList.Strings[i] := Copy(strList.Strings[i], 2, len - 1);
-    end;
 
   dlg := TAddAAForm.Create(self);
   dlg.Text := strList.Text;
+  strList.Free;
   dlg.ShowModal;
   dlg.Free;
 
-  strList.Free;
 end;
 
 {beginner} //レスが含む画像URLを全て開く
@@ -15763,8 +15415,7 @@ begin
   if TAction(Sender).Checked then
     Exit;
   TAction(Sender).Checked:=True;
-  NEWD2HTML.AboneLevel:=TAction(Sender).Tag;
-  D2HTML.AboneLevel:=TAction(Sender).Tag;
+  AboneLevel := TAction(Sender).Tag;
   viewItem := GetActiveView;
   if Assigned(viewItem) and Assigned(viewItem.thread) then
     viewItem.LocalReload(viewItem.GetTopRes);
@@ -19079,6 +18730,52 @@ begin
 end;
 
 //▲ WriteWaitTimerのイベントハンドラ
+
+//▼ もっと変えたいβ
+procedure TMainWnd.PopupTreeCustomSkinClick(Sender: TObject);
+var
+  uri, section: string;
+  str: TStringList;
+  i: integer;
+  viewItem: TViewItem;
+begin
+  if (CurrentBoard <> nil) and not (CurrentBoard is TFunctionalBoard)
+    and (CurrentBoard.CustomSkinIndex <> TMenuItem(Sender).Tag) then
+  begin
+    uri := CurrentBoard.GetURIBase;
+    if length(uri) <= 0 then
+      exit;
+    CurrentBoard.CustomSkinIndex := TMenuItem(Sender).Tag;
+    if uri[length(uri)] = '/' then
+      SetLength(uri, length(uri) - 1);
+    str := TStringList.Create;
+    if FileExists(Config.SkinPath + 'BoardToSkin.ini') then
+      try
+        str.LoadFromFile(Config.SkinPath + 'BoardToSkin.ini');
+      except
+      end;
+    if TMenuItem(Sender).Tag = 0 then
+    begin
+      i := str.IndexOfName(uri);
+      if i > -1 then
+        str.Delete(i);
+    end else
+    begin
+      section := TSkinCollection(SkinCollectionList.Items[TMenuItem(Sender).Tag]).Section;
+      str.Values[uri] := section;
+    end;
+    str.SaveToFile(Config.SkinPath + 'BoardToSkin.ini');
+    str.Free;
+    for i := 0 to viewList.Count - 1 do
+    begin
+      viewItem := viewList.Items[i];
+      if (viewItem <> nil) and (viewItem.thread <> nil)
+        and (viewItem.thread.board = CurrentBoard) then
+        viewItem.LocalReload(viewItem.GetTopRes);
+    end;
+  end;
+end;
+//▲ もっと変えたいβ
 
 initialization
   OleInitialize(nil);

@@ -1347,8 +1347,8 @@ begin
     if (2 <= list.Count) and
       AnsiStartsStr('ÇdÇqÇqÇnÇqÅI', list[0]) and
       //AnsiStartsStr('ÇdÇqÇqÇnÇq - 593', list[1]) and
-      AnsiContainsStr(list[1], ' sec ÇµÇ©ÇΩÇ¡ÇƒÇ»Ç¢') and
-      AnsiContainsStr(list[1], ' sec ÇΩÇΩÇ»Ç¢Ç∆èëÇØÇ‹ÇπÇÒÅB') then
+      AnsiContainsStr(list[1], ' sec ÇµÇ©ÇΩÇ¡ÇƒÇ»Ç¢') then
+      //AnsiContainsStr(list[1], ' sec ÇΩÇΩÇ»Ç¢Ç∆èëÇØÇ‹ÇπÇÒÅB') then
     begin
       if Config.wrtUseWriteWait then
         WaitTimerRestart(list[1]);
@@ -1491,7 +1491,7 @@ begin
   if Assigned(thread) then
     ButtonWrite.Enabled := not MainWnd.WriteWaitTimer.IsThisHost(thread.GetHost);
   if Assigned(WriteMemo) and Assigned(WriteMemo.board) then
-    ChangeWirteButtonEnabled(MainWnd.WriteWaitTimer.IsThisHost(WriteMemo.board.host));
+    ChangeWirteButtonEnabled(not MainWnd.WriteWaitTimer.IsThisHost(WriteMemo.board.host));
   {/aiai}
 end;
 
@@ -1938,10 +1938,10 @@ const
 var
   dat: TThreadData;
   ResSkin: string;
-  TempStream: TDat2View;
+  TempStream: TDat2PreViewView;
   PreviewD2HTML: TDat2HTML;
 begin
-  TempStream := TDat2View.Create(Preview);
+  TempStream := TDat2PreViewView.Create(Preview);
   if EditMailBox.Text='' then
     ResSkin := '<dt><SA i=1><b><PLAINNUMBER/></b><SA i=0> ÅF<SA i=2><b><NAME/></b></b><SA i=0>[<MAIL/>] ÅF<DATE/></dt><dd><MESSAGE/><br><br></dd>'#10
   else
@@ -2296,17 +2296,17 @@ end;
     result := GetNumber(' sec ÇΩÇΩÇ»Ç¢Ç∆èëÇØÇ‹ÇπÇÒÅB');
   end;
 
-  function GetElapsedTime: Cardinal;
-  begin
-    result := GetNumber(' sec ÇµÇ©ÇΩÇ¡ÇƒÇ»Ç¢');
-  end;
+  //function GetElapsedTime: Cardinal;
+  //begin
+  //  result := GetNumber(' sec ÇµÇ©ÇΩÇ¡ÇƒÇ»Ç¢');
+  //end;
 
 var
   DomainName: String;
   HostName: String;
   text: String;
   i, j: Integer;
-  WaitTime, newWaitTime, Remain: Cardinal;
+  WaitTime, newWaitTime{, Remain}: Cardinal;
 begin
   if not Assigned(Thread) then
   begin
@@ -2340,15 +2340,15 @@ begin
     Config.waitTimeList.SaveToFile(Config.BasePath + WRITEWAIT_FILE);
   end;
 
-  Remain := GetElapsedTime;
-  if Remain > 0 then
-    Remain := newWaitTime - Remain
-  else
-    exit;
-  MainWnd.WriteWaitTimer.Start(DomainName, Remain * 1000);
+  //Remain := GetElapsedTime;
+  //if Remain > 0 then
+  //  Remain := newWaitTime - Remain
+  //else
+  //  exit;
+  MainWnd.WriteWaitTimer.Start(DomainName, newWaitTime * 1000);
   Log('èëÇ´çûÇ›ë“ã@ - ' + DomainName);
   MainWnd.TabControl.Refresh;
-  ButtonWrite.Caption := IntToStr(WaitTime);
+  ButtonWrite.Caption := IntToStr(newWaitTime);
 end;
 
 procedure TWriteForm.WriteWaitNotify(DomainName: String; Remainder: Integer);

@@ -375,11 +375,11 @@ var
 begin
   lenSub := Length(substr);
   len := Length(str);
+  Dec(offset);
   if (len - offset) < lenSub then begin
     result := False;
     exit;
   end;
-  Dec(offset);
   for index := 1 to lenSub do begin
     if substr[index] <> str[offset + index] then begin
       result := False;

@@ -3708,7 +3708,7 @@ object MainWnd: TMainWnd
         end
       end
       object MenuListThreadAboneSetting: TMenuItem
-        Caption = #12473#12524#12483#12489#12354#12412#65374#12435#12398#34920#31034#35373#23450
+        Caption = #12473#12524#12483#12489#12354#12412#65374#12435#12398#34920#31034#22793#26356
         object MenuListAboneTranseparency: TMenuItem
           Action = actThreadAboneTranseparency
           GroupIndex = 1
@@ -4189,17 +4189,6 @@ object MainWnd: TMainWnd
         object MenuImageViewOpenCacheList: TMenuItem
           Caption = #12461#12515#12483#12471#12517#19968#35239'(&C)'
           OnClick = MenuImageViewOpenCacheListClick
-        end
-        object N77: TMenuItem
-          Caption = '-'
-        end
-        object MenuImageViewOpenSelectionURL: TMenuItem
-          Caption = #36984#25246#31684#22258#12434'URL'#12392#12375#12390#38283#12367'(&S)'
-          OnClick = TextPopupOpenSelectionURLClick
-        end
-        object MenuImageViewOpenSelectionURLs: TMenuItem
-          Caption = #36984#25246#31684#22258#12398'URL'#12434#20840#12390#38283#12367
-          OnClick = TextPopupOpenSelectionURLsClick
         end
       end
       object N66: TMenuItem
@@ -5162,6 +5151,7 @@ object MainWnd: TMainWnd
     object actThreadAboneTranseparency: TAction
       Category = #12473#12524#12483#12489#12354#12412#65374#12435
       Caption = #36879#26126
+      Checked = True
       GroupIndex = 1
       OnExecute = actThreadAboneShowExecute
     end
@@ -5315,6 +5305,15 @@ object MainWnd: TMainWnd
       Caption = #12385#12423#12387#12392#22793#12360#12383#12356'pre-'#945'(&C)'
       OnClick = PopupTreeSetHeaderClick
     end
+    object PopupTreeSetCustomSkin: TMenuItem
+      Caption = #12418#12387#12392#22793#12360#12383#12356#946'(&V)'
+      object PopupTreeCustomSkinDefault: TMenuItem
+        Caption = #12394#12375
+        GroupIndex = 1
+        RadioItem = True
+        OnClick = PopupTreeCustomSkinClick
+      end
+    end
     object N23: TMenuItem
       Caption = '-'
     end
@@ -5411,8 +5410,12 @@ object MainWnd: TMainWnd
     end
     object c1: TMenuItem
       Caption = #12371#12398#12524#12473#12434#12467#12500#12540'(&c)'
+      object PopupViewCopyURL: TMenuItem
+        Caption = 'URL'#12434#12467#12500#12540'(&L)'
+        OnClick = PopupViewCopyURLClick
+      end
       object PopupViewCopyReference: TMenuItem
-        Caption = #21442#29031#12434#12467#12500#12540#65288'&U'#65289
+        Caption = #12479#12452#12488#12523#12392'URL'#12434#12467#12500#12540#65288'&U'#65289
         OnClick = PopupViewCopyReferenceClick
       end
       object PopupViewCopyData: TMenuItem
@@ -5420,7 +5423,7 @@ object MainWnd: TMainWnd
         OnClick = PopupViewCopyDataClick
       end
       object PopupViewCopyRD: TMenuItem
-        Caption = #21442#29031#12392#20869#23481#12434#12467#12500#12540'(&A)'
+        Caption = #12479#12452#12488#12523#12392'URL'#12392#20869#23481#12434#12467#12500#12540'(&A)'
         OnClick = PopupViewCopyRDClick
       end
     end
@@ -5521,6 +5524,11 @@ object MainWnd: TMainWnd
     end
     object TextPopupTrensferToWriteForm: TMenuItem
       Caption = #12371#12398#25991#12395#12524#12473'(&R)'
+      OnClick = TextPopupTrensferToWriteFormClick
+    end
+    object TextPopupTrensferToWriteMemo: TMenuItem
+      Tag = 1
+      Caption = #12371#12398#25991#12395#12513#12514#27396#12391#12524#12473'(&M)'
       OnClick = TextPopupTrensferToWriteFormClick
     end
     object TextPopupAddNGWord: TMenuItem

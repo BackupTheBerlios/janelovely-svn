@@ -907,7 +907,6 @@ begin
   Main.Config.viewNGLifeSpan[3]    := self.seNGIDLifeSpan.Value;
   Main.Config.viewNGLifeSpan[4]    := self.seNGItemLifeSpan.Value;
   Main.Config.viewAboneLevel       := self.cmbAboneLevel.ItemIndex-1;
-  MainWnd.SetupNGConfig;
 
   Main.Config.optOldOnCheckNew := self.CheckBoxOldOnCheckNew.Checked;
   Main.Config.viewReadIfScrollBottom := self.CheckBoxReadIfScrollBottom.Checked;
@@ -988,6 +987,17 @@ begin
   Main.Config.viewScrollSmoothness := self.SpinEditViewScrollSmoothness.Value;
   Main.Config.viewScrollFrameRate := self.SpinEditViewScrollFrameRate.Value;
   {/beginner}
+  {aiai}
+  Main.Config.viewCaretVisible := self.CheckboxCaretVisible.Checked;
+  Main.Config.viewCaretScrollSync := self.CheckBoxCaretScrollSync.Checked;
+  Main.Config.viewKeywordBrushColor := self.LabelKeywordBrushColor.Color;
+  Main.Config.ojvColordNumber := self.CheckBoxColordNumber.Checked;
+  Main.Config.ojvLinkedNumColor := self.LabelLinkedNumColor.Font.Color;
+  Main.Config.ojvIDLinkColor := self.CheckBoxIDLinkColor.Checked;
+  Main.Config.ojvIDLinkColorMany := self.LabelIDLinkColorMany.Font.Color;
+  Main.Config.ojvIDLinkColorNone := self.LabelIDLinkColorNone.Font.Color;
+  Main.Config.ojvIDLinkThreshold := self.SpinEditIDLinkThreshold.Value;
+  {/aiai}
   for i := 0 to Main.viewList.Count -1 do
   begin
     Main.viewList.Items[i].browser.VerticalCaretMargin := Main.Config.viewVerticalCaretMargin;
@@ -999,27 +1009,18 @@ begin
     Main.viewList.Items[i].browser.Frames := Main.Config.viewScrollSmoothness;
     Main.viewList.Items[i].browser.FrameRate := Main.Config.viewScrollFrameRate;
     {/beginner}
+    {aiai}
+    Main.viewList.Items[i].browser.ConfCaretVisible := Main.Config.viewCaretVisible;
+    Main.viewList.Items[i].browser.CaretScrollSync := Main.Config.viewCaretScrollSync;
+    Main.viewList.Items[i].browser.KeywordBrushColor := Main.Config.viewKeywordBrushColor;
+    Main.viewList.Items[i].browser.ColordNumber := Main.Config.ojvColordNumber;
+    Main.viewList.Items[i].browser.LinkedNumColor := Main.Config.ojvLinkedNumColor ;
+    Main.viewList.Items[i].browser.IDLinkColor := Main.Config.ojvIDLinkColor;
+    Main.viewList.Items[i].browser.IDLinkColorNone := Main.Config.ojvIDLinkColorMany;
+    Main.viewList.Items[i].browser.IDLinkColorMany := Main.Config.ojvIDLinkColorNone;
+    Main.viewList.Items[i].browser.IDLinkThreshold := Main.Config.ojvIDLinkThreshold;
+    {/aiai}
   end;
-  if Main.Config.viewCaretVisible <> self.CheckboxCaretVisible.Checked then
-  begin
-    Main.Config.viewCaretVisible := self.CheckboxCaretVisible.Checked;
-    for i := 0 to Main.viewList.Count -1 do
-      Main.viewList.Items[i].browser.ConfCaretVisible := self.CheckboxCaretVisible.Checked;
-  end;
-  {aiai}
-  if Main.Config.viewCaretScrollSync <> self.CheckBoxCaretScrollSync.Checked then
-  begin
-    Main.Config.viewCaretScrollSync := self.CheckBoxCaretScrollSync.Checked;
-    for i := 0 to Main.viewList.Count -1 do
-      Main.viewList.Items[i].browser.CaretScrollSync := self.CheckBoxCaretScrollSync.Checked;
-  end;
-  if Main.Config.viewKeywordBrushColor <> self.LabelKeywordBrushColor.Color then
-  begin
-    Main.Config.viewKeywordBrushColor := self.LabelKeywordBrushColor.Color;
-    for i := 0 to Main.viewList.Count - 1 do
-      Main.viewList.Items[i].browser.KeywordBrushColor := self.LabelKeywordBrushColor.Color;
-  end;
-  {/aiai}
   Config.viewZoomPointArray[0] := StrToIntDef(EditZoomPoint0.Text, Config.viewZoomPointArray[0]);
   Config.viewZoomPointArray[1] := StrToIntDef(EditZoomPoint1.Text, Config.viewZoomPointArray[1]);
   Config.viewZoomPointArray[2] := StrToIntDef(EditZoomPoint2.Text, Config.viewZoomPointArray[2]);
@@ -1121,28 +1122,6 @@ begin
 
     if MainWnd.TabControl <> nil then MainWnd.TabControl.Refresh;
     Main.Config.TabColorChanged := false;
-  end;
-
-  if (Main.Config.ojvColordNumber <> self.CheckBoxColordNumber.Checked)
-  or (Main.Config.ojvLinkedNumColor <> self.LabelLinkedNumColor.Font.Color) then
-  begin
-    Main.Config.ojvColordNumber := self.CheckBoxColordNumber.Checked;
-    Main.Config.ojvLinkedNumColor := self.LabelLinkedNumColor.Font.Color;
-    MainWnd.LoadColordNumberSetting;
-    Main.Config.Modified := true;
-  end;
-
-  if (Main.Config.ojvIDLinkColor <> self.CheckBoxIDLinkColor.Checked)
-  or (Main.Config.ojvIDLinkColorMany <> self.LabelIDLinkColorMany.Font.Color)
-  or (Main.Config.ojvIDLinkColorNone <> self.LabelIDLinkColorNone.Font.Color)
-  or (Main.Config.ojvIDLinkThreshold <> self.SpinEditIDLinkThreshold.Value) then
-  begin
-    Main.Config.ojvIDLinkColor := self.CheckBoxIDLinkColor.Checked;
-    Main.Config.ojvIDLinkColorMany := self.LabelIDLinkColorMany.Font.Color;
-    Main.Config.ojvIDLinkColorNone := self.LabelIDLinkColorNone.Font.Color;
-    Main.Config.ojvIDLinkThreshold := self.SpinEditIDLinkThreshold.Value;
-    MainWnd.LoadColordIDSetting;
-    Main.Config.Modified := true;
   end;
 
   {/aiai}

@@ -904,8 +904,13 @@ begin
   FillChar(FBCharWidthTable, SizeOf(FBCharWidthTable), 0);
 
   inherited Create(AOwner);
+  FLeftMargin := 8;
+  FTopMargin := 4;
+  FExternalLeading := 1;
+  //FCaretPos.x := FLeftMargin;
+  //FCaretPos.y := FTopMargin - FFraction; //beginner
   FCaretPos.x := FLeftMargin;
-  FCaretPos.y := FTopMargin - FFraction; //beginner
+  FCaretPos.y := FTopMargin;
   FStrings := THogeTVItems.Create(Self);
   FTopLine := 0;
   FBottomLine := 0;

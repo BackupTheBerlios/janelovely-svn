@@ -147,6 +147,16 @@ type
   end;
   (*-------------------------------------------------------*)
   {aiai}
+  TStrDatOutForGetMessage = class(TStrDatOut)
+  protected
+    FBiteSpaces: Boolean;
+    function ProcBlank: boolean; override;
+  public
+    procedure WriteChar(c: Char); override;
+    procedure WriteText(str: PChar; size: integer); override;
+    procedure ProcHTML; override;
+  end;
+
   //ID抽出用
   TIDDatOut = class(TConvDatOut)
   protected
@@ -203,9 +213,12 @@ type
     property Size: Integer read GetSize write SetSize; //beginner
   end;
   (*-------------------------------------------------------*)
+
+  TTmplList = array of TTmplType;
+
   TDat2HTML = class(TObject)
   private
-    templateType: array of TTmplType;
+    templateType: TTmplList;
     templateStr: TStringList;
   protected
     function _ToDatOut(dest: TDatOut;
@@ -218,7 +231,7 @@ type
                        NeedConvert: Boolean = False  //aiai
                        ): Boolean;
   public
-    NGItems: Array[TNGItemIdent] of TNGStringList; //beginner
+    NGItems: TNGList; //beginner
 { beginner 消去
     NGnames: TStringList; (* 参照Only *)
     NGaddrs: TStringList; (* 参照Only *)
@@ -230,7 +243,7 @@ type
     VisibleAbone: Boolean;
     //thread: TObject; //521 readPos
     {beginner}
-    AboneLevel:Integer;
+    AboneLevel: ShortInt;
     PermanentNG:Boolean;
     PermanentMarking:Boolean;
     {/beginner}
@@ -245,6 +258,7 @@ type
     function PickUpRes(dest: TDatOut; dat: TThreadData; abonearray: TAboneArray; NeedConvert: Boolean;
                               startLine, endLine: integer): Integer;
     function ToString(dat: TThreadData; startLine, lines: Integer; NeedConvert: Boolean = False): String;
+    function ToString2(dat: TThreadData; startLine, lines: Integer; NeedConvert: Boolean = False): String;
     function ToID(dat: TThreadData; line: Integer): String;  //aiai
   end;
 
@@ -1687,7 +1701,7 @@ begin
     else
       ProcChar:
       idx2 := index + 1;
-      while (idx2 < size) and not ((str + idx2)^ in ['<', 'I', 'B']) do
+      while (idx2 < size) and not ((str + idx2)^ in ['<', 'I', 'B', ' ']) do
         Inc(idx2);
       WriteText(str + index, idx2 - index);
       index := idx2;
@@ -1919,6 +1933,92 @@ end;
 (*=======================================================*)
 
 {aiai}
+
+ { TStrDatOutForGetMessage }
+
+function TStrDatOutForGetMessage.ProcBlank: Boolean;
+var
+  i: integer;
+begin
+  result := true;
+  i := index + 1;
+  while ((str + i)^ = ' ') and (i < size) do
+    Inc(i);
+  index := i;
+  WriteChar(' ')
+end;
+
+procedure TStrDatOutForGetMessage.WriteText(str: PChar; size: integer);
+  procedure TrimRight;
+  var
+    i: integer;
+    p: PChar;
+  begin
+    p := PChar(FString);
+    for i := FPosition - 1 downto 0 do
+    begin
+      if (p+i)^ <> ' ' then
+      begin
+        FPosition := i + 1;
+        exit;
+      end;
+    end;
+    FPosition := 0;
+  end;
+
+begin
+  if StartWithP(#13#10, str, 2) then
+  begin
+    TrimRight;
+    FBiteSpaces := true;
+  end else
+    FBiteSpaces := false;
+  Inherited WriteText(str, size);
+end;
+
+procedure TStrDatOutForGetMessage.WriteChar(c: Char);
+begin
+  if (FBiteSpaces and (c = ' ')) or (FPosition = 0) then
+    exit;
+  FBiteSpaces := False;
+  if ' ' <= c then
+    Inherited WriteText(@c, 1);
+end;
+
+procedure TStrDatOutForGetMessage.ProcHTML;
+label
+  ProcChar;
+var
+  idx2: Integer;
+begin
+  while (index < size) do
+  begin
+    case (str + index)^ of
+      '<':
+        if not ProcTag then
+          goto ProcChar;
+      '&':
+        if not (ProcRedirect or ProcEntity) then
+          goto ProcChar;
+      ' ':
+        if not ProcBlank then
+          goto ProcChar;
+      #0..#$1F:
+        Inc(index);
+    else
+      ProcChar:
+      idx2 := index + 1;
+      while (idx2 < size) and not ((str + idx2)^ in ['<', '&', ' ', #0..#$1f]) do
+        Inc(idx2);
+      WriteText(str + index, idx2 - index);
+      index := idx2;
+    end;
+  end;
+end;
+
+
+ { TIDDatOut }
+
 constructor TIDDatOut.Create;
 begin
   inherited;
@@ -2396,7 +2496,7 @@ begin
           else Exit;
         end;
       end;
-      255: begin //ヒント表示用
+      127: begin //ヒント表示用
         case AboneType of
           1,2: MsgShow := 13;
         end;
@@ -2572,6 +2672,16 @@ var
   strOut: TStrDatOut;
 begin
   strOut := TStrDatOut.Create;
+  ToDatOut(strOut, dat, startLine, lines, nil, NeedConvert);
+  result := strOut.Text;
+  strOut.Free;
+end;
+
+function TDat2HTML.ToString2(dat: TThreadData; startLine, lines: Integer; NeedConvert: Boolean = False): String;
+var
+  strOut: TStrDatOutForGetMessage;
+begin
+  strOut := TStrDatOutForGetMessage.Create;
   ToDatOut(strOut, dat, startLine, lines, nil, NeedConvert);
   result := strOut.Text;
   strOut.Free;

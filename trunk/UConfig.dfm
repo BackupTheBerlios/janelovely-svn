@@ -1967,7 +1967,7 @@ object UIConfig: TUIConfig
           Height = 20
           Style = csDropDownList
           DropDownCount = 12
-          ItemHeight = 12
+          ItemHeight = 0
           TabOrder = 1
         end
         object ComboBoxMseGestures: TComboBox
@@ -2071,7 +2071,7 @@ object UIConfig: TUIConfig
           Height = 20
           Style = csDropDownList
           DropDownCount = 12
-          ItemHeight = 12
+          ItemHeight = 0
           TabOrder = 2
           OnDropDown = ComboBoxMseSubMenusDropDown
         end

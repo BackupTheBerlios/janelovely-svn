@@ -155,7 +155,7 @@ type
     procedure ChkConsistency;
 
     function DupData: TThreadData;
-    function ToString(const dat2html: TDat2HTML; startLine, lines: Integer): String;
+    function ToString(const body: string; startLine, lines: Integer): String;
     function ToURL(full: Boolean = true; last: Boolean = false; index: string = ''): string;
 
     property TransferedSize: Cardinal read GetTransferedSize;
@@ -2144,20 +2144,22 @@ begin
   end;
 end;
 
-function TThreadItem.ToString(const dat2html: TDat2HTML; startLine, lines: Integer): String;
+function TThreadItem.ToString(const body: string; startLine, lines: Integer): String;
 var
   tmpDat: TThreadData;
+  dat2html: TDat2HTML;
 begin
+  dat2html := TDat2HTML.Create(body, Config.SkinPath);
   tmpDat := DupData;
   if Assigned(tmpDat) then
   begin
-    result := dat2html.ToString(tmpDat, startLine, lines, GetNeedConvert);
+    result := dat2html.ToString2(tmpDat, startLine, lines, GetNeedConvert);
     tmpDat.Free;
   end
   else
     result := '';
+  dat2html.Free;
 end;
-
 
 (* full:cgiとhtmlのURLのセット, last:最新50件, index:特定レス番URL *)
 function TThreadItem.ToURL(full: Boolean; last: Boolean; index: string): string;
@@ -2247,7 +2249,7 @@ begin
   end;
 
   if (length(s1) > 0) and (length(s2) > 0) then
-    result := s1 + #13#10+ s2
+    result := s1
   else
     result := s1 + s2;
 end;

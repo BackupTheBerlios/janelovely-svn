@@ -93,6 +93,7 @@ type
     MergingList: TList;
     URIBase: String;
     IdxDataBase: TSQLite;
+    CustomSkinIndex: Integer;
     (* //DataBase *)
     constructor Create(category: TObject);
     destructor Destroy; override;
@@ -395,11 +396,8 @@ end;
 procedure TBoard.Analyze((*const*) txt: string; const lstModified: string; refresh: boolean);
 var
   refered: TStringList;  //aiai GetReferedThreadItemの効率化
-  //改造▽ 追加 (スレッドあぼ～ん)
   threadABoneList: THashedStringList;
-  threadABoneCount: integer;  //スレッドあぼ～んカウンタ
   threadABoneNext: THashedStringList; //ヒットしたスレを加える
-  //改造△ 追加 (スレッドあぼ～ん)
 
   (* 指定されたdatのスレを探す *)
   //aiai TStringList.Findを使って効率化
@@ -527,40 +525,22 @@ var
     if (refEnd <= 0) then
       exit;
     datName := ChangeFileExt(Copy(txt, refPos, refEnd - refPos), '');
-    //改造▽ 追加 (スレッドあぼ～ん)
     abone := False;
+    //スレッドあぼ～ん
     idx := threadABoneList.IndexOfName(datName);
     if idx >= 0 then
     begin
       threadABoneNext.Add(threadABoneList.Strings[idx]); //ヒットしたスレを加える
-      //threadABoneList.Delete(idx);  //ヒットしたスレはリストから削除
-      //if not FShowThreadAbone then
-      //begin
-      //  Inc(threadABoneCount);  //スレッドあぼ～んカウンタをインクリメント
-      //  Exit;
-      //end else
-        abone := True;
+      abone := True;
     end;
-    //改造△ 追加 (スレッドあぼ～ん)
     (* subject *)
     refPos := topOfSubject(refEnd);
     refEnd := endOfSubject(refPos, endOfRec);
     subject := Copy(txt, refPos, refEnd - refPos);
-    {aiai} //NGThread
+    //NGThread
     if not abone then
       for idx := 0 to Main.NGThreadItems.Count - 1 do
-      begin
-        if 0 < AnsiPos(Main.NGThreadItems.Strings[idx], subject) then
-        begin
-          //if not FShowThreadAbone then
-          //begin
-          //  Inc(threadABoneCount);  //スレッドあぼ～んカウンタをインクリメント
-          //  exit;
-          //end else
-            abone := True;
-        end;
-      end;
-    {/aiai}
+        abone := 0 < AnsiPos(Main.NGThreadItems.Strings[idx], subject);
     (* numを取得 *)
     refPos := topOfNums(refEnd, endOfRec);
     refEnd := endOfNums(refPos, endOfRec);
@@ -578,20 +558,16 @@ var
       subject := ReplaceStr(subject, #0, ' ');
     item.title := subject;
     item.datName := datName;
-    item.previousitemCount := item.itemCount;    //aiai
+    item.previousitemCount := item.itemCount;
     item.itemCount := num;
-    item.IsThisAbone := abone;  //aiai
+    item.IsThisAbone := abone;
+    item.number := Count;
     //item.contemporary := true;
     Add(item);
     {aiai}
     if refresh then
       datList.Add(datName);
     {/aiai}
-    //改造▽ 修正 (スレッドあぼ～ん)
-    item.number := Count  + threadABoneCount; //スレッドあぼ～んの分のカウントを加算する
-    //オリジナル
-    //item.number := Count;
-    //改造△ 修正 (スレッドあぼ～ん)
   end;
 
 var
@@ -606,9 +582,6 @@ begin
   {$ENDIF}
   {$ENDIF}
 
-  //改造▽ 追加 (スレッドあぼ～ん)
-  threadABoneCount := 0;  //スレッドあぼ～んカウンタの初期化
-  //改造△ 追加 (スレッドあぼ～ん)
   if refresh then
     SafeClear;
 

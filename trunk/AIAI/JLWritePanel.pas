@@ -180,14 +180,15 @@ procedure TJLWritePanel.CreatePreView;
 
   function ZoomToPoint(zoom: integer): Integer;
   begin
-    try
+    result := -12;
+    {try
       result := Config.viewZoomPointArray[zoom];
     except
       result := -9;
-    end; //try
+    end; //try}
   end;
 
-  function ZoomToExternalLeading(zoom: integer): Integer;
+  {function ZoomToExternalLeading(zoom: integer): Integer;
   begin
     result := 1;
     case zoom of
@@ -197,12 +198,15 @@ procedure TJLWritePanel.CreatePreView;
     3: result := 3;
     4: result := 4;
     end;
-  end;
+  end;}
 
+const
+  HeaderSkin = '<html><body><font face="ÇlÇr ÇoÉSÉVÉbÉN"><dl>';
 var
   TempStream: TDat2PreViewView;
   dat: TThreadData;
   PreViewD2HTML: TDat2HTML;
+  ResSkin: String;
 begin
   inherited;
 
@@ -211,13 +215,17 @@ begin
   PreView.Clear;
 
   TempStream := TDat2PreViewView.Create(PreView);
-  PreViewD2HTML := TDat2HTML.Create(NewRecHTML, Config.SkinPath);
+  if MailComboBox.Text = '' then
+    ResSkin := '<dt><SA i=1><b><PLAINNUMBER/></b><SA i=0> ÅF<SA i=2><b><NAME/></b></b><SA i=0>[<MAIL/>] ÅF<DATE/></dt><dd><MESSAGE/><br><br></dd>'#10
+  else
+    ResSkin := '<dt><SA i=1><b><PLAINNUMBER/></b><SA i=0> ÅF<SA i=1><b><NAME/></b></b><SA i=0>[<MAIL/>] ÅF<DATE/></dt><dd><MESSAGE/><br><br></dd>'#10;
+  PreViewD2HTML := TDat2HTML.Create(ResSkin, '');
   dat := TThreadData.Create;
 
   try
-    PreView.ExternalLeading := ZoomToExternalLeading(Config.viewZoomSize);
+    PreView.ExternalLeading := 1;//ZoomToExternalLeading(Config.viewZoomSize);
     PreView.SetFont(Preview.Font.Name, ZoomToPoint(Config.viewZoomSize));
-    TempStream.WriteHTML(HeaderHTML);
+    TempStream.WriteHTML(HeaderSkin);
     TempStream.Flush;
     if Assigned(FThread) then
     begin
@@ -1155,8 +1163,8 @@ begin
     if (2 <= list.Count) and
       AnsiStartsStr('ÇdÇqÇqÇnÇqÅI', list[0]) and
       //AnsiStartsStr('ÇdÇqÇqÇnÇq - 593', list[1]) and
-      AnsiContainsStr(list[1], ' sec ÇµÇ©ÇΩÇ¡ÇƒÇ»Ç¢') and
-      AnsiContainsStr(list[1], ' sec ÇΩÇΩÇ»Ç¢Ç∆èëÇØÇ‹ÇπÇÒÅB') then
+      AnsiContainsStr(list[1], ' sec ÇµÇ©ÇΩÇ¡ÇƒÇ»Ç¢') then
+      //AnsiContainsStr(list[1], ' sec ÇΩÇΩÇ»Ç¢Ç∆èëÇØÇ‹ÇπÇÒÅB') then
     begin
       if Config.wrtUseWriteWait then
         WaitTimerRestart(list[1]);
@@ -1326,17 +1334,17 @@ procedure TJLWritePanel.WaitTimerRestart(const ErrorMsg: String);
     result := GetNumber(' sec ÇΩÇΩÇ»Ç¢Ç∆èëÇØÇ‹ÇπÇÒÅB');
   end;
 
-  function GetElapsedTime: Cardinal;
-  begin
-    result := GetNumber(' sec ÇµÇ©ÇΩÇ¡ÇƒÇ»Ç¢');
-  end;
+  //function GetElapsedTime: Cardinal;
+  //begin
+  //  result := GetNumber(' sec ÇµÇ©ÇΩÇ¡ÇƒÇ»Ç¢');
+  //end;
 
 var
   DomainName: String;
   HostName: String;
   text: String;
   i, j: Integer;
-  WaitTime, newWaitTime, Remain: Cardinal;
+  WaitTime, newWaitTime{, Remain}: Cardinal;
 begin
   if not Assigned(TargetThread) then
   begin
@@ -1370,15 +1378,15 @@ begin
     Config.waitTimeList.SaveToFile(Config.BasePath + WRITEWAIT_FILE);
   end;
 
-  Remain := GetElapsedTime;
-  if Remain > 0 then
-    Remain := newWaitTime - Remain
-  else
-    exit;
-  MainWnd.WriteWaitTimer.Start(DomainName, Remain * 1000);
+  //Remain := GetElapsedTime;
+  //if Remain > 0 then
+  //  Remain := newWaitTime - Remain
+  //else
+  //  exit;
+  MainWnd.WriteWaitTimer.Start(DomainName, newWaitTime * 1000);
   Log('èëÇ´çûÇ›ë“ã@ - ' + DomainName);
   MainWnd.TabControl.Refresh;
-  WriteButton.Caption := WRITE_BUTTON_CAPTION_B + IntToStr(Remain) + WRITE_BUTTON_CAPTION_C;
+  WriteButton.Caption := WRITE_BUTTON_CAPTION_B + IntToStr(newWaitTime) + WRITE_BUTTON_CAPTION_C;
 end;
 
 
@@ -1416,7 +1424,15 @@ begin
   with PreView do
   begin
     Font.Name := 'ÇlÇr ÇoÉSÉVÉbÉN';
-    Move(Config.viewTextAttrib, TextAttrib, SizeOf(TextAttrib));
+    Color := RGB($ef, $ef, $ef);
+    TextAttrib[1].style := [fsBold];
+    TextAttrib[2].color := clBlue;
+    TextAttrib[2].style := [fsUnderline];
+    TextAttrib[3].color := clBlue;
+    TextAttrib[3].style := [fsBold, fsUnderline];
+    TextAttrib[4].color := clGreen;
+    TextAttrib[5].color := clGreen;
+    TextAttrib[5].style := [fsBold];
     OnMouseMove :=  MainWnd.OnBrowserMouseMove;
     OnMouseDown :=  MainWnd.OnBrowserMouseDown;
     OnMouseHover := MainWnd.OnBrowserMouseHover;
@@ -1585,7 +1601,7 @@ begin
     EnableAutoScroll := Config.viewEnableAutoScroll;
     Frames := Config.viewScrollSmoothness;
     FrameRate := Config.viewScrollFrameRate;
-    Color := Config.clViewColor;  //ÉXÉåÉrÉÖÅ[Ç∆ìØÇ∂êF
+    Color := RGB($ef, $ef, $ef);
     ConfCaretVisible := Config.viewCaretVisible;
   end;
 
