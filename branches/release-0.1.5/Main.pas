@@ -39,7 +39,7 @@ uses
 
 const
   VERSION  = '0.1.5';      (* Printable ASCIIコード厳守。')'はダメ *)
-  JANE2CH  = 'JaneLovely 0.1.5 pre1';
+  JANE2CH  = 'JaneLovely 0.1.5';
   KEYWORD_OF_USER_AGENT = 'JaneLovely';      (*  *)
 
   DISTRIBUTORS_SITE = 'http://janelovely.berlios.de/';
