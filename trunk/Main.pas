@@ -38,8 +38,8 @@ uses
   {/aiai}
 
 const
-  VERSION  = '0.1.5';      (* Printable ASCIIコード厳守。')'はダメ *)
-  JANE2CH  = 'JaneLovely 0.1.5 pre1';
+  VERSION  = '0.1.6';      (* Printable ASCIIコード厳守。')'はダメ *)
+  JANE2CH  = 'JaneLovely 0.1.6 β1';
   KEYWORD_OF_USER_AGENT = 'JaneLovely';      (*  *)
 
   DISTRIBUTORS_SITE = 'http://janelovely.berlios.de/';
