@@ -359,7 +359,7 @@ type
                       attrib: Integer = 0): TPoint;
     {aiai}
     function AppendPicture(Image: TGraphic; overlap: Boolean): Boolean;
-    procedure AppendHR(Color: TColor; Custom: Boolean);
+    procedure AppendHR(Color: TColor; Custom: Boolean; OffsetLeft: Integer);
     function  newPara: TPoint;
     function  Insert2(point: TPoint;
                      const AString: string;
@@ -2802,7 +2802,8 @@ begin
   Result := True;
 end;
 
-procedure THogeTextView.AppendHR(Color: TColor; Custom: Boolean);
+procedure THogeTextView.AppendHR(Color: TColor;
+  Custom: Boolean; OffsetLeft: Integer);
 var
   Point: TPoint;
   item: THogeTVItem;
@@ -2820,6 +2821,7 @@ begin
     if attCode and htvVMASK = htvVISIBLE then
     begin
       item := THogeTVItem.Create(Self);
+      item.FOffsetLeft := OffsetLeft;
       FStrings.Add(item);
       break;
     end;

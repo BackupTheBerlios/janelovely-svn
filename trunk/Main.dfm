@@ -1158,9 +1158,9 @@ object MainWnd: TMainWnd
       item
         Width = -1
       end>
+    PopupMenu = PopupStatusBar
     SimplePanel = False
     OnClick = StatusBarClick
-    OnMouseUp = StatusBarMouseUp
     OnResize = StatusBarResize
   end
   object MainMenu: TMainMenu

@@ -108,7 +108,6 @@ type
     procedure SetBold(boldP: boolean);
     procedure Flush; override;
     procedure Cancel;
-    procedure SetAttrib2(value: Byte); override; //aiai
     property DDOffsetLeft: Integer read FDDOffsetLeft write FDDOffsetLeft;
   end;
 
@@ -951,59 +950,104 @@ function TDat2View.ProcTag: boolean;
       WritePicture(pass, overlap);
   end;
 
-var
-  tag: string;
+  //aiai
+  //substr‚Æstr‚Ìæ“ªlenƒoƒCƒg‚ð”äŠr‚·‚é
+  function IsThisTag(substr, str: PChar; len: Integer): Boolean;
+  var
+    i, ord1, ord2: Integer;
+  begin
+    Result := False;
+    for i := 0 to len - 1 do
+    begin
+      ord1 := Ord((substr + i)^);
+      ord2 := Ord((str + i)^);
+      if ord1 = ord2 then
+        Continue
+      else if Abs(ord1 - ord2) = $20 then
+        Continue
+      else
+        exit;
+    end;
+    if (str + len) ^ in ['>', ' ', #1..#$1F, '='] then
+      Result := True;
+  end;
+
+
 begin
   if (str + index)^ = '<' then
   begin
     Inc(index);
-    tag := GetTagName;
-    if (tag = 'br') or (tag = '/p') or (tag = '/li') or
-       (tag = 'ul') then
-      WriteBR
-    {beginner}
-    else if (tag = 'dd') then
-    begin
-      WriteBR;
-      FOffsetLeft := FOffsetBQ + FDDOffsetLeft;
-    end
-    else if (tag = '/dd') or (tag = 'dt') or (tag = '/dl') then
-      FOffsetLeft := FOffsetBQ
-    else if (tag = 'blockquote') then
-    begin
-      Inc(FOffsetBQ, FDDOffsetLeft);
-      Inc(FOffsetLeft, FDDOffsetLeft);
-    end
-    else if (tag = '/blockquote') then
-    begin
-      Dec(FOffsetBQ, FDDOffsetLeft);
-      if FOffsetBQ<0 then
-        FOffsetBQ := 0;
-      Dec(FOffsetLeft, FDDOffsetLeft);
-      if FOffsetLeft<0 then
-        FOffsetBQ := 0;
-    end
-    {/beginner}
     {aiai}
-    else if (tag = 'hr') then
-      SetBorder
-    else if (tag = 'img') then
-      SetPicture
-    {/aiai}
-    else if (tag = 'b') then
-      SetBold(True)
-    else if (tag = '/b') then
-      SetBold(False)
-    else if (tag = 'font') then
-      SetFont
-    else if (tag = 'sa') then
-      SetAttrib
-    else if (tag = 'a') then
-      BeginAnchor
-    else if (tag = '/a') then
-      EndAnchor;
+    if (str + index)^ = '/' then begin
+      Inc(index);
+      if IsThisTag('p', str + index, 1) then begin
+        Inc(index);
+        WriteBR;
+      end else if IsThisTag('li', str + index, 2) then begin
+        Inc(index, 2);
+        WriteBR;
+      end else if IsThisTag('dd', str + index, 2) then begin
+        Inc(index, 2);
+        FOffsetLeft := FOffsetBQ;
+      end else if IsThisTag('dl', str + index, 2) then begin
+        Inc(index, 2);
+        FOffsetLeft := FOffsetBQ;
+      end else if IsThisTag('blockquote', str + index, 10) then begin
+        Inc(index);
+        Dec(FOffsetBQ, FDDOffsetLeft);
+        if FOffsetBQ<0 then
+          FOffsetBQ := 0;
+        Dec(FOffsetLeft, FDDOffsetLeft);
+        if FOffsetLeft<0 then
+          FOffsetBQ := 0;
+      end else if IsThisTag('b', str + index, 1) then begin
+        Inc(index);
+        SetBold(False);
+      end else if IsThisTag('a', str + index, 1) then begin
+        Inc(index);
+        EndAnchor;
+      end;
+    end else begin
+      if IsThisTag('br', str + index, 2) then begin
+        Inc(index, 2);
+        WriteBR;
+      end else if IsThisTag('ul', str + index, 2) then begin
+        Inc(index, 2);
+        WriteBR;
+      end else if IsThisTag('dd', str + index, 2) then begin
+        Inc(index, 2);
+        WriteBR;
+        FOffsetLeft := FOffsetBQ + FDDOffsetLeft;
+      end else if IsThisTag('dt', str + index, 2) then begin
+        Inc(index, 2);
+        FOffsetLeft := FOffsetBQ;
+      end else if IsThisTag('blockquote', str + index, 10) then begin
+        Inc(index, 10);
+        Inc(FOffsetBQ, FDDOffsetLeft);
+        Inc(FOffsetLeft, FDDOffsetLeft);
+      end else if IsThisTag('hr', str + index, 2) then begin
+        Inc(index, 2);
+        SetBorder;
+      end else if IsThisTag('img', str + index, 3) then begin
+        Inc(index, 3);
+        SetPicture;
+      end else if IsThisTag('b', str + index, 1) then begin
+        Inc(index);
+        SetBold(True);
+      end else if IsThisTag('font', str + index, 4) then begin
+        Inc(index, 4);
+        SetFont;
+      end else if IsThisTag('SA', str + index, 2) then begin
+        Inc(index, 2);
+        SetAttrib;
+      end else if IsThisTag('a', str + index, 1) then begin
+        Inc(index);
+        BeginAnchor;
+      end;
+    end;
     EndOfTag;
-    result := True;
+    Result := True;
+    {/aiai}
   end
   else
     result := false;
@@ -1173,15 +1217,6 @@ begin
     FBrowser.SetResNum(i);
 end;
 
-procedure TDat2View.SetAttrib2(value: Byte);
-begin
-  if value <> FAttribute then
-  begin
-    Flush;
-    FAttribute := value;
-  end;
-end;
-
 procedure TDat2View.WriteText(str: PChar; size: integer);
 begin
   FStream.WriteBuffer(str^, size);
@@ -1248,7 +1283,7 @@ end;
 procedure TDat2View.WriteHR(color: Integer; custom: Boolean);
 begin
   Flush;
-  FBrowser.AppendHR(color, custom);
+  FBrowser.AppendHR(color, custom, FOffsetLeft);
 
   FBiteSpaces := True;
 end;
@@ -4157,7 +4192,8 @@ end;
 
 procedure TViewItem.WriteSkin(str: PChar; size: integer; thread: TThreadItem = nil);
 var
-  i: integer;
+  i, j: integer;
+  s: TStringList;
 begin
   if thread = nil then
     thread := FThread;
@@ -4175,7 +4211,19 @@ begin
       if StartWithP('<THREADURL/>', str+i, size-i) then
       begin
         FStream.WriteHTML(str, i);
-        FStream.WriteHTML(thread.ToURL);
+        {aiai}
+        s := TStringList.Create;
+        s.Text := thread.ToURL;
+        if s.Count = 1 then
+          FStream.WriteHTML(s[0])
+        else if s.Count = 2 then begin
+          FStream.WriteHTML(s[0] + '<br>');
+          FStream.WriteHTML(s[1]);
+        end else
+          for j := 0 to s.Count - 1 do
+            FStream.WriteHTML(s[j] + '<br>');
+        s.Free;
+        {/aiai}
         str := str +i +12;
         Dec(size, i+12);
         i := 0;
@@ -4203,9 +4251,10 @@ begin
         str := str +i +11;
         Dec(size, i+11);
         i := 0;
-      end;
-    end;
-    Inc(i);
+      end else
+        Inc(i);
+    end else
+      Inc(i);
   end;
   FStream.WriteHTML(str, i);
 end;

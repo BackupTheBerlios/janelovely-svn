@@ -41,8 +41,8 @@ uses
   {/aiai}
 
 const
-  VERSION  = '0.1.0.5';      (* Printable ASCIIコード厳守。')'はダメ *)
-  JANE2CH  = 'JaneLovely 0.1.0.5';
+  VERSION  = '0.1.0.6';      (* Printable ASCIIコード厳守。')'はダメ *)
+  JANE2CH  = 'JaneLovely 0.1.0.6';
   KEYWORD_OF_USER_AGENT = 'JaneLovely';      (*  *)
 
   DISTRIBUTORS_SITE = 'http://www.geocities.jp/openjane4714/';
@@ -1170,8 +1170,6 @@ type
     procedure MenuStatusCopyURIClick(Sender: TObject);
     procedure MenuWritePanelDisableTopBarClick(Sender: TObject);
     procedure MenuOptSetNewsSizeClick(Sender: TObject);
-    procedure StatusBarMouseUp(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
     procedure StatusBarResize(Sender: TObject);
     procedure StatusBarClick(Sender: TObject);
     {/aiai}
@@ -5820,7 +5818,6 @@ begin
     begin
       thread := TThreadItem.Create(board);
       thread.datName := datnum;
-      thread.LoadIndexData(true);  //aiai
       thread.URI := 'http://' + host + '/' + bbs;
       board.Add(thread);
     end;
@@ -17023,13 +17020,6 @@ begin
   ToggleWritePanelVisible(not WritePanel.Visible);
   if WritePanel.Visible then
     JLTabControlMouseDown(JLTabWrite, mbLeft, [], 0, 0);
-end;
-
-procedure TMainWnd.StatusBarMouseUp(Sender: TObject; Button: TMouseButton;
-  Shift: TShiftState; X, Y: Integer);
-begin
-  if Button = mbRight then
-    PopupStatusBar.Popup(X, Y);
 end;
 
 {procedure TMainWnd.StatusBar2RClick(Sender: TObject);

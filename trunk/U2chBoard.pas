@@ -32,6 +32,7 @@ type
     idxModified : boolean;
     bbstype: TBBSType;
     FHost: string;
+    moved: boolean;
     FSelDatName: string;
     FCustomHeader: string;
     FUma: boolean;
@@ -55,6 +56,7 @@ type
     procedure LoadDataBase;
     procedure MergeCacheFast;
     (* //DataBase *)
+    procedure ChangeThreadItemURI;
     procedure SetSelDatName(const datName: string);
     procedure SetCustomHeader(const str: string);
     procedure SetUma(val: boolean);
@@ -271,6 +273,7 @@ begin
   past := false;
   lastAccess := 0;
   bbstype := bbsNone;
+  moved := false;
   //ngthreadlist := TStringList.Create;  //aiai NGThread
   SettingTxt := TStringList.Create;
   (* DataBase (aiai) *)
@@ -683,6 +686,8 @@ begin
       MergeCache;
     FreeAndNil(datList);
   end;
+  if moved then
+    ChangeThreadItemURI;
   self.subjectTxt := txt;
   if lstModified <> '' then begin
     self.lastModified := lstModified;
@@ -793,7 +798,7 @@ begin
             item.InsertToTable;
           (* //DataBase *)
         end;
-        if (item.URI <> URI) and ((item.state <> tsComplete) or (item.itemCount > 0)) then
+        if (item.URI <> URI) and ((item.state <> tsComplete) and (item.itemCount > 0)) then
         begin
           item.URI := URI;
           item.state := tsCurrency;
@@ -886,7 +891,7 @@ begin
     begin (* 現行スレッド *)
       if not item.Refered then
         item.LoadIndexDataFromDataBase(Value , true);
-      if (item.URI <> URIBase) and ((item.state <> tsComplete) or (item.itemCount > 0)) then
+      if (item.URI <> URIBase) and ((item.state <> tsComplete) and (item.itemCount > 0)) then
       begin
         item.URI := URI;
         item.state := tsCurrency;
@@ -1324,29 +1329,34 @@ end;
 
 (* hostを変更する際に子のスレッドのURIを修正 *)
 procedure TBoard.SetHost(newHost: string);
-var
-  URI: String;
-  i: Integer;
 begin
-  //▼ Nightly Fri Sep 24 14:42:31 2004 UTC by lxc
-  (* したらばのURL対応を少し汎用的に *)
   if StartWith('jbbs.',  newHost, 1) and
           not StartWith(Config.bbsJBBSServers[0], newHost, 1) then
       newHost := Config.bbsJBBSServers[0]
               + Copy(newHost, FindPos('/', newHost, 5), High(Integer));
-  //▲ Nightly Fri Sep 24 14:42:31 2004 UTC by lxc
   if newHost = FHost then
     exit;
   FHost := newHost;
+  if Count > 0 then
+    moved := true;  //AnalyzeからChangeThreadItemURIを呼び出す
+end;
+
+(* hostを変更する際にこのスレッドのURIを修正 *)
+procedure TBoard.ChangeThreadItemURI;
+var
+  URI: String;
+  i: Integer;
+begin
   URI := GetURIBase;
   for i := 0 to Count - 1 do
-    if Assigned(Items[i]) and (Items[i].URI <> '') and
-       ((Items[i].state <> tsComplete) or (Items[i].itemCount > 0)) then
+    if Assigned(Items[i]) and (Items[i].URI <> '') and (Items[i].number > 0) and
+       ((Items[i].state <> tsComplete) and (Items[i].itemCount > 0)) then
     begin
       Items[i].URI := URI;
       Items[i].state := tsCurrency;
       Items[i].SaveIndexData;
     end;
+  moved := false;
 end;
 
 //改造▽ 追加 (スレッドあぼ～ん)
@@ -1734,7 +1744,7 @@ begin
       if not save and Config.ojvQuickMerge then
         item.InsertToTable;
       (* //DataBase *)
-      if (item.URI <> URI) and ((item.state <> tsComplete) or (item.itemCount > 0)) then
+      if (item.URI <> URI) and ((item.state <> tsComplete) and (item.itemCount > 0)) then
       begin
         item.URI := URI;
         item.state := tsCurrency;

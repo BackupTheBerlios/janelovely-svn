@@ -92,7 +92,6 @@ type
     procedure SetLine(line: integer); virtual; abstract;
     procedure Flush; virtual;
     property DisableLink: Boolean read FDisableLink write FDisableLink;
-    procedure SetAttrib2(value: Byte); virtual; //aiai
   end;
   (*-------------------------------------------------------*)
   TConvDatOut = class(TDatOut)
@@ -1690,10 +1689,6 @@ procedure TDatOut.Flush;
 begin
 end;
 
-procedure TDatOut.SetAttrib2(value: Byte);
-begin
-end;
-
 (*=======================================================*)
 procedure TConvDatOut.EndOfTag;
 var
@@ -2412,8 +2407,14 @@ constructor TDat2HTML.Create(body: string);
           i := i + 13;
         end else if StartWith('<NAME/>', body, i) then
         begin
+          {$IFDEF IE}
+          s := s + '<b>';
+          {$ENDIF}
           Flush(TYPE_TEXT);
           Flush(TYPE_NAME);
+          {$IFDEF IE}
+          s := s + '</b>';
+          {$ENDIF}
           i := i + 6;
         end else if StartWith('<MAILNAME/>', body, i) then
         begin
@@ -2809,6 +2810,9 @@ begin
   ns := IntToStr(line);
   try
     dest.SetLine(line);
+    {$IFDEF IE}
+    if not(dest is THTMLDatOut) then
+    {$ENDIF}
     dest.WriteAnchor(ns, '', '', 0); //HogeTextViewのみ必要(実際にはPopupでは使わない)
     for i := 0 to tmplen do
     begin
@@ -2824,6 +2828,28 @@ begin
           dest.WriteItem(name, nameSize, ditNAME);
         end;
         {/beginner}
+      {$IFDEF IE}
+      TYPE_NUMBER:
+        if dest is THTMLDatOut then //IE版でもポップアップはHogeTextView用の出力が必要
+          dest.WriteAnchor(ns, 'menu:' + ns, PChar(ns), length(ns))
+        else
+          dest.WriteAnchor('', 'menu:' + ns, PChar(ns), length(ns));
+      TYPE_MAILNAME:
+        begin
+          if mailSize > 0 then
+          begin
+            SetString(strMailName, mail, mailSize);
+            dest.WriteItem(PChar('<a href="mailto:' + strMailName + '"><b>'), 21 + mailSize , ditNORMAL);
+            dest.WriteItem(name, nameSize, ditNORMAL);
+            dest.WriteItem('</b></a>', 8, ditNORMAL);
+          end
+          else begin
+            dest.WriteItem('<b>', 3, ditNORMAL);
+            dest.WriteItem(name, nameSize, ditNAME);
+            dest.WriteItem('</b>', 4, ditNORMAL);
+          end;
+        end;
+      {$ELSE}
       TYPE_NUMBER:
         begin
           dest.WriteAnchor('', 'menu:' + ns, PChar(ns), length(ns));
@@ -2842,30 +2868,34 @@ begin
       TYPE_SAGE:
         begin
           if 0 < FindPosP('sage', mail, mailSize) then
-            dest.SetAttrib2(15)
+            dest.WriteItem('<SA i=15/>', 10, ditNORMAL)
           else if mailSize > 0 then
-            dest.SetAttrib2(14);
+            dest.WriteItem('<SA i=14/>', 10, ditNORMAL)
         end;
       TYPE_SAGEONLY:
         begin
           if (mailSize = 4) and StartWithP('sage', mail, 4) then
-            dest.SetAttrib2(15)
+            dest.WriteItem('<SA i=15/>', 10, ditNORMAL)
           else if mailSize > 0 then
-            dest.SetAttrib2(14);
+            dest.WriteItem('<SA i=14/>', 10, ditNORMAL)
         end;
+      {$ENDIF}
       {beginner}
       TYPE_MAIL:
+      {$IFDEF IE}
+        dest.WriteText(mail, mailSize);
+      {$ELSE}
         begin
           if FindPosP('<', mail, mailSize) <= 0 then
             dest.WriteHTML(mail, mailSize)
           else
             dest.WriteText(mail, mailSize);
         end;
-      {aiai}
-      TYPE_DATE:
+      {$ENDIF}
+      TYPE_DATE:  //aiai
         begin
           if MsgShow > 0 then
-            dest.SetAttrib2(MsgShow);
+            dest.WriteItem(PChar('<SA i='+IntToStr(MsgShow)+'/>'), 8 + Length(IntToStr(MsgShow)), ditNORMAL);
 
 
           (* Ex. 「04/09/13 07:25:13 」  *)
@@ -2901,18 +2931,17 @@ begin
 
 
           if MsgShow > 0 then
-            dest.SetAttrib2(0);
+            dest.WriteItem('<SA i=0/>', 9, ditNORMAL);
         end;
-      {/aiai}
       TYPE_MESSAGE:
         begin
           if MsgShow > 0 then
-            dest.SetAttrib2(MsgShow);
+            dest.WriteItem(PChar('<SA i='+IntToStr(MsgShow)+'/>'), 8 + Length(IntToStr(MsgShow)), ditNORMAL);
 
           dest.WriteItem(msg, msgSize,ditMSG);
 
           if MsgShow > 0 then
-            dest.SetAttrib2(0);
+            dest.WriteItem('<SA i=0/>', 9, ditNORMAL);
         end;
       {/beginner}
       end;
