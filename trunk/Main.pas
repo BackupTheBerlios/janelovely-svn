@@ -42,8 +42,8 @@ uses
   {/aiai}
 
 const
-  VERSION  = '0.1.3.9';      (* Printable ASCIIコード厳守。')'はダメ *)
-  JANE2CH  = 'JaneLovely 0.1.3.9';
+  VERSION  = '0.1.3.10';      (* Printable ASCIIコード厳守。')'はダメ *)
+  JANE2CH  = 'JaneLovely 0.1.3.10';
   KEYWORD_OF_USER_AGENT = 'JaneLovely';      (*  *)
 
   DISTRIBUTORS_SITE = 'http://www.geocities.jp/openjane4714/';
@@ -820,6 +820,9 @@ type
     MenuTreeViewSearchSelectAll: TMenuItem;
     MenuTreeViewSearchClear: TMenuItem;
     N94: TMenuItem;
+    N95: TMenuItem;
+    ViewPopupCmdSep: TMenuItem;
+    MenuStatusCmdSep: TMenuItem;
     {/aiai}
     procedure FormCreate(Sender: TObject);
     procedure MenuToolsOptionsClick(Sender: TObject);
@@ -1125,8 +1128,7 @@ type
     procedure ApplicationEventsMessage(var Msg: tagMSG;
       var Handled: Boolean);
     procedure MenuCommandClick(Sender: TObject);
-    procedure PopupViewJumpClick(Sender: TObject); //beginner
-    procedure HoverTimerTimer(Sender: TObject);
+    procedure PopupViewJumpClick(Sender: TObject);
     procedure MenuListHomeMovedBoardClick(Sender: TObject);
     procedure ExtractPopupClick(Sender: TObject);
     procedure MenuBoardCheckLogFolderClick(Sender: TObject);
@@ -1501,7 +1503,8 @@ type
     procedure SetMouseGesture;
     procedure OpenStartupThread;
     procedure SaveLastThread;
-    procedure CommandExecute(command: string; replace: boolean = true);
+    procedure CommandExecute(command: string; replace: boolean = true;
+      name: string = '');  //aiai nameパラメータ追加
     procedure CommandCreate;
     procedure ThreadTabLineAdjust;
     procedure ListTabLineAdjust;
@@ -5472,10 +5475,7 @@ begin
   if (viewItem = nil) or (viewItem.thread = nil) then
     exit;
 
-  if viewItem.GetSelection <> '' then
-    Exit;
-
-  ref := viewItem.GetFocusedLink;
+  ref := FStatusText; //aiai
 
   if not StartWith('menu:', ref, 1) then
     Exit;
@@ -5498,66 +5498,6 @@ end;
 {/beginner}
 
 (*  *)
-{$IFDEF IE}
-function TMainWnd.WebBrowserMouseMove(Sender: TObject): WordBool;
-var
-  viewItem: TBaseViewItem;
-  Pos: TPoint;
-begin
-  Result := True;
-  Pos := Mouse.CursorPos;
-  if (Pos.X = PrevPos.X) and (Pos.Y = PrevPos.Y) then
-    exit;
-  PrevPos.X := Pos.X;
-  PrevPos.Y := Pos.Y;
-  viewItem := GetViewOf(TComponent(Sender));
-  if FStatusText = '' then
-    PopupHint.ReleaseHandle; //通常形式で出したヒントを消す
-  if Assigned(viewItem) and Assigned(viewItem.PossessionView) and
-    (not viewItem.PossessionView.Enabled) and (viewItem.PossessionView.IdStr <> FStatusText) then
-    BrowserStatusTextChange(Sender, FStatusText, Mouse.CursorPos);
-  if HoverTimer.Interval > 0 then
-    HoverTimer.SetBack;
-end;
-
-procedure TMainWnd.WebBrowserStatusTextChange(Sender: TObject;
-                                              const Text: WideString);
-begin
-  PopupHint.ReleaseHandle;
-  if FStatusText <> Text then
-  begin
-    BrowserStatusTextChange(Sender, Text, Mouse.CursorPos);
-    FHoveringOn := Sender;
-    FStatusText := Text;
-  end else if Text = '' then //PossessionViewからカーソルが降りてきたときに必要
-    ReleasePopupHint(GetViewOf(TComponent(Sender)));
-end;
-{$ENDIF}
-
-procedure TMainWnd.HoverTimerTimer(Sender: TObject);
-{$IFDEF IE}
-var
-  Point: TPoint;
-  viewItem: TBaseViewItem;
-begin
-  Point := Mouse.CursorPos;
-  if Assigned(FHoveringOn) and (FindDragTarget(Point, False) = FHoveringOn) and  //待ち中の破棄対策
-    GetAutoEnableNesting(FHoveringOn) then
-  begin
-    viewItem := GetViewOf(TComponent(FHoveringOn));
-    if Assigned(viewItem) and Assigned(viewItem.PossessionView) and
-       not viewItem.PossessionView.Enabled then
-    begin
-      viewItem.PossessionView.Enabled := True;
-      viewItem.PossessionView.OwnerCofirmation := True;
-    end;
-    FHoveringOn := nil;
-  end;
-end;
-{$ELSE}
-begin
-end;
-{$ENDIF}
 
 procedure TMainWnd.BrowserStatusTextChange(Sender: TObject; Text: AnsiString; Point: TPoint);
 var
@@ -7808,12 +7748,15 @@ begin
   if (viewItem=nil) or (viewItem.thread=nil) then
     exit;
 
+  target := FStatusText;
+  if not (Length(target) > 3) or not AnsiStartsStr('ID:', target) then
+    exit;
 
-  target := Trim(viewItem.GetFocusedLink);
-  searchTarget := target;
-
+  target := RightStr(target, Length(target) - 3);
   if length(target) <= 0 then
     exit;
+
+  searchTarget := target;
 
   NewView(true).ExtractKeyword(target, viewItem.thread, false, false);
 end;
@@ -7823,11 +7766,22 @@ procedure TMainWnd.KeywordExtraction(Sender: TObject; UseSelection: Boolean);
 var
   rc: integer;
   target:string;
-  viewItem: TViewItem;
+  {aiai}
+  //viewItem: TViewItem;
+  viewItem: TBaseViewItem;
+  {/aiai}
 begin
-  viewItem := GetActiveView;
-  if (viewItem=nil) or(viewItem.thread=nil) then
-    Exit;
+  {aiai}
+  //viewItem := GetActiveView;
+  //if (viewItem=nil) or(viewItem.thread=nil) then
+  //  Exit;
+  if PopupTextMenu.PopupComponent is THogeTextView then
+    viewItem := GetViewOf(PopupTextMenu.PopupComponent)
+  else
+    viewItem := GetActiveView;
+  if (viewItem=nil) or (viewItem.thread=nil) then
+    exit;
+  {/aiai}
 
   if GrepDlg = nil then
     GrepDlg := TGrepDlg.Create(self);
@@ -7858,7 +7812,6 @@ begin
   NewView(true).ExtractKeyword(target, viewItem.thread,
                          not UseSelection and GrepDlg.CheckBoxRegularExpression.Checked,
                          not UseSelection and GrepDlg.CheckBoxIncludeRef.Checked);
-
 end;
 
 (* 検索 *)
@@ -11403,10 +11356,12 @@ procedure TMainWnd.OnBrowserMouseDown(Sender: TObject; Button: TMouseButton;
                                       Shift: TShiftState; X, Y: Integer);
 var
   Cancel: WordBool;
-  caretPt, mousePt, distance: TPoint;
+  caretPt, distance: TPoint; //aiai
   size: tagSIZE;
   viewItem: TBaseViewItem;
   tmpPopup: TPopupMenu;
+  DC: HDC;       //aiai
+  stext: string; //aiai
 begin
   viewItem := GetViewOf(TComponent(Sender));
   if Assigned(viewItem) then
@@ -11437,29 +11392,65 @@ begin
           THogeTextView(Sender).PopupMenu := nil;
         end;
         try
-          {beginner} //レス番右クリックでレスのツリーをポップアップ
-          if ShowTreeHint(Sender, GetKeyState(VK_CONTROL) >= 0) then
-          begin
-            restrainContext := true   //ポップアップメニューを消す
-          end
-          else
+          {aiai}
+
+          //{beginner} //レス番右クリックでレスのツリーをポップアップ
+          //if ShowTreeHint(Sender, GetKeyState(VK_CONTROL) >= 0) then
+          //begin
+          //  restrainContext := true   //ポップアップメニューを消す
+          //end
+          //else
           {/beginner}
-          begin //koreawatcher
-            caretPt := THogeTextView(Sender).ScreenCaret;
-            with Sender as THogeTextView do
-              GetTextExtentPoint32(GetDC(Handle), PChar(selection), length(selection), size);
-            mousePt := TControl(Sender).ScreenToClient(Mouse.CursorPos);
-            distance.X := mousePt.X - caretPt.X;
-            distance.Y := mousePt.Y - caretPt.Y;
-            if (distance.Y > 0) and  (distance.Y < size.cy) and
-               (abs(distance.X) < size.cx) and
-               PopupRes(Sender, GetKeyState(VK_CONTROL) < 0) then
+          //begin //koreawatcher
+          //  caretPt := THogeTextView(Sender).ScreenCaret;
+          //  with Sender as THogeTextView do
+          //    GetTextExtentPoint32(GetDC(Handle), PChar(selection), length(selection), size);
+          //  mousePt := TControl(Sender).ScreenToClient(Mouse.CursorPos);
+          //  distance.X := mousePt.X - caretPt.X;
+          //  distance.Y := mousePt.Y - caretPt.Y;
+          //  if (distance.Y > 0) and  (distance.Y < size.cy) and
+          //     (abs(distance.X) < size.cx) and
+          //     PopupRes(Sender, GetKeyState(VK_CONTROL) < 0) then
+          //  begin
+          //    FStatusText := '';
+          //    restrainContext := true;   //ポップアップメニューを消す
+          //  end else
+          //    ReleasePopupHint(viewItem, True);  //ポップアップヒントを消す
+          //end //koreawatcher
+
+          //point := THogeTextView(Sender).ClientToPhysicalCharPos(X, Y);
+          //if not InvalidPoint(point)
+          //  and THogeTextView(Sender).InSelection(point.X, point.Y) then
+          //begin
+            //右クリックポイントが選択範囲内
+            //Nothing to do
+          //end else
+          begin
+            if ShowTreeHint(Sender, GetKeyState(VK_CONTROL) >= 0) then //レス番右クリックでレスのツリーをポップアップ
+              restrainContext := true  //ポップアップメニューを消す
+            else
             begin
-              FStatusText := '';
-              restrainContext := true;   //ポップアップメニューを消す
-            end else
-              ReleasePopupHint(viewItem, True);  //ポップアップヒントを消す
-          end //koreawatcher
+              caretPt := THogeTextView(Sender).ScreenCaret;
+              with Sender as THogeTextView do begin
+                stext := selection;
+                DC := GetDC(Handle);
+                GetTextExtentPoint32(DC, PChar(stext), length(stext), size);
+                ReleaseDC(Handle, DC);
+              end;
+              distance.X := X - caretPt.X;
+              distance.Y := Y - caretPt.Y;
+              if (distance.Y > 0) and  (distance.Y < size.cy) and
+                 (abs(distance.X) < size.cx) and
+                 PopupRes(Sender, GetKeyState(VK_CONTROL) < 0) then
+              begin
+                FStatusText := '';
+                restrainContext := true;   //ポップアップメニューを消す
+              end else
+                ReleasePopupHint(viewItem, True);  //ポップアップヒントを消す
+            end;
+          end;
+
+          {/aiai}
         finally
           if Assigned(tmpPopup) then
             THogeTextView(Sender).PopupMenu := tmpPopup;
@@ -11647,7 +11638,14 @@ procedure TMainWnd.PopupTextMenuPopup(Sender: TObject);
 var
   viewItem: TBaseViewItem;
   s: String;
-  popupidmenu: boolean; //aiai
+  {aiai}
+  selecting: Boolean; (* 選択範囲があるかどうか *)
+  linking: Boolean;   (* リンクかどうか *)
+  iding: Boolean;     (* IDかどうか *)
+  protocol: Boolean;  (* http or https or ftp *)
+  threading: Boolean; (* スレかどうか *)
+  i: integer;
+  {/aiai}
 begin
 
   PopupViewMenu.PopupComponent := nil; //コマンドの誤動作防止
@@ -11660,56 +11658,55 @@ begin
   end;
   if viewItem = nil then
     exit;
-  s := viewItem.GetSelection;
-  TextPopupCopy.Enabled := (0 < length(s));
-  TextPopupExtractPopup.Enabled := (0 < length(s));
-  {beginner}
-  TextPopupOpenSelectionURL.Visible := (0 < length(s));
-  TextPopupOpenSelectionURLs.Visible := (0 < length(s));
-  TextPopupTrensferToWriteForm.Visible := (0 < length(s));
-  TextPopupAddNGWord.Visible := (0 < length(s));
-  TextPopupExtractRes.Visible := (0 < length(s));
-  {/beginner}
 
-  TextPopupAddAAList.Visible := (0 < length(s)); //aiai
-
-  s := viewItem.GetFocusedLink;
-
-  popupidmenu := (StrLComp(PChar(s), 'ID:', 3) = 0);  //aiai
-
-  TextPopupCopyLink.Enabled := (0 < length(s));
   {aiai}
-  TextPopupCopyLink.Visible := not popupidmenu;
-  TextPopupCopy.Visible := not popupidmenu;
-  TextPopupSelectAll.Visible := not popupidmenu;
-  TextPopupExtractPopup.Visible := not popupidmenu;
-  TextPopupChottoView.Visible := not popupidmenu and ProtocolCheck(s);
-  TextPopupExtractID.Visible :=  popupidmenu and Assigned(viewItem.thread);
-  TextPopupAddNGID.Visible :=  popupidmenu and Assigned(viewItem.thread);
-  TextPopupIDAbone.Visible := TextPopupAddNGID.Visible;
-  TextPopupIDAbone2.Visible := TextPopupAddNGID.Visible;
-  TextPopupCopyID.Visible := popupidmenu;
+  s := viewItem.GetSelection;
+  selecting := Length(s) > 0;
+  s := FStatusText;
+  linking := Length(s) > 0;
+  iding := linking and AnsiStartsStr('ID:', s);
+  protocol := linking and not iding and ProtocolCheck(s);
+  threading := Assigned(viewItem.thread);
 
-  TextPopupOpenByLovelyBrowser.Visible := (0 < length(s)) and ProtocolCheck(s)
-                                             and not popupidmenu;
+  TextPopupCopy.Enabled := selecting;
+  TextPopupCopyLink.Enabled := linking;
+  TextPopupExtractPopup.Enabled := TextPopupCopy.Enabled;
+
+  TextPopupCopy.Visible := selecting or not iding;
+  TextPopupCopyLink.Visible :=TextPopupCopy.Visible;
+  TextPopupSelectAll.Visible := not linking;
+  TextPopupExtractPopup.Visible := TextPopupCopy.Visible and threading;
+
+  TextPopupTrensferToWriteForm.Visible := TextPopupCopy.Enabled;
+  TextPopupAddNGWord.Visible := TextPopupCopy.Enabled;
+  TextPopupExtractRes.Visible := TextPopupCopy.Enabled and threading;
+  TextPopupAddAAList.Visible := TextPopupCopy.Enabled;
+  TextPopupOpenSelectionURL.Visible := TextPopupCopy.Enabled;
+  TextPopUpOpenSelectionURLs.Visible := TextPopupCopy.Enabled;
+
+  TextPopupOpenByViewer.Visible := protocol;
+  TextPopupOpenByLovelyBrowser.Visible := TextPopupOpenByViewer.Visible ;
+  TextPopupOpenByBrowser.Visible := TextPopupOpenByViewer.Visible ;
+  TextPopupDownload.Visible := TextPopupOpenByViewer.Visible ;
+  TextPopupRegisterBroCra.Visible := TextPopupOpenByViewer.Visible ;
+  TextPopupChottoView.Visible := TextPopupOpenByViewer.Visible ;
+
+  TextPopupDeleteCache.Visible := protocol and HttpManager.CacheExists(ProofURL(s));
+
+  TextPopupExtractID.Visible := iding and threading;
+  TextPopupCopyID.Visible := iding;
+  TextPopupAddNGID.Visible := iding;
+  TextPopupIDAbone.Visible := iding and threading;
+  TextPopupIDAbone2.Visible := iding and threading;
+
+  //ID:の場合は外部コマンド遮断
+  With PopupTextMenu do
+  begin
+    i := Items.IndexOf(TextPopupCmdSep);
+    for i := i + 1 to Items.Count - 1 do
+      Items[i].Visible := not iding;
+  end;
   {/aiai}
-
-  {beginner}
-  TextPopupOpenByBrowser.Visible := (0 < length(s)) and ProtocolCheck(s)
-                                             and not popupidmenu    //aiai
-                                     and (ImageViewConfig.ForceToUseViewer or ImageViewConfig.ExamFileExt(ProofURL(s)));
-  TextPopupOpenByViewer.Visible := (0 < length(s)) and ProtocolCheck(s)
-                                             and not popupidmenu    //aiai
-                                     and not(ImageViewConfig.ForceToUseViewer or ImageViewConfig.ExamFileExt(ProofURL(s)));
-  TextPopupRegisterBroCra.Visible := TextPopupOpenByBrowser.Visible;
-  TextPopupDeleteCache.Visible := (0 < length(s)) and ProtocolCheck(s)
-                                             and not popupidmenu    //aiai
-                                     and HttpManager.CacheExists(ProofURL(s));
-  {/beginner}
-  TextPopupDownload.Visible := (0 < length(s)) and ProtocolCheck(s)
-                                and not popupidmenu;    //aiai
-  TextPopupSelectAll.Visible := not TextPopupDownload.Visible
-                                and not popupidmenu;    //aiai
 end;
 
 procedure TMainWnd.TextPopupCopyClick(Sender: TObject);
@@ -11769,7 +11766,7 @@ var
 begin
   //スレビューを取得
   viewItem  := GetActiveView;
-  if viewItem.thread = nil then exit;
+  //if viewItem.thread = nil then exit; //aiai コメントアウト
 
   //キーワード選択をしたスレビューorポップアップを取得
   if PopupTextMenu.PopupComponent is THogeTextView then
@@ -11798,7 +11795,8 @@ begin
 
     NGItems[NG_ITEM_MSG].AddObject(Item, NGItemData);
     NGItems[NG_ITEM_MSG].SaveToFile(config.basepath + NG_FILE[NG_ITEM_MSG]);
-    viewItem.LocalReload(viewItem.GetTopRes);
+    if Assigned(viewItem.thread) then //aiai 条件追加
+      viewItem.LocalReload(viewItem.GetTopRes);
   end else begin
     MessageDlg('キーワード"'+Item+'"は登録済み',mtWarning,[mbOk],0);
   end;
@@ -11904,7 +11902,7 @@ begin
     viewItem := GetActiveView;
   if viewItem = nil then
     exit;
-  S := viewItem.GetFocusedLink;
+  S := FStatusText;
   S := CutImenu(S);
   if ProtocolCheck(S) then
     OpenByLovelyBrowser(S);
@@ -11922,7 +11920,7 @@ begin
     viewItem := GetActiveView;
   if viewItem = nil then
     exit;
-  S := viewItem.GetFocusedLink;
+  S := FStatusText;
   S := CutImenu(S);
   if ProtocolCheck(S) then
     OpenByBrowser(S);
@@ -11940,7 +11938,7 @@ begin
     viewItem := GetActiveView;
   if viewItem = nil then
     exit;
-  S := viewItem.GetFocusedLink;
+  S := FStatusText;
   S := CutImenu(S);
   if not NavigateIntoView(S, gtOther) then
     if not ImageForm.GetImage(S,viewItem,nil,True) then
@@ -11959,7 +11957,7 @@ begin
     viewItem := GetActiveView;
   if viewItem = nil then
     exit;
-  S := viewItem.GetFocusedLink;
+  S := FStatusText;
   S := ProofURL(CutImenu(S));
   HttpManager.RegisterBrowserCrasher(S);
 end;
@@ -11976,7 +11974,9 @@ begin
     viewItem := GetActiveView;
   if viewItem = nil then
     exit;
-  S := viewItem.GetFocusedLink;
+  S := FStatusText;
+  if Length(S) <= 0 then
+    exit;
   S := ProofURL(CutImenu(S));
   if HttpManager.CacheExists(S) then
     HttpManager.DeleteCache(S);
@@ -11997,10 +11997,12 @@ begin
   if viewItem = nil then
     exit;
   {aiai}
-  //Clipboard.AsText := viewItem.GetFocusedLink;
-  link := viewItem.GetFocusedLink;
+  link := FStatusText;
   if AnsiStartsStr('BE:', link) then
-    Clipboard.AsText := 'http://be.2ch.net/test/p.php?i=' + Copy(link, 4, Length(link) - 3) + '&u=d:' + viewItem.thread.ToURL(true, true)
+    Clipboard.AsText := 'http://be.2ch.net/test/p.php?i='
+      + Copy(link, 4, Length(link) - 3)
+        + '&u=d:'
+          + viewItem.thread.ToURL(true, true)
   else
     Clipboard.AsText := link;
   {/aiai}
@@ -12254,7 +12256,8 @@ end;
 //▼外部コマンド関係
 //------------------------------------------------------------------------------
 //指定されたコマンドの実行
-procedure TMainWnd.CommandExecute(command: string; replace: boolean = true);
+procedure TMainWnd.CommandExecute(command: string; replace: boolean = true;
+  name: string = ''); //aiai nameパラメータ追加
   {beginner} //置換のための入力ダイアログ
   function CommandDialog:String;
   var
@@ -12326,25 +12329,32 @@ procedure TMainWnd.CommandExecute(command: string; replace: boolean = true);
       outText := AnsiReplaceStr(outText, '$URL', url);
     end;
 
-    {$IFNDEF IE}
     if AnsiContainsStr(inText, '$LINK') then
     begin
+      {aiai}
+      if AnsiStartsStr('StatusCommand', name) and Assigned(MyNews) then
+        link := MyNews.TempBuffer
+      else
+      {/aiai}
       if assigned(viewItem) then
       begin
-        link := viewItem.GetFocusedLink;
+        link := FStatusText;  //aiai
         if (link <> '') and not AnsiStartsStr('http://', link) and
            assigned(viewItem.thread) and assigned(viewItem.thread.board) then
         begin
           if AnsiStartsStr('#', link) then
             link := viewItem.thread.ToURL(false, false, copy(link, 2, length(link)))
           else if AnsiStartsStr('menu:', link) then
-            link := viewItem.thread.ToURL(false, false, copy(link, 6, length(link)));
+            link := viewItem.thread.ToURL(false, false, copy(link, 6, length(link)))
+          {aiai}
+          else if AnsiStartsStr('BE:', link) then
+            link := 'http://be.2ch.net/test/p.php?i=' + Copy(link, 4, Length(link) - 3) + '&u=d:' + viewItem.thread.ToURL(true, true)
+          {/aiai}
         end;
       end else
         link := '';
       outText := AnsiReplaceStr(outText, '$LINK', link);
     end;
-    {$ENDIF}
 
     if AnsiContainsStr(inText, '$TEXT') then
     begin
@@ -12365,6 +12375,20 @@ procedure TMainWnd.CommandExecute(command: string; replace: boolean = true);
         outText := AnsiReplaceStr(outText, '$TEXTE', select);
         outText := AnsiReplaceStr(outText, '$TEXTIE', select);
       end
+      {aiai}
+      else if AnsiContainsStr(inText, '$TEXTX') or AnsiContainsStr(inText, '$TEXTIX') then
+      begin
+        select := URLEncode(sjis2euc(select));
+        outText := AnsiReplaceStr(outText, '$TEXTX', select);
+        outText := AnsiReplaceStr(outText, '$TEXTIX', select);
+      end
+      else if AnsiContainsStr(inText, '$TEXTU') or AnsiContainsStr(inText, '$TEXTUX') then
+      begin
+        select := URLEncode(AnsiToUTF8(select));
+        outText := AnsiReplaceStr(outText, '$TEXTU', select);
+        outText := AnsiReplaceStr(outText, '$TEXTIU', select);
+      end
+      {/aiai}
       else if AnsiContainsStr(inText, '$TEXTI') then
         outText := AnsiReplaceStr(outText, '$TEXTI', select)
       {/beginner}
@@ -12407,6 +12431,26 @@ procedure TMainWnd.CommandExecute(command: string; replace: boolean = true);
     end;
     {/beginner}
 
+    {aiai}
+    //レス番置換
+    if AnsiContainsStr(inText, '$NUMBER') then
+    begin
+      if AnsiStartsStr('ResNum', name) then
+        repText := IntToStr(PopupViewReply.Tag)
+      else
+        repText := '';
+      outText := AnsiReplaceStr(outText, '$NUMBER', repText);
+    end;
+
+    //アプリケーションフォルダ
+    if AnsiContainsStr(inText, '$BASEPATH') then
+      outText := AnsiReplaceStr(outText, '$BASEPATH', Config.BasePath);
+
+    //ログベースのフォルダ
+    if AnsiContainsStr(inText, '$LOGPATH') then
+      outText := AnsiReplaceStr(outText, '$LOGPATH', Config.LogBasePath);
+    {/aiai}
+
     result := outText;
   end;
 var
@@ -12438,8 +12482,18 @@ begin
       if not NavigateIntoView(command, gtOther) then
         ImageForm.GetImage(command,nil,nil,True);
     exit;
-  end;
+  end
   {/beginner}
+  {aiai}
+  else if AnsiStartsStr('$LOVELY', command) then
+  begin
+    command := Trim(Copy(command, 8, High(Integer)));
+    if AnsiStartsStr('http://', command) then
+      if not NavigateIntoView(command, gtOther) then
+        OpenByLovelyBrowser(command);
+    exit;
+  end;
+  {/aiai}
 
   GetStartupInfo(Si);
   CreateProcess(nil, PAnsiChar(command), nil, nil, false, 0, nil, nil, Si, Pi);
@@ -12448,19 +12502,30 @@ begin
 end;
 
 procedure TMainWnd.MenuCommandExeClick(Sender: TObject);
+var
+  command: String;
 begin
   if Sender is TMenuItem then
-    CommandExecute(Config.cmdExecuteList[TMenuItem(Sender).Tag]);
+  begin
+    command := Config.cmdExecuteList[TMenuItem(Sender).Tag];
+    CommandExecute(command, true, TComponent(Sender).Name); //aiai nameパラメータ追加
+  end;
 end;
 
 //コマンドの作成
 procedure TMainWnd.CommandCreate;
+const
+  cmdMAIN    = $01;
+  cmdThre    = $02;
+  cmdResNum  = $04;
+  cmdStatus  = $08;
+
 var
   i: integer;
   item: TMenuItem;
   name: string;
   child: boolean;
-  DisableAtPopUp:boolean;//beginner
+  MenuFlag: Byte;  //aiai
 begin
   if Config.cmdConfigList.Text = '' then
   begin
@@ -12476,25 +12541,55 @@ begin
     if child then
       Delete(name, 1, 1);
 
-    {beginner} //先頭が*の時は、スレ覧のポップアップに表示しない
-    DisableAtPopUp := (length(name) > 0) and (name[1] = '*');
-    if DisableAtPopUp then
-      Delete(name, 1, 1);
+    {beginner} //先頭が*の時は、スレビューのポップアップに表示しない
+    //DisableAtPopUp := (length(name) > 0) and (name[1] = '*');
+    //if DisableAtPopUp then
+    //  Delete(name, 1, 1);
     {/beginner}
 
-    item := TMenuItem.Create(MenuCommand);
-    item.Name := 'MenuCommand' + IntToStr(i+1);
-    item.Caption := name;
-    item.Tag := i;
-    if length(Config.cmdExecuteList[i]) > 0 then
-      item.OnClick := MenuCommandExeClick;
-    if child and (MenuCommand.Count > 0) then
-      MenuCommand[menucommand.Count -1].Add(item)
-    else
-      MenuCommand.Add(item);
-    {$IFNDEF IE}
-    if not DisableAtPopUp then begin  //beginner
+    MenuFlag := cmdMain or cmdThre;  //デフォルトではMainMenuとスレビュー右クリックメニュー
+
+    if length(name) > 0 then //プレフィックスの処理
+    begin
+      case name[1] of
+
+      '*': // MainMenuだけ
+        begin MenuFlag := cmdMain; Delete(name, 1, 1); end;
+
+      '/': // スレビュー右クリックメニューだけ
+        begin MenuFlag := cmdThre; Delete(name, 1, 1); end;
+
+      '+': // レス番クリックメニューだけ
+        begin MenuFlag := cmdResNum; Delete(name, 1, 1); end;
+
+      '!': // ステータスバー右クリックメニュー
+        begin MenuFlag := cmdStatus; Delete(name, 1, 1); end;
+
+      end; //case
+    end;
+
+    // $LINKがある場合はMainMenuには出さない
+    if AnsiContainsStr(Config.cmdExecuteList[i], '$LINK') then
+       MenuFlag := MenuFlag and not cmdMain;
+
+    (* MainMenu *)
+    if MenuFlag and cmdMain = cmdMain then begin
+      item := TMenuItem.Create(MenuCommand);
+      item.Name := 'MenuCommand' + IntToStr(i+1);
+      item.Caption := name;
+      item.Tag := i;
+      if length(Config.cmdExecuteList[i]) > 0 then
+        item.OnClick := MenuCommandExeClick;
+      if child and (MenuCommand.Count > 0) then
+        MenuCommand[menucommand.Count -1].Add(item)
+      else
+        MenuCommand.Add(item);
+    end;
+
+    (* スレビュー右クリックメニュー *)
+    if MenuFlag and cmdThre = cmdThre then begin
       item := TMenuItem.Create(PopupTextMenu);
+      item.Name := 'ThreViewCommand' + IntToStr(i+1);
       item.Caption := name;
       item.Tag := i;
       if length(Config.cmdExecuteList[i]) > 0 then
@@ -12502,12 +12597,46 @@ begin
       with PopupTextMenu do
       begin
         if child and (Items.Count > Items.IndexOf(TextPopupCmdSep) +1) then
-          PopupTextMenu.Items[PopupTextMenu.items.Count -1].Add(item)
+          Items[PopupTextMenu.items.Count -1].Add(item)
         else
-          PopupTextMenu.Items.Add(item);
+          Items.Add(item);
       end;
-    end;  //beginner
-    {$ENDIF}
+    end;
+
+    (* レス番クリックメニュー *)
+    if MenuFlag and cmdResNum = cmdResNum then begin
+      item := TMenuItem.Create(PopupViewMenu);
+      item.Name := 'ResNumCommand' + IntToStr(i+1);
+      item.Caption := name;
+      item.Tag := i;
+      if length(Config.cmdExecuteList[i]) > 0 then
+        item.OnClick := MenuCommandExeClick;
+      with PopupViewMenu do
+      begin
+        if child and (Items.Count > Items.IndexOf(ViewPopupCmdSep) + 1) then
+          Items[PopupViewMenu.items.Count - 1].Add(item)
+        else
+          Items.Add(item);
+      end;
+    end;
+
+    (* ステータスバー右クリックメニュー *)
+    if MenuFlag and cmdStatus = cmdStatus then begin
+      item := TMenuItem.Create(PopupStatusBar);
+      item.Name := 'StatusCommand' + IntToStr(i+1);
+      item.Caption := name;
+      item.Tag := i;
+      if length(Config.cmdExecuteList[i]) > 0 then
+        item.OnClick := MenuCommandExeClick;
+      with PopupStatusBar do
+      begin
+        if child and (Items.Count > Items.IndexOf(MenuStatusCmdSep) + 1) then
+          Items[PopupStatusBar.items.Count - 1].Add(item)
+        else
+          Items.Add(item);
+      end;
+    end;
+
   end;
 end;
 
@@ -14322,7 +14451,7 @@ end;
 //aiai
 procedure TMainWnd.TextPopupAddNGIDClick(Sender: TObject);
 var
-  viewItem: TViewItem;                              
+  viewItem: TViewItem;
   dat: TThreadData;
   Item: string;
   i: Integer;
@@ -14333,23 +14462,13 @@ var
   LifeSpan: Integer;
   MResult: Integer;
 begin
-  if (PopupTextMenu.PopupComponent is THogeTextView) then
-    viewItem := TViewItem(GetViewOf(PopupTextMenu.PopupComponent))
-  else
-    viewItem := GetActiveView;
-
-  Item := viewItem.GetFocusedLink;
+  Item := FStatusText;
   if Item = '' then exit;
   Item := RightStr(Item, length(Item) - 3);
   if Item = '' then exit;
   NgList := NG_ITEM_ID;
 
   viewItem := GetActiveView;
-
-  if (viewItem.thread = nil) or (viewItem.thread.dat = nil) then
-    exit;
-
-  dat := viewItem.thread.DupData;
 
   tmp := TMenuItem(Sender).Caption;
 
@@ -14363,15 +14482,8 @@ begin
     MResult := QuickAboneRegist.ShowModal;
     if MResult = mrCancel then
     begin
-      dat.Free;
       Exit;
     end;
-    //if MResult = mrCancel then
-    //  Exit;
-//２ちゃんねるブラウザ「OpenJane」改造総合スレ9
-//http://jane.cun.jp/test/read.cgi/win/1064951726/217
-//2-293氏
-
   until QuickAboneRegist.ItemView.SelText <> '';
 
   Item := StringReplace(QuickAboneRegist.ItemView.SelText,#13#10,' <br> ',[rfReplaceAll]);
@@ -14401,27 +14513,31 @@ begin
 
         NGItems[NgList].AddObject(item, NGItemData);
         NGItems[NgList].SaveToFile(config.basepath + NG_FILE[NgList]);
-        viewItem.LocalReload(viewItem.GetTopRes);
+        if Assigned(viewItem.thread) then
+          viewItem.LocalReload(viewItem.GetTopRes);
       end else begin
         MessageDlg('キーワード"'+Item+'"は登録済み',mtWarning,[mbOk],0);
       end;
     end;
     mrYes: begin //直接あぼーんする
-      for i := 1 to viewItem.thread.lines do begin
-        if AnsiContainsStr(dat.FetchID(i), Item)
-             and (AboneType >= viewItem.thread.ABoneArray[i]) then
-        begin
-          if AboneType = 0 then
-            viewItem.thread.ABoneArray[i] := 1
-          else
-            viewItem.thread.ABoneArray[i] := AboneType;
+      if Assigned(viewItem.thread) and Assigned(viewItem.thread.dat) then
+      begin
+        dat := viewItem.thread.DupData;
+        for i := 1 to viewItem.thread.lines do begin
+          if AnsiContainsStr(dat.FetchID(i), Item)
+               and (AboneType >= viewItem.thread.ABoneArray[i]) then
+          begin
+            if AboneType = 0 then
+              viewItem.thread.ABoneArray[i] := 1
+            else
+              viewItem.thread.ABoneArray[i] := AboneType;
+          end;
         end;
+        dat.Free;
+        viewItem.LocalReload(viewItem.GetTopRes);
       end;
-      viewItem.LocalReload(viewItem.GetTopRes);
     end;
   end;
-
-  dat.Free;
 
 end;
 
@@ -14434,12 +14550,7 @@ var
   dat: TThreadData;
   AboneType: Integer;
 begin
-  if (PopupTextMenu.PopupComponent is THogeTextView) then
-    viewItem := TViewItem(GetViewOf(PopupTextMenu.PopupComponent))
-  else
-    viewItem := GetActiveView;
-
-  Item := viewItem.GetFocusedLink;
+  Item := FStatusText;
   if Item = '' then exit;
   //Item := RightStr(Item, length(Item) - 3);
   //if Item = '' then exit;
@@ -15405,7 +15516,10 @@ begin
     viewItem := GetActiveView;
   if viewItem = nil then
     exit;
-  S := CutImenu(viewItem.GetFocusedLink);
+  S := FStatusText;
+  if Length(S) <= 0 then
+    exit;
+  S := CutImenu(S);
   if ProtocolCheck(S) then
     DoOnFileDownlaod(S);
 end;
@@ -16208,7 +16322,7 @@ begin
   if viewItem = nil then
     exit;
   point := viewItem.browser.Caret;
-  chottoURL := viewItem.GetFocusedLink;
+  chottoURL := FStatusText;
 
   if GetKeyState(VK_CONTROL) < 0 then
     chottoURL := chottoURL + Config.optChottoView;
@@ -17627,6 +17741,8 @@ begin
 end;}
 
 procedure TMainWnd.PopupStatusBarPopup(Sender: TObject);
+var
+  i: integer;
 begin
   if Assigned(MyNews) then
   begin
@@ -17637,11 +17753,17 @@ begin
     MenuStatusOpenByBrowser.Visible := True;
     MenuStatusOpenByLovelyBrowser.Visible := True;
     MenuStatusCopyURI.Visible := True;
+    i := PopupStatusBar.Items.IndexOf(MenuStatusCmdSep);
+    for i := i + 1 to PopupStatusBar.Items.Count - 1 do
+      PopupStatusBar.Items[i].Visible := True;
   end else
   begin
     MenuStatusOpenByBrowser.Visible := False;
     MenuStatusOpenByLovelyBrowser.Visible := False;
     MenuStatusCopyURI.Visible := False;
+    i := PopupStatusBar.Items.IndexOf(MenuStatusCmdSep);
+    for i := i + 1 to PopupStatusBar.Items.Count - 1 do
+      PopupStatusBar.Items[i].Visible := False;
   end;
 end;
 
@@ -18852,8 +18974,8 @@ begin
   MenuUrlEditCopy.Enabled := MenuUrlEditCut.Enabled;
   MenuUrlEditPaste.Enabled := Clipboard.HasFormat(CF_TEXT);
   MenuUrlEditPasteAndGo.Enabled := MenuUrlEditPaste.Enabled;
-  MenuUrlEditDelete.Enabled := MenuUrlEditCut.Enabled;
-  MenuUrlEditSelectAll.Enabled := Length(UrlEdit.Text) > 0;
+  MenuUrlEditDelete.Enabled := Length(UrlEdit.Text) > 0;
+  MenuUrlEditSelectAll.Enabled := MenuUrlEditDelete.Enabled;
 end;
 
 procedure TMainWnd.MenuUrlEditUndoClick(Sender: TObject);
@@ -18890,7 +19012,7 @@ end;
 
 procedure TMainWnd.MenuUrlEditDeleteClick(Sender: TObject);
 begin
-  UrlEdit.ClearSelection;
+  SendMessage(UrlEdit.Handle, WM_KEYDOWN, VK_DELETE, 0);
 end;
 
 procedure TMainWnd.MenuUrlEditSelectAllClick(Sender: TObject);

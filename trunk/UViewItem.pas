@@ -217,6 +217,7 @@ type
     FPossessionView: TPopupViewItem;
     FLockCount: Integer;
     FPopupViewList: TPopupViewList;
+    //FLinkText: String; //aiai
     function GetBaseItem: TBaseViewItem; virtual; abstract;
     function GetBaseThread: TThreadItem; virtual;
     function GetRootControl: TWinControl; virtual; abstract;
@@ -233,7 +234,8 @@ type
     destructor Destroy; override;
     procedure Cancel; virtual; abstract;
     function GetSelection: String; virtual; abstract;
-    function GetFocusedLink: String; virtual;
+    //function GetFocusedLink: String; {virtual;}
+    //function GetLinkUnderCursor: String; //aiai
     procedure SelectAll; virtual;
     procedure Lock; virtual;
     procedure UnLock; virtual;
@@ -248,6 +250,7 @@ type
     property PossessionView:TPopupViewItem read FPossessionView;
     property RootControl: TWinControl read GetRootControl;
     property PopUpViewList: TPopupViewList read FPopupViewList;
+    //property LinkText: String read FLinkText; //aiai
   end;
 
   (* Doe,非DoeそれぞれでTHogeTextView,TWebBrowserを管理するための基礎クラス *)
@@ -2105,7 +2108,7 @@ begin
   Result := nil;
 end;
 
-function TBaseViewItem.GetFocusedLink: String;
+{function TBaseViewItem.GetFocusedLink: String;
 var
   browser: THogeTextView;
   Point: TPoint;
@@ -2123,7 +2126,34 @@ begin
   except
     Result := '';
   end;
-end;
+end;}
+
+//aiai CaretでなくCursorの下のリンクを取得し、結果をFLinkTextに入れる
+{function TBaseViewItem.GetLinkUnderCursor: String;
+var
+  browser: THogeTextView;
+  Point: TPoint;
+  item: THogeTVItem;
+begin
+  FLinkText := '';
+  Result := '';
+  try
+    browser := GetDerivativeBrowser as THogeTextView;
+    if browser = nil then
+      Abort;
+    GetCursorPos(Point);
+    if InvalidPoint(Point) then exit;
+    Point := browser.ScreenToClient(Point);
+    if InvalidPoint(Point) then exit;
+    Point := browser.ClientToPhysicalCharPos(Point.X, Point.Y);
+    if InvalidPoint(Point) then exit;
+    item := browser.Strings[point.Y];
+    FLinkText := item.GetEmbed(point.X + 1);
+    Result := FLinkText;
+  except
+    Result := '';
+  end;
+end;}
 
 procedure TBaseViewItem.SelectAll;
 var

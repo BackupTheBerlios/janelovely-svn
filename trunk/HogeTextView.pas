@@ -1782,6 +1782,7 @@ begin
     if not FIsMouseIn then
     begin
       MouseEnter;
+      FDragging := False;  //aiai
       FIsMouseIn := True;
     end;
   end;

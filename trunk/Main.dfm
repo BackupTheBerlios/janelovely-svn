@@ -1,6 +1,6 @@
 object MainWnd: TMainWnd
   Left = 264
-  Top = 125
+  Top = 134
   AutoScroll = False
   Caption = 'Jane2ch'
   ClientHeight = 519
@@ -5436,6 +5436,9 @@ object MainWnd: TMainWnd
       Caption = #12524#12473#12398#20869#23481#12434'AAList'#12395#30331#37682'(&L)'
       OnClick = PopupViewAddAAlistClick
     end
+    object ViewPopupCmdSep: TMenuItem
+      Caption = '-'
+    end
   end
   object PopupTextMenu: TPopupMenu
     OnPopup = PopupTextMenuPopup
@@ -5471,7 +5474,7 @@ object MainWnd: TMainWnd
     object TextPopupExtractRes: TMenuItem
       Action = actSelectedKeywordExtraction
     end
-    object TextPopupCmdSep: TMenuItem
+    object N95: TMenuItem
       Caption = '-'
     end
     object TextPopupAddAAList: TMenuItem
@@ -5544,6 +5547,9 @@ object MainWnd: TMainWnd
       Tag = 2
       Caption = #12371#12398'ID'#12434#36879#26126#12354#12412#12540#12435
       OnClick = TextPopupIDAboneClick
+    end
+    object TextPopupCmdSep: TMenuItem
+      Caption = '-'
     end
   end
   object ListImages: TImageList
@@ -8038,6 +8044,9 @@ object MainWnd: TMainWnd
       Caption = #12513#12514#27396#12434#34920#31034'(&M)'
       OnClick = StatusBarClick
     end
+    object MenuStatusCmdSep: TMenuItem
+      Caption = '-'
+    end
   end
   object PopupWritePanel: TPopupMenu
     OnPopup = PopupWritePanelPopup
@@ -8784,6 +8793,7 @@ object MainWnd: TMainWnd
     Top = 168
   end
   object PopupUrlEdit: TPopupMenu
+    AutoHotkeys = maManual
     OnPopup = PopupUrlEditPopup
     Left = 408
     Top = 32

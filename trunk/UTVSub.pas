@@ -317,7 +317,8 @@ begin
   view := THogeTextView(Sender);
   point := view.ClientToPhysicalCharPos(X, Y);
   newCursor := crDefault;
-  if 0 <= point.X then
+  {aiai}
+  {if 0 <= point.X then
   begin
     newCursor := crIBeam;
     item := view.Strings[point.Y];
@@ -334,7 +335,27 @@ begin
     result := item.GetEmbed(index);
     if 0 < length(result) then
       newCursor := crHandPoint;
+  end;}
+  if 0 <= point.X then
+  begin
+    newCursor := crIBeam;
+    item := view.Strings[point.Y];
+    index := point.X +1;
+    result := item.GetEmbed(index);
+    if 0 < length(result) then
+      newCursor := crHandPoint
+    else
+      with THogeTextView(Sender) do
+      begin
+        if InSelection(point.X, point.Y) then
+        begin
+          if Cursor <> crDefault then
+            Cursor := crDefault;
+          exit;
+        end;
+      end;
   end;
+  {/aiai}
   with THogeTextView(Sender) do
     if Cursor <> newCursor then
       Cursor := newCursor;
