@@ -10407,8 +10407,10 @@ begin
   if thread = nil then
     exit;
   thread.oldLines := thread.lines;
+  thread.anchorLine := thread.lines;
   thread.SaveIndexData;
   UpdateTabColor;
+  ViewItemStateChanged;
 end;
 
 procedure TMainWnd.actGeneralUpdateExecute(Sender: TObject);
