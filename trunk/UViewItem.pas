@@ -2039,6 +2039,7 @@ begin
   FtmpDat := thread.DupData;
   D2HTML := SetUpDat2HTML((SkinCollectionList.Items[TBoard(FThread.board).CustomSkinIndex]).RecHTML, dhtRes);
   D2HTML.URL := FThread.ToURL;
+  D2HTML.Title := FThread.title;
   D2HTML.ToDatOut(Self, FtmpDat ,Pos, thread.lines - Pos + 1, FThread.ABoneArray, FThread.NeedConvert);
   D2HTML.Free;
 end;
@@ -2494,6 +2495,7 @@ begin
   SEARCHD2HTML := SetUpDat2HTML(TSkinCollection(SkinCollectionList.Items[TBoard(thread.board).CustomSkinIndex]).PopupRecHTML, dhtSearchRes);
   D2HTML := SetUpDat2HTML(TSkinCollection(SkinCollectionList.Items[TBoard(thread.board).CustomSkinIndex]).RecHTML, dhtRes);
   D2HTML.URL := thread.ToURL; 
+  D2HTML.Title := thread.title; 
   try
     if IncludeRef then
     begin
@@ -3155,6 +3157,7 @@ begin
     {//ayaya}
     NEWD2HTML := SetUpDat2HTML((SkinCollectionList.Items[TBoard(FThread.board).CustomSkinIndex]).NewRecHTML, dhtNewRes);
     NEWD2HTML.URL := thread.ToURL;
+    NEWD2HTML.Title := thread.title;
     try
     try
       if currentStartLine = FThread.anchorLine +1 then
@@ -3258,6 +3261,7 @@ procedure TViewItem.DoWorking;
       {//ayaya}
       D2HTML := SetUpDat2HTML((SkinCollectionList.Items[TBoard(FThread.board).CustomSkinIndex]).RecHTML, dhtRes);
       D2HTML.URL := FThread.ToURL;
+      D2HTML.Title := FThread.title;
       if currentStartLine = 1 then
       begin
         D2HTML.ToDatOut(FStream, FThread.dat, 1, 1, FThread.AboneArray, FThread.NeedConvert);
@@ -5335,6 +5339,7 @@ procedure Make2chInfo(dest: TDatOut; URI: string; basethread: TThreadItem;
       dat := thread.DupData;
       POPUPD2HTML := SetUpDat2HTML((SkinCollectionList.Items[TBoard(thread.board).CustomSkinIndex]).PopupRecHTML, dhtPopupRes);
       POPUPD2HTML.URL := thread.ToURL;
+      POPUPD2HTML.Title := thread.title;
       try
       if RangeArray[0].st >= 0 then
         for i := 0 to Length(RangeArray) - 1 do
@@ -5395,6 +5400,7 @@ begin
   SetLength(list, GetThreadMaxNum);
   POPUPD2HTML := SetUpDat2HTML((SkinCollectionList.Items[TBoard(thread.board).CustomSkinIndex]).PopupRecHTML, dhtPopupRes);
   POPUPD2HTML.URL := thread.ToURL;
+  POPUPD2HTML.Title := thread.title;
   try
     Result := 0;
     for i := 1 to thread.lines do

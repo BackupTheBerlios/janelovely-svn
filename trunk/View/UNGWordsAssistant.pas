@@ -47,7 +47,7 @@ type
     procedure GetValue(Name: String; Ini: TCustomIniFile);
     procedure SetValue(Name: String; Ini: TCustomIniFile);
     procedure MakeSearchObj;
-    function Search(NGItem: TArrayOfNGExItemPChar): Boolean;
+    function Search(NGItem: TArrayOfNGItemPChar; const URL, Title: string): Boolean;
   end;
 
   TNGItemData = class(TBaseNGItem)
@@ -266,30 +266,66 @@ end;
 
 
 //名前、メアド、ID、メッセージを検索
-function TExNgItem.Search(NGItem: TArrayOfNGExItemPChar): Boolean;
+//対象URL,Titleで事前にフィルタリング by aiai
+function TExNgItem.Search(NGItem: TArrayOfNGItemPChar; const URL, Title: string): Boolean;
 var
-  i: TNGExItemIdent;
+  i: TNGItemIdent;
   tmpResult :Boolean;
+  {aiai}
+  wide: WideString;
+  {/aiai}
 begin
   Result := True;
-  for i := Low(TNGExItemIdent) to High(TNGExItemIdent) do begin
+
+  {aiai}
+  tmpResult := False;
+  case SearchOpt[High(TNGExItemIdent)] of
+    0, 1: begin //BM
+      tmpResult := Assigned(TBMSearch(SearchObj[High(TNGExItemIdent)]).Search(PChar(URL), Length(URL)));
+      tmpResult := tmpResult or Assigned((TBMSearch(SearchObj[High(TNGExItemIdent)]).Search(PChar(Title), Length(Title))));
+    end;
+    2, 3: begin //完全一致
+      tmpResult := (Length(URL) = Length(SearchStr[High(TNGExItemIdent)])) and
+                   StartWithP(SearchStr[High(TNGExItemIdent)], PChar(URL), Length(URL));
+      tmpResult := tmpResult or (Length(Title) = Length(SearchStr[High(TNGExItemIdent)])) and
+                   StartWithP(SearchStr[High(TNGExItemIdent)], PChar(Title), Length(Title));
+    end;
+    4, 5: begin //正規表現
+      wide := WideString(URL);
+      tmpResult := TRegExpr(SearchObj[High(TNGExItemIdent)]).Exec(wide);
+      wide := WideString(Title);
+      tmpResult := tmpResult or TRegExpr(SearchObj[High(TNGExItemIdent)]).Exec(wide);
+    end;
+  end;
+  if (SearchOpt[High(TNGExItemIdent)] >=0) then begin
+    if (SearchOpt[High(TNGExItemIdent)] mod 2 = 0) then
+      Result := tmpResult
+    else
+      Result := not tmpResult;
+  end;
+  if not Result then
+    exit;
+  {/aiai}
+
+
+  for i := Low(TNGItemIdent) to NG_ITEM_ID do begin
     tmpResult := False;
-    case SearchOpt[i] of
+    case SearchOpt[TNGExItemIdent(i)] of
       0, 1: //BM
-        tmpResult := Assigned(TBMSearch(SearchObj[i]).Search(NGItem[i].pStart, NGItem[i].Size));
+        tmpResult := Assigned(TBMSearch(SearchObj[TNGExItemIdent(i)]).Search(NGItem[i].pStart, NGItem[i].Size));
       2, 3: //完全一致
-        tmpResult := (NGItem[i].Size = Length(SearchStr[i])) and
-                     StartWithP(SearchStr[i], NGItem[i].pStart, NGItem[i].Size);
+        tmpResult := (NGItem[i].Size = Length(SearchStr[TNGExItemIdent(i)])) and
+                     StartWithP(SearchStr[TNGExItemIdent(i)], NGItem[i].pStart, NGItem[i].Size);
       4, 5: begin //正規表現
         if NGItem[i].NotMakeWideStr then begin
           SetString(NGItem[i].WideStr, NGItem[i].pStart, NGItem[i].Size);
           NGItem[i].NotMakeWideStr := False;
         end;
-        tmpResult := TRegExpr(SearchObj[i]).Exec(NGItem[i].WideStr);
+        tmpResult := TRegExpr(SearchObj[TNGExItemIdent(i)]).Exec(NGItem[i].WideStr);
       end;
     end;
-    if (SearchOpt[i] >=0) then begin
-      if (SearchOpt[i] mod 2 = 0) then
+    if (SearchOpt[TNGExItemIdent(i)] >=0) then begin
+      if (SearchOpt[TNGExItemIdent(i)] mod 2 = 0) then
         Result := Result and tmpResult
       else
         Result := Result and not tmpResult;
