@@ -227,6 +227,8 @@ type
     FRemind: Integer;
 
     {aiai}
+    FBaseLineSkip: Integer;
+
     FOnScrollEnd: TNotifyEvent;
 
     FResNumArray: THogeResNumArray;
@@ -369,20 +371,24 @@ type
                      const AString: string;
                      attrib: Integer = 0): TPoint;
     function  nInsert(point: TPoint;
-                      pstr: PChar;
+                      const pstr: PChar;
                       count: Integer;
                       attrib: Integer = 0): TPoint;
     function  Append(const AString: string;
                      attrib: Integer = 0): TPoint;
-    function  nAppend(pstr: PChar;
+    function  nAppend(const pstr: PChar;
                       count: Integer;
                       attrib: Integer = 0): TPoint;
     {aiai}
+    function  nAppend2(const pstr: PChar;
+                      count: Integer;
+                      attrib: Integer = 0): TPoint;
+    procedure newPara;
     function AppendPicture(Image: TGraphic; overlap: Boolean; offsetleft: integer): Boolean;
     procedure AppendHR(Color: TColor; Custom: Boolean; OffsetLeft: Integer);
     procedure SetColorName(ColorNameRecord: THogeColorHandleNameRecord);
     {/aiai}
-    procedure SetFont(FaceName: String; Size: Integer);
+    procedure SetFont(const FaceName: String; Size: Integer);
     procedure SelectWord(physicalPos: TPoint);
 
     {aiai}
@@ -1035,14 +1041,19 @@ function THogeTextView.BaselineSkip: Integer;
 var
   tm: TEXTMETRIC;
 begin
-  {beginner}
-  if Font.Height >= 0 then begin
-    result := Abs(Font.Height) + FExternalLeading;
-  end else begin
-    GetTextMetrics(FBitmap.Canvas.Handle, tm);
-    result := Abs(Font.Height) + tm.tmInternalLeading + FExternalLeading;
+  // Œ‹‰Ê‚ðFBaseLineSkip‚É•Û‘¶‚µ‚Ä‚¨‚­ by aiai
+  if FBaseLineSkip = 0 then
+  begin
+    {beginner}
+    if Font.Height >= 0 then begin
+      FBaseLineSkip := Abs(Font.Height) + FExternalLeading;
+    end else begin
+      GetTextMetrics(FBitmap.Canvas.Handle, tm);
+      FBaseLineSkip := Abs(Font.Height) + tm.tmInternalLeading + FExternalLeading;
+    end;
+    {/beginner}
   end;
-  {/beginner}
+  Result := FBaseLineSkip;
 end;
 
 procedure THogeTextView.UpdateVisibleLines;
@@ -2742,8 +2753,11 @@ begin
       end;
       Inc(i);
     end;
-    Move(txt[startPos], result[Position], endPos - startPos + 1);
-    Inc(Position, endPos - startPos + 1);
+    if endPos > startPos - 1 then
+    begin
+      Move(txt[startPos], result[Position], endPos - startPos + 1);
+      Inc(Position, endPos - startPos + 1);
+    end;
   end;
 
 end;
@@ -2855,7 +2869,7 @@ begin
             for i := 0 to FHighlightTargetList.Count - 1 do
             begin
               len := Length(FHighlightTargetList[i]);
-              if (StrLIComp(PChar(item.FText) + col - 1, PChar(FHighlightTargetList[i]), len) = 0) then
+              if (AnsiStrLIComp(PChar(item.FText) + col - 1, PChar(FHighlightTargetList[i]), len) = 0) then
               begin
                 if not selandjump and ((line > editpoint.Y) or ((line = editpoint.Y) and (col > editpoint.X))) then
                 begin
@@ -3052,7 +3066,7 @@ begin
             for i := 0 to FHighlightTargetList.Count - 1 do
             begin
               len := Length(FHighlightTargetList[i]);
-              if (StrLIComp(PChar(item.FText) + col - 1, PChar(FHighlightTargetList[i]), len) = 0) then
+              if (AnsiStrLIComp(PChar(item.FText) + col - 1, PChar(FHighlightTargetList[i]), len) = 0) then
               begin
                 if not selandjump and ((line < editpoint.Y) or ((line = editpoint.Y) and (col < editpoint.X))) then
                 begin
@@ -3213,7 +3227,7 @@ end;
 
 
 function THogeTextView.nInsert(point: TPoint;
-                               pstr: PChar;
+                               const pstr: PChar;
                                count: Integer;
                                attrib: Integer = 0): TPoint;
 var
@@ -3313,7 +3327,7 @@ begin
   result := nInsert(point, PChar(AString), length(AString), attrib);
 end;
 
-function THogeTextView.nAppend(pstr: PChar;
+function THogeTextView.nAppend(const pstr: PChar;
                                count: Integer;
                                attrib: Integer = 0): TPoint;
 var
@@ -3324,7 +3338,6 @@ begin
   result := nInsert(point, pstr, count, attrib);
 end;
 
-
 function THogeTextView.Append(const AString: string;
                               attrib: Integer = 0): TPoint;
 begin
@@ -3332,6 +3345,28 @@ begin
 end;
 
 {aiai}
+//‰üs‚ðl—¶‚µ‚È‚¢
+function THogeTextView.nAppend2(const pstr: PChar;
+                               count: Integer;
+                               attrib: Integer = 0): TPoint;
+var
+  point: TPoint;
+  item: THogeTVItem;
+begin
+  point.Y := FStrings.Count -1;
+  item := FStrings[point.Y];
+  item.Insert(High(Integer), pstr, count, attrib);
+end;
+
+//‰üs‚·‚é‚¾‚¯
+procedure THogeTextView.newPara;
+var
+  item: THogeTVItem;
+begin
+  item := THogeTVItem.Create(Self);
+  FStrings.Add(item);
+end;
+
 function THogeTextView.AppendPicture(Image: TGraphic;
     overlap: Boolean; offsetleft: integer): Boolean;
 var
@@ -3535,7 +3570,7 @@ end;
 
 
 
-procedure THogeTextView.SetFont(FaceName: String; Size: Integer);
+procedure THogeTextView.SetFont(const FaceName: String; Size: Integer);
 var
   i: integer;
 begin
@@ -3548,6 +3583,8 @@ begin
   FBitmap.Canvas.Font.Size := Size;
   FillChar(FCharWidthTable,  SizeOf(FCharWidthTable),  0);
   FillChar(FBCharWidthTable, SizeOf(FBCharWidthTable), 0);
+  FBaseLineSkip := 0;
+  BaseLineSkip;
   for i := 0 to FStrings.Count -1 do
     FStrings[i].FontChanged;
   if FCaretVisible and FConfCaretVisible then

@@ -27,12 +27,7 @@ uses
   {/beginner}
 
   {aiai}
-  {$IFDEF SQLITE3}
-  sqlite3,
-  {$ELSE}
-  sqlite,
-  {$ENDIF}
-  UMigemo, VBScript_RegExp_55_TLB,
+  UMigemo, VBScript_RegExp_55_TLB, JLSqlite,
   ApiBmp, PNGImage, GIFImage, ClipBrdSub,
   UAAForm, UAddAAForm, UAutoReSc, UAutoReloadSettingForm,
   UAutoScrollSettingForm, ULovelyWebForm, UNews, UGetBoardListForm,
@@ -49,7 +44,7 @@ const
 
   DISTRIBUTORS_SITE = 'http://www.geocities.jp/openjane4714/';
 
-  Copyrights: array[0..19] of string
+  Copyrights: array[0..20] of string
     = ('Copyright (c) 2002 Project Open Jane - <a href="http://sakots.pekori.jp/OpenJane/">http://sakots.pekori.jp/OpenJane/</a> (<a href="https://sourceforge.jp/projects/jane/">SourceForge.jp</a>)',
        'Portions of this software are Copyright (c) 2001,2002 by Twiddle (Jane Classic) - <a href="http://hogehoge2001.tripod.co.jp/">http://hogehoge2001.tripod.co.jp/</a>',
        'Portions of this software are Copyright (c) 1993 - 2001, Chad Z. Hower (Kudzu) and the Indy Pit Crew - <a href="http://www.nevrona.com/Indy/">http://www.nevrona.com/Indy/</a>',
@@ -59,6 +54,7 @@ const
        'Portions of this software are Copyright (C) 1999-2001 by Andrey V. Sorokin &lt;anso@mail.ru&gt; - <a href="http://anso.virtualave.net/">http://anso.virtualave.net/</a>',
        'Portions of this software are Copyright (C) 2004 Gustavo Huffenbacher Daud - <a href="http://pngdelphi.sourceforge.net/">http://pngdelphi.sourceforge.net/</a>',
        'Portions of this software are Copyright (C) 1997-99 Anders Melander - <a href="http://www.melander.dk/delphi/gifimage/">http://www.melander.dk/delphi/gifimage/</a>',
+       'Portions of this software are Copyright (C) 2002-2004, Troy Wolbrink (troy.wolbrink@ccci.org) - <a href="http://www.tntware.com/delphicontrols/unicode/">Tnt Delphi Unicode Controls</a>',
        'Portions of this software are Copyright (C) 2002 by <a href="http://pc.2ch.net/test/read.cgi/software/1008762486/816-817">◆816/bwNE</a>',
        'Portions of this software are Copyright (C) 2002 by <a href="http://www.geocities.co.jp/SiliconValley-Cupertino/2486/">◆test.lxc</a>',
        'Portions of this software are Copyright (C) 2002 by <a href="http://pc.2ch.net/test/read.cgi/software/1016729822/630-">630</a>',
@@ -70,6 +66,7 @@ const
        'Portions of this software are Copyright (C) 2004 by <a href="http://pc5.2ch.net/test/read.cgi/win/1093163924/176">◆....Ep7prs</a>',
        'Portions of this software are Copyright (C) 2004 by <a href="http://pc5.2ch.net/test/read.cgi/win/1093163924/621">おさ＠J典 ◆JtenNG/SWE </a>',
        'Portions of this software are Copyright (C) 2004 by <a href="http://pc5.2ch.net/test/read.cgi/win/1093163924/670">◆184NBKmVW6</a>');
+
 type
   (*-------------------------------------------------------*)
   TPaneType = (ptView, ptList);
@@ -852,6 +849,7 @@ type
     MenuSearchExtractTree: TMenuItem;
     N109: TMenuItem;
     TrayIcon: TJLTrayIcon;
+    MenuBoardSep: TMenuItem;
     {/aiai}
     procedure FormCreate(Sender: TObject);
     procedure MenuToolsOptionsClick(Sender: TObject);
@@ -1732,6 +1730,8 @@ function Bench3(i: Integer): String;
 {$ENDIF}
 procedure InitBench();
 {$ENDIF}
+//Windowsのバージョン文字列を返す
+function GetWin32Version: string;
 
 const
   CMD_OPEN  = 1;
@@ -1878,6 +1878,39 @@ begin
   end;
 end;
 
+{aiai}
+var
+  //Windowsのバージョン文字列を入れておく
+  // ex. Windows NT 5.1
+  Win32Version: String;
+
+//Windowsのバージョン文字列を返す
+function GetWin32Version: string;
+begin
+  if Length(Win32Version) = 0 then
+  begin
+    Win32Version := 'Windows';
+    case Win32Platform of
+      VER_PLATFORM_WIN32_NT: begin
+        Win32Version := 'Windows NT ' + IntToStr(Win32MajorVersion) + '.'
+          + IntToStr(Win32MinorVersion);
+      end;
+      VER_PLATFORM_WIN32_WINDOWS:
+        // Windows MEでMinorVersionが10の場合があるが無視する
+        case Win32MinorVersion of
+          0..9: Win32Version := 'Windows 95';
+          10..89: Win32Version := 'Windows 98';
+          90: Win32Version := 'Windows ME';
+        end;
+      VER_PLATFORM_WIN32s: begin
+        Win32Version := 'Win32s';
+      end;
+    end;
+  end;
+  result := Win32Version;
+end;
+{/aiai}
+
 (*=======================================================*)
 (*=======================================================*)
 
@@ -1944,9 +1977,13 @@ function MouseInPane(control: TControl): boolean;
 var
   point: TPoint;
 begin
-  point := control.ScreenToClient(Mouse.CursorPos);
-  result := (0 <= point.X) and (point.X < control.Width) and
-            (0 <= point.Y) and (point.Y < control.Height);
+  Result := False;
+  if GetCursorPos(point) and not InvalidPoint(point) then
+  begin
+    point := control.ScreenToClient(point);
+    result := (0 <= point.X) and (point.X < control.Width) and
+              (0 <= point.Y) and (point.Y < control.Height);
+  end;
 end;
 
 function IsPrimaryInstance: Boolean;
@@ -3462,10 +3499,12 @@ begin
   MenuViewWriteMemoToggleVisible.Checked := WritePanel.Visible;
 
   (* Columns *)
+  ListView.Items.BeginUpdate;
   SetupColumns;
   for i := 0 to ListView.Columns.Count -1 do
     ListView.Column[i].Width := iniFile.ReadInteger(INI_WIN_SECT, 'Column' + IntToStr(ListView.Column[i].Tag), ListView.Column[i].Width);
   ListView.Show;
+  ListView.Items.EndUpdate;
 
   (* CoolBar *) //※[457]
   //CoolBar.Bands.BeginUpdate;
@@ -3533,7 +3572,6 @@ end;
 procedure TMainWnd.OpenConfigDlg(PanelSpec: Integer = -1);
 var
   rc: integer;
-  //oldSkinPath: string;
   i: TNGItemIdent; //beginner
 begin
   if UIConfig = nil then
@@ -3544,7 +3582,6 @@ begin
   ExNGList.SaveToFile(Config.BasePath + NG_EX_FILE);
   {/beginner}
   Config.tmpChanged := false;
-  //oldSkinPath := Config.SkinPath;
   if 0 < PanelSpec then
     UIConfig.PageControl.TabIndex := PanelSpec;
   rc := UIConfig.ShowModal;
@@ -3583,19 +3620,15 @@ begin
     OnlineButton.ImageIndex := 13;
   actLogin.Checked := Config.tstAuthorizedAccess;
 
-  //if oldSkinPath <> Config.SkinPath then
-  //  LoadSkin(Config.SkinPath);
   if Config.StyleChanged then
     SetStyle;
 
   HintTimer.Interval := config.hintForURLWaitTime;
   SetCaption(boardNameOfCaption);
-  //Memo.TabStop := Config.oprTabStopOnTracePane;
 
   ListViewSelectItem(ListView, ListView.Selected, ListView.Selected <> nil);
   UpdateFavoritesMenu;
 
-  //SetMouseGesture;
   mouseGestureEnable := Config.mseGestureList.Text <> '';
   SetupNGWords;
   Config.StyleChanged := false;
@@ -3658,7 +3691,11 @@ procedure TMainWnd.UpdateBoardMenu;
   procedure RemoveOldItem;
   begin
     while 0 < MenuBoardList.Count do
+    begin
+      if MenuBoardList.Items[0] = MenuBoardSep then
+        break;
       MenuBoardList.Items[0].Free;
+    end;
   end;
 var
   i, j: integer;
@@ -4180,9 +4217,9 @@ begin
       threadList := THREAD_CURRENT_LIST;
 //    if Config.tstAuthorizedAccess then
     {$IFDEF APPEND_SID}
-      uri := ticket2ch.AppendSID(board.GetURIBase + '/' + threadList, '?')
+      uri := ticket2ch.AppendSID(board.URIBase + '/' + threadList, '?')
     {$ELSE}
-      uri := board.GetURIBase + '/' + threadList;
+      uri := board.URIBase + '/' + threadList;
     {$ENDIF}
 //    else
 //      uri := 'http://' + board.host + '/test/read.cgi/' + board.bbs + '/?raw=0.0';
@@ -4227,7 +4264,7 @@ begin
   else
     Log('川*’∀’）ｲﾃﾝﾂｲﾋ');
   LogBeginQuery;
-  procGetSubject := AsyncManager.Get(board.GetURIBase + '/', OnMovedSubject,
+  procGetSubject := AsyncManager.Get(board.URIBase + '/', OnMovedSubject,
       ticket2ch.On2chPreConnect, '');
 
   if procGetSubject = nil then
@@ -4458,7 +4495,7 @@ begin
         Exit;
       end;
       requestingBoard.last2Modified:=requestingBoard.lastModified;  //beginner
-      case requestingBoard.GetBBSType of
+      case requestingBoard.BBSType of
       bbsJBBSShitaraba, bbsShitaraba:
         content := euc2sjis(sender.Content);
       else
@@ -4595,7 +4632,7 @@ var
 
   function GetThreadMaxNum: integer;
   begin
-    case TBoard(thread.board).GetBBSType of
+    case TBoard(thread.board).BBSType of
     bbs2ch:   result := 1000;
     bbsMachi: result := 300;
     else      result := 100000;
@@ -4725,12 +4762,15 @@ var
       end;
     LVSC_GAIN: //aiai
       try
-        if (0 < thread.itemCount) and (thread.itemCount >= thread.previousitemCount) then
+        if (0 < thread.number) and (thread.itemCount >= thread.previousitemCount) then
           (* 新規に立ったスレの増しレス数はレス数と同じ *)
-          if (CurrentBoard.last2Modified <> '') and (CheckNewThreadAfter2 < StrToInt(thread.datName)) then
-            result := IntToStr(thread.itemCount)
-          else if thread.previousitemCount > 0 then
-            result := IntToStr(thread.itemCount - thread.previousitemCount);
+          if (CurrentBoard.last2Modified <> '') then
+          begin
+            if (CheckNewThreadAfter2 < StrToInt(thread.datName)) then
+              result := IntToStr(thread.itemCount)
+            else
+              result := IntToStr(thread.itemCount - thread.previousitemCount);
+          end;
       except
       end;
     end;
@@ -6901,78 +6941,85 @@ begin
     result := -result;
 end;
 
-function ListCompareFuncMarker(Item1, Item2: Pointer): integer;
   function GetThreadMaxNum(thread: TThreadItem): integer;
   begin
-    case TBoard(thread.board).GetBBSType of
+    case TBoard(thread.board).BBSType of
     bbs2ch:   result := 1000;
     bbsMachi: result := 300;
     else      result := 100000;
     end;
   end;
 
+function ListCompareFuncMarker(Item1, Item2: Pointer): integer;
 var
   t1, t2: TThreadItem;
+  current: Boolean;
 begin
   t1 := Item1;
   t2 := Item2;
 
   (* Over 1000 とか *)
-  result := Integer(t2.oldLines < GetThreadMaxNum(t2)) - Integer(t1.oldLines < GetThreadMaxNum(t1));
+  current := t2.oldLines < GetThreadMaxNum(t2);
+  result := Integer(current) - Integer(t1.oldLines < GetThreadMaxNum(t1));
   if result <> 0 then
     exit;
   (* dat落ちが上がってこないように (aiai) *)
+  current := current or (t2.number > 0);
   result := Integer(t2.number > 0) - Integer(t1.number > 0);
   if result <> 0 then
     exit;
-  (* dat落ち とか *)
-  result := Integer(t2.itemCount >0) - Integer(t1.itemCount >0);
-  if result <> 0 then
-    exit;
   (* 取得レスがあるかどうか *)
-  result := Integer(0 < t2.lines) - Integer(0 < t1.lines);
-  if result <> 0 then
-    exit;
+  if current then
+  begin
+    result := Integer(0 < t2.lines) - Integer(0 < t1.lines);
+    if result <> 0 then
+      exit;
+  end;
   (* 更新があるかどうか *)
   result := Integer(t2.lines < t2.itemCount)
           - Integer(t1.lines < t1.itemCount);
   if result <> 0 then
     exit;
   (* 未読があるかどうか *)
-  result := Integer(t2.oldLines < t2.lines) - Integer(t1.oldLines < t1.lines);
-  if result <> 0 then
-    exit;
+  if (0 < t2.lines) and (t2.lines >= t2.itemCount) then
+  begin
+    result := Integer(t2.oldLines < t2.lines) - Integer(t1.oldLines < t1.lines);
+    if result <> 0 then
+      exit;
+  end;
   (* 印があるかどうか *)
   result := Ord(t2.mark) - Ord(t1.mark);
   if result <> 0 then
     exit;
   result := Ord(t1.state) - Ord(t2.state); //※[457]
-  {aiai}  //新規スレッド
-  if Config.optCheckThreadMadeAfterLstMdfy2
+  if result <> 0 then
+    exit;
+
+  (* 現役で取得レスがない場合 *)
+  if current and (0 >= t2.lines) then
+  begin
+    {aiai}  //新規スレッド
+    if Config.optCheckThreadMadeAfterLstMdfy2
           and (MainWnd.CurrentBoard.last2Modified <> '') then
-  try
-    (*
-    result := Integer(MainWnd.CurrentBoard.previouslastModified
-            < StrToInt(t2.datName))
-                    - Integer(MainWnd.CurrentBoard.previouslastModified
-                             < StrToInt(t1.datName));
-    *)
-    result := Integer(StrToInt(t2.datName) > CheckNewThreadAfter2)
-            - Integer(StrToInt(t1.datName) > CheckNewThreadAfter2);
-  except
-    result := 0;
+    try
+      result := Integer(StrToInt(t2.datName) > CheckNewThreadAfter2)
+              - Integer(StrToInt(t1.datName) > CheckNewThreadAfter2);
+    except
+      result := 0;
+    end;
+    if result <> 0 then exit;
+    {/aiai}
+    {beginner}  //新着スレッド
+    if Config.optCheckThreadMadeAfterLstMdfy then
+    try
+      result := Integer(StrToInt(t2.datName) > CheckNewThreadAfter)
+              - Integer(StrToInt(t1.datName) > CheckNewThreadAfter);
+    except
+      Result:=0;
+    end;
+    {/beginner}
   end;
-  if result <> 0 then exit;
-  {/aiai}
-  {beginner}  //新着スレッド
-  if Config.optCheckThreadMadeAfterLstMdfy then
-  try
-    result := Integer(StrToInt(t2.datName) > CheckNewThreadAfter)
-            - Integer(StrToInt(t1.datName) > CheckNewThreadAfter);
-  except
-    Result:=0;
-  end;
-  {/beginner}
+
   if result = 0 then
     result := ListCompareFuncNumber(Item1, Item2);
 end;
@@ -7136,43 +7183,47 @@ end;
 
 //aiai 増レスカラムでのソート
 function ListCompareFuncGain(Item1, Item2: Pointer): integer;
-  function itemcountgain(Item: Pointer): integer;
+  function itemcountgain(thread: TThreadItem): integer;
   begin
-    result := TThreadItem(Item).itemCount - TThreadItem(Item).previousitemCount;
-  end;
-begin
-  if MainWnd.currentSortColumn = -LVSC_GAIN then
-  begin
-    if ((TThreadItem(Item1).itemCount = 0) and (TThreadItem(Item2).itemCount = 0))
-    or ((TThreadItem(Item1).previousitemCount = 0) and (TThreadItem(Item2).previousitemCount = 0)) then
-      result := ListCompareFuncNumber(Item1, Item2)
-    else if TThreadItem(Item1).itemCount = 0 then
-      result := 1
-    else if TThreadItem(Item2).itemCount = 0 then
-      result := -1
+    if CheckNewThreadAfter2 < StrToIntDef(thread.datName, 0) then
+      result := thread.itemCount
     else
-     result := itemcountgain(Item1) - itemcountgain(Item2);
-    if result = 0 then
-      result := ListCompareFuncNumber(Item1, Item2);
-  end else
-  begin
-    {if ((TThreadItem(Item1).itemCount = 0) and (TThreadItem(Item2).itemCount = 0))
-    or ((TThreadItem(Item1).previousitemCount = 0) and (TThreadItem(Item2).previousitemCount = 0)) then
-      result := ListCompareFuncNumber(Item1, Item2)
-    else if (TThreadItem(Item1).itemCount = 0) then
-      result := 1
-    else if (TThreadItem(Item2).itemCount = 0) then
-      result := -1
-    else}
-    result := TThreadItem(Item1).number - TThreadItem(Item2).number;
-    if result <> 0 then
-    begin
-      result := itemcountgain(Item2) - itemcountgain(Item1);
-      if result = 0 then
-        result := ListCompareFuncNumber(Item1, Item2);
-    end;
+      result := thread.itemCount - thread.previousitemCount;
   end;
+
+var
+  t1, t2: TThreadItem;
+begin
+  t1 := TThreadItem(Item1);
+  t2 := TThreadItem(Item2);
+
+  if MainWnd.currentBoard.Last2Modified = '' then
+  begin
+    result := ListCompareFuncNumber(Item1, Item2);
+    exit;
+  end;
+  (* Over 1000 とか *)
+  result := Integer(t2.oldLines < GetThreadMaxNum(t2)) - Integer(t1.oldLines < GetThreadMaxNum(t1));
+  if result <> 0 then
+    exit;
+  (* dat落ち *)
+  result := Integer(t2.number > 0) - Integer(t1.number > 0);
+  if result <> 0 then
+    exit;
+
+  result := Integer(t2.itemCount >= t2.previousitemCount) - Integer(t1.itemCount >= t1.itemCount);
+  if result <> 0 then
+    exit;
+
+  result := itemcountgain(t1) - itemcountgain(t2);
+
+  if MainWnd.currentSortColumn = LVSC_GAIN then
+    result := - result;
+
+  if result = 0 then
+    result := ListCompareFuncNumber(Item1, Item2);
 end;
+
 //スレ絞込みでのソート
 function ListCompareFuncSearchState(Item1, Item2: Pointer): integer;
 begin
@@ -7268,8 +7319,6 @@ var
   thread: TThreadItem;
   index: integer;
 begin
-  ListView.DoubleBuffered := True;
-
   MakeCheckNewThreadAfter(nil,0,0); //beginner
 
   ListView.List := currentBoard;
@@ -7353,9 +7402,6 @@ begin
     end;
   end;
   UpdateListTab;
-
-  ListView.Repaint;
-  ListView.DoubleBuffered := False;
 end;
 
 procedure TMainWnd.ViewPopupResClick(Sender: TObject);
@@ -8301,7 +8347,7 @@ begin
           prefix := HTML2String(board.name) + #13#10
         else
           prefix := '';
-        result := prefix + board.GetURIBase + '/' ;
+        result := prefix + board.URIBase + '/' ;
       end;
     end
     else begin
@@ -8806,8 +8852,7 @@ begin
   StopAutoReSc; //aiai
   if assigned(viewItem) and assigned(viewItem.thread) then
   begin
-    if viewItem.thread.Downloading then
-      viewItem.thread.CancelAsyncRead;
+    viewItem.thread.CancelAsyncRead;
     viewItem.thread.RemoveLog;
     UnRegisterFavorite(viewItem.thread);
     UpdateThreadInfo(viewItem.thread);
@@ -10143,6 +10188,7 @@ begin
       ImageForm.MainWndOnHide;
     if Assigned(ImageViewCacheListForm) then
       ImageViewCacheListForm.MainWndOnHide;
+    Hide;
     ShowWindow(Application.Handle, SW_HIDE);
     TrayIcon.Show;
   end;
@@ -10551,7 +10597,7 @@ begin
   end;
 
   if board <> nil then
-    Clipboard.AsText := board.GetURIBase + '/' ;
+    Clipboard.AsText := board.URIBase + '/' ;
 end;
 
 //スレッドのタイトルをコピー  //aiai
@@ -10599,7 +10645,7 @@ begin
 
   if board <> nil then
     with board do
-      Clipboard.AsText := HTML2String(name) + #13#10 + GetURIBase + '/' ;
+      Clipboard.AsText := HTML2String(name) + #13#10 + URIBase + '/' ;
 end;
 
 
@@ -11649,7 +11695,7 @@ procedure TMainWnd.CommandExecute(command: string; replace: boolean = true;
     if AnsiContainsStr(inText, '$BURL') then
     begin
       if assigned(viewItem) and assigned(viewItem.thread) and assigned(viewitem.thread.board) then
-        repText := TBoard(viewitem.thread.board).GetURIBase + '/'
+        repText := TBoard(viewitem.thread.board).URIBase + '/'
       else
         repText := '';
       outText := AnsiReplaceStr(outText, '$BURL', repText);
@@ -12610,10 +12656,10 @@ begin
     begin
       for i := 0 to ListTabControl.Tabs.Count -1 do
         with ListTabControl.Tabs.Objects[i] as TBoard do
-          urlList.Add(GetURIBase + '/');
+          urlList.Add(URIBase + '/');
     end
     else if currentBoard <> nil then
-      urlList.Add(currentBoard.GetURIBase + '/');
+      urlList.Add(currentBoard.URIBase + '/');
     for i := 0 to viewList.Count -1 do begin
       thread := viewList.Items[i].thread;
       if thread <> nil then begin
@@ -12904,7 +12950,7 @@ begin
   end;
 
   if board <> nil then
-    OpenByBrowser(board.GetURIBase + '/');
+    OpenByBrowser(board.URIBase + '/');
 end;
 
 procedure TMainWnd.ViewPopupOpenByBrowserClick(Sender: TObject);
@@ -13382,7 +13428,7 @@ begin
   target := 'http://ttsearch.net/s.cgi?k='+URLEncode(target)+'&o=s&A=t';
   if usetrace[47] then Log(traceString[47])
   else Log('スレッドタイトル検索中');
-  procGet := AsyncManager.Get(target, OnFind, ticket2ch.OnKuroPreConnect,'');
+  procGet := AsyncManager.Get(target, OnFind, ticket2ch.OnChottoPreConnect,'');
 end;
 
 //検索結果のhtmlを加工してViewItemに送る
@@ -14378,7 +14424,7 @@ begin
   if (board = nil) or (board is TFunctionalBoard) then
     UrlEdit.Clear
   else
-    UrlEdit.Text := board.GetURIBase + '/';
+    UrlEdit.Text := board.URIBase + '/';
 end;
 
 procedure TMainWnd.ListViewPanelEnter(Sender: TObject);
@@ -14514,7 +14560,7 @@ begin
   i2ch.Save;
   UpdateTreeView;
 
-  Log('新規板 [' + board.name + '] (' + board.GetURIBase + '/) を作成しました');
+  Log('新規板 [' + board.name + '] (' + board.URIBase + '/) を作成しました');
 end;
 
 procedure TMainWnd.PopupCatAddCategoryClick(Sender: TObject);
@@ -14591,6 +14637,8 @@ var
   board: TBoard;
   node: TTreeNode;
   msg: PChar;
+  sql: string;
+  err: byte;
 begin
   if not Config.ojvQuickMerge then
     exit;
@@ -14612,10 +14660,9 @@ begin
 
   UILock := True;
 
-  board.IdxDataBase.Exec(PChar('DROP TABLE idxlist'), nil, nil, msg);
-  {$IFDEF DATABASEDEBUG}
-  if msg <> nil then Log(board.name + ':DROP TABLE idxlist ' + msg);
-  {$ENDIF}
+  sql := 'DROP TABLE idxlist';
+  err := board.IdxDataBase.Exec(PChar(sql), nil, nil, msg);
+  SQLCheck(err, board.name, sql, msg);
 
   ListView.OnData := nil;
 
@@ -14664,27 +14711,7 @@ end;
 
 (* あぼ～んを表示 *) //aiai
 procedure TMainWnd.actThreadAboneShowExecute(Sender: TObject);
-//var
-//  board: TBoard;
-//  node: TTreeNode;
 begin
-  //if PopupTreeClose.Visible or (Sender = MenuListHideHistoricalLog) then
-  //  board := TBoard(ListTabControl.Tabs.Objects[tabRightClickedIndex])
-  //else begin
-  //  node := TreeView.Selected;
-  //  if node = nil then
-  //    exit;
-  //  if TObject(node.Data) is TBoard then
-  //    board := TBoard(node.Data)
-  //  else
-  //    board := nil;
-  //end;
-  //
-  //if (board = nil) or (board is TFunctionalBoard) then
-  //  exit;
-  //
-  //board.ShowThreadAbone := not board.ShowThreadAbone;
-
   if TAction(Sender).Checked then
     exit;
 
@@ -15536,7 +15563,7 @@ begin
   while index < FavBrdList.Count do
   begin
     board := TBoard(FavBrdList.Items[index]);
-    if (board.GetBBSType = bbs2ch) and
+    if (board.BBSType = bbs2ch) and
             not CheckServerDownInst.CheckDown(board.host) then
     begin
       Log('【' + board.name + '】：'+board.host+'/'+board.bbs+'：Server Down');
@@ -16184,7 +16211,7 @@ end;
 
 procedure TMainWnd.MenuBoardListClick(Sender: TObject);
 begin
-  if (Config.optEnableBoardMenu and (MenuBoardList.Count = 0)) or
+ if (Config.optEnableBoardMenu and (MenuBoardList.IndexOf(MenuBoardSep) <= 0)) or
      (not Config.optEnableBoardMenu) then
     UpdateBoardMenu;
 end;
@@ -16253,8 +16280,8 @@ begin
   StopAutoReSc;
 
   threadABoneList := TStringList.Create;
-  if FileExists(CurrentBoard.GetLogDir + '\subject.abn') then
-    threadABoneList.LoadFromFile(CurrentBoard.GetLogDir + '\subject.abn')
+  if FileExists(CurrentBoard.LogDir + '\subject.abn') then
+    threadABoneList.LoadFromFile(CurrentBoard.LogDir + '\subject.abn')
   else
   begin
     threadABoneList.Free;
@@ -16276,9 +16303,9 @@ begin
   end;
 
   if threadABoneList.Count > 0 then
-    threadABoneList.SaveToFile(CurrentBoard.GetLogDir + '\subject.abn')
+    threadABoneList.SaveToFile(CurrentBoard.LogDir + '\subject.abn')
   else
-    SysUtils.DeleteFile(CurrentBoard.GetLogDir + '\subject.abn');
+    SysUtils.DeleteFile(CurrentBoard.LogDir + '\subject.abn');
   threadABoneList.Free;
 
   UpdateListView;
@@ -16309,12 +16336,14 @@ begin
   while High(Config.stlClmnArray) >= ListView.Columns.Count do
     ListView.Columns.Add;
 
+  ListView.Items.BeginUpdate;
   SetUpColumns;
 
   for i := 0 to ListView.Columns.Count -1 do
     ListView.Column[i].Width := iniFile.ReadInteger(INI_WIN_SECT,
                                 'Column' + IntToStr(ListView.Column[i].Tag),
                                 ListView.Column[i].Width);
+  ListView.Items.EndUpdate;
   iniFile.Free;
 end;
 
@@ -16325,6 +16354,7 @@ end;
 
 procedure TMainWnd.PopupTaskTrayCloseClick(Sender: TObject);
 begin
+  TrayIcon.Hide;
   Close;
 end;
 
@@ -16344,7 +16374,7 @@ end;
 
 procedure TMainWnd.MainWndRestore;
 begin
-  TrayIcon.Hide;
+  //TrayIcon.Hide;
   ShowWindow(Application.Handle,SW_SHOW);
   Show;
   Application.Restore;
@@ -16884,7 +16914,7 @@ begin
   while i < flist.Count do
   begin
     if not CopyFile(PChar(flist.Strings[i]),
-        PChar(board.GetLogDir + '\' + ExtractFileName(flist.Strings[i])), True) then
+        PChar(board.LogDir + '\' + ExtractFileName(flist.Strings[i])), True) then
     begin
       Log('川；’ー’）＜'+flist.Strings[i] + 'のコピーに失敗しちゃった');
       flist.Delete(i);
@@ -17578,7 +17608,7 @@ begin
 
   j := Length(SearchTarget);
   str := PChar(SearchTarget);
-  if (TreeViewSearchEditBox.Tag = 1)
+  if (ThreViewSearchEditBox.Tag = 1)
     and Config.schEnableMigemo and MigemoOBJ.CanUse and NumAlpha(str, j) then
   begin
     hloption := hloReg;
@@ -17589,7 +17619,7 @@ begin
       keywordList.Insert(i, str);
       MigemoOBJ.Release(str);
     end;
-  end else if (TreeViewSearchEditBox.Tag = 2) then
+  end else if (ThreViewSearchEditBox.Tag = 2) then
     hloption := hloReg;
 
   try
@@ -18143,7 +18173,7 @@ begin
   if (CurrentBoard <> nil) and not (CurrentBoard is TFunctionalBoard)
     and (CurrentBoard.CustomSkinIndex <> TMenuItem(Sender).Tag) then
   begin
-    uri := CurrentBoard.GetURIBase;
+    uri := CurrentBoard.URIBase;
     if length(uri) <= 0 then
       exit;
     CurrentBoard.CustomSkinIndex := TMenuItem(Sender).Tag;

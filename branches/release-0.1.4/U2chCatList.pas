@@ -538,7 +538,7 @@ begin
           result := board;
           exit;
         end;
-        case board.GetBBSType of
+        case board.BBSType of
         bbs2ch:
           for k := 0 to Config.bbs2chServers.Count -1 do
           begin

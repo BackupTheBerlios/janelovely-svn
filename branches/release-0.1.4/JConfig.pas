@@ -289,6 +289,7 @@ type
     tstUseNews: Boolean;
     tstNewsInterval: integer;
     tstNewsBarSize: Integer;
+    tstDataBaseDebug: Boolean;
 
     viewLinkAbone: Boolean;
     viewThreAboneLevel: ShortInt;
@@ -813,6 +814,7 @@ begin
   tstUseNews := false;
   tstNewsInterval := 10;
   tstNewsBarSize := 500;
+  tstDataBaseDebug := false;
 
   optWriteMemoImeMode := true;
   optShowOrHideOld := true;
@@ -1495,6 +1497,8 @@ begin
   tstUseNews := ini.ReadBool(INI_TEST_SECT, 'UseNews', tstUseNews);
   tstNewsInterval := ini.ReadInteger(INI_TEST_SECT, 'NewsInterval', tstNewsInterval);
   tstNewsBarSize :=  ini.ReadInteger(INI_TEST_SECT, 'NewsBarSize', tstNewsBarSize);
+  tstDataBaseDebug := ini.ReadBool(INI_TEST_SECT, 'DataBaseDebug', tstDataBaseDebug);
+
   optWriteMemoImeMode := ini.ReadBool(INI_WRT_SECT, 'MemoImeMode', optWriteMemoImeMode);
   //optShowOrHideOld := ini.ReadBool(INI_OPT_SECT, 'ShowOrHideOld', optShowOrHideOld);
   optHideInTaskTray := ini.ReadBool(INI_OPT_SECT, 'HideInTaskTray', optHideInTaskTray);

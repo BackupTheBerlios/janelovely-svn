@@ -45,7 +45,7 @@ type
     FAttribute: THogeAttribute;
     FBold: THogeAttribute;
     FStream: THogeMemoryStream;
-    flushCount: integer;
+    flushCount: byte;
     FOffsetLeft: integer;
     FOffsetBQ: Integer; //beginner
     FBiteSpaces: boolean;
@@ -71,16 +71,16 @@ type
     LI_OFFSET_LEFT: Integer;  //beginner
     constructor Create(browser: THogeTextView);
     destructor Destroy; override;
-    procedure WriteText(str: PChar; size: integer); override;
+    procedure WriteText(const str: PChar; size: integer); override;
     procedure WriteAnchor(const Name: string;
                           const HRef: string;
                           str: PChar; size: integer); override;
-    procedure WriteChar(c: Char); override;
-    procedure WriteID(str: PChar; size: integer); virtual;  //aiai
-    procedure WriteUNICODE(str: PChar; size: integer);
+    procedure WriteChar(const c: Char); override;
+    procedure WriteID(const str: PChar; size: integer); virtual;  //aiai
+    procedure WriteUNICODE(const str: PChar; size: integer);
     procedure WriteBR;
     procedure WriteHR(color: Integer; custom: Boolean);  //aiai
-    procedure WritePicture(pass: String; overlap: Boolean);  //aiai
+    procedure WritePicture(const pass: String; overlap: Boolean);  //aiai
     procedure WriteWallPaper(const pass: string);  //aiai
     procedure SetBold(boldP: boolean);
     procedure Flush; override;
@@ -95,8 +95,8 @@ type
     procedure AppendResNumList(num, num2: Integer); override;
   public
     function ProcBlank: boolean; override;
-    procedure WriteChar(c: Char); override;
-    procedure WriteID(str: PChar; size: integer); override;  //aiai
+    procedure WriteChar(const c: Char); override;
+    procedure WriteID(const str: PChar; size: integer); override;  //aiai
   end;
 
   TDat2ViewForExtraction = class(TDat2View)
@@ -110,7 +110,7 @@ type
                           const HRef: string;
                           str: PChar; size: integer); override;
     procedure Flush; override;
-    procedure WriteID(str: PChar; size: integer); override;  //aiai
+    procedure WriteID(const str: PChar; size: integer); override;  //aiai
   end;
 
   TSimpleDat2View = class(TDat2View)
@@ -123,7 +123,7 @@ type
     procedure AppendResNumList(num, num2: Integer); override;
   public
     procedure Flush; override;
-    procedure WriteID(str: PChar; size: integer); override;  //aiai
+    procedure WriteID(const str: PChar; size: integer); override;  //aiai
   end;
 
   {aiai}
@@ -136,7 +136,7 @@ type
     procedure WriteAnchor(const Name: string;
                           const HRef: string;
                           str: PChar; size: integer); override;
-    procedure WriteID(str: PChar; size: integer); override;
+    procedure WriteID(const str: PChar; size: integer); override;
   end;
 
   //ヒント、検索用
@@ -167,7 +167,7 @@ type
 
     constructor Create;
     destructor Destroy; override;
-    procedure WriteText(str: PChar; size: integer); override;
+    procedure WriteText(const str: PChar; size: integer); override;
     procedure WriteAnchor(const Name: string;
                           const HRef: string;
                           str: PChar; size: integer); override;
@@ -1446,7 +1446,7 @@ begin
     FBrowser.SetResNum(i);
 end;
 
-procedure TDat2View.WriteText(str: PChar; size: integer);
+procedure TDat2View.WriteText(const str: PChar; size: integer);
 begin
   FStream.WriteBuffer(str^, size);
   FBiteSpaces := False;
@@ -1464,9 +1464,9 @@ begin
   else
     user := 0;
 
-  FBrowser.nAppend(str, size, FBold or ATTRIB_LINK or user);
-  FBrowser.Append(Name, ATTRIB_ANCHOR_NAME or htvHIDDEN);
-  FBrowser.Append(Href, ATTRIB_ANCHOR_HREF or htvHIDDEN);
+  FBrowser.nAppend2(str, size, FBold or ATTRIB_LINK or user);
+  FBrowser.nAppend2(PChar(Name), Length(Name), ATTRIB_ANCHOR_NAME or htvHIDDEN);
+  FBrowser.nAppend2(PChar(Href), Length(Href), ATTRIB_ANCHOR_HREF or htvHIDDEN);
 
   FBiteSpaces := False;
 end;
@@ -1494,7 +1494,8 @@ begin
     exit;
   TrimRight;
   Flush;
-  FBrowser.Append(#10);
+  //FBrowser.Append(#10);
+  FBrowser.newPara;
   FBiteSpaces := True;
 end;
 
@@ -1508,7 +1509,7 @@ begin
 end;
 
 //aiai
-procedure TDat2View.WritePicture(pass: String; overlap: Boolean);
+procedure TDat2View.WritePicture(const pass: String; overlap: Boolean);
 var
   Image, ImageConv: TGraphic;
   Ext: String;
@@ -1687,7 +1688,7 @@ begin
     FBold := 0;
 end;
 
-procedure TDat2View.WriteChar(c: Char);
+procedure TDat2View.WriteChar(const c: Char);
 begin
   if FBiteSpaces and (c = ' ') then
     exit;
@@ -1698,7 +1699,7 @@ end;
 
 //aiai
 //strはID:を含まない
-procedure TDat2View.WriteID(str: PChar; size: integer);
+procedure TDat2View.WriteID(const str: PChar; size: integer);
 var
   idstring: string;
 begin
@@ -1716,11 +1717,11 @@ begin
   end;
 end;
 
-procedure TDat2View.WriteUNICODE(str: PChar; size: integer);
+procedure TDat2View.WriteUNICODE(const str: PChar; size: integer);
 begin
   Flush;
   FBiteSpaces := False; //beginner
-  FBrowser.nAppend(str, size, FBold or FAttribute or htvUNICODE);
+  FBrowser.nAppend2(str, size, FBold or FAttribute or htvUNICODE);
 end;
 
 procedure TDat2View.Flush;
@@ -1729,13 +1730,14 @@ begin
   if FStream.Position <= 0 then
     exit;
   if FUser <> 0 then
-    FBrowser.nAppend(FStream.Memory, FStream.Position, FBold or FUser)
+    FBrowser.nAppend2(FStream.Memory, FStream.Position, FBold or FUser)
   else
-    FBrowser.nAppend(FStream.Memory, FStream.Position, FBold or FAttribute);
+    FBrowser.nAppend2(FStream.Memory, FStream.Position, FBold or FAttribute);
   FStream.Position := 0;
   Inc(flushCount);
-  if (flushCount mod 256) = 0 then
+  if (flushCount = 255) then
   begin
+    flushCount := 0;
     Inc(re_entrant);
     Application.ProcessMessages;
     Dec(re_entrant);
@@ -1767,13 +1769,13 @@ begin
   Result := False;
 end;
 
-procedure TDat2PopupView.WriteChar(c: Char);
+procedure TDat2PopupView.WriteChar(const c: Char);
 begin
   if ' ' <= c then
     FStream.WriteChar(c);
 end;
 
-procedure TDat2PopupView.WriteID(str: PChar; size: integer);
+procedure TDat2PopupView.WriteID(const str: PChar; size: integer);
 var
   idstring: string;
 begin
@@ -1830,7 +1832,7 @@ begin
   inherited;
 end;
 
-procedure TDat2ViewForExtraction.WriteID(str: PChar; size: integer);
+procedure TDat2ViewForExtraction.WriteID(const str: PChar; size: integer);
 var
   idstring: string;
 begin
@@ -1942,7 +1944,7 @@ begin
   inherited;
 end;
 
-procedure TSimpleDat2View.WriteID(str: PChar; size: integer);
+procedure TSimpleDat2View.WriteID(const str: PChar; size: integer);
 begin
   WriteAnchor('', '', 'ID:', 3);
   WriteText(str, size);
@@ -1983,7 +1985,7 @@ begin
   FBiteSpaces := False;
 end;
 
-procedure TDat2PreViewView.WriteID(str: PChar; size: integer);
+procedure TDat2PreViewView.WriteID(const str: PChar; size: integer);
 begin
   WriteAnchor('', '', 'ID:', 3);
   WriteText(str, size);
@@ -2115,7 +2117,7 @@ begin
 end;
 
 
-procedure TIndexTree.WriteText(str: PChar; size: integer);
+procedure TIndexTree.WriteText(const str: PChar; size: integer);
 begin
   ; //Abstructエラー回避のため。
 end;
@@ -3661,7 +3663,7 @@ begin
   FStream := ExtStream;
 
   ExtStream.Base:= ExThread.ToURL;
-  ExtStream.BBSType := TBoard(ExThread.board).GetBBSType;
+  ExtStream.BBSType := TBoard(ExThread.board).BBSType;
 
   if AnsiPos(#13,ExtStream.Base)>0 then
     ExtStream.Base := copy(ExtStream.Base, 1, AnsiPos(#13, ExtStream.Base) - 1);
@@ -3866,7 +3868,7 @@ var
     board := TBoard(thread.board);
     category := TCategory(board.category);
     if first then
-      brd := '<a href="' + board.GetURIBase + '/">' + board.name + '</a>'
+      brd := '<a href="' + board.URIBase + '/">' + board.name + '</a>'
     else
       brd := board.name;
     {beginner}
@@ -4122,7 +4124,7 @@ begin
               ExtStream.Base := thread.ToURL;
               if AnsiPos(#13,ExtStream.Base)>0 then
                 ExtStream.Base := copy(ExtStream.Base, 1, AnsiPos(#13, ExtStream.Base) - 1);
-              ExtStream.BBSType := TBoard(thread.board).GetBBSType;
+              ExtStream.BBSType := TBoard(thread.board).BBSType;
               if _ExtractKeyword(thread, ExtStream, targetList, 0, GrepMode, RegExp, IncludeRef, True) > 0 then
                 inc(totalCount);
             {/beginner}
@@ -5576,7 +5578,7 @@ function MakeIDInfo(dest: TDatOut; const URI: String;
 
   function GetThreadMaxNum: integer;
   begin
-    case TBoard(thread.board).GetBBSType of
+    case TBoard(thread.board).BBSType of
     bbs2ch:   result := 1000;
     bbsMachi: result := 300;
     else      result := 100000;
@@ -5589,6 +5591,7 @@ var
   dup: TThreadData;
   p: PChar;
   POPUPD2HTML: TDat2HTML;
+  maxcnt: Integer;
 begin
   Result := 0;
   if (Length(URI) <= 0) or (thread = nil) or (thread.dat = nil) then
@@ -5597,7 +5600,8 @@ begin
   Bench(0);
   {$ENDIF}{$ENDIF}
   dup := thread.DupData;
-  SetLength(list, GetThreadMaxNum);
+  maxcnt := GetThreadMaxNum;
+  SetLength(list, maxcnt);
   POPUPD2HTML := SetUpDat2HTML((SkinCollectionList.Items[TBoard(thread.board).CustomSkinIndex]).PopupRecHTML, dhtPopupRes);
   POPUPD2HTML.URL := thread.ToURL;
   POPUPD2HTML.Title := thread.title;
@@ -5609,6 +5613,8 @@ begin
       begin
         list[result] := i;
         Inc(result);
+        if result >= maxcnt then
+          break;
       end;
     end;
     ShowTitle(URI, result);

@@ -90,7 +90,7 @@ end;
 procedure THogeListView.Sort(Compare: TListSortCompare);
 begin
   FObjList.Sort(Compare);
-  Repaint;
+  Invalidate;
 end;
 
 procedure THogeListView.SelectIntoView(Item: TListItem);

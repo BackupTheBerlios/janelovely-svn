@@ -6,133 +6,149 @@ unit U2chBoard;
 interface
 
 uses
-  Classes, SysUtils, StrUtils, DateUtils,
-  U2chThread, FileSub, StrSub
-  (*※[457]*), UFavorite, IniFiles,
-  UXTime, UAsync, U2chTicket, ULocalCopy, jconvert,Dialogs,
-  {$IFDEF SQLITE3}
-  sqlite3,
-  {$ELSE}
-  sqlite,
-  {$ENDIF}
-  UNGWordsAssistant;
+  Windows, Classes, SysUtils, StrUtils, DateUtils, U2chThread, FileSub, StrSub
+  (*※[457]*), UFavorite, IniFiles, UXTime, UAsync, USynchro, U2chTicket,
+  ULocalCopy, jconvert, Dialogs, JLDataBase, JLSqlite, UNGWordsAssistant,
+  Forms;
+
+const
+  THREAD_CURRENT_LIST    = 'subject.txt';
+  THREAD_PAST_LIST       = 'subkako.txt.gz';
 
 type
   TPatrolType = (patFavorite, patTab, patBoardList);
-  TProgState = (tpsNone, tpsProgress, tpsReady, tpsWorking, tpsDone);
+  TProgState = (tpsNone, tpsWorking, tpsChecking, tpsDone);
   (*-------------------------------------------------------*)
   TBBSType = (bbsNone, bbs2ch, bbsJBBS, bbsShitaraba, bbsJBBSShitaraba, bbsMachi, bbsOther);
   (*-------------------------------------------------------*)
+
+  TBBSCount = packed record
+    linenumber: Integer;
+    messagecount: Integer;
+    subjectcount: Integer;
+    namecount: Integer;
+    mailcount: Integer;
+  end;
+
+  TBoard = class;
+
+  TBoardSubjectEndNotifyEvent = procedure (Sender: TBoard) of Object;
+  TBoardCheckEndEvent = procedure (Sender: TBoard; Count: Integer;
+    PatrolType: TPatrolType) of Object;
+
   (* 板 = スレ一覧 *)
   TBoard = class(TList)
-  protected
-    refCount: integer;
-    subjectTxt: string;
-    datModified : boolean;
-    idxModified : boolean;
-    bbstype: TBBSType;
+  private
+    FRedirect: TBoard;       (* 「おすすめ」とかの重複用。 *)
+    FCategory: TObject;
+    FIDXDataBase: TJLSQLite;
+    FName: string;
+    FBBS:  string;
     FHost: string;
-    moved: boolean;
+    FBBSType: TBBSType;
     FSelDatName: string;
-    FCustomHeader: string;
+    FLastModified: string;
+    FLast2Modified: string; //beginner
+    FPast: Boolean;
+    FLastAccess: TDateTime;
+    FSortColumn: integer;
+    FThreadSearched: Boolean;
+    FNeedConvert: Boolean;
+    FHideHistoricalLog: Boolean;
     FUma: boolean;
-    procGetSubject: TAsyncReq;   (* 通信用 (aiai) *) //テスト
-    FavPatrolData: String;       (* 通信用 (aiai) *) //テスト
-    FavPatrolType: TPatrolType;  (* 通信用 (aiai) *) //テスト
-    (* Setting.txt処理用 *)
-    storedSettingTxt: TLocalCopy;
-    gotSettingTxt: TProgState;
-    procGetSettingTxt: TAsyncReq;
-    SettingTxtLoaded: Boolean;
-    SettingTxt: TStringList;
-    datList: THashedStringList; //aiai subject.txtにあるスレのdatのリスト
-                                //     TBoard.FindFirstでTThreadの検索に使う
-    //ngthreadlist: TStringList;  //aiai NGThread
-    FNeedConvert: Boolean;  //aiai
-    FHideHistoricalLog: Boolean;  //aiai
+    FCustomSkinIndex: Integer;
+    FCustomHeader: string;
+    FBBSCount: TBBSCount;
+    FRefCount: integer;
+    FSubjectText: string;
+    FMergingList: TList;
+    FDatModified : boolean;
+    FIdxModified : boolean;
+    FMoved: boolean;
+    FStoredSettingText: TLocalCopy;
+    FSettingText: string;
+    FGotSettingTxt: TProgState;
+    FProcGetSettingTxt: TAsyncReq;
+    FSettingTxtLoaded: Boolean;
+    FDatList: THashedStringList;  (* subject.txtにあるスレのdatのリスト TBoard.FindFirstでTThreadの検索に使う (aiai) *)
+    FProcGetSubject: TAsyncReq;
+    FPRocState: TProgState;
+    FFavPatrolData: String;
+    FFavPatrolType: TPatrolType; 
+    FOnSubjectEnd: TBoardSubjectEndNotifyEvent;
+    FOnCheckEnd: TBoardCheckEndEvent;
+
     function GetItems(index: integer): TThreadItem;
+    function GetURIBase: string;
+    function GetBBSType: TBBSType;
+    function GetLogDir: string;
+    function GetRefered: boolean;
     procedure SetItems(index: integer; value: TThreadItem);
-    procedure MergeCache;
-    function FindThreadFirst(const datName: string): TThreadItem; //aiai
-    (* DataBase (aiai) *)
-    procedure LoadDataBase;
-    procedure MergeCacheFast;
-    (* //DataBase *)
-    procedure ChangeThreadItemURI;
     procedure SetSelDatName(const datName: string);
     procedure SetCustomHeader(const str: string);
     procedure SetUma(val: boolean);
     procedure SetHost(newHost: string); virtual;
-    procedure OnDone(Sender: TAsyncReq);           (* 通信用 (aiai) *) //テスト
-    procedure OnMovedSubject(sender: TAsyncReq);   (* 通信用 (aiai) *) //テスト
+
+    function FindThreadFirst(const datName: string): TThreadItem;
+    procedure MergeCache;
+    procedure MergeCacheFast;
+    procedure InitialDBOpen;
+    procedure IdxDataBaseOpen(Sender: TObject);
+    procedure IdxDataBaseClose(Sender: TObject);
+    procedure ChangeThreadItemURI;
+    procedure OnDone(Sender: TASyncReq);
+    procedure OnMovedSubject(Sender: TASyncReq);
     procedure GetSettingTxt;
     procedure OnSettingTxt(sender: TAsyncReq);
     class procedure PutToRecyleList(Board: TBoard);
     class function  RemoveFromRecyleList(Board: TBoard): Boolean;
     class procedure FlushRecyleList;
   public
-    redirect: TBoard;       (* 「おすすめ」とかの重複用。しかし未使用  *)
-    category: TObject;      (* 本当はTCategoryだ。環境上、メンドイのでキャストして使う  *)
-    name: string;           (* 板名 *)
-    bbs:  string;
-    lastModified: string;
-    last2Modified: string; //beginner
-    //previouslastModified: integer; //aiai
-    past: Boolean;          (* 過去ログボード *)
-    lastAccess: TDateTime;
-    sortColumn: integer;    (* スレ一覧でのソート状態 *)
-    threadSearched: Boolean; (* スレ一覧でのスレ絞込み状態 *)
-    timeValue: Int64;       (* サーバ時間 bbs.cgiへのPOST時に使用 *)
-    BBSLineNumber: Integer;
-    BBSMessageCount: Integer;
-    BBSSubjectCount: Integer;
-    BBSNameCount: Integer;
-    BBSMailCount: Integer;
-    (* DataBase (aiai) *)
-    board_id: String;
-    MergingList: TList;
-    URIBase: String;
-    IdxDataBase: TSQLite;
-    CustomSkinIndex: Integer;
-    (* //DataBase *)
+    TimeValue: Int64;        (* サーバ時間 bbs.cgiへのPOST時に使用 *)
     constructor Create(category: TObject);
     destructor Destroy; override;
+    function Find(const datName: string): TThreadItem;
+    function ThreadAbone(ABoneList: TList; AboneType: Byte): boolean; (* スレッドあぼ～ん *)
     procedure Clear; override;
     procedure SafeClear; virtual;
     procedure AddRef; virtual;
     procedure Release; virtual;
-    procedure Analyze((*const*) txt: string; const lstModified: string; refresh: boolean);
-    property Items[index: integer]: TThreadItem read GetItems write SetItems;
-    function Find(const datName: string): TThreadItem; overload;
-    function GetLogDir: string;
-    function GetURIBase: string;
-    function Refered: boolean;
-    function GetBBSType: TBBSType;
+    procedure Analyze(txt: string; const lstModified: string; refresh: boolean);
     procedure LoadIndex; virtual;
     procedure LoadSettingTXT;
-    (* DataBase (aiai) *)
-    //procedure Load; virtual;
     procedure Load(refresh: Boolean = False); virtual;
-    (* //DataBase *)
     procedure SaveIndex; virtual;
     procedure Save; virtual;
     procedure Activate;
-    procedure ResetListState; virtual; (* 仮想メソッドにする (aiai) *)
-    //改造▽ 追加 (スレッドあぼ～ん)
-    function ThreadAbone(ABoneList: TList; AboneType: Byte): boolean; (* スレッドあぼ～ん *)
-    //改造△ 追加 (スレッドあぼ～ん)
-    (* Drag and Drop でログ追加 (aiai) *)
+    procedure ResetListState; virtual;
     procedure MergeCacheFrequency(fnamelist: TStringList);
-    (* //Drag and Drop でログ追加 *)
-    procedure StartAsyncRead(Data: String; PatrolType: TPatrolType);   (* 通信用 (aiai) *) //テスト
-    property selDatName: string read FSelDatName write SetSelDatName;
-    property customHeader: string read FCustomHeader write SetCustomHeader;
-    property subjectText: string read subjectTxt;
-    property uma: boolean read FUma write SetUma;
-    property host: string read FHost write SetHost;
-    property settingText: TStringList read settingTXT write settingTXT;
-    property NeedConvert: Boolean read FNeedConvert; //aiai
-    property HideHistoricalLog: Boolean read FHideHistoricalLog write FHideHistoricalLog;  //aiai
+    procedure StartAsyncRead(Data: String; PatrolType: TPatrolType);
+
+    property Category: TObject read Fcategory;         (* 本当はTCategoryだ。環境上、メンドイのでキャストして使う  *)
+    property Name: string read FName write FName;      (* 板名 *)   // ex. '狼','ニュース速報'
+    property Host: string read FHost write SetHost;    (* host名 *) // ex. 'ex7.2ch.net'
+    property BBS:  string read FBBS write FBBS;        (* bbs名 *)  // ex.  'morningcoffee','news'
+    property URIBase: string read GetURIBase;          (* uri *)    // ex. 'http://ex7.2ch.net/morningcoffee'
+    property BBSType: TBBSType read GetBBSType;        (* bbsの分類 *)
+    property LogDir: string read GetLogDir;            (* ログフォルダへのパス *)
+    property Refered: Boolean read GetRefered;         (* 参照中かどうか 参照中でなければSafeClear *)
+    property IdxDataBase: TJLSQLite read FIDXDataBase; (* スレの管理データを扱うデータベース *)
+    property NeedConvert: Boolean read FNeedConvert;   (* EUCtoSJISが必要かどうか *)
+    property Uma: boolean read FUma write SetUma;      (* ログ整理から除外するかどうか *)
+    property Past: Boolean read FPast write FPast;     (* 過去ログボード *)
+    property HideHistoricalLog: Boolean read FHideHistoricalLog write FHideHistoricalLog; (* 過去ログを表示するかどうか *)
+    property CustomHeader: string read FCustomHeader write SetCustomHeader;               (* カスタムHeader.html *)
+    property CustomSkinIndex: Integer read FCustomSkinIndex write FCustomSkinIndex;       (* カスタムスキンリストのインデックス *)
+    property SelDatName: string read FSelDatName write SetSelDatName;                     (* スレ一覧で選択中のスレッド *)
+    property SortColumn: integer read FSortColumn write FSortColumn;                      (* スレ一覧でのソート状態 *)
+    property threadSearched: Boolean read FThreadSearched write FThreadSearched;          (* スレ一覧でのスレ絞込み状態 *)
+    property Items[index: integer]: TThreadItem read GetItems write SetItems;             (* 只のキャスト *)
+    property SubjectText: string read FSubjectText;                                       (* subject.txt *)
+    property SettingText: string read FSettingText write FSettingText;                    (* SETTING.TXT *)
+    property LastModified: string read FLastModified write FLastModified;
+    property Last2Modified: string read FLast2Modified write FLast2Modified;
+    property LastAccess: TDateTime read FLastAccess write FLastAccess;
+    property BBSCount: TBBSCount read FBBSCount write FBBSCount;                          (* SETTING.TXTに記述されているバイト数制限 *)
   end;
 
   (*-------------------------------------------------------*)
@@ -154,10 +170,9 @@ type
   //※[457]
   TFavoriteListBoard = class(TFunctionalBoard)
   protected
-    //favs: TFavoriteList; // publicへ移動 更新チェック
+    favs: TFavoriteList;
     favChanged: boolean;
   public
-    favs: TFavoriteList; // protectedから移動 更新チェック
     constructor Create(category: TObject; favs: TFavoriteList = nil);
     procedure Load(refresh: Boolean = False); override;
     procedure SetFavList(favList: TFavoriteList);
@@ -166,6 +181,14 @@ type
   (*-------------------------------------------------------*)
   //※[457]
   TLogListBoard = class(TFunctionalBoard)
+  public
+    constructor Create(category: TObject);
+    procedure Load(refresh: Boolean = False); override;
+  end;
+
+  (*-------------------------------------------------------*)
+  // 現在開いているスレッドの一覧 ( by aiai )
+  TOpenThreadsBoard = class(TFunctionalBoard)
   public
     constructor Create(category: TObject);
     procedure Load(refresh: Boolean = False); override;
@@ -200,6 +223,9 @@ type
     property Items[index: integer]: TBoard read GetItems write SetItems;
   end;
 
+//error check
+procedure SQLCheck(errcode: Byte; const name, sql, msg: string);
+
 (*=======================================================*)
 implementation
 (*=======================================================*)
@@ -231,9 +257,24 @@ const
   IDXLIST_VERSION   = '00000012';
 
   BOARD_DB = '\Board.db';
+
+  CREATE_TABLE_STATEMENT = 'CREATE TABLE idxlist (datname TEXT PRIMARY KEY, title TEXT, last_modified TEXT, lines TEXT, view_pos TEXT, idx_mark TEXT, uri TEXT, state TEXT, new_lines TEXT, write_name TEXT, write_mail TEXT, last_wrote TEXT, last_got TEXT, read_pos TEXT)';
   (* //DataBase *)
 
 (*=======================================================*)
+
+procedure SQLCheck(errcode: Byte; const name, sql, msg: string);
+begin
+  if (errcode <> SQLITE_OK) and Config.tstDataBaseDebug then
+  begin
+    Main.BeginMultiLog;
+    Main.Log(name);
+    Main.Log('SQL: ' + sql);
+    Main.Log('errcode: ' + IntToStr(errcode));
+    Main.Log(msg);
+    Main.EndMultiLog;
+  end;
+end;
 
 (* TBoardの破棄待ちリスト処理用クラス関数群 *) // beginner
 
@@ -269,24 +310,33 @@ end;
 constructor TBoard.Create(category: TObject);
 begin
   inherited Create;
-  self.redirect := nil;
-  self.category := category;
-  self.refCount := 0;
-  self.FUma := false;
-  datModified := false;
-  idxModified := false;
-  past := false;
-  lastAccess := 0;
-  bbstype := bbsNone;
-  moved := false;
-  //ngthreadlist := TStringList.Create;  //aiai NGThread
-  SettingTxt := TStringList.Create;
+
+  FRedirect := nil;
+  FCategory := category;
+  FRefCount := 0;
+  FUma := false;
+  FDatModified := false;
+  FIdxModified := false;
+  FPast := false;
+  FLastAccess := 0;
+  FBBSType := bbsNone;
+  FMoved := false;
+  FPRocState := tpsNone;
   (* DataBase (aiai) *)
   if Config.ojvQuickMerge then
-    IdxDataBase := TSQLite.Create;
+  begin
+    FIDXDataBase := TJLSQLite.Create;
+    if Config.tstDataBaseDebug then
+    begin
+      FIDXDataBase.OnOpen := IdxDataBaseOpen;
+      FIDXDataBase.OnClose := IdxDataBaseClose;
+    end;
+  end;
   (* //DataBase *)
-  SettingTxtLoaded := false;
+  FSettingTxtLoaded := false;
   FHideHistoricalLog := Config.stlHideHistoricalLog;
+  FOnSubjectEnd := nil;
+  FOnCheckEnd := nil;
 end;
 
 (* 破棄 *)
@@ -294,11 +344,9 @@ destructor TBoard.Destroy;
 begin
   Save;
   Clear;
-  FreeAndNil(SettingTxt);
-  //FreeAndNil(ngthreadlist);  //aiai NGThread
   (* DataBase (aiai) *)
   if Config.ojvQuickMerge then
-    FreeAndNil(IdxDataBase);
+    FreeAndNil(FIDXDataBase);
   (* //DataBase *)
   inherited;
 end;
@@ -320,11 +368,12 @@ end;
 procedure TBoard.SafeClear;
 var
   i: integer;
-begin
-  {$IFDEF BENCH}
   {$IFDEF DEVELBENCH}
-  Main.Bench3(0);
+  tickcnt: Cardinal;
   {$ENDIF}
+begin
+  {$IFDEF DEVELBENCH}
+  tickcnt := GetTickCount;
   {$ENDIF}
   for i := 0 to Count -1 do
   begin
@@ -337,19 +386,14 @@ begin
   Pack;
   if Count <= 0 then
   begin
-    self.subjectTxt := '';
-    self.lastModified := '';
-    self.datModified := false;
-    self.idxModified := false;
-    //改造▽ 追加 (スレッドあぼ～ん)
-    //self.abnModified := false;
-    //改造△ 追加 (スレッドあぼ～ん)
+    FSubjectText := '';
+    FLastModified := '';
+    FDatModified := false;
+    FIdxModified := false;
   end;
   RemoveFromRecyleList(Self);
-  {$IFDEF BENCH}
   {$IFDEF DEVELBENCH}
-  Main.Log(name + ':safeClear ' + Main.Bench3(1));
-  {$ENDIF}
+  Main.Log(FName + ':safeClear ' + IntToStr(GetTickCount - tickcnt));
   {$ENDIF}
 end;
 
@@ -357,23 +401,31 @@ end;
 (* 参照増加 *)
 procedure TBoard.AddRef;
 begin
-  if (refCount = 0) and not(RemoveFromRecyleList(Self)) then
+  if (FRefCount = 0) and not(RemoveFromRecyleList(Self)) then
     Load;
-  Inc(refCount);
+  Inc(FRefCount);
+  {$IFDEF DEBUG}
+  if not Application.Terminated then
+    Main.Log(FName + ': AddRef(' + IntToStr(FRefCount) + ')');
+  {$ENDIF}
 end;
 
 (* もう見ない *)
 procedure TBoard.Release;
 begin
-  Dec(refCount);
-  if refCount <= 0 then
+  Dec(FRefCount);
+  if FRefCount <= 0 then
     PutToRecyleList(Self);
+  {$IFDEF DEBUG}
+  if not Application.Terminated then
+    Main.Log(FName + ': Release(' + IntToStr(FRefCount) + ')');
+  {$ENDIF}
 end;
 
 (* 参照中？ *)
-function TBoard.Refered: boolean;
+function TBoard.GetRefered: boolean;
 begin
-  if 0 < refCount then
+  if 0 < FRefCount then
   begin
     result := true;
   end
@@ -393,7 +445,7 @@ begin
 end;
 
 (* スレッド一覧を解析する *)
-procedure TBoard.Analyze((*const*) txt: string; const lstModified: string; refresh: boolean);
+procedure TBoard.Analyze(txt: string; const lstModified: string; refresh: boolean);
 var
   refered: TStringList;  //aiai GetReferedThreadItemの効率化
   threadABoneList: THashedStringList;
@@ -585,7 +637,7 @@ var
     //item.contemporary := true;
     {aiai}
     if refresh then
-      datList.Add(datName);
+      FDatList.Add(datName);
     {/aiai}
   end;
 
@@ -593,13 +645,10 @@ var
   i, len: integer;
   endOfRec: integer;
   firstline: string;
+  tickcnt: Cardinal;
+  filename: string;
 begin
-  {$IFDEF BENCH}
-  Main.Bench2(0);
-  {$IFDEF DEVELBENCH}
-  Main.Bench3(0);
-  {$ENDIF}
-  {$ENDIF}
+  tickcnt := GetTickCount;
 
   if refresh then
     SafeClear;
@@ -636,13 +685,12 @@ begin
   //threadABoneListのスレッドのうち、subject.txtにあったスレッドをいれておく
   threadABoneNext := THashedStringList.Create;
 
-  if FileExists(GetLogDir + SUBJECT_ABN) then
-    threadABoneList.LoadFromFile(GetLogDir + SUBJECT_ABN);
+  filename := GetLogDir + SUBJECT_ABN;
+  if FileExists(filename) then
+    threadABoneList.LoadFromFile(filename);
 
   if refresh then
-    datList := THashedStringList.Create;
-  //if FileExists(GetLogDir + '\NGThread.txt') then  //NGThread
-  //  ngthreadlist.LoadFromFile(GetLogDir + '\NGThread.txt');
+    FDatList := THashedStringList.Create;
   {/aiai}
 
   i := 1;
@@ -655,13 +703,11 @@ begin
     i := endOfRec + 1;
   end;
 
-  {aiai}
-  //ngthreadlist.Clear;  //NGThread
   {aiai} //スレッドあぼ～ん
   if threadABoneNext.Count > 0 then
-    threadABoneNext.SaveToFile(GetLogDir + SUBJECT_ABN)
+    threadABoneNext.SaveToFile(filename)
   else
-    SysUtils.DeleteFile(GetLogDir + SUBJECT_ABN);
+    SysUtils.DeleteFile(filename);
   FreeAndNil(threadABoneNext);
   FreeAndNil(threadABoneList);
   {/aiai}
@@ -676,15 +722,13 @@ begin
       Add(refered.Objects[i]);
       {aiai}
       if refresh then
-        datList.Add(refered.Strings[i]);
+        FDatList.Add(refered.Strings[i]);
       {/aiai}
     end;
   end;
   refered.Free;
-  {$IFDEF BENCH}
   {$IFDEF DEVELBENCH}
-  Main.Log(name + ':Analyze subject.txt ' + Main.Bench3(1));
-  {$ENDIF}
+  Main.Log(FName + ':Analyze subject.txt ' + IntToStr(GetTickCount - tickcnt));
   {$ENDIF}
 
   if refresh then
@@ -693,19 +737,17 @@ begin
       MergeCacheFast
     else
       MergeCache;
-    FreeAndNil(datList);
+    FreeAndNil(FDatList);
   end;
-  if moved then
+  if FMoved then
     ChangeThreadItemURI;
-  self.subjectTxt := txt;
+  FSubjectText := txt;
   if lstModified <> '' then begin
-    self.lastModified := lstModified;
+    FLastModified := lstModified;
   end;
-  self.datModified := true;
-  self.idxModified := true;
-  {$IFDEF BENCH}
-  Main.Log('スレ一覧取得時間: ' + IntToStr(Bench2(1)) + 'msec');
-  {$ENDIF}
+  FDatModified := true;
+  FIdxModified := true;
+  Main.Log('スレ一覧取得時間: ' + IntToStr(GetTickCount - tickcnt) + 'msec');
 end;
 
 (*  *)
@@ -744,7 +786,7 @@ var
   i: integer;
   thread: TThreadItem;
 begin
-  i := datList.IndexOf(datName);
+  i := FDatList.IndexOf(datName);
   if i > -1 then
   begin
     thread := items[i];
@@ -769,13 +811,15 @@ var
   MergingList: TList;
   msg: PChar;
   save: Boolean;
-  //idx: integer;
-begin
-  {$IFDEF BENCH}
   {$IFDEF DEVELBENCH}
-  Main.Bench3(0);
-  Main.Log(self.name + ':idx全ｽﾚ読込開始');
+  tickcnt: Cardinal;
   {$ENDIF}
+  sql: string;
+  err: byte;
+begin
+  {$IFDEF DEVELBENCH}
+  tickcnt := GetTickCount;
+  Main.Log(FName + ':idx全ｽﾚ読込開始');
   {$ENDIF}
 
   MergingList := TList.Create;
@@ -784,10 +828,12 @@ begin
   (* DataBase (aiai) *)
   if Config.ojvQuickMerge then
   begin
-    IdxDataBase.Exec(PChar('BEGIN'), nil, nil, msg); //トランザクション
-    {$IFDEF DATABASEDEBUG}
-    if msg <> nil then Main.Log(name + ':BEGIN - ' + msg);
-    {$ENDIF}
+
+    // transaction
+
+    sql := 'BEGIN';
+    err := IdxDataBase.Exec(PChar(sql), nil, nil, msg);
+    SQLCheck(err, name, sql, msg);
   end;
   (* //DataBase *)
 
@@ -795,7 +841,6 @@ begin
     URI := GetURIBase;
     repeat
       datName := ChangeFileExt(sr.Name, '');
-      //item := Find(datName);
       item := FindThreadFirst(datName);
       if item <> nil then
       begin (* 現行スレッド *)
@@ -828,10 +873,12 @@ begin
           (* DataBase (aiai) *)
           if Config.ojvQuickMerge then
           begin
-            IdxDataBase.Exec(PChar('COMMIT'), nil, nil, msg);   //コミット
-            {$IFDEF DATABASEDEBUG}
-            if msg <> nil then Main.Log(name + ':COMMIT - ' + msg);
-            {$ENDIF}
+
+            // commit
+
+            sql := 'COMMIT';
+            err := FIdxDataBase.Exec(PChar(sql), nil, nil, msg);
+            SQLCheck(err, 'In Delete Log'+#13#10+FName, sql, msg);
           end;
           (* //Database *)
 
@@ -841,10 +888,12 @@ begin
           (* DataBase (aiai) *)
           if Config.ojvQuickMerge then
           begin
-            IdxDataBase.Exec(PChar('BEGIN'), nil, nil, msg); //トランザクション
-            {$IFDEF DATABASEDEBUG}
-            if msg <> nil then Main.Log(name + ':BEGIN - ' + msg);
-            {$ENDIF}
+
+            // transaction
+
+            sql := 'BEGIN';
+            err := FIdxDataBase.Exec(PChar(sql), nil, nil, msg);
+            SQLCheck(err, 'In Delete Log'+#13#10+FName, sql, msg);
           end;
           (* //Database *)
         end
@@ -860,19 +909,17 @@ begin
   (* DataBase (aiai) *)
   if Config.ojvQuickMerge then
   begin
-    IdxDataBase.Exec(PChar('COMMIT'), nil, nil, msg);   //コミット
-    {$IFDEF DATABASEDEBUG}
-    if msg <> nil then Main.Log(name + ':COMMIT - ' + msg);
-    {$ENDIF}
+    sql := 'COMMIT';
+    err := FIdxDataBase.Exec(PChar(sql), nil, nil, msg);
+    SQLCheck(err, FName, sql, msg);
   end;
   (* //DataBase *)
-  {$IFDEF BENCH}
+
   {$IFDEF DEVELBENCH}
   if Config.ojvQuickMerge then
-    Main.Log(name + ':CreateTable ' + Main.Bench3(1))
+    Main.Log(FName + ':CreateTable ' + IntToStr(GetTickCount - tickcnt) + 'ms')
   else
-    Main.Log(name + ':Load *.idx' + Main.Bench3(1));
-  {$ENDIF}
+    Main.Log(FName + ':Load *.idx' + IntToStr(GetTickCount - tickcnt) + 'ms');
   {$ENDIF}
 end;
 
@@ -887,7 +934,6 @@ var
   item: TThreadItem;
   datName: string;
   URI: string;
-  //idx: integer;
 begin
   Value := ColumnValues;
 
@@ -900,7 +946,7 @@ begin
     begin (* 現行スレッド *)
       if not item.Refered then
         item.LoadIndexDataFromDataBase(Value , true);
-      if (item.URI <> URIBase) and ((item.state <> tsComplete) and (item.itemCount > 0)) then
+      if (item.URI <> GetURIBase) and ((item.state <> tsComplete) and (item.itemCount > 0)) then
       begin
         item.URI := URI;
         item.state := tsCurrency;
@@ -910,16 +956,6 @@ begin
     else begin
       item := TThreadItem.Create(Sender);
       item.datName := datName;
-      {スレッドあぼ～ん}
-      //idx := threadABoneList.IndexOfName(datName);
-      //if idx >= 0 then
-      //begin
-      //  item.RemoveLog;
-      //  item.Free;
-      //  result := 0;
-      //  exit;
-      //end;
-      {/スレッドあぼ～ん}
       item.LoadIndexDataFromDataBase(Value, true);
       if (Main.Config.datDeleteOutOfTime) and (not FUma) and
            (item.mark = timNONE) then
@@ -928,7 +964,7 @@ begin
         item.Free;
       end
       else
-        MergingList.Add(item);
+        FMergingList.Add(item);
     end;
   end; //With
 
@@ -944,198 +980,199 @@ var
   Value: ^PChar;
 begin
   Value := ColumnValues;
-  TSQLite(Sender).ResultText := Value^;
+  TJLSQLite(Sender).ResultText := Value^;
   Result := 0;
 end;
 
 procedure TBoard.MergeCacheFast;
 var
   msg: PChar;
+  {$IFDEF DEVELBENCH}
+  tickcnt: Cardinal;
+  {$ENDIF}
+  sql: string;
+  err: byte;
 begin
-  {$IFDEF BENCH}
   {$IFDEF DEVELBENCH}
-  Main.Bench3(0);
-  {$ENDIF}
+  tickcnt := GetTickCount;
   {$ENDIF}
 
-  IdxDataBase.ResultText := '';
-  IdxDataBase.Exec(PChar('SELECT version FROM tableversion WHERE tablename = ''idxlist'''), @CallBackCheckTableVersion, IdxDataBase, msg);
-  {$IFDEF DATABASEDEBUG}
-  if msg <> nil then Main.Log(name + ':DataBase - ' + msg);
-  {$ENDIF}
-  if IdxDataBase.ResultText <> IDXLIST_VERSION then
+  // check idxlist's version
+
+  FIdxDataBase.ResultText := '';
+  sql := 'SELECT version FROM tableversion WHERE tablename = ''idxlist''';
+  err := FIdxDataBase.Exec(PChar(sql), @CallBackCheckTableVersion, IdxDataBase, msg);
+  SQLCheck(err, FName, sql, msg);
+  if FIdxDataBase.ResultText <> IDXLIST_VERSION then
   begin
-    IdxDataBase.Exec(PChar('DROP TABLE idxlist'), nil, nil, msg);
-    {$IFDEF DATABASEDEBUG}
-    if msg <> nil then Main.Log(name + ':DROP TABLE idxlist - ' + msg);
-    {$ENDIF}
-    IdxDataBase.Exec(PChar('DELETE FROM tableversion WHERE tablename = ''idxlist'''), nil, nil, msg);
-    {$IFDEF DATABASEDEBUG}
-    if msg <> nil then Main.Log(name + ':DELETE FROM tableversion WHERE tablename = ''idxlist'' - ' + msg);
-    {$ENDIF}
-    IdxDataBase.Exec(PChar('CREATE TABLE idxlist (datname TEXT PRIMARY KEY, title TEXT, last_modified TEXT, lines TEXT, view_pos TEXT, idx_mark TEXT, uri TEXT, state TEXT, new_lines TEXT, write_name TEXT, write_mail TEXT, last_wrote TEXT, last_got TEXT, read_pos TEXT)'), nil, nil, msg);
-    {$IFDEF DATABASEDEBUG}
-    if msg <> nil then Main.Log(name + ':CREATE TABLE idxlist - ' + msg);
-    {$ENDIF}
-    IdxDataBase.Exec(PChar('INSERT INTO tableversion (tablename, version) VALUES (''idxlist'', '''+IDXLIST_VERSION+''')'), nil, nil, msg);
-    {$IFDEF DATABASEDEBUG}
-    if msg <> nil then Main.Log(name + ':INSERT INTO tableversion (tablename, version) VALUES (''idxlist'', '''+IDXLIST_VERSION+''') - ' + msg);
-    {$ENDIF}
-    //IdxDataBase.Exec(PChar('CREATE INDEX idx_idxlist ON idxlist (datname)'), nil, nil, msg);
+
+    // if idxlist's version not match, then recreate the table
+
+    sql := 'DROP TABLE idxlist';
+    FIdxDataBase.Exec(PChar(sql), nil, nil, msg);
+
+    sql := 'DELETE FROM tableversion WHERE tablename = ''idxlist''';
+    err := FIdxDataBase.Exec(PChar(sql), nil, nil, msg);
+    SQLCheck(err, FName, sql, msg);
+
+    sql := CREATE_TABLE_STATEMENT;
+    err := FIdxDataBase.Exec(PChar(sql), nil, nil, msg);
+    SQLCheck(err, FName, sql, msg);
+
+    sql := 'INSERT INTO tableversion (tablename, version) VALUES (''idxlist'', '''+IDXLIST_VERSION+''')';
+    err := FIdxDataBase.Exec(PChar(sql), nil, nil, msg);
+    SQLCheck(err, FName, sql, msg);
+
     MergeCache;
     exit;
   end;
 
-  MergingList := TList.Create;
+  // OK! Let's Load Data!
 
-  URIBase := GetURIBase;
+  FMergingList := TList.Create;
 
-  if (0 <> IdxDataBase.Exec(PChar('SELECT * FROM idxlist'), @LoadTable, Self, msg))
-      and (0 < Pos('no such table', msg)) then
+  sql := 'SELECT * FROM idxlist';
+  err := FIdxDataBase.Exec(PChar(sql), @LoadTable, Self, msg);
+  if (0 < Pos('no such table', msg)) then
   begin
-    MergingList.Free;
-    IdxDataBase.Exec(PChar('CREATE TABLE idxlist (datname TEXT PRIMARY KEY, title TEXT, last_modified TEXT, lines TEXT, view_pos TEXT, idx_mark TEXT, uri TEXT, state TEXT, new_lines TEXT, write_name TEXT, write_mail TEXT, last_wrote TEXT, last_got TEXT, read_pos TEXT)'), nil, nil, msg);
-    {$IFDEF DATABASEDEBUG}
-    if msg <> nil then Main.Log(name + ':CREATE TABLE idxlist - ' + msg);
-    {$ENDIF}
+
+    // if no table exists, then create a new table
+
+    FMergingList.Free;
+    sql := CREATE_TABLE_STATEMENT;
+    err := FIdxDataBase.Exec(PChar(sql), nil, nil, msg);
+    SQLCheck(err, FName, sql, msg);
     MergeCache;
     exit;
   end;
-  {$IFDEF DATABASEDEBUG}
-  if msg <> nil then Main.Log(name + ':SELECT * FROM idxlist - ' + msg);
-  {$ENDIF}
+  SQLCheck(err, FName, sql, msg);
+  Assign(FMergingList, laOr);
 
-  Assign(MergingList, laOr);
-
-  MergingList.Free;
-  {$IFDEF BENCH}
+  FMergingList.Free;
   {$IFDEF DEVELBENCH}
-  Main.Log(name + ':LoadTable ' + Main.Bench3(1));
-  {$ENDIF}
+  Main.Log(FName + ':LoadTable ' + IntToStr(GetTickCount - tickcnt));
   {$ENDIF}
 end;
+
+(* For Debug *)
+procedure TBoard.IdxDataBaseOpen(Sender: TObject);
+begin
+  if not Application.Terminated then
+    Main.Log(FName + ': db open(' + IntToStr(IdxDataBase.RefCount) + ')');
+end;
+
+(* For Debug *)
+procedure TBoard.IdxDataBaseClose(Sender: TObject);
+begin
+  if not Application.Terminated then
+    Main.Log(FName + ': db close(' + IntToStr(IdxDataBase.RefCount) + ')');
+end;
+
 
 (* //DataBase *)
 
 function TBoard.GetLogDir: string;
 begin
-  if assigned(redirect) then
-    result := redirect.GetLogDir
+  if assigned(FRedirect) then
+    result := FRedirect.GetLogDir
   else
-    result := TCategory(category).GetLogDir + '\' + Convert2FName(name);
+    result := TCategory(FCategory).GetLogDir + '\' + Convert2FName(FName);
 end;
 
 function TBoard.GetURIBase:string;
 begin
-  result := 'http://' + FHost + '/' + bbs;
+  result := 'http://' + FHost + '/' + FBBS;
 end;
 
 (* DataBase (aiai) *)
-procedure TBoard.LoadDataBase;
+procedure TBoard.InitialDBOpen;
 var
   db: String;
   msg: PChar;
-  err: Boolean;
+  sql: string;
+  err: byte;
 
   procedure FirstSetUp;
   begin
-    IdxDataBase.Exec(PChar('PRAGMA default_synchronous = OFF'), nil, nil, msg);
-    {$IFDEF DATABASEDEBUG}
-    if msg <> nil then Main.Log(name + ':PRAGMA default_synchronous = OFF - ' + msg);
-    {$ENDIF}
-    IdxDataBase.Exec(PChar('CREATE TABLE tableversion (tablename PRIMARY KEY, version)'), nil, nil, msg);
-    {$IFDEF DATABASEDEBUG}
-    if msg <> nil then Main.Log(name + ':CREATE TABLE tableversion (tablename PRIMARY KEY, version) - ' + msg);
-    {$ENDIF}
-    IdxDataBase.Exec(PChar('INSERT INTO tableversion (tablename, version) VALUES (''board_db'', '''+BOARD_VERSION+''')'), nil, nil, msg);
-    {$IFDEF DATABASEDEBUG}
-    if msg <> nil then Main.Log(name + ':INSERT INTO tableversion (tablename, version) VALUES (''board_db'', '''+BOARD_VERSION+''') - ' + msg);
-    {$ENDIF}
-    //IdxDataBase.Exec(PChar('INSERT INTO tableversion (tablename, version) VALUES (''idxlist'', '''+IDXLIST_VERSION+''')'), nil, nil, msg);
+    sql := 'PRAGMA default_synchronous = OFF';
+    err := FIdxDataBase.Exec(PChar(sql), nil, nil, msg);
+    SQLCheck(err, FName, sql, msg);
+
+    sql := 'CREATE TABLE tableversion (tablename PRIMARY KEY, version)';
+    err := FIdxDataBase.Exec(PChar(sql), nil, nil, msg);
+    SQLCheck(err, FName, sql, msg);
+
+    sql := 'INSERT INTO tableversion (tablename, version) VALUES (''board_db'', '''+BOARD_VERSION+''')';
+    err := FIdxDataBase.Exec(PChar(sql), nil, nil, msg);
+    SQLCheck(err, FName, sql, msg);
   end;
 
 begin
-  if IdxDataBase.Opened then
+  if FIdxDataBase.Opened then
     exit;
 
   db := GetLogDir + BOARD_DB;
   if not FileExists(db) then
   begin
     RecursiveCreateDir(GetLogDir);  //板のログフォルダの作成
-    {$IFDEF DATABASEDEBUG}
-    err := IdxDataBase.Open(PChar(db), 0, msg);
-    if err then
-      Main.Log(name + ':DataBase Open');
-    {$ELSE}
-    IdxDataBase.Open(PChar(db), 0, msg);
-    {$ENDIF}
-    {$IFDEF DATABASEDEBUG}
-    if msg <> nil then Main.Log(name + ':Open' + ' ' + db + ' - ' + msg);
-    {$ENDIF}
+    if not FIdxDataBase.Open(PChar(db), 0, msg) then
+    begin
+      ShowMessage('Unable Open '+db +#13#10+ msg);
+      MainWnd.Close;
+      exit;
+    end;
     FirstSetUp;
     exit;
   end;
 
-  err := IdxDataBase.Open(PChar(db), 0, msg);
-  if not err then
+  if not FIdxDataBase.Open(PChar(db), 0, msg) then
   begin
-    {$IFDEF DATABASEDEBUG}
-    Main.Log(name +':Cannot Open DataBase');
-    {$ENDIF}
+    Main.Log(FName +':Cannot Open DataBase');
     if not SysUtils.DeleteFile(db) then
     begin
       ShowMessage('Unable Delete '+db);
       MainWnd.Close;
       exit;
     end else
-      Main.Log(name + ':Delete ' + db);
+      Main.Log(FName + ':Delete ' + db);
 
-    {$IFDEF DATABASEDEBUG}
-    err := IdxDataBase.Open(PChar(db), 0, msg);
-    if err then
-      Main.Log(name + ':DataBase Open');
-    {$ELSE}
-    IdxDataBase.Open(PChar(db), 0, msg);
-    {$ENDIF}
-    {$IFDEF DATABASEDEBUG}
-    if msg <> nil then Main.Log(name + ':Open' + ' ' + db + ' - ' + msg);
-    {$ENDIF}
+    if not IdxDataBase.Open(PChar(db), 0, msg) then
+    begin
+      ShowMessage('Unable Open '+db +#13#10+ msg);
+      MainWnd.Close;
+      exit;
+    end;
     FirstSetUp;
     exit;
-  {$IFDEF DATABASEDEGUB}
-  end else
-    Main.Log(name + ':DataBase Open');
-  {$ELSE}
   end;
-  {$ENDIF}
+
+  // check board_db version
 
   IdxDataBase.ResultText := '';
-  IdxDataBase.Exec(PChar('SELECT version FROM tableversion WHERE tablename = ''board_db'''), @CallBackCheckTableVersion, IdxDataBase, msg);
-  {$IFDEF DATABASEDEBUG}
-  if msg <> nil then Main.Log(name + ':SELECT version FROM tableversion - ' + msg);
-  {$ENDIF}
-  if IdxDataBase.ResultText <> BOARD_VERSION then
+  sql := 'SELECT version FROM tableversion WHERE tablename = ''board_db''';
+  err := FIdxDataBase.Exec(PChar(sql), @CallBackCheckTableVersion, FIdxDataBase, msg);
+  SQLCheck(err, FName, sql, msg);
+  if FIdxDataBase.ResultText <> BOARD_VERSION then
   begin
-    Main.Log(name + ':DataBase Version Change ' + IdxDataBase.ResultText + ' -> ' + BOARD_VERSION);
+
+    // if not board_db version not match, then recreate db file
+
+    Main.Log(FName + ':DataBase Version Change ' + '『' + FIdxDataBase.ResultText + '』' + ' to ' + '『' + BOARD_VERSION + '』');
     if IdxDataBase.Close then
-      Main.Log(name +':DataBase Close');
+      Main.Log(FName +':DataBase Close');
     if not SysUtils.DeleteFile(db) then
     begin
       ShowMessage('Unable Delete '+db);
       MainWnd.Close;
       exit;
     end else
-      Main.Log(name +':Delete ' + db);
-    {$IFDEF DATABASEDEBUG}
-    err := IdxDataBase.Open(PChar(db), 0, msg);
-    if err then
-      Main.Log(name + ':DataBase Open');
-    {$ELSE}
-    IdxDataBase.Open(PChar(db), 0, msg);
-    {$ENDIF}
-    {$IFDEF DATABASEDEBUG}
-    if msg <> nil then Main.Log(name + ':Open' + ' ' + db + ' - ' + msg);
-    {$ENDIF}
+      Main.Log(FName +':Delete ' + db);
+    if not FIdxDataBase.Open(PChar(db), 0, msg) then
+    begin
+      ShowMessage('Unable Open ' + db +#13#10+ msg);
+      MainWnd.Close;
+      exit;
+    end;
     FirstSetUp;
   end;
 end;
@@ -1143,20 +1180,20 @@ end;
 
 procedure TBoard.LoadIndex;
 var
-  fname: string;
+  filename: string;
   strList: TStringList;
 begin
-  fname := GetLogDir + SUBJECT_IDX;
+  filename := GetLogDir + SUBJECT_IDX;
   strList := TStringList.Create;
-  lastModified := '';
-  selDatName := '';
+  FLastModified := '';
+  FSelDatName := '';
   FUma := false;
-  if FileExists(fname) then
+  if FileExists(filename) then
   begin
     try
-      strList.LoadFromFile(fname);
-      lastModified  := strList.Strings[IDX_MODIFIED];
-      selDatName   := strList.Strings[IDX_SELECTED];
+      strList.LoadFromFile(filename);
+      FLastModified  := strList.Strings[IDX_MODIFIED];
+      FSelDatName   := strList.Strings[IDX_SELECTED];
       FCustomHeader := strList.Strings[IDX_CUSTOMHEADER];
       try FUma := Boolean(StrToInt(strList.Strings[IDX_MARKER])); except end;
     except
@@ -1170,16 +1207,16 @@ end;
 procedure TBoard.Load(refresh: Boolean = False);
 var
   stream: TPSStream;
-  fname: string;
+  filename: string;
   txt, modified: string;
 begin
-  fname := GetLogDir + SUBJECT_TXT;
-  subjectTxt := '';
-  if FileExists(fname) then
+  filename := GetLogDir + SUBJECT_TXT;
+  FSubjectText := '';
+  if FileExists(filename) then
   begin
     stream := TPSStream.Create('');
     try
-      stream.LoadFromFile(fname);
+      stream.LoadFromFile(filename);
       Txt := stream.DataString;
     except
     end;
@@ -1188,20 +1225,20 @@ begin
 
   LoadIndex;
   
-  //LoadSettingTXT;
   (* DataBase *)
   if Config.ojvQuickMerge then
-    LoadDataBase
-  else
+  begin
+    InitialDBOpen
+  end else
     SysUtils.DeleteFile(GetLogDir + BOARD_DB);
   (* //DataBase *)
   {/aiai}
 
-  modified := lastModified;
+  modified := FLastModified;
 
-  Analyze(Txt, modified, (refcount <= 0) or refresh);
-  datModified := false;
-  idxModified := false;
+  Analyze(Txt, modified, (FRefcount <= 0) or refresh);
+  FDatModified := false;
+  FIdxModified := false;
 end;
 
 
@@ -1209,21 +1246,21 @@ procedure TBoard.SaveIndex;
 var
   strList: TStringList;
 begin
-  if idxModified then
+  if FIdxModified then
   begin
     RecursiveCreateDir(GetLogDir);
     strList := TStringList.Create;
-    strList.Add(self.name);
-    strList.Add(self.lastModified);
-    strList.Add(self.selDatName);
-    strList.Add(self.FCustomHeader);
-    strList.Add(IntToStr(Integer(self.FUma)));
+    strList.Add(FName);
+    strList.Add(FLastModified);
+    strList.Add(FSelDatName);
+    strList.Add(FCustomHeader);
+    strList.Add(IntToStr(Integer(FUma)));
     try
       strList.SaveToFile(GetLogDir + SUBJECT_IDX);
     except
     end;
     strList.Free;
-    idxModified := false;
+    FIdxModified := false;
   end;
 end;
 
@@ -1232,16 +1269,16 @@ procedure TBoard.Save;
 var
   stream: TPSStream;
 begin
-  if datModified then
+  if FDatModified then
   begin
     RecursiveCreateDir(GetLogDir);
-    stream := TPSStream.Create(subjectTxt);
+    stream := TPSStream.Create(FSubjectText);
     try
       stream.SaveToFile(GetLogDir + SUBJECT_TXT);
     except
     end;
     stream.Free;
-    datModified := false;
+    FDatModified := false;
   end;
   SaveIndex;
 end;
@@ -1249,39 +1286,39 @@ end;
 (*  *)
 procedure TBoard.Activate;
 begin
-  if length(subjectTxt) <= 0 then
+  if length(FSubjectText) <= 0 then
     Load;
 end;
 
 procedure TBoard.SetSelDatName(const datName: string);
 begin
   FSelDatName := datName;
-  idxModified := true;
+  FIdxModified := true;
 end;
 
 procedure TBoard.SetCustomHeader(const str: string);
 begin
   FCustomHeader := str;
-  idxModified := true;
+  FIdxModified := true;
 end;
 
 procedure TBoard.SetUma(val: boolean);
 begin
   FUma := val;
-  idxModified := true;
+  FIdxModified := true;
 end;
 
 function TBoard.GetBBSType: TBBSType;
 var
   i: integer;
 begin
-  if bbstype = bbsNone then
+  if FBBSType = bbsNone then
   begin
     for i := 0 to Config.bbs2chServers.Count -1 do
     begin
       if AnsiEndsStr(Config.bbs2chServers[i], FHost) then
       begin
-        bbstype := bbs2ch;
+        FBBSType := bbs2ch;
         result := bbs2ch;
         exit;
       end;
@@ -1290,7 +1327,7 @@ begin
     begin
       if AnsiEndsStr(Config.bbsMachiServers[i], FHost) then
       begin
-        bbstype := bbsMachi;
+        FBBSType := bbsMachi;
         result := bbsMachi;
         exit;
       end;
@@ -1301,7 +1338,7 @@ begin
     begin
       if AnsiStartsStr(Config.bbsJBBSServers[i], FHost) then
       begin
-        bbstype := bbsJBBSShitaraba;
+        FBBSType := bbsJBBSShitaraba;
         result := bbsJBBSShitaraba;
         exit;
       end;
@@ -1309,13 +1346,13 @@ begin
     if AnsiStartsStr('www.jbbs.net', FHost)
             or AnsiStartsStr('green.jbbs.net', FHost) then
     //▲ Nightly Fri Sep 24 14:42:31 2004 UTC by lxc
-      bbstype := bbsJBBS
+      FBBSType := bbsJBBS
     else if AnsiStartsStr('www.shitaraba.com', FHost) then
-      bbstype := bbsShitaraba
+      FBBSType := bbsShitaraba
     else
-      bbstype := bbsOther
+      FBBSType := bbsOther
   end;
-  result := bbstype;
+  result := FBBSType;
 end;
 
 (* スレ一覧での状態をリセット *)
@@ -1324,9 +1361,9 @@ var
   i: integer;
 begin
   if not Config.oprSelPreviousThread then //最後に見てた位置へジャンプしなければクリア
-    selDatName := '';
+    FSelDatName := '';
   (* 板のソート (aiai) *)
-  sortColumn := Config.stlDefSortColumn;
+  FSortColumn := Config.stlDefSortColumn;
 
   if threadSearched then //絞込検索をしていたらスレの検索状態をクリア
   begin
@@ -1351,7 +1388,7 @@ begin
     FNeedConvert := True;
   {/aiai}
   if Count > 0 then
-    moved := true;  //AnalyzeからChangeThreadItemURIを呼び出す
+    FMoved := true;  //AnalyzeからChangeThreadItemURIを呼び出す
 end;
 
 (* hostを変更する際にこのスレッドのURIを修正 *)
@@ -1369,7 +1406,7 @@ begin
       Items[i].state := tsCurrency;
       Items[i].SaveIndexData;
     end;
-  moved := false;
+  FMoved := false;
 end;
 
 //改造▽ 追加 (スレッドあぼ～ん)
@@ -1439,7 +1476,7 @@ begin
 
   //subject.abnをsave、あぼ～んリストが空ならsubject.abnを削除
   if threadABoneList.Count > 0 then
-    threadABoneList.SaveToFile(GetLogDir + SUBJECT_ABN)
+    try threadABoneList.SaveToFile(GetLogDir + SUBJECT_ABN); except end
   else
     SysUtils.DeleteFile(GetLogDir + SUBJECT_ABN);
 
@@ -1453,15 +1490,15 @@ var
   URI: string;
 begin
   if Past then
-    URI := 'http://' + FHost + '/' + bbs + '/' + 'subkako.txt.gz'
+    URI := 'http://' + FHost + '/' + FBBS + '/' + 'subkako.txt.gz'
   else
-    URI := 'http://' + FHost + '/' + bbs + '/' + 'subject.txt';
+    URI := 'http://' + FHost + '/' + FBBS + '/' + 'subject.txt';
 
-  FavPatrolType := PatrolType;
-  FavPatrolData := Data;
+  FFavPatrolType := PatrolType;
+  FFavPatrolData := Data;
 
-  procGetSubject := AsyncManager.Get(URI, OnDone, ticket2ch.On2chPreConnect,
-                                     lastModified);
+  FProcGetSubject := AsyncManager.Get(URI, OnDone, ticket2ch.On2chPreConnect,
+                                     FLastModified);
 end;
 
 procedure TBoard.OnDone(Sender: TASyncReq);
@@ -1472,7 +1509,7 @@ procedure TBoard.OnDone(Sender: TASyncReq);
     else
       Log('川*’∀’）ｲﾃﾝﾂｲﾋ');
     LogBeginQuery;
-    procGetSubject := AsyncManager.Get(
+    FProcGetSubject := AsyncManager.Get(
       copy(sender.URI, 1, LastDelimiter('/', sender.URI)), OnMovedSubject,
       ticket2ch.On2chPreConnect, '');
   end;
@@ -1483,7 +1520,7 @@ procedure TBoard.OnDone(Sender: TASyncReq);
     Save;
     if timeValue <= 0 then
       timeValue := DateTimeToUnix(Str2DateTime(sender.GetDate));
-    MainWnd.FavPtrlManager(-1, FavPatrolType, Self);
+    MainWnd.FavPtrlManager(-1, FFavPatrolType, Self);
     LogDone;
   end;
 
@@ -1491,15 +1528,15 @@ var
   content, s: string;
   i: integer;
 begin
-  if sender <> procGetSubject then
+  if Sender <> FProcGetSubject then
     exit;
-  lastAccess := Now;
-  procGetSubject := nil;
+  FLastAccess := Now;
+  FProcGetSubject := nil;
 
-  Main.Log('(' + FavPatrolData + ') 【' + Self.name + '】'
-                         + sender.IdHTTP.ResponseText);
+  Main.Log('(' + FFavPatrolData + ') 【' + FName + '】'
+                         + Sender.IdHTTP.ResponseText);
 
-  case sender.IdHTTP.ResponseCode of
+  case Sender.IdHTTP.ResponseCode of
 
   200: (* 200 OK *)
     begin
@@ -1546,14 +1583,14 @@ begin
 
   304: (* 304 Not Modified *)
     begin
-      last2Modified := lastModified;
+      FLast2Modified := FLastModified;
       if usetrace[17] then
         Log(traceString[17])
       else
         Log('川 ’ー’川新着ﾅｼ');
       //MainWnd.FavPtrlManager(-1, FavPatrolType, Self);
       //Self.Release;
-      MainWnd.FavPtrlManager(-1, FavPatrolType, nil);
+      MainWnd.FavPtrlManager(-1, FFavPatrolType, nil);
       WriteStatus('新着なし');
       exit;
     end;
@@ -1561,7 +1598,7 @@ begin
   else
     begin
       //Release;
-      MainWnd.FavPtrlManager(-1, FavPatrolType, Self);
+      MainWnd.FavPtrlManager(-1, FFavPatrolType, Self);
     end;
 
   end; //case
@@ -1575,10 +1612,10 @@ label FAILED;
 begin
   LogEndQuery2;
 
-  if sender <> procGetSubject then
+  if sender <> FProcGetSubject then
     exit;
 
-  procGetSubject := nil;
+  FProcGetSubject := nil;
   WriteStatus(sender.IdHTTP.ResponseText);
 
   case sender.IdHTTP.ResponseCode of
@@ -1593,10 +1630,10 @@ begin
         goto FAILED;
       URI := copy(sender.Content, startpos, endpos - startpos);
       SplitThreadURI(URI, host2, bbs2);
-      if bbs2 <> Self.bbs then
+      if bbs2 <> FBBS then
         goto FAILED;
-      Self.host := host2;
-      Log(sender.URI + ' -> ' + URI + '/');
+      FHost := host2;
+      Log(Sender.URI + ' -> ' + URI + '/');
       if useTrace[12] then
         Log(traceString[12])
       else
@@ -1606,7 +1643,7 @@ begin
       else
         Log('川*’∀’）ｱﾄﾃﾞﾓｳｲﾁﾄﾞｺｳｼﾝｼﾃﾐﾙｶﾞｼ');
       WriteStatus('板移転検出');
-      Self.lastAccess := 0;
+      FLastAccess := 0;
     end;
   else
     FAILED:
@@ -1617,52 +1654,55 @@ begin
 
   end;
   Self.Release;
-  MainWnd.FavPtrlManager(-1, FavPatrolType, Self);
+  MainWnd.FavPtrlManager(-1, FFavPatrolType, Self);
 end;
-
 
 //SETTING.TXT処理
 
 procedure TBoard.LoadSettingTXT;
 var
   NeedSETTINGTXT: Boolean;
+  sl: TStringList;
 begin
-  if SettingTxtLoaded then exit;
+  if FSettingTxtLoaded then exit;
 
   {$IFDEF DEBUG2}
-  Main.Log(self.name + ':SETTING.TXT読込');
+  Main.Log(FName + ':SETTING.TXT読込');
   {$ENDIF}
 
-  SettingTxtLoaded := True;
-  procGetSettingTxt := nil;
-  gotSettingTxt := tpsNone;
-  FreeAndNil(storedSettingTxt);
+  FSettingTxtLoaded := True;
+  FProcGetSettingTxt := nil;
+  FGotSettingTxt := tpsNone;
+  FreeAndNil(FStoredSettingText);
   NeedSETTINGTXT := False;
-  BBSLineNumber := 0;
-  BBSMessageCount := 0;
-  BBSSubjectCount := High(Integer);
-  BBSNameCount := High(Integer);
-  BBSMailCount := High(Integer);
-  SettingTxt.Clear;
+  FBBSCount.linenumber := 0;
+  FBBSCount.messagecount := 0;
+  FBBSCount.subjectcount := High(Integer);
+  FBBSCount.namecount := High(Integer);
+  FBBSCount.mailcount := High(Integer);
+  FSettingText := '';
   try
-    storedSettingTxt := TLocalCopy.Create(GetLogDir + '\setting.txt', '.idb');
-    if storedSettingTxt.Load then
+    FStoredSettingText := TLocalCopy.Create(GetLogDir + '\setting.txt', '.idb');
+    if FStoredSettingText.Load then
     begin
-      SettingTxt.Text := storedSettingTxt.DataString;
-      BBSLineNumber := StrToIntDef(SettingTxt.Values[BBS_LINE_NUMBER], 0);
-      BBSMessageCount := StrToIntDef(SettingTxt.Values[BBS_MESSAGE_COUNT], 0);
-      BBSSubjectCount := StrToIntDef(SettingTxt.Values[BBS_SUBJECT_COUNT], BBSSubjectCount);
-      BBSNameCount := StrToIntDef(SettingTxt.Values[BBS_NAME_COUNT], BBSNameCount);
-      BBSMailCount := StrToIntDef(SettingTxt.Values[BBS_MAIL_COUNT], BBSMailCount);
-      if (storedSettingTxt.Info.Count = 0) or
-         (storedSettingTxt.Info[0] <> GetURIBase + '/SETTING.TXT') then
+      FSettingText := FStoredSettingText.DataString;
+      sl := TStringList.Create;
+      sl.Text := FSettingText;
+      FBBSCount.linenumber := StrToIntDef(sl.Values[BBS_LINE_NUMBER], 0);
+      FBBSCount.messagecount := StrToIntDef(sl.Values[BBS_MESSAGE_COUNT], 0);
+      FBBSCount.subjectcount := StrToIntDef(sl.Values[BBS_SUBJECT_COUNT], High(Integer));
+      FBBSCount.namecount := StrToIntDef(sl.Values[BBS_NAME_COUNT], High(Integer));
+      FBBSCount.mailcount := StrToIntDef(sl.Values[BBS_MAIL_COUNT], High(Integer));
+      sl.Free;
+      if (FStoredSettingText.Info.Count = 0) or
+         (FStoredSettingText.Info[0] <> GetURIBase + '/SETTING.TXT') then
         NeedSETTINGTXT := True;
-      if storedSettingTxt.Updated + 30 < Now then
+      if FStoredSettingText.Updated + 30 < Now then
         NeedSETTINGTXT := True;
     end else
       NeedSETTINGTXT := True;
   finally
-    FreeAndNil(storedSettingTxt);
+    FreeAndNil(FStoredSettingText);
   end;
   if (GetBBSType = bbs2ch) and NeedSETTINGTXT then
     GetSettingTxt;
@@ -1673,78 +1713,85 @@ var
   URI: string;
   lastModified: string;
 begin
-  if gotSettingTxt <> tpsNone then
+  if FGotSettingTxt <> tpsNone then
     exit;
   Main.Log('川*’ー’）' + name + 'ﾉSETTING.TXTｦ取ﾘﾆ行ｸﾖ');
   lastModified := '';
-  if storedSettingTxt = nil then
+  if FStoredSettingText = nil then
   begin
-    storedSettingTxt := TLocalCopy.Create(GetLogDir + '\setting.txt', '.idb');
-    storedSettingTxt.Load;
-    if 2 <= storedSettingTxt.Info.Count then
-      lastModified := storedSettingTxt.Info.Strings[1];
+    FStoredSettingText := TLocalCopy.Create(GetLogDir + '\setting.txt', '.idb');
+    FStoredSettingText.Load;
+    if 2 <= FStoredSettingText.Info.Count then
+      lastModified := FStoredSettingText.Info.Strings[1];
   end;
-  gotSettingTxt := tpsWorking;
+  FGotSettingTxt := tpsWorking;
   URI := GetURIBase + '/SETTING.TXT';
-  procGetSettingTxt := AsyncManager.Get(URI, OnSettingTxt, ticket2ch.On2chPreConnect,
+  FProcGetSettingTxt := AsyncManager.Get(URI, OnSettingTxt, ticket2ch.On2chPreConnect,
                               lastModified);
 end;
 
 procedure TBoard.OnSettingTxt(sender: TAsyncReq);
 var
   lastModified: string;
+  sl: TStringList;
 begin
-  if procGetSettingTxt = sender then
+  if FProcGetSettingTxt = sender then
   begin
     Main.Log(name + ':SETTING.TXT:' + sender.IdHTTP.ResponseText);
     case sender.IdHTTP.ResponseCode of
       200: (* OK *)
         begin
-          storedSettingTxt.Clear;
+          FStoredSettingText.Clear;
           if FNeedConvert then
-            storedSettingTxt.WriteString(StringReplace(euc2sjis(sender.Content), #10, #13#10, [rfReplaceAll]))
+            FStoredSettingText.WriteString(StringReplace(euc2sjis(sender.Content), #10, #13#10, [rfReplaceAll]))
           else
-            storedSettingTxt.WriteString(StringReplace(sender.Content, #10, #13#10, [rfReplaceAll]));
-          storedSettingTxt.Info.Add(GetURIBase + '/SETTING.TXT');
-          storedSettingTxt.Info.Add(sender.GetLastModified);
-          storedSettingTxt.Save;
-          SettingTxt.Text := storedSettingTxt.DataString;
-          BBSLineNumber  := StrToIntDef(SettingTxt.Values[BBS_LINE_NUMBER], 0);
-          BBSMessageCount := StrToIntDef(SettingTxt.Values[BBS_MESSAGE_COUNT], 0);
-          BBSSubjectCount := StrToIntDef(SettingTxt.Values[BBS_SUBJECT_COUNT], High(Integer));
-          BBSNameCount    := StrToIntDef(SettingTxt.Values[BBS_NAME_COUNT], High(Integer));
-          BBSMailCount    := StrToIntDef(SettingTxt.Values[BBS_MAIL_COUNT], High(Integer));
+            FStoredSettingText.WriteString(StringReplace(sender.Content, #10, #13#10, [rfReplaceAll]));
+          FStoredSettingText.Info.Add(GetURIBase + '/SETTING.TXT');
+          FStoredSettingText.Info.Add(sender.GetLastModified);
+          FStoredSettingText.Save;
+          FSettingText := FStoredSettingText.DataString;
+          sl := TStringList.Create;
+          sl.Text := FSettingText;
+          FBBSCount.linenumber := StrToIntDef(sl.Values[BBS_LINE_NUMBER], 0);
+          FBBSCount.messagecount := StrToIntDef(sl.Values[BBS_MESSAGE_COUNT], 0);
+          FBBSCount.subjectcount := StrToIntDef(sl.Values[BBS_SUBJECT_COUNT], High(Integer));
+          FBBSCount.namecount := StrToIntDef(sl.Values[BBS_NAME_COUNT], High(Integer));
+          FBBSCount.mailcount := StrToIntDef(sl.Values[BBS_MAIL_COUNT], High(Integer));
+          sl.Free;
           ChangeWriteMemoSettingText(Self);
         end;
       304: (* NotModifiedの時も再保存することで最終チェック時刻を更新 *)
         begin
           lastModified := '';
-          if storedSettingTxt.Info.Count >= 2 then
-            lastModified := storedSettingTxt.Info.Strings[1];
-          storedSettingTxt.Info.Clear;
-          storedSettingTxt.Info.Add(GetURIBase + '/SETTING.TXT');
-          storedSettingTxt.Info.Add(lastModified);
-          storedSettingTxt.Save;
+          if FStoredSettingText.Info.Count >= 2 then
+            lastModified := FStoredSettingText.Info.Strings[1];
+          FStoredSettingText.Info.Clear;
+          FStoredSettingText.Info.Add(GetURIBase + '/SETTING.TXT');
+          FStoredSettingText.Info.Add(lastModified);
+          FStoredSettingText.Save;
           ChangeWriteMemoSettingText(Self);
         end;
       302: (* Not Foundの時はそのことを保存 *)
         begin
-          storedSettingTxt.Clear;
-          storedSettingTxt.Info.Add(GetURIBase + '/SETTING.TXT');
-          storedSettingTxt.Info.Add(sender.GetLastModified);
-          storedSettingTxt.Save;
-          SettingTxt.Text := storedSettingTxt.DataString;
-          BBSLineNumber  := StrToIntDef(SettingTxt.Values[BBS_LINE_NUMBER], 0);
-          BBSMessageCount := StrToIntDef(SettingTxt.Values[BBS_MESSAGE_COUNT], 0);
-          BBSSubjectCount := StrToIntDef(SettingTxt.Values[BBS_SUBJECT_COUNT], High(Integer));
-          BBSNameCount    := StrToIntDef(SettingTxt.Values[BBS_NAME_COUNT], High(Integer));
-          BBSMailCount    := StrToIntDef(SettingTxt.Values[BBS_MAIL_COUNT], High(Integer));
+          FStoredSettingText.Clear;
+          FStoredSettingText.Info.Add(GetURIBase + '/SETTING.TXT');
+          FStoredSettingText.Info.Add(sender.GetLastModified);
+          FStoredSettingText.Save;
+          FSettingText := FStoredSettingText.DataString;
+          sl := TStringList.Create;
+          sl.Text := FSettingText;
+          FBBSCount.linenumber := StrToIntDef(sl.Values[BBS_LINE_NUMBER], 0);
+          FBBSCount.messagecount := StrToIntDef(sl.Values[BBS_MESSAGE_COUNT], 0);
+          FBBSCount.subjectcount := StrToIntDef(sl.Values[BBS_SUBJECT_COUNT], High(Integer));
+          FBBSCount.namecount := StrToIntDef(sl.Values[BBS_NAME_COUNT], High(Integer));
+          FBBSCount.mailcount := StrToIntDef(sl.Values[BBS_MAIL_COUNT], High(Integer));
+          sl.Free;
           ChangeWriteMemoSettingText(Self);
         end;
     end;
-    FreeAndNil(storedSettingTxt);
-    procGetSettingTxt := nil;
-    gotSettingTxt := tpsDone;
+    FreeAndNil(FStoredSettingText);
+    FProcGetSettingTxt := nil;
+    FGotSettingTxt := tpsDone;
   end;
 end;
 
@@ -1756,14 +1803,15 @@ var
   i: Integer;
   msg: PChar;
   save: Boolean;
+  sql: string;
+  err: byte;
 begin
   (* DataBase (aiai) *)
   if Config.ojvQuickMerge then
   begin
-    IdxDataBase.Exec(PChar('BEGIN'), nil, nil, msg); //トランザクション
-    {$IFDEF DATABASEDEBUG}
-    if msg <> nil then Main.Log(name + ':BEGIN - ' + msg);
-    {$ENDIF}
+    sql := 'BEGIN';
+    err := FIdxDataBase.Exec(PChar(sql), nil, nil, msg); //トランザクション
+    SQLCheck(err, FName, sql, msg);
   end;
   (* //DataBase *)
 
@@ -1802,10 +1850,9 @@ begin
   (* DataBase (aiai) *)
   if Config.ojvQuickMerge then
   begin
-    IdxDataBase.Exec(PChar('COMMIT'), nil, nil, msg);   //コミット
-    {$IFDEF DATABASEDEBUG}
-    if msg <> nil then Main.Log(name + ':COMMIT - ' + msg);
-    {$ENDIF}
+    sql := 'COMMIT';
+    err := FIdxDataBase.Exec(PChar(sql), nil, nil, msg); //トランザクション
+    SQLCheck(err, FName, sql, msg);
   end;
   (* //DataBase *)
 
@@ -1850,8 +1897,8 @@ end;
 
 procedure TFunctionalBoard.Release;
 begin
-  Dec(refCount);
-  if refCount <= 0 then
+  Dec(FRefCount);
+  if FRefCount <= 0 then
     SafeClear;
 end;
 
@@ -1866,8 +1913,8 @@ var
   i: integer;
 begin
   if not Config.oprSelPreviousThread then //最後に見てた位置へジャンプしなければクリア
-    selDatName := '';
-  sortColumn := Config.stlDefFuncSortColumn; //スレ一覧、お気に入り用ソート設定
+    FSelDatName := '';
+  FSortColumn := Config.stlDefFuncSortColumn; //スレ一覧、お気に入り用ソート設定
 
   if threadSearched then //絞込検索をしていたらスレの検索状態をクリア
   begin
@@ -1940,6 +1987,33 @@ begin
   FHost := 'Jane';   //適当だけどお気に入りで使うために
   bbs := 'Log';
   Name := 'ログ一覧';
+end;
+
+(*=======================================================*)
+// 現在開いているスレッドの一覧 ( by aiai )
+constructor TOpenThreadsBoard.Create(category: TObject);
+begin
+  inherited Create(category);
+
+  FHost := 'Jane';
+  bbs := 'OpenThreads';
+  Name := 'OpenThreads';
+end;
+
+procedure TOpenThreadsBoard.Load;
+var
+  i: integer;
+  item: TThreadItem;
+begin
+  for i := 0 to viewList.Count - 1 do
+  begin
+    item := viewList.Items[i].thread;
+    if item <> nil then
+    begin
+      item.AddRef(false);
+      Add(item);
+    end;
+  end;
 end;
 
 (*=======================================================*)
@@ -2165,7 +2239,7 @@ var
 begin
   for i:=objlist.Count-1 downto 0 do
   begin
-    if (TFavoriteListBoard(objlist.Items[i]).refCount <= 0) and
+    if (TFavoriteListBoard(objlist.Items[i]).FRefCount <= 0) and
        (boardList.IndexOf(objlist.Items[i]) < 0) then
     begin
       TFavoriteListBoard(objlist.Items[i]).Free;

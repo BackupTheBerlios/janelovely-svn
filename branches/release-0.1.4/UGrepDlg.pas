@@ -260,7 +260,7 @@ begin
         for j := 0 to i2ch.Items[i].Count -1 do
         begin
           board := i2ch.Items[i].Items[j];
-          if not DirectoryExists(board.GetLogDir) then
+          if not DirectoryExists(board.LogDir) then
             continue;
           if ListBox.Items.IndexOfObject(board) < 0 then
             ListBox.AddItem(board.name, board);
