@@ -1895,7 +1895,7 @@ begin
   if IsPrimaryInstance then
     result := true
   else begin
-    initialURL.Free;
+    FreeAndNil(initialURL);
     result := false;
     wnd := FindWindow('TMainWnd', nil);
     if wnd = 0 then
@@ -2759,6 +2759,8 @@ begin
       MessageBox(Handle, SQLITE_DLL_NAME + ' が見つからなかったため、このアプリケーションを開始できませんでした。アプリケーションをインストールし直すとこの問題は解決される場合があります。', 'Jane2ch.exe - コンポーネントが見つかりません', MB_ICONERROR or MB_OK);
       Application.Terminate;
       Application.ShowMainForm := false;
+      if initialURL <> nil then
+        FreeAndNil(Main.initialURL);
       error := true;
     end;
     if not Initdll then
@@ -2766,6 +2768,8 @@ begin
       MessageBox(Handle, SQLITE_DLL_NAME + ' の初期化に失敗したため、このアプリケーションを開始できませんでした。アプリケーションをインストールし直すとこの問題は解決される場合があります。', 'Jane2ch.exe - dllを初期化できません', MB_ICONERROR or MB_OK);
       Application.Terminate;
       Application.ShowMainForm := false;
+      if initialURL <> nil then
+        FreeAndNil(Main.initialURL);
       error := true;
     end;
   end;
@@ -2933,6 +2937,8 @@ begin
   begin
     Application.Terminate;
     Application.ShowMainForm := false;
+    if initialURL <> nil then
+      FreeAndNil(Main.initialURL);
     exit;
   end;
 
