@@ -62,7 +62,6 @@ type
     function FetchID(line: Integer):string;
     function FetchMessage(line: Integer):string;
     {/nono}
-    function MatchID(const target: PChar; line: Integer): Boolean;
     property Lines: Integer read CalcLines;
     property Size: Cardinal read GetSize;
     property Position: Cardinal read GetPosition;
@@ -93,6 +92,13 @@ type
   end;
   (*-------------------------------------------------------*)
   TConvDatOut = class(TDatOut)
+  private  //オーバーライドしないもの、継承もとで呼ばれないものはprivateにしました by aiai
+    function GetURL(var ReplaceURL: string): Boolean;
+    function DoRange(const prefix: string): boolean;
+    function ProcURL: boolean;
+    procedure ProcHTMLB;
+    procedure ProcName;
+    procedure ProcDate;  //aiai
   protected
     str: PChar;
     index: integer;
@@ -101,24 +107,16 @@ type
     procedure EndOfTag;
     function GetTagName: string;
     function GetAttribPair(var name, value: string): Boolean;
+    function GetRange(var ANK: string): Boolean; virtual;
     procedure SkipSpaces;
-    function GetURL: string;
-    function GetRange(var ANK: string): string;
-    function DoRange(const prefix: string): boolean;
     function ProcRedirect: boolean; virtual;
     function ProcTag: boolean; virtual;
-    function ProcURL: boolean; virtual;
     function ProcEntity: boolean; virtual;
     function ProcBlank: boolean; virtual;
     function ProcDayOfWeek: Boolean; virtual;  //aiai
     function ProcID: Boolean; virtual;  //aiai
     procedure ProcHTML; virtual;
-    procedure ProcHTMLB;
-    procedure ProcName;
-    procedure ProcDate;  //aiai
-    procedure AppendResNumList(num: Integer); overload; virtual;
-    procedure AppendResNumList(num, num2: Integer); overload; virtual;
-    function IsThisTag(substr, str: PChar; len: Integer): Boolean; virtual;
+    function IsThisTag(substr, str: PChar; len: Integer): Boolean;  //aiai
 
   public
     procedure WriteItem(str: PChar; size: integer;
@@ -151,11 +149,12 @@ type
   {aiai}
   //ID抽出用
   TIDDatOut = class(TConvDatOut)
+  protected
     FString: String;
     FPosition: integer;
     FSize: integer;
-    function ProcID: Boolean; override;
     function GetText: String;
+    function ProcID: Boolean; override;
   public
     constructor Create;
     destructor Destroy; override;
@@ -275,7 +274,7 @@ function Dat2ChGetLine(const AString: string;
                        var size:     integer): boolean;
 
 (* dat文字列から区切りまでを取得するナリ *)
-function Dat2ChGet2Delimiter(const AString: string;
+function Dat2ChGet2Delimiter(const AString: PChar; size: integer;
                              startPos: integer;
                              var nextPos: integer): integer;
 
@@ -424,36 +423,83 @@ begin
 end;
 
 (* dat文字列から区切りまでを取得するナリ *)
-function Dat2ChGet2Delimiter(const AString: string;
+function Dat2ChGet2Delimiter(const AString: PChar; size: integer;
                              startPos: integer;
                              var nextPos: integer): integer;
 var
   i, endPos: integer;
   p: PChar;
 begin
-  p := @AString[startPos];
-  endPos := length(AString);
-  for i := startPos to endPos do
+  p := AString;
+  endPos := size;
+  i := startPos;
+  while i <= endPos do
   begin
-    if p^ = '<' then
+    if ((p+i-1)^ = '<') and (i < endPos) and ((p+i)^ = '>') then
     begin
-      if (i < endPos) and ((p+1)^ = '>') then
-      begin
-        result := i - startPos;
-        nextPos := i + 2;
-        exit;
-      end;
-    end
-    else if p^ = #10 then
+      result := i - startPos;
+      nextPos := i + 2;
+      exit;
+    end else if (p+i-1)^ = #10 then
     begin
       result := i - startPos;
       nextPos := i;
       exit;
     end;
-    Inc(p);
+    Inc(i);
   end;
   result := 0;
   nextPos := endPos +1;
+{var
+  next: Integer;
+begin
+  asm
+    push eax; push ebx; push ecx; push edx;
+
+    mov ecx, startPos;
+    mov eax, AString;
+    mov edx, size;
+
+    @loop1:
+      cmp ecx, edx;
+      ja @endposend;
+      mov bl, byte[eax + ecx - 1];
+      cmp bl, $3C;
+      je @delimiteend;
+      @delimitedr:
+      cmp bl, $0A;
+      je @returnend;
+      inc ecx;
+      jmp @loop1;
+
+    @delimiteend:
+      cmp ecx, edx;
+      jae @loop1;
+      mov bl, byte[eax + ecx];
+      cmp bl, $3E;
+      jne @delimitedr;
+      add ecx, 2;
+      mov next, ecx;
+      sub ecx, 2;
+      sub ecx, startPos;
+      mov result, ecx;
+      jmp @asmend;
+
+    @returnend:
+      mov next, ecx;
+      sub ecx, startPos;
+      mov result, ecx;
+      jmp @asmend;
+
+    @endposend:
+      mov result, 0;
+      inc edx;
+      mov next, edx;
+
+    @asmend:
+    pop edx; pop ecx; pop ebx; pop eax;
+  end;
+  nextPos := next;}
 end;
 
 function Dat2ChGet2CommaDelimiter(const AString: string;
@@ -694,7 +740,7 @@ end;
 
 (*=======================================================*)
 
-procedure Dat2ChFetchLine(const AString: string;
+procedure Dat2ChFetchLine(const AString: PChar; size: integer;
                           startPos: integer;
                           var nameStart, nameSize: integer;
                           var mailStart, mailSize: integer;
@@ -705,13 +751,13 @@ var
 begin
   index := startPos;
   nameStart := index;
-  nameSize := Dat2ChGet2Delimiter(AString, nameStart, index);
+  nameSize := Dat2ChGet2Delimiter(AString, size, nameStart, index);
   mailStart := index;
-  mailSize := Dat2ChGet2Delimiter(AString, mailStart, index);
+  mailSize := Dat2ChGet2Delimiter(AString, size, mailStart, index);
   dateStart := index;
-  dateSize := Dat2ChGet2Delimiter(AString, dateStart, index);
+  dateSize := Dat2ChGet2Delimiter(AString, size, dateStart, index);
   msgStart := index;
-  msgSize  := Dat2ChGet2Delimiter(AString, msgStart, index);
+  msgSize  := Dat2ChGet2Delimiter(AString, size, msgStart, index);
 end;
 
 procedure Dat2ChFetchCommaDelimitedLine(
@@ -734,306 +780,6 @@ begin
   msgStart := index;
   msgSize  := Dat2ChGet2CommaDelimiter(AString, msgStart, index);
 end;
-
-
-{$IFNDEF OLD_PARSER}
-procedure ProcTags(var outStr: THogeMemoryStream;
-                  const str: string; startPos: integer; size: integer;
-                  nameP: boolean);
-var
-  index, endPos: integer;
-
-  function ProcStrip: boolean;
-    function GetTagName: string;
-    var
-      i: integer;
-      tag: string;
-    begin
-      for i := index+1 to endPos do
-      begin
-        case str[i] of
-        '>', ' ', #1..#$1F: Break;
-        else tag := tag + str[i];
-        end;
-      end;
-      result := LowerCase(tag);
-    end;
-  var
-    tag: string;
-  begin
-    (* <a href= xxx> </a> を除去 *)
-    result := false;
-    if str[index] = '<' then
-    begin
-      tag := GetTagName;
-      if (tag = 'a') or (tag = '/a') then
-      begin
-        while (index <= endPos) and (str[index] <> '>') do
-        begin
-          Inc(index);
-        end;
-        Inc(index);
-        result := true;
-      end;
-    end;
-  end;
-
-  function ProcHTTP: boolean;
-    function GetURL: string;
-    begin
-      while index <= endPos do
-      begin
-        case str[index] of
-        #$21, #$23..#$3B, #$3D, #$3F..#$7E: result := result + str[index];
-        else break;
-        end;
-        Inc(index);
-      end;
-    end;
-  var
-    s: string;
-  begin
-    (* http://xxx or ttp://xxx *)
-    if str[index] = 'h' then
-    begin
-      if StartWith('http://', str, index) or StartWith('https://', str, index) then //※[457]
-      begin
-        s := GetURL;
-        outStr.WriteString('<a href=');
-        outStr.WriteString(s);
-        outStr.WriteString('>');
-        outStr.WriteString(s);
-        outStr.WriteString('</a>');
-        result := true;
-      end
-      else if StartWith('htp://', str, index) then
-      begin
-        s := GetURL;
-        outStr.WriteString('<a href=ht');
-        outStr.WriteString(Copy(s, 2, high(integer)));
-        outStr.WriteString('>');
-        outStr.WriteString(s);
-        outStr.WriteString('</a>');
-        result := true;
-      end
-      else
-        result := false;
-    end
-    else if StartWith('ttp://', str, index) then
-    begin
-      s := GetURL;
-      outStr.WriteString('<a href=h');
-      outStr.WriteString(s);
-      outStr.WriteString('>');
-      outStr.WriteString(s);
-      outStr.WriteString('</a>');
-      result := true;
-    end else begin
-      result := false;
-    end;
-  end;
-
-    function GetRange(var ANK: string): string;
-    var
-      s: string;
-    begin
-      ANK := '';
-      while index <= endPos do
-      begin
-        case str[index] of
-        '0'..'9':
-          begin
-            s := s + str[index];
-            ANK := ANK + str[index];
-          end;
-        '-':
-          begin
-            if length(s) <= 0 then
-              break;
-            s := s + str[index];
-            ANK := ANK + str[index];
-          end;
-        #$81:
-          begin
-            if (index + 1 <= endpos) and (str[index+1] = #$7c) then
-            begin (* － *)
-              if length(s) <= 0 then
-                break;
-              s := s + '－';
-              ANK := ANK + '-';
-              inc(index);
-            end
-            else
-              break;
-          end;
-        #$82:
-          begin
-            if (index + 1 <= endPos) and (str[index+1] in [#$4f..#$58]) then
-            begin   (* 全角数字 *)
-              inc(index);
-              s := s + #$82 + str[index];
-              ANK := ANK + Chr(Ord(str[index]) - $1f);
-            end
-            else
-              break;
-          end;
-        else break;
-        end;
-        Inc(index);
-      end;
-      result := s;
-    end;
-
-    function DoRange(const prefix: string): boolean;
-    var
-      s, ANK: string;
-      len: integer;
-    begin
-      len := length(prefix);
-      Inc(index, len);
-      s := GetRange(ANK);
-      if 0 < length(s) then
-      begin
-        outStr.WriteString('<a href=#');
-        outStr.WriteString(ANK);
-        outStr.WriteString('>');
-        outStr.WriteString(prefix);
-        outStr.WriteString(s);
-        outStr.WriteString('</a>');
-        ProcStrip;
-        while (index +2 < endPos) and (str[index] = ',') do
-        begin
-          inc(index);
-          s := GetRange(ANK);
-          if length(s) <= 0 then
-          begin
-            dec(index);
-            break;
-          end;
-          outStr.WriteString(',<a href=#');
-          outStr.WriteString(ANK);
-          outStr.WriteString('>');
-          outStr.WriteString(s);
-          outStr.WriteString('</a>');
-        end;
-        result := true;
-      end else begin
-        Dec(index, len);
-        result := false;
-      end;
-    end;
-  function ProcRedirect: boolean;
-  begin
-    (* &gt;[&gt;]digit[,digit|-digit] *)
-    result := false;
-    if str[index] = '&' then
-    begin
-      if StartWith('&gt;&gt;', str, index) then
-      begin
-        result := DoRange('&gt;&gt;');
-      end
-      else if StartWith('&gt;', str, index) then
-      begin
-        result := DoRange('&gt;');
-      end;
-    end
-    else if StartWith('＞＞', str, index) then
-    begin
-      result := DoRange('＞＞');
-    end
-    else if StartWith('＞', str, index) then
-    begin
-      result := DoRange('＞');
-    end;
-  end;
-
-  function isAllNumber(startPos, endPos: integer): boolean;
-  var
-    i: integer;
-  begin
-    i := startPos;
-    while i <= endPos do
-    begin
-      case str[i] of
-      '0'..'9': ;
-      #$82:
-        begin
-          if (i <= endPos) and (str[i+1] in [#$4f..#$58]) then
-          begin
-            inc(i);
-          end
-          else begin
-            result := false;
-            exit;
-          end;
-        end;
-      else
-        begin
-          result := false;
-          exit;
-        end;
-      end;
-      Inc(i);
-    end;
-    result := true;
-  end;
-
-  procedure ProcName;
-  var
-    endTag: integer;
-  begin
-    if ProcRedirect then
-    begin
-      if index <= endPos then
-        outStr.WriteString(Copy(str, index, endPos - index + 1));
-    end
-    else if isAllNumber(index, endPos) then
-    begin
-      DoRange('');
-    end
-    else if (index < endPos) and (str[index] = '<') and
-         StartWith('<b>', str, index) then (* カンマ区切り形式 *)
-    begin
-      outStr.WriteString(Copy(str, index, 3));
-      inc(index, 3);
-      if ProcRedirect and (index <= endPos) then
-      begin
-        outStr.WriteString(Copy(str, index, endPos - index + 1));
-      end
-      else begin
-        endTag := FindPos('</b>', str, index, endPos);
-        if (endTag + 3 = endPos) and
-           isAllNumber(index, endTag-1) then
-          DoRange('');
-        outStr.WriteString(Copy(str, index, endPos - index + 1));
-      end;
-    end
-    else
-      outStr.WriteString(Copy(str, startPos, size));
-  end;
-begin
-  endPos := startPos + size -1;
-  if length(str) < endPos then
-    endPos := length(str);
-  index := startPos;
-  if nameP then
-  begin
-    ProcName;
-  end
-  else begin
-    while (index <= endPos) do
-    begin
-      if not ((str[index] = '<') and ProcStrip) and
-         not ((str[index] in ['h','t']) and ProcHTTP) and
-         not ((str[index] in ['&', #$81]) and ProcRedirect) then
-      begin
-        outStr.WriteChar(str[index]);
-        Inc(index);
-      end;
-    end;
-  end;
-end;
-{$ENDIF}
 
 function GetDatType(const dat: TThreadData): TDatType;
 var
@@ -1309,7 +1055,7 @@ begin
       strMsg := Copy(dataString, msgStart, msgSize);
   end
   else begin
-    Dat2ChFetchLine(dataString, startPos,
+    Dat2ChFetchLine(PChar(dataString), Length(dataString), startPos,
                     nameStart, nameSize,
                     mailStart, mailSize,
                     dateStart, dateSize,
@@ -1380,90 +1126,6 @@ begin
   Result := GetDatItem(line, diMsg);
 end;
 {/nono}
-
-function TThreadData.MatchID(const target: PChar; line: Integer): Boolean;
-var
-  datType: TDatType;
-  dataString: string;
-  startPos: integer;
-  nameStart, nameSize: integer;
-  mailStart, mailSize: integer;
-  dateStart, dateSize: integer;
-  msgStart,  msgSize : integer;
-  tmpbuffer: string;
-  date, id: PChar;
-  index, index2: integer;
-begin
-  Result := False;
-  datType := GetDatType(Self);
-  if not FindLine(line) then
-  begin
-    exit;
-  end;
-  if Count <= FCacheInfo.FBlockIndex then
-  begin
-    exit;
-  end;
-
-  dataString := Strings[FCacheInfo.FBlockIndex];
-  startPos := FCacheInfo.FIndex;
-  date := nil;
-  if datType = dtComma then
-  begin
-    Dat2ChFetchCommaDelimitedLine(
-                  dataString, startPos,
-                  nameStart, nameSize,
-                  mailStart, mailSize,
-                  dateStart, dateSize,
-                  msgStart, msgSize);
-   if 0 < FindPos('＠｀', dataString, dateStart, dateStart + dateSize -1) then
-    begin
-      tmpbuffer := AnsiReplaceStr(Copy(dataString, dateStart, dateSize), '＠｀', ',');
-      date := PChar(tmpbuffer);
-      dateSize := length(tmpbuffer);
-    end;
-  end
-  else begin
-    Dat2ChFetchLine(dataString, startPos,
-                    nameStart, nameSize,
-                    mailStart, mailSize,
-                    dateStart, dateSize,
-                    msgStart, msgSize);
-    date := PChar(dataString) + dateStart - 1;
-  end;
-  if dateSize <= 0 then
-  begin
-    Result := False;
-    exit;
-  end;
-
-  index := 0;
-  while index < dateSize do
-  begin
-    if (date + index)^ = 'I' then break;
-    Inc(index);
-  end;
-
-  id := date + index;
-  index2 := index;
-
-  if ((index2 + 3) < dateSize) and ((date + index2 + 1)^ = 'D')
-    and ((date + index2 + 2)^ = ':') and ((date + index2 + 3)^ <> '?')then
-  begin
-    Inc(index, 3);
-
-    (* IDの末尾を探す *)
-    while index2 < dateSize do
-    begin
-      if ((date + index2)^ in [' ']) then
-        break;
-      Inc(index2);
-    end;
-
-    //WriteID(id + index + 3, index - 3);
-    Result := StrLComp(target, id + 3, index2 - index - 3) = 0;
-  end;
-end;
 
 (*=======================================================*)
 constructor TDatOut.Create;
@@ -1639,24 +1301,37 @@ begin
   end;
 end;
 
-function TConvDatOut.GetURL: string;
+function TConvDatOut.GetURL(var ReplaceURL: string): Boolean;
 {beginner}   //URLで有効な文字への参照を解決する(それ以外はあえて無視)
+
+//置換が必要な場合はReplaceURLに新しいURLを入れてResultをTrueに、
+//必要ない場合はindexを進めるだけでResultをFalseにする by aiai
+
 var
   buf:string;
   code:Integer;
   power:Integer;
+  startpos: Integer;
   refChar:Set of Char;
 begin
+  Result := False;
+  ReplaceURL := '';
+  startpos := index;
   while index < size do
   begin
     case (str + index)^ of
     '&':begin
       inc(index);
       if StrLComp(str + index,'amp',3)=0 then begin
+        Result := True;
+        ReplaceURL := ReplaceURL + Copy(str, startpos + 1, index - startpos - 1);
         inc(index,3);
-        result := result + '&';
+        ReplaceURL := ReplaceURL + '&';
         if (str + index)^=';' then inc(index);
+        startpos := index;
       end else if (str + index)^='#' then begin
+        Result := True;
+        ReplaceURL := ReplaceURL + Copy(str, startpos + 1, index - startpos - 1);
         code:=0;
         inc(index);
         if (str + index)^='x' then begin
@@ -1676,52 +1351,44 @@ begin
           inc(index);
         end;
         if code in [$21, $23..$2f, $3a, $3B, $3D, $3F..$7E] then begin
-          result := result + char(code);
+          ReplaceURL := ReplaceURL + char(code);
           if (str + index)^=';' then inc(index);
         end else begin
-          result := result + buf;
+          ReplaceURL := ReplaceURL + buf;
         end;
-      end else
-        result := result + '&';
+        startpos := index;
+      end else if Result then
+        ReplaceURL := ReplaceURL + '&';
     end;
-    #$21, #$23..#$25,#$27..#$3B, #$3D, #$3F..#$7E:begin
-      result := result + (str + index)^;
+    #$21, #$23..#$25,#$27..#$3B, #$3D, #$3F..#$7E: begin
       Inc(index);
     end;
     else break;
     end;
   end;
+  if Result then
+    ReplaceURL := ReplaceURL + Copy(str, startpos + 1, index - startpos)
 {/beginner}
 end;
 
 
-function TConvDatOut.GetRange(var ANK: string): string;
+function TConvDatOut.GetRange(var ANK: string): Boolean;
 var
-  s, s2: string;
-  num, num2: Integer;
-  flag: Boolean;
+  origindex: Integer;
 begin
+  origindex := index;
   ANK := '';
-  s2 := '';
-  flag := false;
-  num := 0;
   while index < size do
   begin
     case (str + index)^ of
     '0'..'9':
       begin
-        if flag then
-          s2 := s2 + (str + index)^;
-        s := s + (str + index)^;
         ANK := ANK + (str + index)^;
       end;
     '-':
       begin
-        if length(s) <= 0 then
+        if index <= origindex then
           break;
-        num := StrToIntDef(ANK, 0);
-        flag := true;
-        s := s + (str + index)^;
         ANK := ANK + (str + index)^;
       end;
     #$81:
@@ -1730,11 +1397,8 @@ begin
            (((str + index+1)^ = #$7c) or
             ((str + index+1)^ = #$5d))  then
         begin (* － *)
-          if length(s) <= 0 then
+          if index <= origindex then
             break;
-          num := StrToIntDef(ANK, 0);
-          flag := true;
-          s := s + #$81 + (str + index+1)^; //'－';
           ANK := ANK + '-';
           inc(index);
         end
@@ -1746,10 +1410,7 @@ begin
         if (index + 1 < size) and ((str + index+1)^ in [#$4f..#$58]) then
         begin   (* 全角数字 *)
           inc(index);
-          s := s + #$82 + (str + index)^;
           ANK := ANK + Chr(Ord((str + index)^) - $1f);
-          if flag then
-            s2 := s2 + Chr(Ord((str + index)^) - $1f);
         end
         else
           break;
@@ -1758,16 +1419,7 @@ begin
     end;
     Inc(index);
   end;
-  result := s;
-  if length(s2) > 0 then
-  begin
-    num2 := StrToIntDef(s2, 0);
-    AppendResNumList(num, num2);
-  end else if length(s) > 0 then
-  begin
-    num := StrToIntDef(ANK, 0);
-    AppendResNumList(num);
-  end;
+  result := index > origindex;
 end;
 
 function TConvDatOut.ProcTag: boolean;
@@ -1799,35 +1451,32 @@ end;
 
 function TConvDatOut.DoRange(const prefix: string): boolean;
 var
-  s, ANK: string;
-  len: integer;
+  s2, ANK: string;
+  startpos: integer;
   c: Char;
 begin
-  len := length(prefix);
-  Inc(index, len);
-  s := GetRange(ANK);
-  if 0 < length(s) then
+  startpos := index;
+  if GetRange(ANK) then
   begin
-    s := AnsiReplaceStr(prefix + s, '&gt;', '>');
-    WriteAnchor('', '#' + ANK, PChar(s), length(s));
+    SetString(s2, str + startpos, index - startpos);
+    WriteAnchor('', '#' + ANK, PChar(prefix + s2), length(prefix) + index - startpos);
     ProcTag;
     while (index + 2 < size) and ((str + index)^ in [',', '=']) do
     begin
       c := (str + index)^;
       inc(index);
-      s := GetRange(ANK);
-      if length(s) <= 0 then
+      startpos := index;
+      if not GetRange(ANK) then
       begin
         dec(index);
         break;
       end;
       WriteChar(c);
-      WriteAnchor('', '#' + ANK, PChar(s), length(s));
+      WriteAnchor('', '#' + ANK, str + startpos, index - startpos);
     end;
     result := true;
   end else
   begin
-    Dec(index, len);
     result := false;
   end;
 end;
@@ -1839,19 +1488,38 @@ begin
   if (str + index)^ = '&' then
   begin
     if StartWithP('&gt;&gt;', str + index, size - index) then
-      result := DoRange('&gt;&gt;')
-    else if StartWithP('&gt;', str + index, size - index) then
-      result := DoRange('&gt;');
+    begin
+      Inc(index, 8); //&gt;&gt;
+      result := DoRange('>>');
+      if not result then
+        Dec(index, 8);
+    end else if StartWithP('&gt;', str + index, size - index) then
+    begin
+      Inc(index, 4);  //&gt;
+      result := DoRange('>');
+      if not result then
+        Dec(index, 4);
+    end;
   end
   else if StartWithP('＞＞', str + index, size - index) then
-    result := DoRange('＞＞')
-  else if StartWithP('＞', str + index, size - index) then
+  begin
+    Inc(index, 4);  //＞＞;
+    result := DoRange('＞＞');
+    if not result then
+      Dec(index, 4);
+  end else if StartWithP('＞', str + index, size - index) then
+  begin
+    Inc(index, 2);  //＞;
     result := DoRange('＞');
+    if not result then
+      Dec(index, 2);
+  end;
 end;
 
 function TConvDatOut.ProcURL: boolean;
 var
   s: string;
+  origindex: Integer;
 begin
   (* http://xxx or ttp://xxx *)
   if FDisableLink then
@@ -1866,12 +1534,16 @@ begin
     if StartWithP('http://', str + index, size - index) or
        StartWithP('https://', str + index, size - index) then
     begin
-      s := GetURL;
-      WriteAnchor('', s, PChar(s), length(s));
+      origindex := index;
+      if not GetURL(s) then
+        SetString(s, str + origindex, index - origindex);
+      WriteAnchor('', s, PChar(s), Length(s));
     end
     else if StartWithP('htp://', str + index, size - index) then
     begin
-      s := GetURL;
+      origindex := index;
+      if not GetURL(s) then
+        SetString(s, str + origindex, index - origindex);
       WriteAnchor('', 'ht' + Copy(s, 2, high(integer)), PChar(s), length(s));
     end
     else
@@ -1879,8 +1551,10 @@ begin
   end
   else if StartWithP('ttp://', str + index, size - index) then
   begin
-    s := GetURL;
-    WriteAnchor('', 'h' + s, PChar(s), length(s));
+    origindex := index;
+    if not GetURL(s) then
+      SetString(s, str + origindex, index - origindex);
+    WriteAnchor('', 'h' + s, PChar(s), Length(s));
   end
   else
     result := false;
@@ -2007,6 +1681,9 @@ begin
              goto ProcChar;
       '<': if not ProcTag then
              goto ProcChar;
+      ' ':
+        if not ProcBlank then
+          goto ProcChar;
     else
       ProcChar:
       idx2 := index + 1;
@@ -2018,14 +1695,6 @@ begin
   end;
 end;
 {/aiai}
-
-procedure TConvDatOut.AppendResNumList(num: Integer);
-begin
-end;
-
-procedure TConvDatOut.AppendResNumList(num, num2: Integer);
-begin
-end;
 
 procedure TConvDatOut.WriteItem(str: PChar; size: integer; itemType: TDatItemType);
 begin
@@ -2562,7 +2231,7 @@ begin
       msg  := @dataString[msgStart];
   end
   else begin
-    Dat2ChFetchLine(dataString, startPos,
+    Dat2ChFetchLine(PChar(dataString), Length(dataString), startPos,
                     nameStart, nameSize,
                     mailStart, mailSize,
                     dateStart, dateSize,

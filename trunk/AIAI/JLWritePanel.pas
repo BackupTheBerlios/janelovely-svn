@@ -67,6 +67,7 @@ type
     procedure OnWritten(sender: TAsyncReq);
     procedure WaitTimerStart;
     procedure WaitTimerStop;
+    procedure WaitTimerRestart(const ErrorMsg: String);
   public
     procedure SetUp(AParent: TWinControl); override;
     procedure SetToolBarImageList(AImageList: TImageList);
@@ -1151,6 +1152,23 @@ begin
       exit;
     end;
 
+    if (2 <= list.Count) and
+      AnsiStartsStr('ÇdÇqÇqÇnÇqÅI', list[0]) and
+      //AnsiStartsStr('ÇdÇqÇqÇnÇq - 593', list[1]) and
+      AnsiContainsStr(list[1], ' sec ÇµÇ©ÇΩÇ¡ÇƒÇ»Ç¢') and
+      AnsiContainsStr(list[1], ' sec ÇΩÇΩÇ»Ç¢Ç∆èëÇØÇ‹ÇπÇÒÅB') then
+    begin
+      if Config.wrtUseWriteWait then
+        WaitTimerRestart(list[1]);
+      list.Free;
+      MainWnd.PauseToggleAutoReSc(true);
+      if Assigned(FThread) then
+        WriteButton.Enabled := not MainWnd.WriteWaitTimer.IsThisHost(FThread.GetHost);
+      if Assigned(WriteForm) and Assigned(WriteForm.board) then
+        WriteForm.ButtonWrite.Enabled := not MainWnd.WriteWaitTimer.IsThisHost(WriteForm.board.host);
+      exit;
+    end;
+
     errMsg := GetErrMsg;
     if (errMsg = 'error') then
     begin
@@ -1248,6 +1266,8 @@ begin
     WriteButton.Enabled := not MainWnd.WriteWaitTimer.IsThisHost(FThread.GetHost);
   if Assigned(WriteForm) and Assigned(WriteForm.board) then
     WriteForm.ButtonWrite.Enabled := not MainWnd.WriteWaitTimer.IsThisHost(WriteForm.board.host);
+  TargetThread := nil;
+  TargetBoard := nil;
 end;
 
 
@@ -1282,6 +1302,83 @@ end;
 procedure TJLWritePanel.WaitTimerStop;
 begin
   MainWnd.WriteWaitTimer.Stop;
+end;
+
+procedure TJLWritePanel.WaitTimerRestart(const ErrorMsg: String);
+
+  function GetNumber(const Msg: string): Cardinal;
+  var
+    i: integer;
+    endpos: integer;
+    substr: string;
+  begin
+    endpos := Pos(Msg, ErrorMsg);
+    for i := endpos - 1 downto 1 do
+      if (ErrorMsg[i] in ['0'..'9']) then
+        substr := ErrorMsg[i] + substr
+      else
+        break;
+    result := StrToIntDef(substr, 0);
+  end;
+
+  function GetNewWaitTime: Cardinal;
+  begin
+    result := GetNumber(' sec ÇΩÇΩÇ»Ç¢Ç∆èëÇØÇ‹ÇπÇÒÅB');
+  end;
+
+  function GetElapsedTime: Cardinal;
+  begin
+    result := GetNumber(' sec ÇµÇ©ÇΩÇ¡ÇƒÇ»Ç¢');
+  end;
+
+var
+  DomainName: String;
+  HostName: String;
+  text: String;
+  i, j: Integer;
+  WaitTime, newWaitTime, Remain: Cardinal;
+begin
+  if not Assigned(TargetThread) then
+  begin
+    WaitTimerStop;
+    exit;
+  end;
+  DomainName := TargetThread.GetHost;
+  HostName := LeftStr(DomainName, AnsiPos('.', DomainName) - 1);
+  WaitTime := 0;
+  j := -1;
+
+  for i := 0 to Config.waitTimeList.Count - 1 do
+    if 0 < AnsiPos(hostname, Config.waitTimeList.Strings[i]) then begin
+      j := i;
+      text := Config.waitTimeList.Strings[i];
+      WaitTime := StrToIntDef(RightStr(text, Length(text) - AnsiPos('=', text)), 0);
+      break;
+    end;
+
+  newWaitTime := GetNewWaitTime;
+  if newWaitTime = 0 then
+    exit;
+  if (newWaitTime <> WaitTime) then
+  begin
+    if j >= 0 then
+    begin
+      Config.waitTimeList.Delete(j);
+      Config.waitTimeList.Insert(j, DomainName + '=' + IntToStr(newWaitTime));
+    end else
+      Config.waitTimeList.Add(DomainName + '=' + IntToStr(newWaitTime));
+    Config.waitTimeList.SaveToFile(Config.BasePath + WRITEWAIT_FILE);
+  end;
+
+  Remain := GetElapsedTime;
+  if Remain > 0 then
+    Remain := newWaitTime - Remain
+  else
+    exit;
+  MainWnd.WriteWaitTimer.Start(DomainName, Remain * 1000);
+  Log('èëÇ´çûÇ›ë“ã@ - ' + DomainName);
+  MainWnd.TabControl.Refresh;
+  WriteButton.Caption := WRITE_BUTTON_CAPTION_B + IntToStr(Remain) + WRITE_BUTTON_CAPTION_C;
 end;
 
 

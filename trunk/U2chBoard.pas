@@ -50,7 +50,6 @@ type
     //ngthreadlist: TStringList;  //aiai NGThread
     FNeedConvert: Boolean;  //aiai
     FHideHistoricalLog: Boolean;  //aiai
-    FShowThreadAbone: Boolean;  //aiai
     function GetItems(index: integer): TThreadItem;
     procedure SetItems(index: integer; value: TThreadItem);
     procedure MergeCache;
@@ -133,7 +132,6 @@ type
     property settingText: TStringList read settingTXT write settingTXT;
     property NeedConvert: Boolean read FNeedConvert; //aiai
     property HideHistoricalLog: Boolean read FHideHistoricalLog write FHideHistoricalLog;  //aiai
-    property ShowThreadAbone: Boolean read FShowThreadAbone write FShowThreadAbone;  //aiai
   end;
 
   (*-------------------------------------------------------*)
@@ -536,11 +534,11 @@ var
     begin
       threadABoneNext.Add(threadABoneList.Strings[idx]); //ヒットしたスレを加える
       //threadABoneList.Delete(idx);  //ヒットしたスレはリストから削除
-      if not FShowThreadAbone then
-      begin
-        Inc(threadABoneCount);  //スレッドあぼ～んカウンタをインクリメント
-        Exit;
-      end else
+      //if not FShowThreadAbone then
+      //begin
+      //  Inc(threadABoneCount);  //スレッドあぼ～んカウンタをインクリメント
+      //  Exit;
+      //end else
         abone := True;
     end;
     //改造△ 追加 (スレッドあぼ～ん)
@@ -554,11 +552,11 @@ var
       begin
         if 0 < AnsiPos(Main.NGThreadItems.Strings[idx], subject) then
         begin
-          if not FShowThreadAbone then
-          begin
-            Inc(threadABoneCount);  //スレッドあぼ～んカウンタをインクリメント
-            exit;
-          end else
+          //if not FShowThreadAbone then
+          //begin
+          //  Inc(threadABoneCount);  //スレッドあぼ～んカウンタをインクリメント
+          //  exit;
+          //end else
             abone := True;
         end;
       end;

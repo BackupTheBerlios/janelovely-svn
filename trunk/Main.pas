@@ -826,10 +826,15 @@ type
     MenuListHideHistoricalLog: TMenuItem;
     PopupTreeHideHistoricalLog: TMenuItem;
     actHideHistoricalLog: TAction;
-    PopupTreeShowThreadAbone: TMenuItem;
-    actShowThreadAbone: TAction;
     N96: TMenuItem;
     actThreadAbone2: TAction;
+    MenuListThreadAboneSetting: TMenuItem;
+    MenuListAboneTranseparency: TMenuItem;
+    MenuListAboneIgnore: TMenuItem;
+    MenuListAboneOnly: TMenuItem;
+    actThreadAboneTranseparency: TAction;
+    actThreadAboneIgnore: TAction;
+    actThreadAboneOnly: TAction;
     {/aiai}
     procedure FormCreate(Sender: TObject);
     procedure MenuToolsOptionsClick(Sender: TObject);
@@ -1326,8 +1331,8 @@ type
       var Key: Char);
     procedure MenuListHideHistoricalLogClick(Sender: TObject);
     procedure actHideHistoricalLogExecute(Sender: TObject);
-    procedure actShowThreadAboneExecute(Sender: TObject);
     procedure actThreadAbone2Execute(Sender: TObject);
+    procedure actThreadAboneShowExecute(Sender: TObject);
     {/aiai}
   private
   { Private 宣言 }
@@ -1416,6 +1421,8 @@ type
     //StatusBar2: TJLStatusBar;
 
     CanAutoCheckNewRes: Boolean; //更新のあるスレを選択するだけでリロード可能してよいかどうか
+
+    LocalThreadAboneSetting: Byte;
     {/aiai}
 
     procedure SaveWindowPos;
@@ -1881,7 +1888,79 @@ var
 
 (*=======================================================*)
 (*=======================================================*)
+(*=======================================================*)
+(*=======================================================*)
+(*=======================================================*)
+(*=======================================================*)
+
+(* 準備中。 *)
+function OnStartup: Boolean;
+var
+  wnd: HWND;
+  i: integer;
+  cd: TCopyDataStruct;
+  s: string;
+  active: boolean;
+begin
+  sharedResourceName := StringReplace(HogeExtractFileDir(Application.ExeName),
+                                      '\', '-', [rfReplaceAll]);
+  initialURL := TStringList.Create;
+  active := true;
+  if 0 < System.ParamCount then
+    for i := 1 to System.ParamCount do
+    begin
+      if MAX_URL_LEN < length(System.ParamStr(i)) then
+        continue;
+      if not StartWith('-', System.ParamStr(i), 1) then
+        initialURL.Add(System.ParamStr(i));
+      if CompareStr('-h', System.ParamStr(i)) = 0 then
+        active := false
+      else
+        s := s + System.ParamStr(i) + #13;
+    end;
+  if IsPrimaryInstance then
+    result := true
+  else begin
+    initialURL.Free;
+    result := false;
+    wnd := FindWindow('TMainWnd', nil);
+    if wnd = 0 then
+      exit;
+    if 0 < System.ParamCount then
+    begin
+      cd.cbData := Length(s) + 1;
+      cd.lpData := StrAlloc(cd.cbData);
+      try
+        StrCopy(cd.lpData, PChar(s));
+        SendMessage(wnd, WM_COPYDATA, WPARAM(wnd), LPARAM(@cd));
+      finally
+        StrDispose(cd.lpData);
+      end;
+    end;
+    if active then
+      SetForegroundWindow(wnd);
+  end;
+end;
+
+(*=======================================================*)
+(*=======================================================*)
+
+
 //※[457] 簡易ベンチ
+
+////////////////////////////////////////////////////////////////////////////////
+//
+//InitBench(): benchfreqを初期化、Bench(),Bench2(),Bench3()を使う前に
+//             一度実行する必要がある
+//Bench():     benchstartに開始時間を記録し、benchendに終了時間を記録し、
+//             経過時間をdaemonにとばす
+//Bench2():    benchstartに開始時間を記録し、benchendに終了時間を記録し、
+//             経過時間をIntegerで返す
+//Bench3():    enchstart3に開始時間を記録し、benchend3に終了時間を記録し、
+//             経過時間をstringで返す
+//
+// commented by aiai
+
 {$IFDEF BENCH}
 procedure InitBench;
 begin
@@ -1925,12 +2004,6 @@ end;
 {$ENDIF}
 {$ENDIF}
 
-
-procedure WriteStatus(const str: string);
-begin
-  MainWnd.WriteStatus(str);
-end;
-
 function MouseInPane(control: TControl): boolean;
 var
   point: TPoint;
@@ -1940,22 +2013,34 @@ begin
             (0 <= point.Y) and (point.Y < control.Height);
 end;
 
-procedure TMainWnd.OpenByBrowser(const URI: string);
+function IsPrimaryInstance: Boolean;
 begin
-  if Config.extBrowserSpecified then
+  HogeMutex := THogeMutex.Create(false, PChar(sharedResourceName));
+  if HogeMutex.lastError <> 0 then
   begin
-    ShellExecute(Handle, 'open', PChar(Config.extBrowserPath), PChar(URI), nil, SW_SHOW);
+    HogeMutex.Free;
+    result := false;
   end
-  else begin
-    ShellExecute(Handle, 'open', PChar(URI), nil, nil, SW_SHOW);
-  end;
+  else
+    result := true;
 end;
 
-procedure TMainWnd.WriteStatus(const s: string);
+////////////////////////////////////////////////////////////////////////////////
+//
+//WriteStatus(): ステータスバーの左から2番目のブロックにstrを表示する
+//
+//
+// commented by aiai
+
+procedure WriteStatus(const str: string);
 begin
-  StatusBar.Panels.Items[1].Text := s;
-  //StatusBar2.Text[1] := s;   //aiai
+  MainWnd.WriteStatus(str);
 end;
+
+////////////////////////////////////////////////////////////////////////////////
+//
+// トレース画面表示関連
+//
 
 procedure LogBeginQuery;
 begin
@@ -2001,113 +2086,6 @@ begin
   Log(str);
   MainWnd.StatusBar.Panels.Items[2].Text := str;
   //MainWnd.StatusBar2.Text[2] := str;    //aiai
-end;
-
-function IsPrimaryInstance: Boolean;
-begin
-  HogeMutex := THogeMutex.Create(false, PChar(sharedResourceName));
-  if HogeMutex.lastError <> 0 then
-  begin
-    HogeMutex.Free;
-    result := false;
-  end
-  else
-    result := true;
-end;
-
-(* 確認ダイアログ デフォルトで「キャンセル」を選択 (aiai) *)
-function TMainwnd.MyMessageDlg(messageLabel: String): Word;
-var
-  dlg: TForm;
-begin
-  MessageBeep(MB_ICONEXCLAMATION);    //SystemExclamation
-  dlg := CreateMessageDialog(#13#10 + messageLabel, mtConfirmation, mbOKCancel);
-  dlg.ActiveControl := TWinControl(dlg.FindComponent('Cancel'));
-  result := dlg.ShowModal;
-  dlg.Free;
-end;
-
-(* 準備中。 *)
-function OnStartup: Boolean;
-var
-  //mutex: THogeMutex;
-  //resource: string;
-  //shared: THogeSharedMem;
-  wnd: HWND;
-  i: integer;
-  //p: Pointer;
-  //pc: PChar;
-  cd: TCopyDataStruct;
-  s: string;
-  active: boolean;
-begin
-  sharedResourceName := StringReplace(HogeExtractFileDir(Application.ExeName),
-                                      '\', '-', [rfReplaceAll]);
-  initialURL := TStringList.Create;
-  active := true;
-  if 0 < System.ParamCount then
-  for i := 1 to System.ParamCount do
-  begin
-    if MAX_URL_LEN < length(System.ParamStr(i)) then
-      continue;
-    if not StartWith('-', System.ParamStr(i), 1) then
-      initialURL.Add(System.ParamStr(i));
-    if CompareStr('-h', System.ParamStr(i)) = 0 then
-      active := false
-    else
-      s := s + System.ParamStr(i) + #13;
-  end;
-  if IsPrimaryInstance then
-    result := true
-  else begin
-    initialURL.Free;
-    result := false;
-    wnd := FindWindow('TMainWnd', nil);
-    if wnd = 0 then
-      exit;
-    if 0 < System.ParamCount then
-    begin
-      cd.cbData := Length(s) + 1;
-      cd.lpData := StrAlloc(cd.cbData);
-      try
-        StrCopy(cd.lpData, PChar(s));
-        SendMessage(wnd, WM_COPYDATA, WPARAM(wnd), LPARAM(@cd));
-      finally
-        StrDispose(cd.lpData);
-      end;
-    end;
-    if active then
-      SetForegroundWindow(wnd);
-  end;
-
-      {resource := sharedResourceName + CLI_SUFFIX;
-      mutex := THogeMutex.Create(false, PChar(resource));
-      if (mutex.handle <> 0) and
-         (mutex.Wait = WAIT_OBJECT_0) then
-      begin
-        shared := nil;
-        try
-          resource := sharedResourceName + WND_SUFFIX;
-          shared := THogeSharedMem.Create(resource, SizeOf(HWND));
-          p := shared.Memory;
-          Move(p^, wnd, Sizeof(HWND));
-          shared.Free;
-          shared := nil;
-          resource := sharedResourceName + URL_SUFFIX;
-          shared := THogeSharedMem.Create(resource, len + 1);
-          p := shared.Memory;
-          pc := PChar(initialURL);
-          Move(pc^, p^, len + 1);
-          SendMessage(wnd, WM_USER, CMD_OPEN, 0);
-        except
-        end;
-        if shared <> nil then
-          shared.Free;
-        mutex.Release;
-      end;
-      mutex.Free;
-    end;
-  end;}
 end;
 
 procedure Log(const str: string);
@@ -2163,8 +2141,48 @@ begin
   daemon := TDaemon.Create;
 end;
 (*=======================================================*)
+(*=======================================================*)
+(*=======================================================*)
+(*=======================================================*)
+(*=======================================================*)
+(*=======================================================*)
+(*=======================================================*)
+(*=======================================================*)
+(*=======================================================*)
+(*=======================================================*)
+(*=======================================================*)
+(*=======================================================*)
+(*=======================================================*)
 var
   boardNameOfCaption: string;
+
+procedure TMainWnd.OpenByBrowser(const URI: string);
+begin
+  if Config.extBrowserSpecified then
+  begin
+    ShellExecute(Handle, 'open', PChar(Config.extBrowserPath), PChar(URI), nil, SW_SHOW);
+  end
+  else begin
+    ShellExecute(Handle, 'open', PChar(URI), nil, nil, SW_SHOW);
+  end;
+end;
+
+procedure TMainWnd.WriteStatus(const s: string);
+begin
+  StatusBar.Panels.Items[1].Text := s;
+end;
+
+(* 確認ダイアログ デフォルトで「キャンセル」を選択 (aiai) *)
+function TMainwnd.MyMessageDlg(messageLabel: String): Word;
+var
+  dlg: TForm;
+begin
+  MessageBeep(MB_ICONEXCLAMATION);    //SystemExclamation
+  dlg := CreateMessageDialog(#13#10 + messageLabel, mtConfirmation, mbOKCancel);
+  dlg.ActiveControl := TWinControl(dlg.FindComponent('Cancel'));
+  result := dlg.ShowModal;
+  dlg.Free;
+end;
 
 procedure TMainWnd.SetCaption(const BoardName: string);
 var
@@ -3007,6 +3025,15 @@ begin
 
   (* ビューア設定 *)
   LoadSkin(Config.SkinPath);
+
+  {aiai} //スレッドあぼ～ん表示レベルの初期設定
+  LocalThreadAboneSetting := 0;
+  case LocalThreadAboneSetting of
+    0: actThreadAboneTranseparency.Checked := True;
+    1: actThreadAboneIgnore.Checked := True;
+    2: actThreadAboneOnly.Checked := True;
+  end;
+  {/aiai}
 
   NGItems[NG_ITEM_NAME] := TNGStringList.Create;
   NGItems[NG_ITEM_MAIL] := TNGStringList.Create;
@@ -6424,7 +6451,7 @@ begin
     self.actListCopyTITLE.Enabled := true; //aiai
     self.actListCopyTU.Enabled := true;
     self.actThreadAbone.Enabled := not (CurrentBoard is TFunctionalBoard); //aiai
-    self.actThreadAbone2.Visible := not (CurrentBoard is TFunctionalBoard) and CurrentBoard.ShowThreadAbone;  //aiai
+    //self.actThreadAbone2.Visible := not (CurrentBoard is TFunctionalBoard) and CurrentBoard.ShowThreadAbone;  //aiai
     currentBoard.selDatName := TThreadItem(Item.Data).datName;
   end
   else begin
@@ -7652,6 +7679,33 @@ begin
         Inc(index);
     ListView.Items.Count := ListView.List.Count;
   end;
+
+  //あぼ～ん非表示
+  case LocalThreadAboneSetting of
+
+    0: begin //透明
+      index := 0;
+      while index < ListView.List.Count do
+        if TThreadItem(ListView.List.Items[index]).IsThisAbone then
+          ListView.List.Delete(index)
+        else
+          Inc(index);
+      ListView.Items.Count := ListView.List.Count;
+    end;
+
+    1:;    //さぼり
+
+    2: begin //はきだめ
+      index := 0;
+      while index < ListView.List.Count do
+        if not TThreadItem(ListView.List.Items[index]).IsThisAbone then
+          ListView.List.Delete(index)
+        else
+          Inc(index);
+      ListView.Items.Count := ListView.List.Count;
+    end;
+
+  end;
   {/aiai}
 
   currentSortColumn := 1;
@@ -7779,7 +7833,7 @@ begin
   //viewItem := GetActiveView;
   //if (viewItem=nil) or(viewItem.thread=nil) then
   //  Exit;
-  if PopupTextMenu.PopupComponent is THogeTextView then
+  if UseSelection and (PopupTextMenu.PopupComponent is THogeTextView) then
     viewItem := GetViewOf(PopupTextMenu.PopupComponent)
   else
     viewItem := GetActiveView;
@@ -9456,8 +9510,8 @@ begin
     actRefreshIdxList.Enabled := b;
     actHideHistoricalLog.Enabled := b;
     actHideHistoricalLog.Checked := b and board.HideHistoricalLog;
-    actShowThreadAbone.Enabled := b;
-    actShowThreadAbone.Checked := b and board.ShowThreadAbone;
+    //actShowThreadAbone.Enabled := b;
+    ///actShowThreadAbone.Checked := b and board.ShowThreadAbone;
     {/aiai}
     PopupTreeDelBoard.Enabled := not (board is TFunctionalBoard) and not board.Refered;
     with board do
@@ -9487,8 +9541,8 @@ begin
     actRefreshIdxList.Enabled := false;
     actHideHistoricalLog.Enabled := false;
     actHideHistoricalLog.Checked := false;
-    actShowThreadAbone.Enabled := false;
-    actShowThreadAbone.Checked := false;
+    //actShowThreadAbone.Enabled := false;
+    //actShowThreadAbone.Checked := false;
     {/aiai}
   end;
 end;
@@ -15337,35 +15391,41 @@ begin
 end;
 
 (* あぼ～んを表示 *) //aiai
-procedure TMainWnd.actShowThreadAboneExecute(Sender: TObject);
-var
-  board: TBoard;
-  node: TTreeNode;
+procedure TMainWnd.actThreadAboneShowExecute(Sender: TObject);
+//var
+//  board: TBoard;
+//  node: TTreeNode;
 begin
-  if PopupTreeClose.Visible or (Sender = MenuListHideHistoricalLog) then
-    board := TBoard(ListTabControl.Tabs.Objects[tabRightClickedIndex])
-  else begin
-    node := TreeView.Selected;
-    if node = nil then
-      exit;
-    if TObject(node.Data) is TBoard then
-      board := TBoard(node.Data)
-    else
-      board := nil;
-  end;
+  //if PopupTreeClose.Visible or (Sender = MenuListHideHistoricalLog) then
+  //  board := TBoard(ListTabControl.Tabs.Objects[tabRightClickedIndex])
+  //else begin
+  //  node := TreeView.Selected;
+  //  if node = nil then
+  //    exit;
+  //  if TObject(node.Data) is TBoard then
+  //    board := TBoard(node.Data)
+  //  else
+  //    board := nil;
+  //end;
+  //
+  //if (board = nil) or (board is TFunctionalBoard) then
+  //  exit;
+  //
+  //board.ShowThreadAbone := not board.ShowThreadAbone;
 
-  if (board = nil) or (board is TFunctionalBoard) then
+  if TAction(Sender).Checked then
     exit;
 
-  board.ShowThreadAbone := not board.ShowThreadAbone;
+  TAction(Sender).Checked := True;
+  LocalThreadAboneSetting := TAction(Sender).Tag;
 
-  if (currentBoard <> nil) and (board = currentBoard) then
+  if (currentBoard <> nil) then
   begin
     UILock := true;
-    board.Load(False);
+    //board.Load(False);
     UpdateListView;
     UpdateTabTexts;
-    TabControl.Refresh;
+    //TabControl.Refresh;
     UILock := false;
   end;
 end;

@@ -1504,6 +1504,7 @@ end;
 
 procedure THogeTextView.SetTop(line: integer);
 begin
+  SetSelecting(False);
   Inc(FLogicalCaret.Y, line - FLogicalTopLine);
   FLogicalTopLine := line;
   SetLogicalCaret(FCaretSavedX, FLogicalCaret.Y, hscDONTSAVEX);

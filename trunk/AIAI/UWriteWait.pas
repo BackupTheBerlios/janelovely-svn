@@ -10,6 +10,9 @@ unit UWriteWait;
 //procedure Stop;
 //  カウントダウンを止める
 //
+//property Remainder;
+//  残り時間(秒)
+//
 //property OnNotify: TWriteWaitEvent
 //  カウントダウンの進歩イベント　
 //property OnEnd: TNotifyEven
@@ -54,8 +57,6 @@ type
     procedure Start(const ADomainName: String; ATimeForWait: Cardinal);
     procedure Stop;
 
-    //property HostName: String read FHostName;
-    //property TimeForWait: Cardinal read FTimeForWait;
     property Remainder: Integer read GetRemainder;
     property OnNotify: TWriteWaitEvent read FNotify write FNotify;
     property OnEnd: TNotifyEvent read FEnd write FEnd;
@@ -103,6 +104,7 @@ begin
     FDomainName := '';
     FTimeForWait := 0;
     FWaitCount := 0;
+    DoEnd;
   end else
   begin
     FDomainName := ADomainName;

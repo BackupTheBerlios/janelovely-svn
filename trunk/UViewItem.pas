@@ -44,6 +44,7 @@ type
     FHref: string;
     EnableFontTag: boolean;
     FDDOffsetLeft: Integer;
+    function GetRange(var ANK: string): Boolean; override;
     function ProcTag: boolean; override;
     function ProcEntity: boolean; override;
     function ProcBlank: boolean; override;
@@ -51,8 +52,8 @@ type
     function ProcID: Boolean; override;  //aiai
     procedure BeginAnchor; virtual;
     procedure EndAnchor; virtual;
-    procedure AppendResNumList(num: Integer); override;
-    procedure AppendResNumList(num, num2: Integer); override;
+    procedure AppendResNumList(num: Integer); overload; virtual;
+    procedure AppendResNumList(num, num2: Integer); overload; virtual;
   public
     DD_OFFSET_LEFT: Integer;  //beginner
     LI_OFFSET_LEFT: Integer;  //beginner
@@ -75,6 +76,9 @@ type
   end;
 
   TDat2PopupView = class(TDat2View)
+  protected
+    procedure AppendResNumList(num: Integer); override;
+    procedure AppendResNumList(num, num2: Integer); override;
   public
     function ProcBlank: boolean; override;
     procedure WriteChar(c: Char); override;
@@ -82,6 +86,9 @@ type
   end;
 
   TDat2ViewForExtraction = class(TDat2View)
+  protected
+    procedure AppendResNumList(num: Integer); override;
+    procedure AppendResNumList(num, num2: Integer); override;
   public
     Base:string;
     BBSType: TBBSType;
@@ -98,6 +105,8 @@ type
     procedure ProcHTML; override;
     procedure BeginAnchor; override;
     procedure EndAnchor; override;
+    procedure AppendResNumList(num: Integer); override;
+    procedure AppendResNumList(num, num2: Integer); override;
   public
     procedure Flush; override;
     procedure WriteID(str: PChar; size: integer); override;  //aiai
@@ -719,6 +728,84 @@ begin
     Flush;
     FBrowser.Append('BE:' + GetBeID(FHref), ATTRIB_ANCHOR_HREF or htvHIDDEN);
     FUser := 0;
+  end;
+end;
+
+function TDat2View.GetRange(var ANK: string): Boolean;
+var
+  s2: string;
+  num, num2, origindex: Integer;
+  flag: Boolean;
+begin
+  if not Config.ojvColordNumber then
+  begin
+    Result := Inherited GetRange(ANK);
+    exit;
+  end;
+
+  origindex := index;
+  ANK := '';
+  s2 := '';
+  flag := false;
+  num := 0;
+  while index < size do
+  begin
+    case (str + index)^ of
+    '0'..'9':
+      begin
+        if flag then
+          s2 := s2 + (str + index)^;
+        ANK := ANK + (str + index)^;
+      end;
+    '-':
+      begin
+        if index <= origindex then
+          break;
+        num := StrToIntDef(ANK, 0);
+        flag := true;
+        ANK := ANK + (str + index)^;
+      end;
+    #$81:
+      begin
+        if (index + 1 < size) and
+           (((str + index+1)^ = #$7c) or
+            ((str + index+1)^ = #$5d))  then
+        begin (* | *)
+          if index <= origindex then
+            break;
+          num := StrToIntDef(ANK, 0);
+          flag := true;
+          ANK := ANK + '-';
+          inc(index);
+        end
+        else
+          break;
+      end;
+    #$82:
+      begin
+        if (index + 1 < size) and ((str + index+1)^ in [#$4f..#$58]) then
+        begin   (* ‘SŠp”Žš *)
+          inc(index);
+          ANK := ANK + Chr(Ord((str + index)^) - $1f);
+          if flag then
+            s2 := s2 + Chr(Ord((str + index)^) - $1f);
+        end
+        else
+          break;
+      end;
+    else break;
+    end;
+    Inc(index);
+  end;
+  result := index > origindex;
+  if length(s2) > 0 then
+  begin
+    num2 := StrToIntDef(s2, 0);
+    AppendResNumList(num, num2);
+  end else if result then
+  begin
+    num := StrToIntDef(ANK, 0);
+    AppendResNumList(num);
   end;
 end;
 
@@ -1461,6 +1548,14 @@ end;
 
 (*=======================================================*)
 
+procedure TDat2PopupView.AppendResNumList(num: Integer);
+begin
+end;
+
+procedure TDat2PopupView.AppendResNumList(num, num2: Integer);
+begin
+end;
+
 function TDat2PopupView.ProcBlank: boolean;
 begin
   Result := False;
@@ -1482,6 +1577,14 @@ begin
 end;
 
 (*=======================================================*)
+
+procedure TDat2ViewForExtraction.AppendResNumList(num: Integer);
+begin
+end;
+
+procedure TDat2ViewForExtraction.AppendResNumList(num, num2: Integer);
+begin
+end;
 
 procedure TDat2ViewForExtraction.WriteAnchor(const Name: string;
                       const HRef: string;
@@ -1531,6 +1634,14 @@ begin
 end;
 
 (*=======================================================*)
+
+procedure TSimpleDat2View.AppendResNumList(num: Integer);
+begin
+end;
+
+procedure TSimpleDat2View.AppendResNumList(num, num2: Integer);
+begin
+end;
 
 procedure TSimpleDat2View.BeginAnchor;
 var

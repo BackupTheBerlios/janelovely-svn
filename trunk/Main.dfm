@@ -3707,6 +3707,24 @@ object MainWnd: TMainWnd
           OnClick = SortMenuClick
         end
       end
+      object MenuListThreadAboneSetting: TMenuItem
+        Caption = #12473#12524#12483#12489#12354#12412#65374#12435#12398#34920#31034#35373#23450
+        object MenuListAboneTranseparency: TMenuItem
+          Action = actThreadAboneTranseparency
+          GroupIndex = 1
+          RadioItem = True
+        end
+        object MenuListAboneIgnore: TMenuItem
+          Action = actThreadAboneIgnore
+          GroupIndex = 1
+          RadioItem = True
+        end
+        object MenuListAboneOnly: TMenuItem
+          Action = actThreadAboneOnly
+          GroupIndex = 1
+          RadioItem = True
+        end
+      end
       object N33: TMenuItem
         Caption = '-'
       end
@@ -5137,13 +5155,29 @@ object MainWnd: TMainWnd
       Caption = #36942#21435#12525#12464#38750#34920#31034
       OnExecute = actHideHistoricalLogExecute
     end
-    object actShowThreadAbone: TAction
-      Caption = #12354#12412#65374#12435#12434#34920#31034
-      OnExecute = actShowThreadAboneExecute
-    end
     object actThreadAbone2: TAction
       Caption = #12473#12524#12483#12489#12354#12412#65374#12435#35299#38500
       OnExecute = actThreadAbone2Execute
+    end
+    object actThreadAboneTranseparency: TAction
+      Category = #12473#12524#12483#12489#12354#12412#65374#12435
+      Caption = #36879#26126
+      GroupIndex = 1
+      OnExecute = actThreadAboneShowExecute
+    end
+    object actThreadAboneIgnore: TAction
+      Tag = 1
+      Category = #12473#12524#12483#12489#12354#12412#65374#12435
+      Caption = #12373#12412#12426
+      GroupIndex = 1
+      OnExecute = actThreadAboneShowExecute
+    end
+    object actThreadAboneOnly: TAction
+      Tag = 2
+      Category = #12473#12524#12483#12489#12354#12412#65374#12435
+      Caption = #12399#12365#12384#12417
+      GroupIndex = 1
+      OnExecute = actThreadAboneShowExecute
     end
   end
   object PopupFavorites: TPopupMenu
@@ -5333,9 +5367,6 @@ object MainWnd: TMainWnd
     end
     object PopupTreeHideHistoricalLog: TMenuItem
       Action = actHideHistoricalLog
-    end
-    object PopupTreeShowThreadAbone: TMenuItem
-      Action = actShowThreadAbone
     end
   end
   object PopupViewMenu: TPopupMenu
