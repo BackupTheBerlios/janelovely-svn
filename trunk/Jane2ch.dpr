@@ -2,7 +2,6 @@ program Jane2ch;
 (* Copyright (c) 2001,2002 Twiddle <hetareprog@hotmail.com> *)
 
 {$R 'sqlite.res' 'sqlite.rc'}
-{$R 'manifest.res' 'manifest.rc'}
 
 uses
   Windows,

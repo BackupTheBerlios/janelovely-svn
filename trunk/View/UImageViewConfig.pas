@@ -885,11 +885,19 @@ begin
     ListView.Items.Clear;
     for spiIdx := 0 to ImageForm.SPIs.Count - 1 do begin
       newItem := ListView.Items.Add;
-        with ImageForm.SPIs.Plugins[spiIdx] do begin
-          newItem.Caption := FileTypes[0];
-          newItem.SubItems.Add(ExtNames[0]);
-          newItem.SubItems.Add(Infomation);
-          newItem.SubItems.Add(FileName);
+        try
+          with ImageForm.SPIs.Plugins[spiIdx] do begin
+            newItem.Caption := FileTypes[0];
+            newItem.SubItems.Add(ExtNames[0]);
+            newItem.SubItems.Add(Infomation);
+            newItem.SubItems.Add(FileName);
+          end;
+        except
+          on e: Exception do begin
+            Log('PreviewSusiePluginPreference: PluginCount '
+              + IntToStr(spiIdx) + ' - ' + e.Message);
+            break;
+          end;
         end;
       end;
   finally
