@@ -3523,6 +3523,7 @@ begin
 
   ExtStream.flush;
   ExtStream.Free;
+  RegExp.Free;
   FStream := nil;
   {$IFNDEF IE}
   FBrowser.SetTop(0);

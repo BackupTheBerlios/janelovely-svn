@@ -16,6 +16,7 @@ object ImageViewCacheListForm: TImageViewCacheListForm
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnHide = FormHide
+  OnResize = FormResize
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 12
@@ -64,9 +65,10 @@ object ImageViewCacheListForm: TImageViewCacheListForm
     ShowHint = True
     TabOrder = 0
     ViewStyle = vsReport
-    OnClick = ListViewCacheClick
+    OnColumnClick = ListViewCacheColumnClick
     OnDblClick = ListViewCacheDblClick
     OnMouseMove = ListViewCacheMouseMove
+    OnSelectItem = ListViewCacheSelectItem
   end
   object PanelPreview: TPanel
     Left = 0
@@ -94,7 +96,7 @@ object ImageViewCacheListForm: TImageViewCacheListForm
       TabOrder = 0
     end
   end
-  object StatusBar: TStatusBar
+  object StatusBar: TJLXPStatusBar
     Left = 0
     Top = 357
     Width = 663
@@ -107,6 +109,16 @@ object ImageViewCacheListForm: TImageViewCacheListForm
         Width = 50
       end>
     SimplePanel = False
+  end
+  object ProgressBar: TProgressBar
+    Left = 432
+    Top = 361
+    Width = 198
+    Height = 13
+    Align = alCustom
+    Min = 0
+    Max = 100
+    TabOrder = 3
   end
   object PopupMenu: TPopupMenu
     OnPopup = PopupMenuPopup

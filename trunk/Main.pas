@@ -3509,6 +3509,7 @@ begin
   for i := Low(TNGItemIdent) to High(TNGItemIdent) do
     NGItems[i].SaveToFile(config.basepath + NG_FILE[i]);
   ExNGList.SaveToFile(Config.BasePath + NG_EX_FILE);
+  ExNGList.FreeItems;
   {/beginner}
   Config.tmpChanged := false;
   oldSkinPath := Config.SkinPath;

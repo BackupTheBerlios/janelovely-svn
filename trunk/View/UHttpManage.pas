@@ -1157,6 +1157,7 @@ begin
   Limit := DateTimeToFileDate(Now - Manager.LifeSpanOfCache);
   CachePath := IncludeTrailingPathDelimiter(Manager.CachePath);
   OnTerminate := EraseRef;
+  FreeOnTerminate := True;
   inherited Create(True);
   Priority := tpIdle;
   Resume;
@@ -1215,8 +1216,7 @@ begin
   else
     Manager.MsgOut(Format('ì*f[fjÉ %dŒÂ‚ÌŠúŒÀØ‚ê·¬¯¼­‚ğ»¸¼Ş®ÔÖ', [Count]));
   {/aiai}
-  if Assigned(Manager) and Assigned(Manager.CacheDeleteThread) then
-//    FreeAndNil(Manager.CacheDeleteThread);
+//  if Assigned(Manager) then
     Manager.CacheDeleteThread := nil;
 end;
 

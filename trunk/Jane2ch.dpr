@@ -4,6 +4,7 @@ program Jane2ch;
 {$R 'sqlite.res' 'sqlite.rc'}
 
 uses
+  MemCheck,
   Windows,
   SysUtils,
   MMSystem,

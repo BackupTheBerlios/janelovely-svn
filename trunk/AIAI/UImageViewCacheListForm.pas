@@ -5,16 +5,33 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   UHttpManage, UImageViewConfig, UImageViewer, ApiBmp, PNGImage, SPIs, SPIbmp,
-  Dialogs, ExtCtrls, StdCtrls, ComCtrls, UAnimatedPaintBox, Menus{, GIFImage};
+  Dialogs, ExtCtrls, StdCtrls, ComCtrls, UAnimatedPaintBox, Menus,
+  JLXPComCtrls{, GIFImage};
 
 type
+  TLoadCacheEvent = procedure (Item: TCacheItem) of Object;
+
+  TLoadCacheThread = class;
+
+  TCacheRecord = record
+    Name: String;
+    Date: Integer;
+    URL: String;
+    Status: String;
+    LastModified: String;
+    Size: Integer;
+    ContentType: String;
+    ResponseCode: Integer;
+    ResponseText: String;
+  end;
+
   TImageViewCacheListForm = class(TForm)
     ListViewCache: TListView;
     Memo: TMemo;
     Splitter2: TSplitter;
     PanelPreview: TPanel;
     Splitter1: TSplitter;
-    StatusBar: TStatusBar;
+    StatusBar: TJLXPStatusBar;
     PopupMenu: TPopupMenu;
     MenuItemOpen: TMenuItem;
     N1: TMenuItem;
@@ -25,8 +42,8 @@ type
     N2: TMenuItem;
     MenuItemRelease: TMenuItem;
     MenuItemSelectAll: TMenuItem;
+    ProgressBar: TProgressBar;
     procedure FormShow(Sender: TObject);
-    procedure ListViewCacheClick(Sender: TObject);
     procedure FormHide(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -42,21 +59,46 @@ type
     procedure MenuItemSelectAllClick(Sender: TObject);
     procedure ListViewCacheMouseMove(Sender: TObject; Shift: TShiftState;
       X, Y: Integer);
+    procedure ListViewCacheColumnClick(Sender: TObject;
+      Column: TListColumn);
+    procedure ListViewCacheSelectItem(Sender: TObject; Item: TListItem;
+      Selected: Boolean);
+    procedure FormResize(Sender: TObject);
   private
     { Private 宣言 }
-    CacheList: TList;
     PaintBox: TAnimatedPaintBox;
     OwnBitmap: TBitmap;
     HideOnApplicationMinimize: Boolean;
     FIndex: integer;
     FItem: TListItem;
+    LoadCacheThread: TLoadCacheThread;
+    AlphaColumnSort: array[0..4] of boolean;  //昇順か否か
     procedure MakePreView(URL: String);
     procedure CreateList;
+    procedure LoadCacheThreadTerminate(Sender: TObject);
   public
     { Public 宣言 }
     procedure MainWndOnShow;
     procedure MainWndOnHide;
   end;
+
+
+  { キャッシュをLoadして一覧をつくるスレッド }
+
+  TLoadCacheThread = class(TThread)
+  private
+    CachePath: String;
+    CacheItem: TCacheRecord;
+    FileCount: Cardinal;
+    procedure SynchSetProgBar;
+    procedure Synch;
+    function FillCacheItem: Boolean;
+  protected
+    procedure Execute; override;
+  public
+    constructor Create(ACachePath: String);
+  end;
+
 
 var
   ImageViewCacheListForm: TImageViewCacheListForm;
@@ -73,28 +115,23 @@ uses
 (* 初期化 *)
 procedure TImageViewCacheListForm.FormCreate(Sender: TObject);
 begin
-  CacheList := TList.Create;
-
   PaintBox := TAnimatedPaintBox.Create(PanelPreView);
   PaintBox.Parent := PanelPreView;
   PaintBox.Align := alClient;
   PaintBox.ShrinkType := stHighQuality;//stHighSpeed;
   PaintBox.Enabled := False;
 
+  PanelPreview.DoubleBuffered := True;
+
   FIndex := -1;
   FItem := nil;
+  LoadCacheThread := nil;
   HideOnApplicationMinimize := false;
 end;
 
 (* 破棄 *)
 procedure TImageViewCacheListForm.FormDestroy(Sender: TObject);
-var
-  i: integer;
 begin
-  for i := 0 to CacheList.Count - 1 do
-    TCacheItem(CacheList.Items[i]).Free;
-
-  CacheList.Free;
   PaintBox.Free;
 end;
 
@@ -129,8 +166,8 @@ procedure TImageViewCacheListForm.FormShow(Sender: TObject);
   end;
 
 begin
-  if HideOnApplicationMinimize then
-    exit;
+  //if HideOnApplicationMinimize then
+  //  exit;
 
   OwnBitmap := TBitmap.Create;
   LoadwindowPos;
@@ -143,16 +180,26 @@ procedure TImageViewCacheListForm.FormHide(Sender: TObject);
 var
   i: integer;
 begin
-  if HideOnApplicationMinimize then
-    exit;
+  //if HideOnApplicationMinimize then
+  // exit;
+
+  if Assigned(LoadCacheThread) then
+  begin
+    LoadCacheThread.Suspend;
+    LoadCacheThread.FreeOnTerminate := False;
+    LoadCacheThread.OnTerminate := nil;
+    LoadCacheThread.Terminate;
+    LoadCacheThread.Resume;
+    LoadCacheThread.WaitFor;
+    FreeAndNil(LoadCacheThread);
+  end;
 
   OwnBitmap.Free;
   PaintBox.Bitmap := nil;
 
-  for i := 0 to CacheList.Count - 1 do
-    TCacheItem(CacheList.Items[i]).Free;
+  for i := 0 to ListViewCache.Items.Count - 1 do
+    TCacheItem(ListViewCache.Items.Item[i].Data).Free;
 
-  CacheList.Clear;
   ListViewCache.Clear;
 
   ImageViewConfig.CacheListRect
@@ -172,17 +219,10 @@ begin
   ImageViewConfig.CacheListSplit2 := PanelPreView.ClientWidth - Memo.Width;
 end;
 
-(* リストをクリック *)
-procedure TImageViewCacheListForm.ListViewCacheClick(Sender: TObject);
-var
-  item: TListItem;
-  index: integer;
+(* リストを選択 *)
+procedure TImageViewCacheListForm.ListViewCacheSelectItem(Sender: TObject;
+  Item: TListItem; Selected: Boolean);
 begin
-  if ListViewCache.SelCount > 1 then
-    item := ListViewCache.ItemFocused
-  else
-    item := ListViewCache.Selected;
-
   if item = nil then begin
     Memo.Clear;
     PaintBox.Bitmap := nil;
@@ -192,8 +232,7 @@ begin
   if item = FItem then
     exit;
   FItem := item;
-  index := item.Index;
-  With TCacheItem(CacheList.Items[index]) do
+  With TCacheItem(item.Data) do
   begin
     Memo.Clear;
     Memo.Lines.Add('URL: ' + URL);
@@ -211,7 +250,6 @@ end;
 (* リストをダブルクリック *)
 procedure TImageViewCacheListForm.ListViewCacheDblClick(Sender: TObject);
 var
-  index: integer;
   item: TListItem;
 begin
   if ListViewCache.SelCount > 1 then
@@ -225,10 +263,8 @@ begin
     exit;
   end;
 
-  index := item.Index;
-
   (* ビューアで開く *)
-  ImageForm.GetImage(TCacheItem(CacheList.Items[index]).URL);
+  ImageForm.GetImage(TCacheItem(item.Data).URL);
 end;
 
 (* マウスオーバーで表示 *)
@@ -236,7 +272,6 @@ procedure TImageViewCacheListForm.ListViewCacheMouseMove(Sender: TObject;
   Shift: TShiftState; X, Y: Integer);
 var
   item: TListItem;
-  index: integer;
 begin
   if ListViewCache.SelCount > 0 then
     exit;
@@ -250,8 +285,7 @@ begin
   if item = FItem then
     exit;
   FItem := item;
-  index := FItem.Index;
-  With TCacheItem(CacheList.Items[index]) do
+  With TCacheItem(item.Data) do
   begin
     Memo.Clear;
     Memo.Lines.Add('URL: ' + URL);
@@ -333,12 +367,25 @@ begin
       HttpManager.DeleteCache(S);
     NextItem := ListViewCache.GetNextItem(item, sdBelow, [isSelected]);
     if NextItem = item then
-      break
-    else
+    begin
+      TCacheItem(item.Data).Free;
+      ListViewCache.Items.Delete(item.Index);
+      break;
+    end else
+    begin
+      TCacheItem(item.Data).Free;
+      ListViewCache.Items.Delete(item.Index);
       item := NextItem;
+    end;
   end;
+  ListViewCache.DoubleBuffered := True;
+  ListViewCache.Repaint;
+  ListViewCache.DoubleBuffered := False;
   FIndex := -1;
-  CreateList;
+  ImageViewCacheListForm.StatusBar.Panels.Items[0].Text
+    := 'ファイル数: '
+    + IntToStr(ImageViewCacheListForm.ListViewCache.Items.Count);
+  //CreateList;
 end;
 
 (* ブラクラ登録 *)
@@ -354,17 +401,28 @@ begin
     S := item.Caption;
     if (item.SubItems[2] = 'BROCRA') then begin
       if HttpManager.CacheExists(S) then
+      begin
         HttpManager.DeleteCache(S);
+        TCacheItem(item.Data).Free;
+        ListViewCache.Items.Delete(item.Index);
+      end;
     end else
+    begin
       HttpManager.RegisterBrowserCrasher(S);
+      item.SubItems[2] := 'BROCRA';
+    end;
     NextItem := ListViewCache.GetNextItem(item, sdBelow, [isSelected]);
     if NextItem = item then
       break
     else
       item := NextItem;
   end;
+  PaintBox.Bitmap := nil;
   FIndex := -1;
-  CreateList;
+  ListViewCache.DoubleBuffered := True;
+  ListViewCache.Repaint;
+  ListViewCache.DoubleBuffered := False;
+  //CreateList;
 end;
 
 (* 選択解除 *)
@@ -397,38 +455,8 @@ begin
   HideOnApplicationMinimize := False;
 end;
 
-(* リストを生成 *)
-procedure TImageViewCacheListForm.CreateList;
-var
-  i: integer;
-  newItem: TListItem;
-begin
-  for i := 0 to CacheList.Count - 1 do
-   TCacheItem(CacheList.Items[i]).Free;
-
-  CacheList.Clear;
-
-  HttpManager.GetCacheFileList(CacheList);
-
-  for i := 0 to CacheList.Count - 1 do
-  begin
-    HttpManager.FillCacheItem(TCacheItem(CacheList.Items[i]));
-  end;
-
-  StatusBar.Panels.Items[0].Text := 'ファイル数: ' + IntToStr(CacheList.Count);
-
-  ListViewCache.Clear;
-  for i := 0 to CacheList.Count - 1 do
-  begin
-    newItem := ListViewCache.Items.Add;
-    newItem.Caption := TCacheItem(CacheList.Items[i]).URL;
-    newItem.SubItems.Add(DateTimeToStr(FileDateToDateTime(TCacheItem(CacheList.Items[i]).Date)));
-    newItem.SubItems.Add(TCacheItem(CacheList.Items[i]).ContentType);
-    newItem.SubItems.Add(TCacheItem(CacheList.Items[i]).Status);
-    newItem.SubItems.Add(TCacheItem(CacheList.Items[i]).Name);
-  end;
-end;
-
+const
+  PngHeader: Array[0..7] of Char = (#137, 'P', 'N', 'G', #13, #10, #26, #10);
 
 (* PaintBoxに画像を表示 *)
 procedure TImageViewCacheListForm.MakePreView(URL: String);
@@ -460,9 +488,7 @@ begin
           or (StrLComp(ImageHeaderPointer, #$FF#$D8#$FF#$E1, 4) = 0) then
         ImageConv := TApiBitmap.Create
       (* pngの展開にPNGImageを使う (aiai) *)
-      else if (StrLComp(ImageHeaderPointer,
-              #$89#$50#$4E#$47#$0D#$0A#$1A#$0A#$00#$00#$00#$0D#$49#$48#$44#$52,
-                      16) = 0) then
+      else if (StrLComp(ImageHeaderPointer, PngHeader, 8) = 0) then
         ImageConv := TPNGObject.Create
       else
         ImageConv := TSPIBitmap.Create;
@@ -481,6 +507,212 @@ begin
 
   CacheStream.Free;
   Header.Free;
+end;
+
+
+function CustomSortProc(Item1, Item2: TListItem; ParamSort: integer): integer;
+  stdcall;
+var
+ Value: integer;
+ Index: integer;
+begin
+ Index:=Abs(ParamSort);  //マイナスをとる
+
+ case Index of
+  1:
+    //左端のカラム用
+    Value := lstrcmp(PChar(TListItem(Item1).Caption),
+                     PChar(TListItem(Item2).Caption));
+  else
+    //それ以外のカラム用
+    Value := lstrcmp(PChar(TListItem(Item1).SubItems[Index-2]),
+                     PChar(TListItem(Item2).SubItems[Index-2]));
+ end;
+ if ParamSort>0 then   //プラスだったら
+  Result:=Value          //昇順にする
+ else
+  Result:=-Value;        //降順にする
+end;
+
+procedure TImageViewCacheListForm.ListViewCacheColumnClick(Sender: TObject;
+  Column: TListColumn);
+var
+ Index: integer;
+begin
+  if not AlphaColumnSort[Column.Index] then
+   Index:=Column.Index+1                     //昇順
+  else
+   Index:=-(Column.Index+1);                 //降順
+
+  ListViewCache.CustomSort(@CustomSortProc, Index);
+  AlphaColumnSort[Column.Index]:=not AlphaColumnSort[Column.Index];
+end;
+
+procedure TImageViewCacheListForm.FormResize(Sender: TObject);
+begin
+  ProgressBar.Left := ClientRect.Right - ProgressBar.Width - 20;
+  ProgressBar.Top := ClientRect.Bottom - ProgressBar.Height - 2;
+end;
+
+
+
+
+
+(* リストを生成 *)
+procedure TImageViewCacheListForm.CreateList;
+var
+  i: integer;
+//  newItem: TListItem;
+begin
+  for i := 0 to ListViewCache.Items.Count - 1 do
+    TCacheItem(ListViewCache.Items.Item[i].Data).Free;
+
+  ListViewCache.Clear;
+
+  LoadCacheThread := TLoadCacheThread.Create(HttpManager.CachePath);
+  LoadCacheThread.FreeOnTerminate := True;
+  LoadCacheThread.OnTerminate := LoadCacheThreadTerminate;
+  LoadCacheThread.Resume;
+end;
+
+procedure TImageViewCacheListForm.LoadCacheThreadTerminate(Sender: TObject);
+begin
+  StatusBar.Panels.Items[1].Text := 'キャッシュファイル取得完了';
+  LoadCacheThread := nil;
+  //ProgressBar.Hide;
+end;
+
+
+
+
+
+
+ { TLoadCacheThread }
+
+constructor TLoadCacheThread.Create(ACachePath: String);
+begin
+  CachePath := ACachePath;
+  FileCount := 0;
+
+  inherited Create(True);
+end;
+
+procedure TLoadCacheThread.Execute;
+var
+  Back: Integer;
+  F: TSearchRec;
+  Path: String;
+begin
+  Path := IncludeTrailingPathDelimiter(CachePath);
+  if not DirectoryExists(Path) then Exit;
+  try
+    try
+      Back := FindFirst(Path + '*.vch', faArchive, F);
+      while (Back = 0) and not terminated do begin
+        Inc(FileCount);
+        Back := FindNext(F);
+      end;
+    finally
+      FindClose(F);
+    end;
+    if terminated then
+      exit;
+    Synchronize(SynchSetProgBar);
+    try
+      Back := FindFirst(Path + '*.vch', faArchive, F);
+      while (Back = 0) and not terminated do begin
+        if (F.Name<>'.') and (F.Name<>'..') then
+        begin
+          CacheItem.Name := F.Name;
+          CacheItem.Date := F.Time;
+          CacheItem.Size := F.Size;
+          FillCacheItem;
+          Synchronize(Synch);
+        end;
+        Back := FindNext(F);
+      end;
+    finally
+      FindClose(F);
+    end;
+  except
+  end;
+end;
+
+
+function TLoadCacheThread.FillCacheItem: Boolean;
+var
+  FileName: String;
+  FileStream: TFileStream;
+  Header: TStringList;
+  HeaderSize: Integer;
+  Buf: String;
+begin
+  FileName := IncludeTrailingPathDelimiter(CachePath) + CacheItem.Name;
+  try
+    FileStream := nil;
+    try
+      FileStream := TFileStream.Create(FileName, fmOpenRead or fmShareDenyWrite);
+      FileStream.Read(HeaderSize, Sizeof(HeaderSize));
+      SetLength(Buf, HeaderSize);
+      FileStream.Read(Pchar(Buf)^, Length(Buf));
+    finally
+      FileStream.Free;
+    end;
+    Header := TStringList.Create;
+    Header.Text := Buf;
+    CacheItem.Size := CacheItem.Size - HeaderSize - 4;
+    CacheItem.URL := Header.Values['URL'];
+    CacheItem.ContentType := Header.Values['ContentType'];
+    CacheItem.ResponseCode := StrToIntDef(Header.Values['ResCode'], -1);
+    CacheItem.ResponseText := Header.Values['ResText'];
+    CacheItem.LastModified := Header.Values['LastModified'];
+    CacheItem.Status := Header.Values['STATUS'];
+    Header.Free;
+    Result := True;
+  except
+    Result := False;
+  end;
+end;
+
+procedure TLoadCacheThread.SynchSetProgBar;
+begin
+  ImageViewCacheListForm.ProgressBar.Max := FileCount;
+  ImageViewCacheListForm.ProgressBar.Position := 0;
+  //ImageViewCacheListForm.ProgressBar.Show;
+end;
+
+procedure TLoadCacheThread.Synch;
+var
+  newItem: TListItem;
+  CacheItem2: TCacheItem;
+begin
+  CacheItem2 := TCacheItem.Create;
+  CacheItem2.Name := CacheItem.Name;
+  CacheItem2.Date := CacheItem.Date;
+  CacheItem2.URL := CacheItem.URL;
+  if CacheItem.Status <> '' then
+    CacheItem2.Status := CacheItem.Status
+  else if CacheItem.ResponseText <> '' then
+    CacheItem2.Status := CacheItem.ResponseText
+  else
+    CacheItem2.Status := '';
+  CacheItem2.LastModified := CacheItem.LastModified;
+  CacheItem2.Size := CacheItem.Size;
+  CacheItem2.ContentType := CacheItem.ContentType;
+  CacheItem2.ResponseCode := CacheItem.ResponseCode;
+
+  newItem := ImageViewCacheListForm.ListViewCache.Items.Add;
+  newItem.Caption := CacheItem2.URL;
+  newItem.SubItems.Add(DateTimeToStr(FileDateToDateTime(CacheItem2.Date)));
+  newItem.SubItems.Add(CacheItem2.ContentType);
+  newItem.SubItems.Add(CacheItem2.Status);
+  newItem.SubItems.Add(CacheItem2.Name);
+  newItem.Data := CacheItem2;
+  ImageViewCacheListForm.StatusBar.Panels.Items[0].Text
+    := 'ファイル数: '
+    + IntToStr(ImageViewCacheListForm.ListViewCache.Items.Count);
+  ImageViewCacheListForm.ProgressBar.Position
+    := ImageViewCacheListForm.ListViewCache.Items.Count;
 end;
 
 end.
