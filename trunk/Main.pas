@@ -47,7 +47,7 @@ const
 
   DISTRIBUTORS_SITE = 'http://www.geocities.jp/openjane4714/';
 
-  Copyrights: array[0..18] of string
+  Copyrights: array[0..19] of string
     = ('Copyright (c) 2002 Project Open Jane - <a href="http://sakots.pekori.jp/OpenJane/">http://sakots.pekori.jp/OpenJane/</a> (<a href="https://sourceforge.jp/projects/jane/">SourceForge.jp</a>)',
        'Portions of this software are Copyright (c) 2001,2002 by Twiddle (Jane Classic) - <a href="http://hogehoge2001.tripod.co.jp/">http://hogehoge2001.tripod.co.jp/</a>',
        'Portions of this software are Copyright (c) 1993 - 2001, Chad Z. Hower (Kudzu) and the Indy Pit Crew - <a href="http://www.nevrona.com/Indy/">http://www.nevrona.com/Indy/</a>',
@@ -56,6 +56,7 @@ const
        'Portions of this software are Copyright (C) 1998 EarthWave Soft(IKEDA Takahiro) - <a href="http://www.os.rim.or.jp/~ikeda/">http://www.os.rim.or.jp/~ikeda/</a>',
        'Portions of this software are Copyright (C) 1999-2001 by Andrey V. Sorokin &lt;anso@mail.ru&gt; - <a href="http://anso.virtualave.net/">http://anso.virtualave.net/</a>',
        'Portions of this software are Copyright (C) 2004 Gustavo Huffenbacher Daud - <a href="http://pngdelphi.sourceforge.net/">http://pngdelphi.sourceforge.net/</a>',
+       'Portions of this software are Copyright (C) 1997-99 Anders Melander - <a href="http://www.melander.dk/delphi/gifimage/">http://www.melander.dk/delphi/gifimage/</a>',
        'Portions of this software are Copyright (C) 2002 by <a href="http://pc.2ch.net/test/read.cgi/software/1008762486/816-817">Åü816/bwNE</a>',
        'Portions of this software are Copyright (C) 2002 by <a href="http://www.geocities.co.jp/SiliconValley-Cupertino/2486/">Åütest.lxc</a>',
        'Portions of this software are Copyright (C) 2002 by <a href="http://pc.2ch.net/test/read.cgi/software/1016729822/630-">630</a>',
