@@ -20,6 +20,13 @@ object UIConfig: TUIConfig
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 12
+  object Label76: TLabel
+    Left = 232
+    Top = 192
+    Width = 39
+    Height = 12
+    Caption = 'Label76'
+  end
   object OkButton: TButton
     Left = 304
     Top = 332
@@ -45,7 +52,7 @@ object UIConfig: TUIConfig
     Top = 8
     Width = 393
     Height = 321
-    ActivePage = SheetTabOperation
+    ActivePage = SheetFavPatrol
     Style = tsFlatButtons
     TabOrder = 1
     TabStop = False
@@ -3604,9 +3611,9 @@ object UIConfig: TUIConfig
       TabVisible = False
       object JLXPGroupBox1: TJLXPGroupBox
         Left = 8
-        Top = 160
+        Top = 180
         Width = 369
-        Height = 145
+        Height = 125
         Caption = #26356#26032#12481#12455#12483#12463
         TabOrder = 0
         object CheckBoxFavPatrolCheckServerDown: TCheckBox
@@ -3619,7 +3626,7 @@ object UIConfig: TUIConfig
         end
         object CheckBoxFavPatrolOpenNewResThread: TCheckBox
           Left = 17
-          Top = 52
+          Top = 46
           Width = 257
           Height = 18
           Caption = #26356#26032#65409#65386#65391#65400#24460#12395#26356#26032#12398#12354#12427#12473#12524#12483#12489#12434#12377#12409#12390#38283#12367
@@ -3627,7 +3634,7 @@ object UIConfig: TUIConfig
         end
         object CheckBoxFavPatrolOpenBack: TCheckBox
           Left = 17
-          Top = 84
+          Top = 72
           Width = 201
           Height = 18
           Caption = #26356#26032#65409#65386#65391#65400#12434#12496#12483#12463#12464#12521#12454#12531#12489#12391#34892#12358
@@ -3635,7 +3642,7 @@ object UIConfig: TUIConfig
         end
         object CheckBoxFavPatrolMessageBox: TCheckBox
           Left = 17
-          Top = 116
+          Top = 98
           Width = 249
           Height = 18
           Caption = #26356#26032#65409#65386#65391#65400#23436#20102#12398#30906#35469#12480#12452#12450#12525#12464#12434#34920#31034#12377#12427
@@ -3646,33 +3653,40 @@ object UIConfig: TUIConfig
         Left = 8
         Top = 2
         Width = 369
-        Height = 153
-        Caption = #26908#32034#65288#20877#36215#21205#24460#26377#21177#65289
+        Height = 173
+        Caption = #26908#32034
         TabOrder = 1
         object Label52: TLabel
           Left = 16
-          Top = 47
-          Width = 112
+          Top = 96
+          Width = 72
           Height = 12
-          Caption = #12487#12501#12457#12523#12488#12398#26908#32034#26041#27861
+          Caption = #36215#21205#26178#12398#35373#23450
         end
         object Label64: TLabel
           Left = 17
-          Top = 79
+          Top = 51
           Width = 20
           Height = 12
           Caption = 'DLL'
         end
         object Label71: TLabel
           Left = 16
-          Top = 104
+          Top = 74
           Width = 24
           Height = 12
           Caption = #36766#26360
         end
+        object Label75: TLabel
+          Left = 24
+          Top = 152
+          Width = 48
+          Height = 12
+          Caption = #26908#32034#26041#27861
+        end
         object ComboBoxDefaultSearch: TComboBox
-          Left = 144
-          Top = 42
+          Left = 89
+          Top = 148
           Width = 145
           Height = 20
           Style = csDropDownList
@@ -3685,14 +3699,14 @@ object UIConfig: TUIConfig
         end
         object EditMigemoPath: TEdit
           Left = 56
-          Top = 77
+          Top = 49
           Width = 217
           Height = 20
           TabOrder = 1
         end
         object EditMigemoDic: TEdit
           Left = 55
-          Top = 100
+          Top = 70
           Width = 218
           Height = 20
           TabOrder = 2
@@ -3700,7 +3714,7 @@ object UIConfig: TUIConfig
         object ButtonMigemoPath: TButton
           Tag = 1
           Left = 273
-          Top = 79
+          Top = 51
           Width = 25
           Height = 17
           Caption = '...'
@@ -3710,7 +3724,7 @@ object UIConfig: TUIConfig
         object ButtonMigemoDic: TButton
           Tag = 2
           Left = 274
-          Top = 102
+          Top = 72
           Width = 25
           Height = 17
           Caption = '...'
@@ -3719,12 +3733,46 @@ object UIConfig: TUIConfig
         end
         object CheckBoxUseSearchBar: TCheckBox
           Left = 16
-          Top = 16
+          Top = 13
           Width = 105
           Height = 17
           Caption = #26908#32034#12496#12540#12434#20351#12358
           TabOrder = 5
         end
+        object CheckBoxShowListToolbarOnStartup: TCheckBox
+          Left = 24
+          Top = 129
+          Width = 141
+          Height = 17
+          Caption = #12473#12524#19968#35239#26908#32034#12496#12540#34920#31034
+          TabOrder = 6
+        end
+        object CheckBoxShowToolbarOnStartup: TCheckBox
+          Left = 176
+          Top = 109
+          Width = 121
+          Height = 17
+          Caption = #12473#12524#26908#32034#12496#12540#34920#31034
+          TabOrder = 7
+          Visible = False
+        end
+        object CheckBoxShowTreeToolbarOnStartup: TCheckBox
+          Left = 24
+          Top = 112
+          Width = 145
+          Height = 16
+          Caption = #26495#12484#12522#12540#26908#32034#12496#12540#34920#31034
+          TabOrder = 8
+        end
+      end
+      object CheckBoxEnableMigemo: TCheckBox
+        Left = 24
+        Top = 32
+        Width = 161
+        Height = 17
+        Caption = 'Migemo('#20877#36215#21205#24460#12395#26377#21177')'
+        TabOrder = 2
+        OnClick = CheckBoxEnableMigemoClick
       end
     end
   end

@@ -67,6 +67,7 @@ function GetDecimal(str: PChar; size: integer; var val, len: integer): boolean;
 function CountLines(const AString: string): Integer;
 function Nth(const AString: string; target: Char; n: Integer): Integer;
 function StrUnify(const AString: string): string; //Å¶[457]
+function StrUnify2(const AString: string): string; //aiai
 
 function CombineURI(const BaseURI, RelativeURI: String): String;
 
@@ -603,6 +604,18 @@ begin
   StrDispose(pstr);
 end;
 
+//aiai ëSäpÇ…
+function StrUnify2(const AString: string): string;
+var
+  pstr: PChar;
+  len: Integer;
+begin
+  len := Length(AString) * 2 + 1;
+  pstr := StrAlloc(len);
+  LCMapString($411, LCMAP_FULLWIDTH, PChar(AString), -1, pstr, len);
+  result := pstr;
+  StrDispose(pstr);
+end;
 
 //---------------------------------------------------------------------------
 

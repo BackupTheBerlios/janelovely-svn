@@ -1,6 +1,6 @@
 object MainWnd: TMainWnd
-  Left = 205
-  Top = 128
+  Left = 264
+  Top = 125
   AutoScroll = False
   Caption = 'Jane2ch'
   ClientHeight = 519
@@ -527,9 +527,9 @@ object MainWnd: TMainWnd
           end
           object MDIClientPanel: TPanel
             Left = 0
-            Top = 49
+            Top = 73
             Width = 543
-            Height = 81
+            Height = 57
             Align = alClient
             BevelOuter = bvNone
             TabOrder = 3
@@ -537,7 +537,7 @@ object MainWnd: TMainWnd
               Left = 0
               Top = 0
               Width = 543
-              Height = 81
+              Height = 57
               Align = alClient
               Picture.Data = {
                 07544269746D6170AE080100424DAE0801000000000036000000280000001902
@@ -2661,6 +2661,91 @@ object MainWnd: TMainWnd
               Transparent = True
             end
           end
+          object ThreViewSearchToolBar: TJLXPToolBar
+            Left = 0
+            Top = 49
+            Width = 543
+            Height = 24
+            ButtonWidth = 27
+            Color = clBtnFace
+            Flat = True
+            Images = SearchImages
+            ParentColor = False
+            TabOrder = 4
+            Visible = False
+            Wrapable = False
+            OnResize = ThreViewSearchToolBarResize
+            object ThreViewSearchToolButton: TToolButton
+              Left = 0
+              Top = 0
+              DropdownMenu = PopupThreViewSearch
+              ImageIndex = 0
+              Style = tbsDropDown
+              OnClick = ThreViewSearchToolButtonClick
+            end
+            object ThreViewSearchEditBox: TComboBoxEx
+              Left = 38
+              Top = 0
+              Width = 145
+              Height = 21
+              ItemsEx.CaseSensitive = False
+              ItemsEx.SortType = stNone
+              ItemsEx = <>
+              StyleEx = []
+              ItemHeight = 16
+              TabOrder = 0
+              OnChange = ThreViewSearchEditBoxChange
+              OnKeyDown = ThreViewSearchEditBoxKeyDown
+              DropDownCount = 8
+            end
+            object ThreViewSearchSep1: TToolButton
+              Left = 183
+              Top = 0
+              Width = 8
+              Caption = 'ThreViewSearchSep1'
+              ImageIndex = 5
+              Style = tbsSeparator
+            end
+            object ThreViewSearchUpDown: TUpDown
+              Left = 191
+              Top = 0
+              Width = 15
+              Height = 22
+              Min = 0
+              Position = 0
+              TabOrder = 1
+              Wrap = False
+            end
+            object ThreViewSearchSep2: TToolButton
+              Left = 206
+              Top = 0
+              Width = 8
+              Caption = 'ThreViewSearchSep2'
+              ImageIndex = 5
+              Style = tbsSeparator
+            end
+            object ThreViewSearchResFindButton: TToolButton
+              Left = 214
+              Top = 0
+              Caption = 'ThreViewSearchResFindButton'
+              ImageIndex = 5
+            end
+            object ThreViewSearchSep3: TToolButton
+              Left = 241
+              Top = 0
+              Width = 8
+              Caption = 'ThreViewSearchSep3'
+              ImageIndex = 5
+              Style = tbsSeparator
+            end
+            object ThreViewSearchCloseButton: TToolButton
+              Left = 249
+              Top = 0
+              Caption = #26908#32034#12496#12540#12434#38560#12377
+              ImageIndex = 4
+              OnClick = MenuThreViewSearchCloseClick
+            end
+          end
         end
         object ListViewPanel: TPanel
           Left = 0
@@ -2826,28 +2911,32 @@ object MainWnd: TMainWnd
               DropdownMenu = PopupListViewSearch
               ImageIndex = 0
               Style = tbsDropDown
+              OnClick = ListViewSearchToolButtonClick
             end
-            object ListViewSearchEditBox: TComboBoxEx
+            object ListViewSearchEditBox: TComboBox
               Left = 38
-              Top = 0
+              Top = 1
               Width = 145
-              Height = 21
-              ItemsEx.CaseSensitive = False
-              ItemsEx.SortType = stNone
-              ItemsEx = <>
-              StyleEx = []
-              ItemHeight = 16
+              Height = 20
+              ItemHeight = 12
+              PopupMenu = PopupListViewSearch
               TabOrder = 0
               OnChange = ListViewSearchEditBoxChange
-              OnKeyDown = ListViewSearchEditBoxKeyDownMigemo
-              DropDownCount = 8
+              OnKeyDown = ListViewSearchEditBoxKeyDown
+            end
+            object ListViewSearchSep: TToolButton
+              Left = 183
+              Top = 0
+              Width = 8
+              ImageIndex = 5
+              Style = tbsSeparator
             end
             object ListViewSearchCloseButton: TToolButton
-              Left = 183
+              Left = 191
               Top = 0
               Caption = #26908#32034#12496#12540#12434#38560#12377
               ImageIndex = 4
-              OnClick = ListViewSearchCloseButtonClick
+              OnClick = MenuListViewSearchCloseClick
             end
           end
         end
@@ -2884,9 +2973,9 @@ object MainWnd: TMainWnd
           TabOrder = 0
           object TreeView: TTreeView
             Left = 1
-            Top = 38
+            Top = 62
             Width = 118
-            Height = 387
+            Height = 363
             Align = alClient
             BevelInner = bvNone
             BevelOuter = bvNone
@@ -2917,9 +3006,9 @@ object MainWnd: TMainWnd
           end
           object FavoriteView: TTreeView
             Left = 1
-            Top = 38
+            Top = 62
             Width = 118
-            Height = 387
+            Height = 363
             Align = alClient
             BevelInner = bvNone
             BevelOuter = bvRaised
@@ -3055,6 +3144,39 @@ object MainWnd: TMainWnd
               Font.Name = 'MS UI Gothic'
               Font.Style = []
               OnMouseDown = TreeViewTabMouseDown
+            end
+          end
+          object TreeViewSearchToolBar: TJLXPToolBar
+            Left = 1
+            Top = 38
+            Width = 118
+            Height = 24
+            AutoSize = True
+            ButtonWidth = 27
+            Flat = True
+            Images = SearchImages
+            TabOrder = 4
+            Wrapable = False
+            OnResize = TreeViewSearchToolBarResize
+            object TreeViewSearchToolButton: TToolButton
+              Left = 0
+              Top = 0
+              DropdownMenu = PopupTreeViewSearch
+              ImageIndex = 0
+              Style = tbsDropDown
+              OnClick = TreeViewSearchToolButtonClick
+            end
+            object TreeViewSearchEditBox: TComboBox
+              Left = 38
+              Top = 1
+              Width = 80
+              Height = 20
+              AutoComplete = False
+              ItemHeight = 12
+              PopupMenu = PopupTreeViewSearch
+              TabOrder = 0
+              OnChange = TreeViewSearchEditBoxChange
+              OnKeyDown = TreeViewSearchEditBoxKeyDown
             end
           end
         end
@@ -3289,6 +3411,7 @@ object MainWnd: TMainWnd
           BevelInner = bvNone
           BevelOuter = bvNone
           ImeMode = imClose
+          PopupMenu = PopupUrlEdit
           TabOrder = 0
           OnEnter = UrlEditEnter
           OnExit = UrlEditExit
@@ -4414,7 +4537,7 @@ object MainWnd: TMainWnd
   object ThreadPopupMenu: TPopupMenu
     OnPopup = ThreadPopupMenuPopup
     Left = 136
-    Top = 200
+    Top = 176
     object ViewPopupClose: TMenuItem
       Action = actCloseThisTab
     end
@@ -5195,7 +5318,7 @@ object MainWnd: TMainWnd
   end
   object PopupViewMenu: TPopupMenu
     Left = 152
-    Top = 272
+    Top = 296
     object PopupViewJump: TMenuItem
       Caption = #12371#12371#12395#12472#12515#12531#12503'(&J)'
       OnClick = PopupViewJumpClick
@@ -5320,7 +5443,7 @@ object MainWnd: TMainWnd
   object PopupTextMenu: TPopupMenu
     OnPopup = PopupTextMenuPopup
     Left = 200
-    Top = 272
+    Top = 288
     object TextPopupCopy: TMenuItem
       Caption = #12467#12500#12540'(&C)'
       OnClick = TextPopupCopyClick
@@ -7350,7 +7473,7 @@ object MainWnd: TMainWnd
   end
   object PopupDrawLines: TPopupMenu
     Left = 288
-    Top = 184
+    Top = 168
     object MenuItemTransparencyAbone: TMenuItem
       Tag = -1
       Action = actTransparencyAbone
@@ -7886,7 +8009,7 @@ object MainWnd: TMainWnd
     end
   end
   object PopupTaskTray: TPopupMenu
-    Left = 384
+    Left = 616
     Top = 16
     object PopupTaskTrayRestore: TMenuItem
       Caption = #20803#12398#12469#12452#12474#12395#25147#12377'(&R)'
@@ -7987,10 +8110,10 @@ object MainWnd: TMainWnd
     Top = 200
   end
   object SearchImages: TImageList
-    Left = 232
-    Top = 112
+    Left = 168
+    Top = 88
     Bitmap = {
-      494C010105000900040010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010106000900040010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000003000000001002000000000000030
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -8123,7 +8246,7 @@ object MainWnd: TMainWnd
       0000000000000000000000000000000000000080000000800000008000000080
       0000008000000080000000800000008000000080000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
+      00000000000000000000000000002828FF002828FF002828FF00000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -8131,7 +8254,7 @@ object MainWnd: TMainWnd
       0000000000000000000000000000000000000080000000800000008000000080
       0000008000000080000000800000008000000080000000800000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
+      00000000000000000000000000009B9BFF00DFDFFF002828FF00000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -8139,7 +8262,7 @@ object MainWnd: TMainWnd
       0000000000000000000000000000000000000080000000800000008000000080
       0000008000000080000000800000008000000080000000800000008000000000
       0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
+      00000000000000000000000000009B9BFF00DFDFFF002828FF00000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -8147,7 +8270,7 @@ object MainWnd: TMainWnd
       0000000000000000000000000000000000000080000000800000008000000080
       0000008000000080000000800000008000000080000000800000008000000080
       0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
+      00000000000000000000000000009B9BFF00DFDFFF002828FF00000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -8155,7 +8278,7 @@ object MainWnd: TMainWnd
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000800000008000000080000000800000008000000080
       0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
+      00000000000000000000000000009B9BFF00DFDFFF002828FF00000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -8163,15 +8286,7 @@ object MainWnd: TMainWnd
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000008000000080000000800000008000000080
       0000008000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000080000000800000008000000080
-      0000008000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
+      000000000000000000006060FF006060FF00DFDFFF006060FF002828FF000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -8179,64 +8294,72 @@ object MainWnd: TMainWnd
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000080000000800000008000000080
       0000008000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
+      00006060FF006060FF008686FF009B9BFF00CECEFF009B9BFF006060FF002828
+      FF002828FF000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000080000000800000008000000080
-      0000008000000000000000000000000000000000000000000000000000000000
+      0000008000000000000000000000000000000000000000000000000000006060
+      FF008686FF009B9BFF009B9BFF009B9BFF00CECEFF009B9BFF008686FF008686
+      FF006060FF002828FF0000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000080000000800000008000000080
+      00000080000000000000000000000000000000000000000000006060FF008686
+      FF009B9BFF009B9BFF00FFFFFF009B9BFF00CECEFF009B9BFF009B9BFF008686
+      FF008686FF006060FF002828FF00000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000080000000800000008000000080000000800000008000000080
-      0000008000000080000000800000008000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
+      00000080000000800000008000000080000000000000000000006060FF009B9B
+      FF009B9BFF00FFFFFF00FFFFFF00DFDFFF00CECEFF00B5B5FF009B9BFF009B9B
+      FF008686FF006060FF002828FF00000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000800000008000000080000000800000008000000080
-      0000008000000080000000800000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
+      000000800000008000000080000000000000000000006060FF008686FF009B9B
+      FF009B9BFF00FFFFFF00FFFFFF00DFDFFF00CECEFF00B5B5FF009B9BFF009B9B
+      FF008686FF008686FF006060FF002828FF000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000008000000080000000800000008000000080
-      0000008000000080000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
+      000000800000008000000000000000000000000000006060FF008686FF009B9B
+      FF009B9BFF00FFFFFF00FFFFFF00DFDFFF00CECEFF00B5B5FF009B9BFF009B9B
+      FF008686FF008686FF006060FF002828FF000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000080000000800000008000000080
-      0000008000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
+      000000800000000000000000000000000000000000006060FF008686FF009B9B
+      FF009B9BFF00FFFFFF00FFFFFF00DFDFFF00CECEFF00CECEFF009B9BFF009B9B
+      FF008686FF008686FF006060FF002828FF000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000800000008000000080
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
+      000000000000000000000000000000000000000000006060FF008686FF009B9B
+      FF009B9BFF00FFFFFF00FFFFFF00DFDFFF00CECEFF00CECEFF009B9BFF009B9B
+      FF008686FF008686FF006060FF002828FF000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000008000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
+      000000000000000000000000000000000000000000006060FF006060FF006060
+      FF006060FF006060FF006060FF006060FF006060FF006060FF006060FF006060
+      FF006060FF006060FF006060FF006060FF000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -8382,11 +8505,11 @@ object MainWnd: TMainWnd
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
-      00000000000000000000000000000000007F000000000000003F000000000000
-      001F000000000000000F000000000000FC0F000000000000FE07000000000000
-      FF07000000000000FF07000000000000FF07000000000000F800000000000000
-      FC01000000000000FE03000000000000FF07000000000000FF8F000000000000
-      FFDF000000000000FFFF000000000000FFFF9FF39FF3FFFFFFFF9FF39FF3FFFF
+      00000000000000000000000000000000007FFE3F00000000003FFE3F00000000
+      001FFE3F00000000000FFE3F00000000FC0FFE3F00000000FE07FC1F00000000
+      FF07F00700000000FF07E00300000000FF07C00100000000F800C00100000000
+      FC01800000000000FE03800000000000FF07800000000000FF8F800000000000
+      FFDF800000000000FFFFFFFF00000000FFFF9FF39FF3FFFFFFFF9FF39FF3FFFF
       9FE39C739C73CFE79FC39C739C73CFE79F8398339833CFC79F0398339833CF8F
       9E0399339933CF1F9C1391139113CE3F983393939393C03F907393939393C00F
       80F383838383CFE781F387C387C3CFE783F387C387C3CFE787F387C387C3C00F
@@ -8394,34 +8517,319 @@ object MainWnd: TMainWnd
       000000000000}
   end
   object PopupListViewSearch: TPopupMenu
-    Left = 144
-    Top = 104
-    object N89: TMenuItem
+    OnPopup = PopupListViewSearchPopup
+    Left = 136
+    Top = 88
+    object MenuListViewSearchCopy: TMenuItem
+      Caption = #12467#12500#12540'(&C)'
+      GroupIndex = 1
+      ShortCut = 16451
+      OnClick = MenuListViewSearchCopyClick
+    end
+    object MenuListViewSearchCut: TMenuItem
+      Tag = 1
+      Caption = #20999#12426#21462#12426'(&T)'
+      GroupIndex = 1
+      ShortCut = 16472
+      OnClick = MenuListViewSearchCopyClick
+    end
+    object MenuListViewSearchPaste: TMenuItem
+      Tag = 2
+      Caption = #36028#12426#20184#12369'(&P)'
+      GroupIndex = 1
+      ShortCut = 16470
+      OnClick = MenuListViewSearchCopyClick
+    end
+    object MenuListViewSearchSelectAll: TMenuItem
+      Tag = 3
+      Caption = #12377#12409#12390#36984#25246'(&A)'
+      GroupIndex = 1
+      ShortCut = 16449
+      OnClick = MenuListViewSearchCopyClick
+    end
+    object MenuListViewSearchClear: TMenuItem
+      Tag = 4
+      Caption = #12463#12522#12450'(&E)'
+      GroupIndex = 1
+      ShortCut = 16453
+      OnClick = MenuListViewSearchCopyClick
+    end
+    object N92: TMenuItem
       Caption = '-'
+      GroupIndex = 1
     end
     object MenuListViewSearchNormal: TMenuItem
-      Caption = #36890#24120#26908#32034
+      Caption = #36890#24120#26908#32034'(&N)'
       GroupIndex = 1
       RadioItem = True
+      ShortCut = 16462
       OnClick = MenuListViewSearchNormalClick
     end
     object MenuListViewSearchMigemo: TMenuItem
       Tag = 1
-      Caption = 'Migemo'#26908#32034
+      Caption = 'Migemo'#26908#32034'(&M)'
       GroupIndex = 1
       RadioItem = True
+      ShortCut = 16461
       OnClick = MenuListViewSearchNormalClick
     end
     object MenuListViewSearchRegExp: TMenuItem
       Tag = 2
-      Caption = #27491#35215#26908#32034
+      Caption = #27491#35215#26908#32034'(&R)'
       GroupIndex = 1
       RadioItem = True
+      ShortCut = 16466
       OnClick = MenuListViewSearchNormalClick
     end
     object N88: TMenuItem
       Caption = '-'
       GroupIndex = 1
+    end
+    object MenuListViewSearchIncremental: TMenuItem
+      Caption = #12452#12531#12463#12522#12513#12531#12479#12523'(&I)'
+      GroupIndex = 1
+      ShortCut = 16457
+      OnClick = MenuListViewSearchIncrementalClick
+    end
+    object MenuListViewSearchMultiWord: TMenuItem
+      Caption = #12510#12523#12481#12527#12540#12489'(&W)'
+      GroupIndex = 1
+      ShortCut = 16471
+      OnClick = MenuListViewSearchMultiWordClick
+    end
+    object MenuListViewSearchIgnoreFullHalf: TMenuItem
+      Caption = #20840#21322#35282#19968#33268'(&F)'
+      GroupIndex = 1
+      ShortCut = 16454
+      OnClick = MenuListViewSearchIgnoreFullHalfClick
+    end
+    object N90: TMenuItem
+      Caption = '-'
+      GroupIndex = 1
+    end
+    object MenuListViewSearchClose: TMenuItem
+      Caption = #38281#12376#12427'(&Q)'
+      GroupIndex = 1
+      ShortCut = 27
+      OnClick = MenuListViewSearchCloseClick
+    end
+  end
+  object PopupThreViewSearch: TPopupMenu
+    OnPopup = PopupThreViewSearchPopup
+    Left = 144
+    Top = 248
+    object MenuThreViewSearchNormal: TMenuItem
+      Caption = #36890#24120#26908#32034'(&N)'
+      GroupIndex = 1
+      RadioItem = True
+      ShortCut = 16462
+      OnClick = MenuThreViewSearchNormalClick
+    end
+    object MenuThreViewSearchMigemo: TMenuItem
+      Tag = 1
+      Caption = 'Migemo'#26908#32034'(&M)'
+      GroupIndex = 1
+      RadioItem = True
+      ShortCut = 16461
+      OnClick = MenuThreViewSearchNormalClick
+    end
+    object MenuThreViewSearchRegExp: TMenuItem
+      Tag = 2
+      Caption = #27491#35215#26908#32034'(&R)'
+      GroupIndex = 1
+      RadioItem = True
+      ShortCut = 16466
+      OnClick = MenuThreViewSearchNormalClick
+    end
+    object N93: TMenuItem
+      Caption = '-'
+      GroupIndex = 1
+    end
+    object MenuThreViewSearchIncremental: TMenuItem
+      Caption = #12452#12531#12463#12522#12513#12531#12479#12523'(&I)'
+      GroupIndex = 1
+      ShortCut = 16457
+      OnClick = MenuListViewSearchIncrementalClick
+    end
+    object MenuThreViewSearchMultiWord: TMenuItem
+      Caption = #12510#12523#12481#12527#12540#12489'(&W)'
+      GroupIndex = 1
+      ShortCut = 16471
+      OnClick = MenuListViewSearchMultiWordClick
+    end
+    object MenuThreViewSearchIgnoreFullHalf: TMenuItem
+      Caption = #20840#21322#35282#19968#33268'(&F)'
+      GroupIndex = 1
+      ShortCut = 16454
+      OnClick = MenuListViewSearchIgnoreFullHalfClick
+    end
+    object N97: TMenuItem
+      Caption = '-'
+      GroupIndex = 1
+    end
+    object MenuThreViewSearchClose: TMenuItem
+      Caption = #38281#12376#12427'(&Q)'
+      GroupIndex = 1
+      ShortCut = 27
+      OnClick = MenuThreViewSearchCloseClick
+    end
+  end
+  object ThreSearchTimer: TTimer
+    Enabled = False
+    Interval = 300
+    OnTimer = ThreSearchTimerTimer
+    Left = 80
+    Top = 200
+  end
+  object PopupTreeViewSearch: TPopupMenu
+    OnPopup = PopupTreeViewSearchPopup
+    Left = 24
+    Top = 96
+    object MenuTreeViewSearchCopy: TMenuItem
+      Caption = #12467#12500#12540'(&C)'
+      GroupIndex = 1
+      ShortCut = 16451
+      OnClick = MenuTreeViewSearchCopyClick
+    end
+    object MenuTreeViewSearchCut: TMenuItem
+      Tag = 1
+      Caption = #20999#12426#21462#12426'(&T)'
+      GroupIndex = 1
+      ShortCut = 16472
+      OnClick = MenuTreeViewSearchCopyClick
+    end
+    object MenuTreeViewSearchPaste: TMenuItem
+      Tag = 2
+      Caption = #36028#12426#20184#12369'(&P)'
+      GroupIndex = 1
+      ShortCut = 16470
+      OnClick = MenuTreeViewSearchCopyClick
+    end
+    object MenuTreeViewSearchSelectAll: TMenuItem
+      Tag = 3
+      Caption = #12377#12409#12390#36984#25246'(&A)'
+      GroupIndex = 1
+      ShortCut = 16449
+      OnClick = MenuTreeViewSearchCopyClick
+    end
+    object MenuTreeViewSearchClear: TMenuItem
+      Tag = 4
+      Caption = #12463#12522#12450'(&E)'
+      GroupIndex = 1
+      ShortCut = 16453
+      OnClick = MenuTreeViewSearchCopyClick
+    end
+    object N94: TMenuItem
+      Caption = '-'
+      GroupIndex = 1
+    end
+    object MenuTreeViewSearchNormal: TMenuItem
+      Caption = #36890#24120#26908#32034'(&N)'
+      GroupIndex = 1
+      RadioItem = True
+      ShortCut = 16462
+      OnClick = MenuTreeViewSearchNormalClick
+    end
+    object MenuTreeViewSearchMigemo: TMenuItem
+      Tag = 1
+      Caption = 'Migemo'#26908#32034'(&M)'
+      GroupIndex = 1
+      RadioItem = True
+      ShortCut = 16461
+      OnClick = MenuTreeViewSearchNormalClick
+    end
+    object MenuTreeViewSearchRegExp: TMenuItem
+      Tag = 2
+      Caption = #27491#35215#26908#32034'(&R)'
+      GroupIndex = 1
+      RadioItem = True
+      ShortCut = 16466
+      OnClick = MenuTreeViewSearchNormalClick
+    end
+    object MenuItem5: TMenuItem
+      Caption = '-'
+      GroupIndex = 1
+    end
+    object MenuTreeViewSearchIncremental: TMenuItem
+      Caption = #12452#12531#12463#12522#12513#12531#12479#12523'(&I)'
+      GroupIndex = 1
+      ShortCut = 16457
+      OnClick = MenuListViewSearchIncrementalClick
+    end
+    object MenuTreeViewSearchMultiWord: TMenuItem
+      Caption = #12510#12523#12481#12527#12540#12489'(&W)'
+      GroupIndex = 1
+      ShortCut = 16471
+      OnClick = MenuListViewSearchMultiWordClick
+    end
+    object MenuTreeViewSearchIgnoreFullHalf: TMenuItem
+      Caption = #20840#21322#35282#19968#33268'(&F)'
+      GroupIndex = 1
+      ShortCut = 16454
+      OnClick = MenuListViewSearchIgnoreFullHalfClick
+    end
+    object MenuItem9: TMenuItem
+      Caption = '-'
+      GroupIndex = 1
+    end
+    object MenuTreeViewSearchClose: TMenuItem
+      Caption = #38281#12376#12427'(&Q)'
+      GroupIndex = 1
+      ShortCut = 27
+      OnClick = MenuTreeViewSearchCloseClick
+    end
+  end
+  object TreeSearchTimer: TTimer
+    Enabled = False
+    Interval = 300
+    OnTimer = TreeSearchTimerTimer
+    Left = 48
+    Top = 168
+  end
+  object PopupUrlEdit: TPopupMenu
+    OnPopup = PopupUrlEditPopup
+    Left = 408
+    Top = 32
+    object MenuUrlEditUndo: TMenuItem
+      Caption = #20803#12395#25147#12377'(&U)'
+      ShortCut = 16474
+      OnClick = MenuUrlEditUndoClick
+    end
+    object N89: TMenuItem
+      Caption = '-'
+    end
+    object MenuUrlEditCut: TMenuItem
+      Caption = #20999#12426#21462#12426'(&T)'
+      ShortCut = 16472
+      OnClick = MenuUrlEditCutClick
+    end
+    object MenuUrlEditCopy: TMenuItem
+      Caption = #12467#12500#12540'(&C)'
+      ShortCut = 16451
+      OnClick = MenuUrlEditCopyClick
+    end
+    object MenuUrlEditPaste: TMenuItem
+      Caption = #36028#12426#20184#12369'(&P)'
+      ShortCut = 16470
+      OnClick = MenuUrlEditPasteClick
+    end
+    object MenuUrlEditPasteAndGo: TMenuItem
+      Caption = #36028#12426#20184#12369#12390#31227#21205'(&G)'
+      ShortCut = 16452
+      OnClick = MenuUrlEditPasteAndGoClick
+    end
+    object MenuUrlEditDelete: TMenuItem
+      Caption = #21066#38500'(&D)'
+      ShortCut = 46
+      OnClick = MenuUrlEditDeleteClick
+    end
+    object N91: TMenuItem
+      Caption = '-'
+    end
+    object MenuUrlEditSelectAll: TMenuItem
+      Caption = #12377#12409#12390#36984#25246'(&A)'
+      ShortCut = 16449
+      OnClick = MenuUrlEditSelectAllClick
     end
   end
 end

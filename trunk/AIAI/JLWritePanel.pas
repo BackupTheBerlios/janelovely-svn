@@ -96,6 +96,7 @@ type
     procedure SetBeLogin(ABool: Boolean);
     procedure SetStatusBarVisible(AVisible: Boolean);
     function SaveAAListBoundsRect(AWidthHeight: TWidthHeight): TWidthHeight;
+    function WriteMemoIsFocused: Boolean;
 
     property board: TBoard read FBoard write SetBoard;
     property Parent2: TWinControl read FParent2;
@@ -126,6 +127,7 @@ procedure SetNameMailWarning(AValue: Boolean);
 procedure SetBeLogin(AValue: Boolean);
 procedure SetStatusBarVisible(AVisible: Boolean);
 function SaveAAListBoundsRect(AWidthHeight: TWidthHeight): TWidthHeight;
+function WriteMemoIsFocused: Boolean;
 //---------------------------------------------------------------------------//
 
 implementation
@@ -1611,6 +1613,11 @@ begin
   AAList.Width := AWidthHeight.Width;
 end;
 
+function TJLWritePanel.WriteMemoIsFocused: Boolean;
+begin
+  Result := NameComboBox.Focused or MailComboBox.Focused or Memo.Focused;
+end;
+
 (* ----------------------- TJLWritePanel ----------------------------------- *)
 (* ------------------------------------------------------------------------- *)
 (* ------------------------------------------------------------------------- *)
@@ -1762,6 +1769,17 @@ begin
   end;
 
   Result := WriteMemo.SaveAAListBoundsRect(AWidthHeight);
+end;
+
+function WriteMemoIsFocused: Boolean;
+begin
+  if not Assigned(WriteMemo) then
+  begin
+    Result := False;
+    exit;
+  end;
+
+  Result := WriteMemo.WriteMemoIsFocused;
 end;
 
 end.

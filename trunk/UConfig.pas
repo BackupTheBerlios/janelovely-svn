@@ -454,6 +454,12 @@ type
     Label54: TLabel;
     Label74: TLabel;
     ComboBoxOprListClosePos: TComboBox;
+    Label75: TLabel;
+    CheckBoxShowListToolbarOnStartup: TCheckBox;
+    Label76: TLabel;
+    CheckBoxEnableMigemo: TCheckBox;
+    CheckBoxShowToolbarOnStartup: TCheckBox;
+    CheckBoxShowTreeToolbarOnStartup: TCheckBox;
     procedure FormShow(Sender: TObject);
     procedure OkButtonClick(Sender: TObject);
     procedure CancelButtonClick(Sender: TObject);
@@ -532,6 +538,7 @@ type
     procedure ButtonIDLinkColorNoneClick(Sender: TObject);
     procedure ButtonKeywordBrushColorClick(Sender: TObject);
     procedure ButtonMigemoPathClick(Sender: TObject);
+    procedure CheckBoxEnableMigemoClick(Sender: TObject);
     {/aiai}
   private
     AboneListOnHint:TObject;
@@ -1057,7 +1064,11 @@ begin
   Main.Config.schDefaultSearch := ComboBoxDefaultSearch.ItemIndex;
   Main.Config.schMigemoPathTmp := EditMigemoPath.Text;
   Main.Config.schMigemoDicTmp := EditMigemoDic.Text;
-  Main.Config.schUseSearchBarTmp := CheckBoxUseSearchBar.Checked;
+  Main.Config.schUseSearchBar := CheckBoxUseSearchBar.Checked;
+  Main.Config.schShowListToolbarOnStartup := CheckBoxShowListToolbarOnStartup.Checked;
+  Main.Config.schShowToolbarOnStartup := CheckBoxShowToolbarOnStartup.Checked;
+  Main.Config.schShowTreeToolbarOnStartup := CheckBoxShowTreeToolbarOnStartup.Checked;
+  Main.Config.schEnableMigemoTmp := CheckBoxEnableMigemo.Checked;
   {/aiai}
 
   Main.Config.Save;
@@ -1408,7 +1419,12 @@ begin
   self.ComboBoxDefaultSearch.ItemIndex := Main.Config.schDefaultSearch;
   self.EditMigemoPath.Text := Main.Config.schMigemoPathTmp;
   self.EditMigemoDic.Text := Main.Config.schMigemoDicTmp;
-  self.CheckBoxUseSearchBar.Checked := Main.Config.schUseSearchBarTmp;
+  self.CheckBoxUseSearchBar.Checked := Main.Config.schUseSearchBar;
+  self.CheckBoxShowListToolbarOnStartup.Checked := Main.Config.schShowListToolbarOnStartup;
+  self.CheckBoxShowToolbarOnStartup.Checked := Main.Config.schShowToolbarOnStartup;
+  self.CheckBoxShowTreeToolbarOnStartup.Checked := Main.Config.schShowTreeToolbarOnStartup;
+  self.CheckBoxEnableMigemo.Checked := Main.Config.schEnableMigemoTmp;
+  CheckBoxEnableMigemoClick(nil);
   {/aiai}
 
   Config.ColorChanged := false;
@@ -2876,6 +2892,17 @@ begin
   OpenDialog.FileName := Edit.Text;
   if OpenDialog.Execute then
     Edit.Text := OpenDialog.FileName;
+end;
+
+procedure TUIConfig.CheckBoxEnableMigemoClick(Sender: TObject);
+var
+  enabled: boolean;
+begin
+  enabled := CheckBoxEnableMigemo.Checked;
+  EditMigemoDic.Enabled := enabled;
+  EditMigemoPath.Enabled := enabled;
+  ButtonMigemoDic.Enabled := enabled;
+  ButtonMigemoPath.Enabled := enabled;
 end;
 
 end.

@@ -2208,6 +2208,7 @@ begin
   case itemType of
   ditNORMAL: WriteText(str, size);
   ditNAME:   ProcName;
+  ditDATE:   procDATE;
   else       ProcHTML;
   end;
 end;
@@ -2411,7 +2412,11 @@ begin
   Self.str   := str;
   Self.index := 0;
   Self.size  := size;
+  case itemType of
+  ditDATE: ProcDATE;
+  else
   ProcHTML;
+  end;
 end;
 (*=======================================================*)
 

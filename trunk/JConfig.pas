@@ -372,8 +372,15 @@ type
     schMigemoPathTmp: String;
     schMigemoDicTmp: String;
     schUseSearchBar: Boolean;
-    schUseSearchBarTmp: Boolean;
-    {/aiai}
+    schMultiWord: Boolean;
+    schShowListToolbarOnStartup: Boolean;
+    schShowToolbarOnStartup: Boolean;
+    schShowTreeToolbarOnStartup: Boolean;
+    schIncremental: Boolean;
+    schEnableMigemo: Boolean;
+    schEnableMigemoTmp: Boolean;
+    schIgnoreFullHalf: Boolean;
+    {/aiai}
 
     {$IFNDEF IE}
     //改造▽ 追加 (スレビューに壁紙を設定する。Doe用)
@@ -883,7 +890,14 @@ begin
   schMigemoPathTmp := '';
   schMigemoDicTmp := '';
   schUseSearchBar := True;
-  schUseSearchBarTmp := True;
+  schMultiWord := True;
+  schIncremental := True;
+  schShowListToolbarOnStartup := False;
+  schShowToolbarOnStartup := False;
+  schShowTreeToolbarOnStartup := False;
+  schEnableMigemo := False;
+  schEnableMigemoTmp := False;
+  schIgnoreFullHalf := True;
   {/aiai}
 
   Modified := False;
@@ -1565,7 +1579,14 @@ begin
   schMigemoPathTmp := schMigemoPath;
   schMigemoDicTmp := schMigemoDic;
   schUseSearchBar := ini.ReadBool(INI_SCH_SECT, 'UseSearchBar', schUseSearchBar);
-  schUseSearchBarTmp := schUseSearchBar;
+  schMultiWord := ini.ReadBool(INI_SCH_SECT, 'MultiWord', schMultiWord);
+  schIncremental := ini.ReadBool(INI_SCH_SECT, 'Incremental', schIncremental);
+  schShowListToolbarOnStartup := ini.ReadBool(INI_SCH_SECT, 'ShowListToolbarOnStartup', schShowListToolbarOnStartup);
+  schShowToolbarOnStartup := ini.ReadBool(INI_SCH_SECT, 'ShowToolbarOnStartup', schShowToolbarOnStartup);
+  schShowTreeToolbarOnStartup := ini.ReadBool(INI_SCH_SECT, 'ShowTreeToolbarOnStartup', schShowTreeToolbarOnStartup);
+  schEnableMigemo := ini.ReadBool(INI_SCH_SECT, 'EnableMigemo', schEnableMigemo);
+  schEnableMigemoTmp := schEnableMigemo;
+  schIgnoreFullHalf := ini.ReadBool(INI_SCH_SECT, 'IgnoreFullHalf', schIgnoreFullHalf);
   {/aiai}
 
   setAutoScrollArray(ini);
@@ -2046,7 +2067,11 @@ begin
   ini.WriteInteger(INI_SCH_SECT, 'DefaultSearch', schDefaultSearch);
   ini.WriteString(INI_SCH_SECT, 'MigemoPath', schMigemoPathTmp);
   ini.WriteString(INI_SCH_SECT, 'MigemoDic', schMigemoDicTmp);
-  ini.WriteBool(INI_SCH_SECT, 'UseSearchBar', schUseSearchBarTmp);
+  ini.WriteBool(INI_SCH_SECT, 'UseSearchBar', schUseSearchBar);
+  ini.WriteBool(INI_SCH_SECT, 'ShowListToolbarOnStartup', schShowListToolbarOnStartup);
+  ini.WriteBool(INI_SCH_SECT, 'ShowToolbarOnStartup', schShowToolbarOnStartup);
+  ini.WriteBool(INI_SCH_SECT, 'ShowTreeToolbarOnStartup', schShowTreeToolbarOnStartup);
+  ini.WriteBool(INI_SCH_SECT, 'EnableMigemo', schEnableMigemoTmp);
 
   setScrollSpeedArray(ini);
   {/aiai}
