@@ -163,6 +163,7 @@ begin
       Control := FindControl(ChildWnd);
       if (Control <> nil) and
         ((Control is TCustomCheckBox) or
+         (Control is TRadioButton) or
          (Control is TCustomGroupBox)) then
       begin
         DrawThemeParentBackGround(ChildWnd, ChildDC, nil);
