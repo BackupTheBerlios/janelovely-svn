@@ -1762,6 +1762,51 @@ procedure TConvDatOut.ProcDate;
     end;
   end;
 
+  // <BE:1029384:0>
+  function ProcBE2: Boolean;
+  var
+    endpos, sep, index2: Integer;
+    BEID, BEPOINT: String;
+  begin
+    Result := False;
+
+    //まず「>」を探す
+    index2 := index;
+    endpos := 0;
+    while index2 < size do
+    begin
+      if (str + index2)^ = '>' then
+      begin
+        endpos := index2;
+        break;
+      end else
+        Inc(index2);
+    end;
+    if endpos = 0 then
+      exit;
+    //2個目の「:」を探す
+    index2 := index + 4;
+    sep := 0;
+    while index2 < endpos do
+    begin
+      if (str + index2)^ = ':' then
+      begin
+        sep := index2;
+        break;
+      end else
+        Inc(index2);
+    end;
+    if (sep = 0) or (endpos - sep < 2) then
+      exit;
+    SetString(BEID, str + index + 4, sep - (index + 4));
+    SetString(BEPOINT, str + sep + 1, endpos - (sep + 1));
+    WriteAnchor('', 'BE:' + BEID, PChar('Lv.' + BEPOINT), Length(BEPOINT) + 3);
+
+    index := endpos + 1;
+
+    Result := True;
+  end;
+
 label
   ProcChar;
 var
@@ -1777,7 +1822,10 @@ begin
              goto ProcChar;
       'B': if not ProcBE then
              goto ProcChar;
-      '<': if not ProcTag then
+      '<': if (index + 4 < size) and StartWithP('BE:', str + index + 1, 3)
+             and ProcBE2 then
+             // Nothing to do
+           else if not ProcTag then
              goto ProcChar;
       ' ':
         if not ProcBlank then
