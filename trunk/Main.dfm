@@ -212,7 +212,7 @@ object MainWnd: TMainWnd
                 OnMouseMove = ThreadTitleLabelMouseMove
               end
               object ThreadToolBar: TJLXPToolBar
-                Left = 237
+                Left = 215
                 Top = 0
                 Width = 326
                 Height = 22
@@ -488,6 +488,7 @@ object MainWnd: TMainWnd
                     Width = 318
                     Height = 20
                     Hint = #21517#21069
+                    AutoComplete = False
                     Anchors = [akLeft, akTop, akRight]
                     ItemHeight = 12
                     TabOrder = 0
@@ -498,6 +499,7 @@ object MainWnd: TMainWnd
                     Width = 66
                     Height = 20
                     Hint = #12513#12540#12523
+                    AutoComplete = False
                     Anchors = [akTop, akRight]
                     ItemHeight = 12
                     TabOrder = 1
@@ -2875,7 +2877,7 @@ object MainWnd: TMainWnd
             end
             object ThreViewSearchEditBox: TComboBox
               Left = 38
-              Top = 1
+              Top = 0
               Width = 145
               Height = 20
               AutoComplete = False
@@ -3101,7 +3103,7 @@ object MainWnd: TMainWnd
             end
             object ListViewSearchEditBox: TComboBox
               Left = 38
-              Top = 1
+              Top = 0
               Width = 145
               Height = 20
               AutoComplete = False
@@ -3311,7 +3313,7 @@ object MainWnd: TMainWnd
             end
             object TreeViewSearchEditBox: TComboBox
               Left = 38
-              Top = 1
+              Top = 0
               Width = 80
               Height = 20
               AutoComplete = False
