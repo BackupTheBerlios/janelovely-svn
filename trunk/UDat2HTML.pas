@@ -87,6 +87,7 @@ type
                           const HRef: string;
                           str: PChar; size: integer); virtual; abstract;
     procedure SetLine(line: integer); virtual; abstract;
+    procedure SetIgnoreBR(ABool: Boolean); virtual; abstract;
     procedure Flush; virtual;
     property DisableLink: Boolean read FDisableLink write FDisableLink;
   end;
@@ -122,6 +123,7 @@ type
     procedure WriteItem(str: PChar; size: integer;
                          itemType: TDatItemType); override;
     procedure SetLine(line: integer); override;
+    procedure SetIgnoreBR(ABool: Boolean); override;
   end;
   (*-------------------------------------------------------*)
   TStrDatOut = class (TConvDatOut)
@@ -186,7 +188,8 @@ type
                TYPE_SAGEONLY,
                TYPE_DATE,
                TYPE_MESSAGE,
-               TYPE_PLAINNUMBER);
+               TYPE_PLAINNUMBER,
+               TYPE_MESSAGENOBR);
   TDatType = (dtUnknown, dtNormal, dtComma);
   (*-------------------------------------------------------*)
   //Å¶[457]
@@ -1729,6 +1732,10 @@ begin
  Self.line := line;
 end;
 
+procedure TConvDatOut.SetIgnoreBR(ABool: Boolean);
+begin
+end;
+
 (*=======================================================*)
 
 constructor TStrDatOut.Create;
@@ -2164,6 +2171,11 @@ constructor TDat2HTML.Create(body: string; skinpath: string);
           Flush(TYPE_TEXT);
           Flush(TYPE_MESSAGE);
           i := i + 9;
+        end else if StartWith('<MESSAGENOBR/>', body, i) then
+        begin
+          Flush(TYPE_TEXT);
+          Flush(TYPE_MESSAGENOBR);
+          i := i + 13;
         end else if StartWith('<SKINPATH/>', body, i) then
         begin
           s := s + skinpath;
@@ -2584,6 +2596,16 @@ begin
             dest.WriteItem('<SA i=0/>', 9, ditNORMAL);
         end;
       {/beginner}
+      TYPE_MESSAGENOBR:
+        begin
+          if MsgShow > 0 then
+            dest.WriteItem(PChar('<SA i='+IntToStr(MsgShow)+'/>'), 8 + Length(IntToStr(MsgShow)), ditNORMAL);
+          dest.SetIgnoreBR(True);
+          dest.WriteItem(msg, msgSize,ditMSG);
+          dest.SetIgnoreBR(False);
+          if MsgShow > 0 then
+            dest.WriteItem('<SA i=0/>', 9, ditNORMAL);
+        end;
       end;
     end;
   except

@@ -52,7 +52,7 @@ object UIConfig: TUIConfig
     Top = 8
     Width = 393
     Height = 345
-    ActivePage = SheetOperation
+    ActivePage = SheetNet
     Style = tsFlatButtons
     TabOrder = 1
     TabStop = False

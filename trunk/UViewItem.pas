@@ -45,6 +45,7 @@ type
     EnableFontTag: boolean;
     EnableBodyTag: boolean;
     FDDOffsetLeft: Integer;
+    FIgnoreBR: Boolean;
     function GetRange(var ANK: string): Boolean; override;
     function ProcTag: boolean; override;
     function ProcEntity: boolean; override;
@@ -74,6 +75,7 @@ type
     procedure SetBold(boldP: boolean);
     procedure Flush; override;
     procedure Cancel;
+    procedure SetIgnoreBR(ABool: Boolean); override;
     property DDOffsetLeft: Integer read FDDOffsetLeft write FDDOffsetLeft;
   end;
 
@@ -1392,7 +1394,7 @@ begin
   if num >= num2 then exit;
   if (num <= 0) or (num2 <= 0) then exit;
   if (num >= line) or (num2 >= line) then exit;
-  if (num2 - num > 5) then exit;
+  if (num2 - num > 20) then exit;
 
   for i := num to num2 do
     FBrowser.SetResNum(i);
@@ -1442,6 +1444,8 @@ procedure TDat2View.WriteBR;
   end;
 
 begin
+  if FIgnoreBR then
+    exit;
   TrimRight;
   Flush;
   FBrowser.Append(#10);
@@ -1693,6 +1697,11 @@ end;
 procedure TDat2View.Cancel;
 begin
   canceled := true;
+end;
+
+procedure TDat2View.SetIgnoreBR(ABool: Boolean);
+begin
+  FIgnoreBR := ABool;
 end;
 
 (*=======================================================*)
@@ -3894,21 +3903,18 @@ begin
   {/beginner}
     tvc.WriteHTML('<html><body><p>ÅyéÊìæçœÇ›ÉçÉOàÍóóÅz</p><ul>'#10);
 
-  SEARCHD2HTML := SetUpDat2HTML(TSkinCollection(SkinCollectionList.Items[TBoard(FThread.board).CustomSkinIndex]).PopupRecHTML, dhtSearchRes);
-  POPUPD2HTML := SetUpDat2HTML(TSkinCollection(SkinCollectionList.Items[TBoard(FThread.board).CustomSkinIndex]).PopupRecHTML, dhtPopupRes);
+  SEARCHD2HTML := SetUpDat2HTML(TSkinCollection(SkinCollectionList.Items[0]).PopupRecHTML, dhtSearchRes);
+  POPUPD2HTML := SetUpDat2HTML(TSkinCollection(SkinCollectionList.Items[0]).PopupRecHTML, dhtPopupRes);
 
   for i := 0 to targetBoardList.Count -1 do
   begin
+    if MessageLoop then
+      break;
     board := TBoard(targetBoardList.Items[i]);
     board.AddRef;
     category := TCategory(board.category);
     log('  ' + board.name);
     MainWnd.WriteStatus(board.name);
-    if MessageLoop then
-    begin
-      tvc.Free;
-      exit;
-    end;
     if hasTarget and ((Assigned(RegExp) and RegExp.Exec(board.name)) or (0 < FindPosIC(tgt, board.name, 1))) then //beginner
     begin
       if ShowDirect then
@@ -4050,8 +4056,9 @@ begin
   end;
   SEARCHD2HTML.Free;
   POPUPD2HTML.Free;
-  tvc.WriteHTML(
-        '</ul><br><p>Åy' + IntToStr(totalCount) + ' åèå©Ç¬Ç©ÇËÇ‹ÇµÇΩÅz(åüçıéûä‘:' + IntToStr((GetTickCount - TickCount) div 1000) + 'ïb)</p>');
+  if not canceled then  //canceled = trueÇÃÇ∆Ç´Ç‡ñ‚ëËÇ»Ç¢Ç∆évÇ§ÇØÇ«ÇØÇ«ÅBÅBÅB
+    tvc.WriteHTML(
+          '</ul><br><p>Åy' + IntToStr(totalCount) + ' åèå©Ç¬Ç©ÇËÇ‹ÇµÇΩÅz(åüçıéûä‘:' + IntToStr((GetTickCount - TickCount) div 1000) + 'ïb)</p>');
   tvc.Free;
   {beginner}
   ExtStream.Free;

@@ -1016,8 +1016,8 @@ begin
     Main.viewList.Items[i].browser.ColordNumber := Main.Config.ojvColordNumber;
     Main.viewList.Items[i].browser.LinkedNumColor := Main.Config.ojvLinkedNumColor ;
     Main.viewList.Items[i].browser.IDLinkColor := Main.Config.ojvIDLinkColor;
-    Main.viewList.Items[i].browser.IDLinkColorNone := Main.Config.ojvIDLinkColorMany;
-    Main.viewList.Items[i].browser.IDLinkColorMany := Main.Config.ojvIDLinkColorNone;
+    Main.viewList.Items[i].browser.IDLinkColorNone := Main.Config.ojvIDLinkColorNone;
+    Main.viewList.Items[i].browser.IDLinkColorMany := Main.Config.ojvIDLinkColorMany;
     Main.viewList.Items[i].browser.IDLinkThreshold := Main.Config.ojvIDLinkThreshold;
     {/aiai}
   end;
@@ -1073,9 +1073,8 @@ begin
     MainWnd.UpdateListViewColumns; //aiai
   end;
 
-  Main.Config.ojvShowDayOfWeek := self.ShowDayOfWeekCheckBox.Checked; //aiai
-
   {aiai}
+  Main.Config.ojvShowDayOfWeek := self.ShowDayOfWeekCheckBox.Checked;
   Main.Config.schDefaultSearch := ComboBoxDefaultSearch.ItemIndex;
   Main.Config.schMigemoPathTmp := EditMigemoPath.Text;
   Main.Config.schMigemoDicTmp := EditMigemoDic.Text;

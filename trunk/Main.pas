@@ -42,8 +42,8 @@ uses
   {/aiai}
 
 const
-  VERSION  = '0.1.3.12';      (* Printable ASCIIコード厳守。')'はダメ *)
-  JANE2CH  = 'JaneLovely 0.1.3.12';
+  VERSION  = '0.1.3.14';      (* Printable ASCIIコード厳守。')'はダメ *)
+  JANE2CH  = 'JaneLovely 0.1.3.14';
   KEYWORD_OF_USER_AGENT = 'JaneLovely';      (*  *)
 
   DISTRIBUTORS_SITE = 'http://www.geocities.jp/openjane4714/';
@@ -1386,7 +1386,7 @@ type
     FavPtrlFavs: TFavoriteList;
     FavPtrlCount: Integer;
     LovelyWebForm: TLovelyWebForm;
-    preWindowState: TWindowState;
+    //preWindowState: TWindowState;
 
     TreePanelVisible: Boolean;
     TreeTabControlIndex: Byte;
@@ -2858,6 +2858,20 @@ begin
   LocalThreadAboneSetting := 0; //スレッドあぼ～ん表示レベルの初期設定
   AboneLevel := Config.viewAboneLevel;  //あぼーん表示レベルの初期設定
 
+  case LocalThreadAboneSetting of
+    0: actThreadAboneTranseparency.Checked := True;
+    1: actThreadAboneIgnore.Checked := True;
+  end;
+  {beginner}
+  case AboneLevel of
+    -1 :actTransparencyAbone.Checked:=True;
+     0 :actNormalAbone.Checked:=True;
+     1 :actHalfAbone.Checked:=True;
+     2 :actIgnoreAbone.Checked:=True;
+     3 :actImportantResOnly.Checked:=True;
+  end;
+  {/beginner}
+
   (* ヒント *)
   urlHeadCache := TUrlHeadCache.Create;
   Application.OnDeactivate := AppDeactivate; (* ヘンなタイミングでのポップアップ対策 *)
@@ -3020,7 +3034,7 @@ begin
   (* メモ欄のセットアップ *)
   CreateWriteMemo(Self, WritePanel, MemoImageList);
 
-  LoadWindowPos;
+  //LoadWindowPos;
   PictViewList := TPictureViewList.Create;
 
   WriteWaitTimer := TWriteWaitTimer.Create;
@@ -3045,16 +3059,7 @@ begin
   if inTaskTray then
     inTaskTray := false
   else begin
-    WindowState := preWindowState;
-    ToggleTreePanel(TreePanelVisible);
-    if TreePanel.Visible then
-      SetTabSetIndex(TreeTabControlIndex);
-    if TreePanelCanMove then
-      ToggleTreePanelCanMove(TreePanelCanMove);
-    {if WritePanelCanMove then
-    begin
-      WritePanel.BoundsRect := WritePanelHoverRect;
-    end;}
+    LoadWindowPos;
 
     if viewList.Count > 0 then
     begin
@@ -3067,20 +3072,6 @@ begin
       SetRPane(ptList);
 
     CanAutoCheckNewRes := True;  //aiai
-
-    case LocalThreadAboneSetting of
-      0: actThreadAboneTranseparency.Checked := True;
-      1: actThreadAboneIgnore.Checked := True;
-    end;
-    {beginner}
-    case AboneLevel of
-      -1 :actTransparencyAbone.Checked:=True;
-       0 :actNormalAbone.Checked:=True;
-       1 :actHalfAbone.Checked:=True;
-       2 :actIgnoreAbone.Checked:=True;
-       3 :actImportantResOnly.Checked:=True;
-    end;
-    {/beginner}
 
     try
       DebugTmp.Visible := Config.tstDebugEnabled;
@@ -3438,6 +3429,12 @@ var
     TreePanelHoverRect.Right := iniFile.ReadInteger(INI_WIN_SECT, 'TreePanelHoverRight', 150);
     TreePanelHoverRect.Bottom := iniFile.ReadInteger(INI_WIN_SECT, 'TreePanelHoverBottom', 300);
 
+    ToggleTreePanel(TreePanelVisible);
+    if TreePanel.Visible then
+      SetTabSetIndex(TreeTabControlIndex);
+    if TreePanelCanMove then
+      ToggleTreePanelCanMove(TreePanelCanMove);
+
     //if 0 < Main.initialURL.Count then
     if Assigned(Main.initialURL) then //aiai
     begin
@@ -3486,7 +3483,7 @@ begin
             iniFile.ReadInteger(INI_WIN_SECT, 'Top',   Top),
             iniFile.ReadInteger(INI_WIN_SECT, 'Width', Width),
             iniFile.ReadInteger(INI_WIN_SECT, 'Height',Height));
-  preWindowState := TWindowState(iniFile.ReadInteger(INI_WIN_SECT,
+  WindowState := TWindowState(iniFile.ReadInteger(INI_WIN_SECT,
                                     'WindowState', Ord(WindowState))); //※[JS]
 
   (* LogArea *)
@@ -11324,6 +11321,7 @@ begin
   TextPopupExtractPopup.Visible := TextPopupCopy.Visible and threading;
 
   TextPopupTrensferToWriteForm.Visible := TextPopupCopy.Enabled;
+  TextPopupTrensferToWriteMemo.Visible := TextPopupCopy.Enabled;
   TextPopupAddNGWord.Visible := TextPopupCopy.Enabled;
   TextPopupExtractRes.Visible := TextPopupCopy.Enabled and threading;
   TextPopupAddAAList.Visible := TextPopupCopy.Enabled;
@@ -12038,7 +12036,7 @@ procedure TMainWnd.CommandExecute(command: string; replace: boolean = true;
         outText := AnsiReplaceStr(outText, '$TEXTX', select);
         outText := AnsiReplaceStr(outText, '$TEXTIX', select);
       end
-      else if AnsiContainsStr(inText, '$TEXTU') or AnsiContainsStr(inText, '$TEXTUX') then
+      else if AnsiContainsStr(inText, '$TEXTU') or AnsiContainsStr(inText, '$TEXTIU') then
       begin
         select := URLEncode(AnsiToUTF8(select));
         outText := AnsiReplaceStr(outText, '$TEXTU', select);

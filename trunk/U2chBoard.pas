@@ -561,9 +561,9 @@ var
     item.previousitemCount := item.itemCount;
     item.itemCount := num;
     item.IsThisAbone := abone;
+    Add(item);
     item.number := Count;
     //item.contemporary := true;
-    Add(item);
     {aiai}
     if refresh then
       datList.Add(datName);
@@ -1407,10 +1407,11 @@ begin
     threadABoneList.Add(thread.datName + '=' + thread.title);
 
     //ƒXƒŒƒbƒh‚ğíœ
-    thread.Free;
+    //thread.Free;
+    thread.IsThisAbone := True;
 
     //”Â‚©‚çíœ
-    Self.Delete(intIndex);
+    //Self.Delete(intIndex);
 
     Result := True;
     

@@ -1498,12 +1498,16 @@ end;
 
 procedure THogeTextView.PageDown;
 begin
+  FLogicalCaret.Y := FLogicalTopLine + 1;
+  SetLogicalCaret(FCaretSavedX, FLogicalCaret.Y, hscDONTSAVEX);
   ScrollLine(VisibleLines - GetMargin, True);
   AnalyzeScrollInfo;
 end;
 
 procedure THogeTextView.PageUp;
 begin
+  FLogicalCaret.Y := FLogicalTopLine + 1;
+  SetLogicalCaret(FCaretSavedX, FLogicalCaret.Y, hscDONTSAVEX);
   ScrollLine(GetMargin - VisibleLines, True);
 end;
 
