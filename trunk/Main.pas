@@ -1636,6 +1636,7 @@ type
     procedure FavPtrlManager(board: TBoard; Count: Integer;
       PatrolType: TPatrolType);
     procedure UpdateListViewColumns;
+    procedure ListViewRepaint;
     {/aiai}
   end;
 
@@ -18264,6 +18265,13 @@ begin
   else
     ComboBoxWriteMail.Text := 'sage';
   try MemoWriteMain.SetFocus; except end;
+end;
+
+procedure TMainWnd.ListViewRepaint;
+begin
+  ListView.DoubleBuffered := True;
+  ListView.Repaint;
+  ListView.DoubleBuffered := False;
 end;
 
 initialization
