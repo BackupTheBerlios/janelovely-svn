@@ -805,7 +805,6 @@ end;
 procedure TThreadItem.InsertToTable;
 var
   markp: String;
-  msg: PChar;
   title2: String;
   sql: string;
   err: byte;
@@ -837,8 +836,8 @@ begin
                     ''''+ IntToStr(LastWrote) +''', '+
                     ''''+ IntToStr(LastGot) +''', '+
                     ''''+ IntToStr(readPos) +''')';
-  err := TBoard(board).IdxDataBase.Exec(PChar(sql), nil, nil, msg);
-  SQLCheck(err, title2, sql, msg);
+  err := TBoard(board).IdxDataBase.Exec(PChar(sql), nil, nil);
+  SQLCheck(err, title2, sql, TBoard(board).IdxDataBase.LastErrMsg);
 end;
 (* //DataBase *)
 
@@ -858,7 +857,6 @@ end;
 procedure TThreadItem.SaveIndexData;
 var
   indexData: TStringList;
-  msg: PChar;
   markp: String;
   title2: String;
   sql: string;
@@ -906,8 +904,8 @@ begin
   begin
     IdxDataBase.Result := False;
     sql := 'SELECT datname FROM idxlist WHERE datname = ' + datName;
-    err := IdxDataBase.Exec(PChar(sql), @CallBackSaveIndexData, Self, msg);
-    SQLCheck(err, title, sql, msg);
+    err := IdxDataBase.Exec(PChar(sql), @CallBackSaveIndexData, Self);
+    SQLCheck(err, title, sql, IdxDataBase.LastErrMsg);
     if IdxDataBase.Result then
     begin
       if 0 < Pos('''', title) then
@@ -953,8 +951,8 @@ begin
                       ''''+ IntToStr(LastGot) +''', '+
                       ''''+ IntToStr(readPos) +''')';
     end;
-    err := IdxDataBase.Exec(PChar(sql), nil, nil, msg);
-    SQLCheck(err, title2, sql, msg);
+    err := IdxDataBase.Exec(PChar(sql), nil, nil);
+    SQLCheck(err, title2, sql, IdxDataBase.LastErrMsg);
   end;
   {$IFDEF DEVELBENCH}
   Main.Log(title + ':' + Bench3(1));
@@ -1143,7 +1141,6 @@ end;
 procedure TThreadItem.RemoveLog(deleteIdx: boolean = true);
 var
   fname: string;
-  msg: PChar;
   sql: string;
   err: byte;
 begin
@@ -1159,8 +1156,8 @@ begin
     if Config.ojvQuickMerge then
     begin
       sql := 'DELETE FROM idxlist WHERE datname = '''+ datName +'''';
-      err := TBoard(board).IdxDataBase.Exec(PChar(sql), nil, nil, msg);
-      SQLCheck(err, title, sql, msg);
+      err := TBoard(board).IdxDataBase.Exec(PChar(sql), nil, nil);
+      SQLCheck(err, title, sql, TBoard(board).IdxDataBase.LastErrMsg);
     end;
     (* //DataBase *)
 

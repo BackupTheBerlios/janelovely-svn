@@ -88,6 +88,7 @@ type
     procedure SetCustomHeader(const str: string);
     procedure SetUma(val: boolean);
     procedure SetHost(newHost: string); virtual;
+    procedure SetName(AName: string); virtual;
 
     function FindThreadFirst(const datName: string): TThreadItem;
     procedure MergeCache;
@@ -110,7 +111,7 @@ type
     function Find(const datName: string): TThreadItem;
     function ThreadAbone(ABoneList: TList; AboneType: Byte): boolean; (* スレッドあぼ～ん *)
     procedure Clear; override;
-    procedure SafeClear; virtual;
+    procedure SafeClear(dbclose: boolean = true); virtual;
     procedure AddRef; virtual;
     procedure Release; virtual;
     procedure Analyze(txt: string; const lstModified: string; refresh: boolean);
@@ -128,7 +129,7 @@ type
     function HomoMovedQuery(OnProcDone: TBoardSubjectEndNotifyEvent): Boolean;
 
     property Category: TObject read Fcategory;         (* 本当はTCategoryだ。環境上、メンドイのでキャストして使う  *)
-    property Name: string read FName write FName;      (* 板名 *)   // ex. '狼','ニュース速報'
+    property Name: string read FName write SetName;    (* 板名 *)   // ex. '狼','ニュース速報'
     property Host: string read FHost write SetHost;    (* host名 *) // ex. 'ex7.2ch.net'
     property BBS:  string read FBBS write FBBS;        (* bbs名 *)  // ex.  'morningcoffee','news'
     property URIBase: string read GetURIBase;          (* uri *)    // ex. 'http://ex7.2ch.net/morningcoffee'
@@ -163,10 +164,11 @@ type
     procedure SaveIndex; override;
     procedure Save; override;
     procedure Clear; override;
-    procedure SafeClear; override;
+    procedure SafeClear(dbclose: boolean = true); override;
     procedure SetHost(newHost: string); override;
     procedure Release; override;
     procedure ResetListState; override; //aiai
+    procedure SetName(AName: string); override;
   end;
 
   (*-------------------------------------------------------*)
@@ -349,7 +351,10 @@ begin
   Clear;
   (* DataBase (aiai) *)
   if Config.ojvQuickMerge then
-    FreeAndNil(FIDXDataBase);
+  begin
+    FIdxDataBase.Free;
+    FIdxDataBase := nil;
+  end;
   (* //DataBase *)
   inherited;
 end;
@@ -368,7 +373,7 @@ begin
 end;
 
 (* おかたづけ *)
-procedure TBoard.SafeClear;
+procedure TBoard.SafeClear(dbclose: boolean = true);
 var
   i: integer;
   {$IFDEF DEVELBENCH}
@@ -393,6 +398,8 @@ begin
     FLastModified := '';
     FDatModified := false;
     FIdxModified := false;
+    if dbclose and Config.ojvQuickMerge then
+      FIdxDataBase.Close;
   end;
   RemoveFromRecyleList(Self);
   {$IFDEF DEVELBENCH}
@@ -654,7 +661,7 @@ begin
   tickcnt := GetTickCount;
 
   if refresh then
-    SafeClear;
+    SafeClear(False);
 
   refered := THashedStringList.Create;
   refered.Sorted := True;
@@ -812,19 +819,10 @@ var
   datName: string;
   URI: string;
   MergingList: TList;
-  msg: PChar;
   save: Boolean;
-  {$IFDEF DEVELBENCH}
-  tickcnt: Cardinal;
-  {$ENDIF}
   sql: string;
   err: byte;
 begin
-  {$IFDEF DEVELBENCH}
-  tickcnt := GetTickCount;
-  Main.Log(FName + ':idx全ｽﾚ読込開始');
-  {$ENDIF}
-
   MergingList := TList.Create;
   path := self.GetLogDir + '\*.dat';
 
@@ -835,8 +833,8 @@ begin
     // transaction
 
     sql := 'BEGIN';
-    err := IdxDataBase.Exec(PChar(sql), nil, nil, msg);
-    SQLCheck(err, name, sql, msg);
+    err := FIdxDataBase.Exec(PChar(sql), nil, nil);
+    SQLCheck(err, name, sql, FIdxDataBase.LastErrMsg);
   end;
   (* //DataBase *)
 
@@ -880,8 +878,8 @@ begin
             // commit
 
             sql := 'COMMIT';
-            err := FIdxDataBase.Exec(PChar(sql), nil, nil, msg);
-            SQLCheck(err, 'In Delete Log'+#13#10+FName, sql, msg);
+            err := FIdxDataBase.Exec(PChar(sql), nil, nil);
+            SQLCheck(err, 'In Delete Log'+#13#10+FName, sql, FIdxDataBase.LastErrMsg);
           end;
           (* //Database *)
 
@@ -895,8 +893,8 @@ begin
             // transaction
 
             sql := 'BEGIN';
-            err := FIdxDataBase.Exec(PChar(sql), nil, nil, msg);
-            SQLCheck(err, 'In Delete Log'+#13#10+FName, sql, msg);
+            err := FIdxDataBase.Exec(PChar(sql), nil, nil);
+            SQLCheck(err, 'In Delete Log'+#13#10+FName, sql, FIdxDataBase.LastErrMsg);
           end;
           (* //Database *)
         end
@@ -913,17 +911,10 @@ begin
   if Config.ojvQuickMerge then
   begin
     sql := 'COMMIT';
-    err := FIdxDataBase.Exec(PChar(sql), nil, nil, msg);
-    SQLCheck(err, FName, sql, msg);
+    err := FIdxDataBase.Exec(PChar(sql), nil, nil);
+    SQLCheck(err, FName, sql, FIdxDataBase.LastErrMsg);
   end;
   (* //DataBase *)
-
-  {$IFDEF DEVELBENCH}
-  if Config.ojvQuickMerge then
-    Main.Log(FName + ':CreateTable ' + IntToStr(GetTickCount - tickcnt) + 'ms')
-  else
-    Main.Log(FName + ':Load *.idx' + IntToStr(GetTickCount - tickcnt) + 'ms');
-  {$ENDIF}
 end;
 
 (* DataBase (aiai) *)
@@ -989,42 +980,37 @@ end;
 
 procedure TBoard.MergeCacheFast;
 var
-  msg: PChar;
   {$IFDEF DEVELBENCH}
   tickcnt: Cardinal;
   {$ENDIF}
   sql: string;
   err: byte;
 begin
-  {$IFDEF DEVELBENCH}
-  tickcnt := GetTickCount;
-  {$ENDIF}
-
   // check idxlist's version
 
   FIdxDataBase.ResultText := '';
   sql := 'SELECT version FROM tableversion WHERE tablename = ''idxlist''';
-  err := FIdxDataBase.Exec(PChar(sql), @CallBackCheckTableVersion, IdxDataBase, msg);
-  SQLCheck(err, FName, sql, msg);
+  err := FIdxDataBase.Exec(PChar(sql), @CallBackCheckTableVersion, IdxDataBase);
+  SQLCheck(err, FName, sql, FIdxDataBase.LastErrMsg);
   if FIdxDataBase.ResultText <> IDXLIST_VERSION then
   begin
 
     // if idxlist's version not match, then recreate the table
 
     sql := 'DROP TABLE idxlist';
-    FIdxDataBase.Exec(PChar(sql), nil, nil, msg);
+    FIdxDataBase.Exec(PChar(sql), nil, nil);
 
     sql := 'DELETE FROM tableversion WHERE tablename = ''idxlist''';
-    err := FIdxDataBase.Exec(PChar(sql), nil, nil, msg);
-    SQLCheck(err, FName, sql, msg);
+    err := FIdxDataBase.Exec(PChar(sql), nil, nil);
+    SQLCheck(err, FName, sql, FIdxDataBase.LastErrMsg);
 
     sql := CREATE_TABLE_STATEMENT;
-    err := FIdxDataBase.Exec(PChar(sql), nil, nil, msg);
-    SQLCheck(err, FName, sql, msg);
+    err := FIdxDataBase.Exec(PChar(sql), nil, nil);
+    SQLCheck(err, FName, sql, FIdxDataBase.LastErrMsg);
 
     sql := 'INSERT INTO tableversion (tablename, version) VALUES (''idxlist'', '''+IDXLIST_VERSION+''')';
-    err := FIdxDataBase.Exec(PChar(sql), nil, nil, msg);
-    SQLCheck(err, FName, sql, msg);
+    err := FIdxDataBase.Exec(PChar(sql), nil, nil);
+    SQLCheck(err, FName, sql, FIdxDataBase.LastErrMsg);
 
     MergeCache;
     exit;
@@ -1035,40 +1021,37 @@ begin
   FMergingList := TList.Create;
 
   sql := 'SELECT * FROM idxlist';
-  err := FIdxDataBase.Exec(PChar(sql), @LoadTable, Self, msg);
-  if (0 < Pos('no such table', msg)) then
+  err := FIdxDataBase.Exec(PChar(sql), @LoadTable, Self);
+  if (0 < Pos('no such table', FIdxDataBase.LastErrMsg)) then
   begin
 
     // if no table exists, then create a new table
 
     FMergingList.Free;
     sql := CREATE_TABLE_STATEMENT;
-    err := FIdxDataBase.Exec(PChar(sql), nil, nil, msg);
-    SQLCheck(err, FName, sql, msg);
+    err := FIdxDataBase.Exec(PChar(sql), nil, nil);
+    SQLCheck(err, FName, sql, FIdxDataBase.LastErrMsg);
     MergeCache;
     exit;
   end;
-  SQLCheck(err, FName, sql, msg);
+  SQLCheck(err, FName, sql, FIdxDataBase.LastErrMsg);
   Assign(FMergingList, laOr);
 
   FMergingList.Free;
-  {$IFDEF DEVELBENCH}
-  Main.Log(FName + ':LoadTable ' + IntToStr(GetTickCount - tickcnt));
-  {$ENDIF}
 end;
 
 (* For Debug *)
 procedure TBoard.IdxDataBaseOpen(Sender: TObject);
 begin
   if not Application.Terminated then
-    Main.Log(FName + ': db open(' + IntToStr(IdxDataBase.RefCount) + ')');
+    Main.Log(FName + ': db open');
 end;
 
 (* For Debug *)
 procedure TBoard.IdxDataBaseClose(Sender: TObject);
 begin
   if not Application.Terminated then
-    Main.Log(FName + ': db close(' + IntToStr(IdxDataBase.RefCount) + ')');
+    Main.Log(FName + ': db close');
 end;
 
 
@@ -1091,23 +1074,22 @@ end;
 procedure TBoard.InitialDBOpen;
 var
   db: String;
-  msg: PChar;
   sql: string;
   err: byte;
 
   procedure FirstSetUp;
   begin
     sql := 'PRAGMA default_synchronous = OFF';
-    err := FIdxDataBase.Exec(PChar(sql), nil, nil, msg);
-    SQLCheck(err, FName, sql, msg);
+    err := FIdxDataBase.Exec(PChar(sql), nil, nil);
+    SQLCheck(err, FName, sql, FIdxDataBase.LastErrMsg);
 
     sql := 'CREATE TABLE tableversion (tablename PRIMARY KEY, version)';
-    err := FIdxDataBase.Exec(PChar(sql), nil, nil, msg);
-    SQLCheck(err, FName, sql, msg);
+    err := FIdxDataBase.Exec(PChar(sql), nil, nil);
+    SQLCheck(err, FName, sql, FIdxDataBase.LastErrMsg);
 
     sql := 'INSERT INTO tableversion (tablename, version) VALUES (''board_db'', '''+BOARD_VERSION+''')';
-    err := FIdxDataBase.Exec(PChar(sql), nil, nil, msg);
-    SQLCheck(err, FName, sql, msg);
+    err := FIdxDataBase.Exec(PChar(sql), nil, nil);
+    SQLCheck(err, FName, sql, FIdxDataBase.LastErrMsg);
   end;
 
 begin
@@ -1118,9 +1100,9 @@ begin
   if not FileExists(db) then
   begin
     RecursiveCreateDir(GetLogDir);  //板のログフォルダの作成
-    if not FIdxDataBase.Open(PChar(db), 0, msg) then
+    if not FIdxDataBase.Open then
     begin
-      ShowMessage('Unable Open '+db +#13#10+ msg);
+      ShowMessage('Unable Open '+db +#13#10+ FIdxDataBase.LastErrMsg);
       MainWnd.Close;
       exit;
     end;
@@ -1128,7 +1110,7 @@ begin
     exit;
   end;
 
-  if not FIdxDataBase.Open(PChar(db), 0, msg) then
+  if not FIdxDataBase.Open then
   begin
     Main.Log(FName +':Cannot Open DataBase');
     if not SysUtils.DeleteFile(db) then
@@ -1139,9 +1121,9 @@ begin
     end else
       Main.Log(FName + ':Delete ' + db);
 
-    if not IdxDataBase.Open(PChar(db), 0, msg) then
+    if not IdxDataBase.Open then
     begin
-      ShowMessage('Unable Open '+db +#13#10+ msg);
+      ShowMessage('Unable Open '+db +#13#10+ FIdxDataBase.LastErrMsg);
       MainWnd.Close;
       exit;
     end;
@@ -1153,26 +1135,24 @@ begin
 
   IdxDataBase.ResultText := '';
   sql := 'SELECT version FROM tableversion WHERE tablename = ''board_db''';
-  err := FIdxDataBase.Exec(PChar(sql), @CallBackCheckTableVersion, FIdxDataBase, msg);
-  SQLCheck(err, FName, sql, msg);
+  err := FIdxDataBase.Exec(PChar(sql), @CallBackCheckTableVersion, FIdxDataBase);
+  SQLCheck(err, FName, sql, FIdxDataBase.LastErrMsg);
   if FIdxDataBase.ResultText <> BOARD_VERSION then
   begin
 
-    // if not board_db version not match, then recreate db file
+    // if board_db version not match, then recreate db file
 
     Main.Log(FName + ':DataBase Version Change ' + '『' + FIdxDataBase.ResultText + '』' + ' to ' + '『' + BOARD_VERSION + '』');
-    if IdxDataBase.Close then
-      Main.Log(FName +':DataBase Close');
+    FIdxDataBase.Close;
     if not SysUtils.DeleteFile(db) then
     begin
       ShowMessage('Unable Delete '+db);
       MainWnd.Close;
       exit;
-    end else
-      Main.Log(FName +':Delete ' + db);
-    if not FIdxDataBase.Open(PChar(db), 0, msg) then
+    end;
+    if not FIdxDataBase.Open then
     begin
-      ShowMessage('Unable Open ' + db +#13#10+ msg);
+      ShowMessage('Unable Open ' + db +#13#10+ FIdxDataBase.LastErrMsg);
       MainWnd.Close;
       exit;
     end;
@@ -1410,6 +1390,13 @@ begin
       Items[i].SaveIndexData;
     end;
   FMoved := false;
+end;
+
+procedure TBoard.SetName(AName: string);
+begin
+  FName := AName;
+  if Config.ojvQuickMerge then
+    FIdxDataBase.FileName := GetLogDir + BOARD_DB;
 end;
 
 //改造▽ 追加 (スレッドあぼ～ん)
@@ -1896,7 +1883,6 @@ var
   item: TThreadItem;
   datName, URI: String;
   i: Integer;
-  msg: PChar;
   save: Boolean;
   sql: string;
   err: byte;
@@ -1905,8 +1891,8 @@ begin
   if Config.ojvQuickMerge then
   begin
     sql := 'BEGIN';
-    err := FIdxDataBase.Exec(PChar(sql), nil, nil, msg); //トランザクション
-    SQLCheck(err, FName, sql, msg);
+    err := FIdxDataBase.Exec(PChar(sql), nil, nil); //トランザクション
+    SQLCheck(err, FName, sql, FIdxDataBase.LastErrMsg);
   end;
   (* //DataBase *)
 
@@ -1946,8 +1932,8 @@ begin
   if Config.ojvQuickMerge then
   begin
     sql := 'COMMIT';
-    err := FIdxDataBase.Exec(PChar(sql), nil, nil, msg); //トランザクション
-    SQLCheck(err, FName, sql, msg);
+    err := FIdxDataBase.Exec(PChar(sql), nil, nil); //トランザクション
+    SQLCheck(err, FName, sql, FIdxDataBase.LastErrMsg);
   end;
   (* //DataBase *)
 
@@ -1974,7 +1960,7 @@ begin
 end;
 
 //参照中のスレは本来の板に返す
-procedure TFunctionalBoard.SafeClear;
+procedure TFunctionalBoard.SafeClear(dbclose: boolean = true);
 var
   i: integer;
 begin
@@ -2017,6 +2003,12 @@ begin
       Items[i].liststate := 0;
     threadSearched := false;
   end;
+end;
+
+//aiai
+procedure TFunctionalBoard.SetName(AName: string);
+begin
+  FName := AName;
 end;
 
 (*=======================================================*)

@@ -9,39 +9,48 @@ uses
   Windows, JLSqlite, SysUtils;
 
 type
+  ENotFileNameErr = class(Exception);
+  EHandleErr = class(Exception);
+
   TJLSQLiteNotifyEvent = procedure (Sender: TObject) of Object;
 
   TJLSQLite = class(TObject)
   private
     FSqlite: Pointer;
     FFileName: string;
-    FOpened: Boolean;             (* already opened DataBase File or not yet *)
     FResultText: string;
     FResult: Boolean;
-    FRefCount: Integer;
+    FLastErrMsg: PChar;
     FOnOpen: TJLSQLiteNotifyEvent;
     FOnClose: TJLSQLiteNotifyEvent;
     function GetVersion: string;
+    function GetOpened: Boolean;
+    procedure SetFileName(AFileName: string);
   protected
     procedure DoOpen;
     procedure DoClose;
   public
     constructor Create;
     destructor Destroy; override;
-    function Open(const zFileName: PChar; mode: Integer; out errmsg: PChar): Boolean;
+    function Open: Boolean;
     function Close: Boolean;
-    function Exec(const sql: PChar; sqlite_callback: Pointer; Sender: TObject; out errmsg: PChar): Integer;
-    property Opened: Boolean read FOpened;
+    function Exec(const sql: PChar; sqlite_callback: Pointer; Sender: TObject): Integer;
+    property Opened: Boolean read GetOpened; (* already opened DataBase File or not yet *)
     property Version: string read GetVersion;
     property ResultText: string read FResultText write FResultText;
     property Result: Boolean read FResult write FResult;
-    property RefCount: Integer read FRefCount;
+    property FileName: string read FFileName write SetFileName;
+    property LastErrMsg: PChar read FLastErrMsg;
 
     property OnOpen: TJLSQLiteNotifyEvent read FOnOpen write FOnOpen;
     property OnClose: TJLSQLiteNotifyEvent read FOnClose write FOnClose;
   end;
 
 implementation
+
+const
+  ENotFileNameErrMsg = 'DataBaseを開けません!!!!' + #13#10 + 'ファイル名が不明です。';
+  EHandleErrMsg = 'ハンドルが無効です。';
 
 var
   SqliteVersion: string = '';
@@ -52,8 +61,6 @@ var
 constructor TJLSQLite.Create;
 begin
   FSqlite := nil;
-  FOpened := False;
-  FRefCount := 0;
 end;
 
 destructor TJLSQLite.Destroy;
@@ -75,6 +82,24 @@ begin
   Result := SqliteVersion;
 end;
 
+function TJLSQLite.GetOpened: Boolean;
+begin
+  Result := FSqlite <> nil;
+end;
+
+procedure TJLSQLite.SetFileName(AFileName: string);
+begin
+  if FFileName <> AFileName then
+  begin
+    FFileName := AFileName;
+    if FSqlite <> nil then
+    begin
+      Close;
+      Open;
+    end;
+  end;
+end;
+
 procedure TJLSQLite.DoOpen;
 begin
   if Assigned(FOnOpen) then
@@ -87,17 +112,16 @@ begin
     FOnClose(Self);
 end;
 
-function TJLSQLite.Open(const zFileName: PChar; mode: Integer;
-  out errmsg: PChar): Boolean;
+function TJLSQLite.Open: Boolean;
 begin
   if FSqlite = nil then
   begin
-    FSqlite := sqlite_open(zFileName, mode, errmsg);
-    FFileName := zFileName;
+    if Length(FFileName) <= 0 then
+      raise ENotFileNameErr.Create(ENotFileNameErrMsg);
+    FSqlite := sqlite_open(PChar(FFileName), 0, FLastErrMsg);
     DoOpen;
   end;
-  FOpened := (FSqlite <> nil);
-  Result := FOpened;
+  Result := FSqlite <> nil;
 end;
 
 function TJLSQLite.Close: Boolean;
@@ -106,7 +130,6 @@ begin
   begin
     sqlite_close(FSqlite);
     FSqlite := nil;
-    FOpened := False;
     Result := True;
     DoClose;
   end else
@@ -114,20 +137,12 @@ begin
 end;
 
 function TJLSQLite.Exec(const sql: PChar; sqlite_callback: Pointer; Sender:
-  TObject; out errmsg: PChar): Integer;
-var
-  filename: string;
+  TObject): Integer;
 begin
-  if not FOpened then
-  begin
-    if Length(FFileName) > 0 then
-    begin
-      filename := FFileName;
-      Open(PChar(filename), 0, errmsg);
-    end else
-      raise Exception.Create('DataBaseを開けません!!!!' + #13#10 + 'ファイル名が不明です。');
-  end;
-  Result := sqlite_exec(FSqlite, sql, sqlite_callback, Sender, errmsg);
+  Open;
+  if FSqlite = nil then
+    raise EHandleErr.Create(EHandleErrMsg);
+  Result := sqlite_exec(FSqlite, sql, sqlite_callback, Sender, FLastErrMsg);
 end;
 
 end.

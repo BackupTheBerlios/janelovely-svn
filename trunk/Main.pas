@@ -14603,7 +14603,6 @@ procedure TMainWnd.actRefreshIdxListExecute(Sender: TObject);
 var
   board: TBoard;
   node: TTreeNode;
-  msg: PChar;
   sql: string;
   err: byte;
 begin
@@ -14628,8 +14627,8 @@ begin
   UILock := True;
 
   sql := 'DROP TABLE idxlist';
-  err := board.IdxDataBase.Exec(PChar(sql), nil, nil, msg);
-  SQLCheck(err, board.name, sql, msg);
+  err := board.IdxDataBase.Exec(PChar(sql), nil, nil);
+  SQLCheck(err, board.name, sql, board.IdxDataBase.LastErrMsg);
 
   ListView.OnData := nil;
 
