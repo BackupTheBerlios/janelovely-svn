@@ -850,6 +850,7 @@ type
     N109: TMenuItem;
     TrayIcon: TJLTrayIcon;
     MenuBoardSep: TMenuItem;
+    PopupFavRenewCheck: TMenuItem;
     {/aiai}
     procedure FormCreate(Sender: TObject);
     procedure MenuToolsOptionsClick(Sender: TObject);
@@ -1337,12 +1338,13 @@ type
     procedure ThreViewSearchCloseButtonClick(Sender: TObject);
     procedure TrayIconMouseUp(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
+    procedure PopupFavRenewCheckClick(Sender: TObject);
     {/aiai}
   private
   { Private 宣言 }
     UILock: Boolean;
     AlreadySetMouseGesture:Boolean;  //beginner
-    requestingBoard: TBoard;
+    //requestingBoard: TBoard;
     procGetCategoryList: TAsyncReq;
     procGetSubject: TAsyncReq;
     hintURI: string;
@@ -1419,12 +1421,11 @@ type
                                cmdType: TGestureOprType);
     procedure ListViewNavigate(board: TBoard; oprType: TGestureOprType;
                                               newTab: boolean = false);
-    procedure HomeMovedBoard(board: TBoard);
     procedure OpenBoard(board: TBoard; newTab: boolean; active: boolean = true); (* スレ覧タブに板を追加 *)
     procedure CloseBoard(index: integer; update: boolean = true); (* スレ覧タブから板を閉じる *)
     procedure SaveListViewState;
-    procedure OnSubject(sender: TAsyncReq);
-    procedure OnMovedSubject(sender: TAsyncReq);
+//    procedure OnSubject(sender: TAsyncReq);
+//    procedure OnMovedSubject(sender: TAsyncReq);
     procedure UpdateListView;
     function NewView(relative: boolean = false; background: boolean = false;
       Left: integer = 0; Top: integer = 0;
@@ -1568,6 +1569,8 @@ type
     procedure WriteWaitTimerNotify(Sender: TObject; DomainName: String; Remainder: Integer);
     procedure WriteWaitTimerEnd(Sender: TObject);
     //▲ WriteWaitTimerのイベントハンドラ
+    procedure BoardAsyncProcDone(Sender: TBoard);
+    procedure FavoriteRenewCheck;
     {/aiai}
   public
     { Public 宣言 }
@@ -1630,8 +1633,8 @@ type
     procedure PauseToggleAutoReSc(bool: Boolean);
     procedure OpenByLovelyBrowser(URI: String = '');
     function  MyMessageDlg(messageLabel: String): Word;
-    procedure FavPtrlManager(Count: Integer;
-                  PatrolType: TPatrolType; board: TBoard);
+    procedure FavPtrlManager(board: TBoard; Count: Integer;
+      PatrolType: TPatrolType);
     procedure UpdateListViewColumns;
     {/aiai}
   end;
@@ -1769,9 +1772,6 @@ const
   HTML_POPUP_TEMPLATE   = 'PopupRes.html';
   HTML_BOOKMARK_TEMPLATE = 'BookMark.html';
   HTML_NEWMARK_TEMPLATE = 'NewMark.html';
-
-  THREAD_CURRENT_LIST    = 'subject.txt';
-  THREAD_PAST_LIST       = 'subkako.txt.gz';
 
   LVSC_NUMBER = 1;
   LVSC_TITLE  = 2;
@@ -2042,7 +2042,7 @@ begin
  {Log('（ ･∀･）（･∀･ ）ｵﾂｶｲｵﾜﾘ　三三三三３');
   Log('（･∀･∀･）');}
   Log2(4, '');  //ayaya
-  Log2(5, '');  //ayaya
+  //Log2(5, '');  //ayaya
 end;
 
 procedure LogDone(writeTrace: Boolean);
@@ -2718,6 +2718,7 @@ begin
   currentSortColumn := 1;
 
   currentView := nil;
+  FavPtrlFavs := nil;
 
   (*  *)
   AddAboutMenu;
@@ -2891,7 +2892,7 @@ begin
 
   (* ボード＝スレ一覧 *)
   currentBoard  := nil;
-  requestingBoard     := nil;
+//  requestingBoard     := nil;
 
   (*  *)
   SetTracePosition; //トレース画面の場所を設定する
@@ -3570,7 +3571,6 @@ end;
 procedure TMainWnd.OpenConfigDlg(PanelSpec: Integer = -1);
 var
   rc: integer;
-  //oldSkinPath: string;
   i: TNGItemIdent; //beginner
 begin
   if UIConfig = nil then
@@ -3581,7 +3581,6 @@ begin
   ExNGList.SaveToFile(Config.BasePath + NG_EX_FILE);
   {/beginner}
   Config.tmpChanged := false;
-  //oldSkinPath := Config.SkinPath;
   if 0 < PanelSpec then
     UIConfig.PageControl.TabIndex := PanelSpec;
   rc := UIConfig.ShowModal;
@@ -3620,19 +3619,15 @@ begin
     OnlineButton.ImageIndex := 13;
   actLogin.Checked := Config.tstAuthorizedAccess;
 
-  //if oldSkinPath <> Config.SkinPath then
-  //  LoadSkin(Config.SkinPath);
   if Config.StyleChanged then
     SetStyle;
 
   HintTimer.Interval := config.hintForURLWaitTime;
   SetCaption(boardNameOfCaption);
-  //Memo.TabStop := Config.oprTabStopOnTracePane;
 
   ListViewSelectItem(ListView, ListView.Selected, ListView.Selected <> nil);
   UpdateFavoritesMenu;
 
-  //SetMouseGesture;
   mouseGestureEnable := Config.mseGestureList.Text <> '';
   SetupNGWords;
   Config.StyleChanged := false;
@@ -4156,11 +4151,7 @@ end;
 procedure TMainWnd.ListViewNavigate(board: TBoard; oprType: TGestureOprType;
                                                    newTab: boolean = false);
 var
-  uri: string;
   call: boolean;
-  threadList: string;
-  theTime: TDateTime;
-  kbSpeed: Cardinal;
 begin
   board.AddRef;
   call := false;
@@ -4191,91 +4182,16 @@ begin
     end;
   end;
 
-  if assigned(requestingBoard) then
-  begin
-    requestingBoard.Release;
-    requestingBoard := nil;
-  end;
-
-  (*  *)
   subjectReadyEvent.ResetEvent;
-  //if call and (Now <= IncSecond(board.lastAccess, LIST_RELOAD_INTERVAL)) then
-  if call and (Now <= IncSecond(board.lastAccess, Config.oprListReloadInterval)) then
-  begin
-    SystemParametersInfo(SPI_GETKEYBOARDSPEED, 0, @kbSpeed, 0);
-    board.lastAccess := board.lastAccess + 1.2/((30-2.5)*kbSpeed/31 + 2.5)/(24*60*60);
-    //theTime := IncSecond(Now, LIST_RELOAD_INTERVAL);
-    theTime := IncSecond(Now, Config.oprListReloadInterval);
-    if theTime < board.lastAccess then
-      board.lastAccess := theTime;
-    //Log('（　´_ゝ`）');
-    call := False;
-  end;
+
   if call then
-  begin
-    requestingBoard := board;
-    requestingBoard.AddRef;
-    if board.past then
-      threadList := THREAD_PAST_LIST
-    else
-      threadList := THREAD_CURRENT_LIST;
-//    if Config.tstAuthorizedAccess then
-    {$IFDEF APPEND_SID}
-      uri := ticket2ch.AppendSID(board.GetURIBase + '/' + threadList, '?')
-    {$ELSE}
-      uri := board.GetURIBase + '/' + threadList;
-    {$ENDIF}
-//    else
-//      uri := 'http://' + board.host + '/test/read.cgi/' + board.bbs + '/?raw=0.0';
-    LogBeginQuery;
-    procGetSubject := AsyncManager.Get(uri, OnSubject,
-                                       ticket2ch.On2chPreConnect, board.lastModified);
+    call := board.StartQuery(BoardAsyncProcDone);
 
-
-    if procGetSubject = nil then
-    begin
-      call := false;
-      requestingBoard.Release;
-      requestingBoard := nil;
-      DlgTooManyConn;
-    end;
-  end;
   if Config.oprShowSubjectCache or (not call) then //currentBoardをすぐに切り替えるどうか(両方trueでもいいかも)
     OpenBoard(board, newTab, true)
   else begin
     OpenBoard(board, newTab, false);
     ListTabControl.TabIndex := boardList.IndexOf(board);  //とりあえずタブの見た目だけごまかしておく
-  end;
-
-  SetRPane(ptList);
-  board.Release;
-end;
-
-procedure TMainWnd.HomeMovedBoard(board: TBoard);
-begin
-  board.AddRef;
-
-  if assigned(requestingBoard) then
-  begin
-    requestingBoard.Release;
-    requestingBoard := nil;
-  end;
-
-  requestingBoard := board;
-  requestingBoard.AddRef;
-  if usetrace[16] then
-    Log(traceString[16])
-  else
-    Log('川*’∀’）ｲﾃﾝﾂｲﾋ');
-  LogBeginQuery;
-  procGetSubject := AsyncManager.Get(board.GetURIBase + '/', OnMovedSubject,
-      ticket2ch.On2chPreConnect, '');
-
-  if procGetSubject = nil then
-  begin
-    requestingBoard.Release;
-    requestingBoard := nil;
-    DlgTooManyConn;
   end;
 
   SetRPane(ptList);
@@ -4391,180 +4307,189 @@ begin
   ListTabLineAdjust;
 end;
 
-procedure TMainWnd.OnMovedSubject(sender: TAsyncReq);
-var
-  URI, host, bbs: string;
-  startpos, endpos: Integer;
-label FAILED;
+//procedure TMainWnd.OnMovedSubject(sender: TAsyncReq);
+//var
+//  URI, host, bbs: string;
+//  startpos, endpos: Integer;
+//label FAILED;
+//begin
+//  LogEndQuery2;
+//  if sender <> procGetSubject then
+//    exit;
+////  if requestingBoard = nil then
+////    exit;
+//  procGetSubject := nil;
+//  WriteStatus(sender.IdHTTP.ResponseText);
+//  case sender.IdHTTP.ResponseCode of
+//  200: (* 200 OK *)
+//    begin
+//      startpos := Pos('href="', sender.Content) + 6;
+//      if startpos <= 6 then
+//        goto FAILED;
+//      endpos := FindPos('/"</script>', sender.Content, startpos);
+//      if endpos <= startpos then
+//        goto FAILED;
+//      URI := copy(sender.Content, startpos, endpos - startpos);
+//      SplitThreadURI(URI, host, bbs);
+////      if bbs <> requestingBoard.bbs then
+////        goto FAILED;
+////      requestingBoard.host := host;
+//      Log(sender.URI + ' -> ' + URI + '/');
+//      if useTrace[12] then
+//        Log(traceString[12])
+//      else
+//        Log('川*’∀’）ﾀﾌﾞﾝｾｲｺｳ');
+//      if usetrace[13] then
+//        Log(traceString[13])
+//      else
+//        Log('川*’∀’）ｱﾄﾃﾞﾓｳｲﾁﾄﾞｺｳｼﾝｼﾃﾐﾙｶﾞｼ');
+//      WriteStatus('板移転検出');
+////      requestingBoard.lastAccess := 0;
+//    end;
+//    else
+//      FAILED:
+//        if usetrace[14] then
+//          Log(traceString[14])
+//        else
+//          Log('ﾂｲﾋﾞｼｯﾊﾟｲ川 - 。- 川');
+//
+//  end;
+////  requestingBoard.Release;
+////  requestingBoard := nil;
+//end;
+
+procedure TMainWnd.BoardAsyncProcDone(Sender: TBoard);
 begin
-  LogEndQuery2;
-  if sender <> procGetSubject then
-    exit;
-  if requestingBoard = nil then
-    exit;
-  procGetSubject := nil;
-  WriteStatus(sender.IdHTTP.ResponseText);
-  case sender.IdHTTP.ResponseCode of
-  200: (* 200 OK *)
-    begin
-      startpos := Pos('href="', sender.Content) + 6;
-      if startpos <= 6 then
-        goto FAILED;
-      endpos := FindPos('/"</script>', sender.Content, startpos);
-      if endpos <= startpos then
-        goto FAILED;
-      URI := copy(sender.Content, startpos, endpos - startpos);
-      SplitThreadURI(URI, host, bbs);
-      if bbs <> requestingBoard.bbs then
-        goto FAILED;
-      requestingBoard.host := host;
-      Log(sender.URI + ' -> ' + URI + '/');
-      if useTrace[12] then
-        Log(traceString[12])
-      else
-        Log('川*’∀’）ﾀﾌﾞﾝｾｲｺｳ');
-      if usetrace[13] then
-        Log(traceString[13])
-      else
-        Log('川*’∀’）ｱﾄﾃﾞﾓｳｲﾁﾄﾞｺｳｼﾝｼﾃﾐﾙｶﾞｼ');
-      WriteStatus('板移転検出');
-      requestingBoard.lastAccess := 0;
-    end;
-    else
-      FAILED:
-        if usetrace[14] then
-          Log(traceString[14])
-        else
-          Log('ﾂｲﾋﾞｼｯﾊﾟｲ川 - 。- 川');
-
-  end;
-  requestingBoard.Release;
-  requestingBoard := nil;
+  //ListView.Enabled := false;
+  UILock := true;
+  ChangeCurrentBoard(Sender);
+  UpdateListView;
+  //ListView.Enabled := true;
+  UILock := false;
 end;
-
 
 (* スレ一覧取得結果 *)
-procedure TMainWnd.OnSubject(sender: TAsyncReq);
-  procedure HomeMovedBoard;
-  begin
-    if usetrace[16] then
-      Log(traceString[16])
-    else
-      Log('川*’∀’）ｲﾃﾝﾂｲﾋ');
-    LogBeginQuery;
-    procGetSubject := AsyncManager.Get(
-      copy(sender.URI, 1, LastDelimiter('/', sender.URI)), OnMovedSubject,
-      ticket2ch.On2chPreConnect, '');
-  end;
-  procedure GotSuccessfully(const content: string);
-  begin
-    requestingBoard.Analyze(content, sender.GetLastModified, false);
-    if requestingBoard.timeValue <= 0 then
-      requestingBoard.timeValue := DateTimeToUnix(Str2DateTime(sender.GetDate));
-    if usetrace[42] then Log(traceString[42])
-    else
-    Log('スレ一覧更新中');
-    //ListView.Enabled := false;
-    UILock := true;
-    ChangeCurrentBoard(requestingBoard);
-    requestingBoard.Release;
-    requestingBoard := nil;
-    currentBoard.ResetListState;
-
-    UpdateListView;
-    //ListView.Enabled := true;
-    UILock := false;
-    LogDone;
-  end;
-var
-  content, s: string;
-  i: integer;
-begin
-  LogEndQuery2;
-  subjectReadyEvent.ResetEvent;
-  if sender <> procGetSubject then
-    exit;
-  if requestingBoard = nil then
-    exit;
-
-  requestingBoard.lastAccess := Now;
-  procGetSubject := nil;
-  Main.Log(sender.IdHTTP.ResponseText);
-  case sender.IdHTTP.ResponseCode of
-  200: (* 200 OK *)
-    begin
-      if (sender.Content = '') and Config.optHomeIfSubjectIsEmpty then
-      begin
-        HomeMovedBoard;
-        Exit;
-      end;
-      requestingBoard.last2Modified:=requestingBoard.lastModified;  //beginner
-      case requestingBoard.GetBBSType of
-      bbsJBBSShitaraba, bbsShitaraba:
-        content := euc2sjis(sender.Content);
-      else
-        {aiai}
-        if requestingBoard.NeedConvert then
-          content := euc2sjis(sender.Content)
-        else
-        {/aiai}
-        content := sender.Content;
-      end;
-      if AnsiStartsStr('+', content) or
-         AnsiStartsStr('-', content) then
-      begin
-        i := Pos(#10, content);
-        if 0 < i then
-        begin
-          s := AnsiReplaceStr(Copy(content, 1, i - 1), #13, '');
-          //Log('( @_@) □ ﾅﾆﾅﾆ･･･  ' + s);   //aiai
-          if usetrace[15] then Log(traceString[15] + s)
-          else Log('( @_@) □ ﾅﾆﾅﾆ･･･  ' + s);
-          content := Copy(content, i + 1, high(integer));
-          if s[1] = '+' then
-            GotSuccessfully(content);
-        end;
-      end
-      else
-        GotSuccessfully(content);;
-      exit;
-    end;
-  302: (* 302 Found *)
-    begin
-      HomeMovedBoard;
-      exit;
-    end;
-  304: (* 304 Not Modified *)
-    begin
-      requestingBoard.last2Modified:=requestingBoard.lastModified;  //beginner
-      if usetrace[17] then Log(traceString[17])
-      else Log('川 ’ー’川新着ﾅｼ');
-      if currentBoard <> requestingBoard then
-      begin
-        //ListView.Enabled := false;
-        UILock := true;
-        ChangeCurrentBoard(requestingBoard);
-        requestingBoard.Release;
-        requestingBoard := nil;
-        UpdateListView;
-        //ListView.Enabled := true;
-       UILock := false;
-      end
-      else begin
-        requestingBoard.Release;
-        requestingBoard := nil;
-      end;
-      WriteStatus('新着なし');
-      exit;
-    end;
-  else
-    begin
-      WriteStatus(sender.IdHTTP.ResponseText);
-    end;
-  end;
-  requestingBoard.Release;
-  requestingBoard := nil;
-end;
+//procedure TMainWnd.OnSubject(sender: TAsyncReq);
+//  procedure HomeMovedBoard;
+//  begin
+//    if usetrace[16] then
+//      Log(traceString[16])
+//    else
+//      Log('川*’∀’）ｲﾃﾝﾂｲﾋ');
+//    LogBeginQuery;
+//    procGetSubject := AsyncManager.Get(
+//      copy(sender.URI, 1, LastDelimiter('/', sender.URI)), OnMovedSubject,
+//      ticket2ch.On2chPreConnect, '');
+//  end;
+//  procedure GotSuccessfully(const content: string);
+//  begin
+//    requestingBoard.Analyze(content, sender.GetLastModified, false);
+//    if requestingBoard.timeValue <= 0 then
+//      requestingBoard.timeValue := DateTimeToUnix(Str2DateTime(sender.GetDate));
+//    if usetrace[42] then Log(traceString[42])
+//    else
+//    Log('スレ一覧更新中');
+//    //ListView.Enabled := false;
+//    UILock := true;
+//    ChangeCurrentBoard(requestingBoard);
+//    requestingBoard.Release;
+//    requestingBoard := nil;
+//    currentBoard.ResetListState;
+//
+//    UpdateListView;
+//    //ListView.Enabled := true;
+//    UILock := false;
+//    LogDone;
+//  end;
+//var
+//  content, s: string;
+//  i: integer;
+//begin
+//  LogEndQuery2;
+//  subjectReadyEvent.ResetEvent;
+//  if sender <> procGetSubject then
+//    exit;
+////  if requestingBoard = nil then
+////    exit;
+//
+////  requestingBoard.lastAccess := Now;
+//  procGetSubject := nil;
+//  Main.Log(sender.IdHTTP.ResponseText);
+//  case sender.IdHTTP.ResponseCode of
+//  200: (* 200 OK *)
+//    begin
+//      if (sender.Content = '') and Config.optHomeIfSubjectIsEmpty then
+//      begin
+//        HomeMovedBoard;
+//        Exit;
+//      end;
+////      requestingBoard.last2Modified:=requestingBoard.lastModified;  //beginner
+////      case requestingBoard.BBSType of
+////      bbsJBBSShitaraba, bbsShitaraba:
+//        content := euc2sjis(sender.Content);
+//      else
+//        {aiai}
+//        if requestingBoard.NeedConvert then
+//          content := euc2sjis(sender.Content)
+//        else
+//        {/aiai}
+//        content := sender.Content;
+//      end;
+//      if AnsiStartsStr('+', content) or
+//         AnsiStartsStr('-', content) then
+//      begin
+//        i := Pos(#10, content);
+//        if 0 < i then
+//        begin
+//          s := AnsiReplaceStr(Copy(content, 1, i - 1), #13, '');
+//          //Log('( @_@) □ ﾅﾆﾅﾆ･･･  ' + s);   //aiai
+//          if usetrace[15] then Log(traceString[15] + s)
+//          else Log('( @_@) □ ﾅﾆﾅﾆ･･･  ' + s);
+//          content := Copy(content, i + 1, high(integer));
+//          if s[1] = '+' then
+//            GotSuccessfully(content);
+//        end;
+//      end
+//      else
+//        GotSuccessfully(content);;
+//      exit;
+//    end;
+//  302: (* 302 Found *)
+//    begin
+//      HomeMovedBoard;
+//      exit;
+//    end;
+//  304: (* 304 Not Modified *)
+//    begin
+//      requestingBoard.last2Modified:=requestingBoard.lastModified;  //beginner
+//      if usetrace[17] then Log(traceString[17])
+//      else Log('川 ’ー’川新着ﾅｼ');
+//      if currentBoard <> requestingBoard then
+//      begin
+//        //ListView.Enabled := false;
+//        UILock := true;
+//        ChangeCurrentBoard(requestingBoard);
+//        requestingBoard.Release;
+//        requestingBoard := nil;
+//        UpdateListView;
+//        //ListView.Enabled := true;
+//       UILock := false;
+//      end
+//      else begin
+//        requestingBoard.Release;
+//        requestingBoard := nil;
+//      end;
+//      WriteStatus('新着なし');
+//      exit;
+//    end;
+//  else
+//    begin
+//      WriteStatus(sender.IdHTTP.ResponseText);
+//    end;
+//  end;
+//  requestingBoard.Release;
+//  requestingBoard := nil;
+//end;
 
 function Dat2DateTime(const str: string): TDateTime;
 var
@@ -4636,7 +4561,7 @@ var
 
   function GetThreadMaxNum: integer;
   begin
-    case TBoard(thread.board).GetBBSType of
+    case TBoard(thread.board).BBSType of
     bbs2ch:   result := 1000;
     bbsMachi: result := 300;
     else      result := 100000;
@@ -6945,7 +6870,7 @@ end;
 function ListCompareFuncMarker(Item1, Item2: Pointer): integer;
   function GetThreadMaxNum(thread: TThreadItem): integer;
   begin
-    case TBoard(thread.board).GetBBSType of
+    case TBoard(thread.board).BBSType of
     bbs2ch:   result := 1000;
     bbsMachi: result := 300;
     else      result := 100000;
@@ -8051,6 +7976,7 @@ begin
   PopupFavCopyTU.Enabled  := b;
   //▼フォルダだけ有効
   PopupFavOpenFolderByBoard.Enabled := not b; //※[457]
+  PopupFavRenewCheck.Enabled := not b;  //aiai
 end;
 
 procedure TMainWnd.PopupFavEditClick(Sender: TObject);
@@ -8342,7 +8268,7 @@ begin
           prefix := HTML2String(board.name) + #13#10
         else
           prefix := '';
-        result := prefix + board.GetURIBase + '/' ;
+        result := prefix + board.URIBase + '/' ;
       end;
     end
     else begin
@@ -9666,7 +9592,11 @@ end;
 procedure TMainWnd.MenuListHomeMovedBoardClick(Sender: TObject);
 begin
   if currentBoard <> nil then
-    HomeMovedBoard(currentBoard);
+  begin
+    currentBoard.AddRef;
+    currentBoard.HomoMovedQuery(nil);
+    currentBoard.Release;
+  end;
   SetRPane(ptList);
 end;
 
@@ -10593,7 +10523,7 @@ begin
   end;
 
   if board <> nil then
-    Clipboard.AsText := board.GetURIBase + '/' ;
+    Clipboard.AsText := board.URIBase + '/' ;
 end;
 
 //スレッドのタイトルをコピー  //aiai
@@ -10641,7 +10571,7 @@ begin
 
   if board <> nil then
     with board do
-      Clipboard.AsText := HTML2String(name) + #13#10 + GetURIBase + '/' ;
+      Clipboard.AsText := HTML2String(name) + #13#10 + URIBase + '/' ;
 end;
 
 
@@ -11691,7 +11621,7 @@ procedure TMainWnd.CommandExecute(command: string; replace: boolean = true;
     if AnsiContainsStr(inText, '$BURL') then
     begin
       if assigned(viewItem) and assigned(viewItem.thread) and assigned(viewitem.thread.board) then
-        repText := TBoard(viewitem.thread.board).GetURIBase + '/'
+        repText := TBoard(viewitem.thread.board).URIBase + '/'
       else
         repText := '';
       outText := AnsiReplaceStr(outText, '$BURL', repText);
@@ -12652,10 +12582,10 @@ begin
     begin
       for i := 0 to ListTabControl.Tabs.Count -1 do
         with ListTabControl.Tabs.Objects[i] as TBoard do
-          urlList.Add(GetURIBase + '/');
+          urlList.Add(URIBase + '/');
     end
     else if currentBoard <> nil then
-      urlList.Add(currentBoard.GetURIBase + '/');
+      urlList.Add(currentBoard.URIBase + '/');
     for i := 0 to viewList.Count -1 do begin
       thread := viewList.Items[i].thread;
       if thread <> nil then begin
@@ -12946,7 +12876,7 @@ begin
   end;
 
   if board <> nil then
-    OpenByBrowser(board.GetURIBase + '/');
+    OpenByBrowser(board.URIBase + '/');
 end;
 
 procedure TMainWnd.ViewPopupOpenByBrowserClick(Sender: TObject);
@@ -14420,7 +14350,7 @@ begin
   if (board = nil) or (board is TFunctionalBoard) then
     UrlEdit.Clear
   else
-    UrlEdit.Text := board.GetURIBase + '/';
+    UrlEdit.Text := board.URIBase + '/';
 end;
 
 procedure TMainWnd.ListViewPanelEnter(Sender: TObject);
@@ -14556,7 +14486,7 @@ begin
   i2ch.Save;
   UpdateTreeView;
 
-  Log('新規板 [' + board.name + '] (' + board.GetURIBase + '/) を作成しました');
+  Log('新規板 [' + board.name + '] (' + board.URIBase + '/) を作成しました');
 end;
 
 procedure TMainWnd.PopupCatAddCategoryClick(Sender: TObject);
@@ -14656,8 +14586,6 @@ begin
 
   UILock := True;
 
-  board.IdxDataBase.AddRef;
-
   sql := 'DROP TABLE idxlist';
   err := board.IdxDataBase.Exec(PChar(sql), nil, nil, msg);
   SQLCheck(err, board.name, sql, msg);
@@ -14668,8 +14596,6 @@ begin
    board.ResetListState;
 
   ListView.OnData := ListViewData;
-
-  board.IdxDataBase.Release;
 
   UpdateListView;
   UpdateTabTexts;
@@ -14711,27 +14637,7 @@ end;
 
 (* あぼ～んを表示 *) //aiai
 procedure TMainWnd.actThreadAboneShowExecute(Sender: TObject);
-//var
-//  board: TBoard;
-//  node: TTreeNode;
 begin
-  //if PopupTreeClose.Visible or (Sender = MenuListHideHistoricalLog) then
-  //  board := TBoard(ListTabControl.Tabs.Objects[tabRightClickedIndex])
-  //else begin
-  //  node := TreeView.Selected;
-  //  if node = nil then
-  //    exit;
-  //  if TObject(node.Data) is TBoard then
-  //    board := TBoard(node.Data)
-  //  else
-  //    board := nil;
-  //end;
-  //
-  //if (board = nil) or (board is TFunctionalBoard) then
-  //  exit;
-  //
-  //board.ShowThreadAbone := not board.ShowThreadAbone;
-
   if TAction(Sender).Checked then
     exit;
 
@@ -15583,7 +15489,7 @@ begin
   while index < FavBrdList.Count do
   begin
     board := TBoard(FavBrdList.Items[index]);
-    if (board.GetBBSType = bbs2ch) and
+    if (board.BBSType = bbs2ch) and
             not CheckServerDownInst.CheckDown(board.host) then
     begin
       Log('【' + board.name + '】：'+board.host+'/'+board.bbs+'：Server Down');
@@ -15601,12 +15507,12 @@ begin
     //FavBrdOpen;
     if usetrace[49] then Log(traceString[49])
     else Log('川 ’ー’川更新ﾁｪｯｸｽﾙﾝﾔﾖ');
-    FavPtrlManager(FavBrdList.Count, patFavorite, nil);
+    FavPtrlManager(nil, FavBrdList.Count, patFavorite);
     FavPatrol(patFavorite);
   end;
 end;
 
-procedure TMainWnd.MenuFavPatrolClick(Sender: TObject);
+procedure TMainWnd.FavoriteRenewCheck;
 //※[457]
   procedure FavPtrlBrdCreate(favs: TFavoriteList);
   var
@@ -15643,9 +15549,10 @@ begin
     Log('川＇-＇）ｲﾏﾔｯﾃﾙﾄｺﾛ');
     exit;
   end;
+  if FavPtrlFavs = nil then
+    exit;
   FavBrdList := TList.Create;
-  FavPtrlFavs := favorites;
-  FavPtrlBrdCreate(favorites);
+  FavPtrlBrdCreate(FavPtrlFavs);
 
   if Config.optFavPatrolCheckServerDown then
   begin
@@ -15667,10 +15574,32 @@ begin
     //FavBrdOpen;
     if usetrace[49] then Log(traceString[49])
     else Log('川 ’ー’川更新ﾁｪｯｸｽﾙﾝﾔﾖ');
-    FavPtrlManager(FavBrdList.Count, patFavorite, nil);
+    FavPtrlManager(nil, FavBrdList.Count, patFavorite);
     FavPatrol(patFavorite);
   end;
 end;
+
+procedure TMainWnd.MenuFavPatrolClick(Sender: TObject);
+begin
+  if FavPtrlFavs <> nil then
+    exit;
+  FavPtrlFavs := favorites;
+  FavoriteRenewCheck;
+end;
+
+procedure TMainWnd.PopupFavRenewCheckClick(Sender: TObject);
+var
+  node: TTreeNode;
+begin
+  node := FavoriteView.Selected;
+  if (node = nil) or not (TObject(node.Data) is TFavoriteList) or
+    (FavPtrlFavs <> nil) then
+    exit;
+
+  FavPtrlFavs := TObject(node.Data) as TFavoriteList;
+  FavoriteRenewCheck;
+end;
+
 
 procedure TMainWnd.TabPtrlStart;
   procedure TabPtrlBrdCreate;
@@ -15714,7 +15643,7 @@ begin
   else begin
     if usetrace[49] then Log(traceString[49])
     else Log('川 ’ー’川更新ﾁｪｯｸｽﾙﾝﾔﾖ');
-    FavPtrlManager(FavBrdList.Count, patTab, nil);
+    FavPtrlManager(nil, FavBrdList.Count, patTab);
     FavPatrol(patTab);
   end;
 end;
@@ -15730,8 +15659,8 @@ begin
   begin
     board := FavBrdList.Items[index];
     //board.AddRef;
-    board.StartAsyncRead(IntToStr(index+1) + '/' + IntToStr(FavBrdList.Count),
-                         PatrolType);
+    board.StartAsyncRead(FavPtrlManager,
+      IntToStr(index+1) + '/' + IntToStr(FavBrdList.Count), PatrolType);
     //board.Release;
     Inc(index);
   end;
@@ -15785,12 +15714,6 @@ begin
 
     FavoriteListBoard.AddRef;
 
-    if assigned(requestingBoard) then
-    begin
-      requestingBoard.Release;
-      requestingBoard := nil;
-    end;
-
     subjectReadyEvent.ResetEvent;
 
     OpenBoard(FavoriteListBoard,
@@ -15803,8 +15726,8 @@ begin
   end;
 end;
 
-procedure TMainWnd.FavPtrlManager(Count: Integer;
-                   PatrolType: TPatrolType; board: TBoard);
+procedure TMainWnd.FavPtrlManager(board: TBoard; Count: Integer;
+                   PatrolType: TPatrolType);
   procedure OpenAll;
   var
     limit: integer;
@@ -15875,6 +15798,7 @@ begin
       begin
         Log('川 ’ー’川全板ﾘﾛｰﾄﾞ完了ﾔﾖ');
       end;
+      FavPtrlFavs := nil;
     end;
   end;
 end;
@@ -15891,7 +15815,7 @@ begin
   if Boards <= 0 then
     exit;
 
-  FavPtrlManager(Boards, patBoardList, nil);
+  FavPtrlManager(nil, Boards, patBoardList);
   index := 0;
   while index < Boards do
   begin
@@ -15899,13 +15823,13 @@ begin
     if board is TFunctionalBoard then
     begin
       Log('(' + IntToStr(index+1) + '/' + IntToStr(Boards) + ')' + board.name);
-      FavPtrlManager(-1, patBoardList, board);
+      FavPtrlManager(board, -1, patBoardList);
       Inc(index);
       Continue;
     end;
     //board.AddRef;
-    board.StartAsyncRead(IntToStr(index+1) + '/' + IntToStr(Boards),
-                         patBoardList);
+    board.StartAsyncRead(FavPtrlManager,
+      IntToStr(index+1) + '/' + IntToStr(Boards), patBoardList);
     //board.Release;
     Inc(index);
   end;
@@ -16300,8 +16224,8 @@ begin
   StopAutoReSc;
 
   threadABoneList := TStringList.Create;
-  if FileExists(CurrentBoard.GetLogDir + '\subject.abn') then
-    threadABoneList.LoadFromFile(CurrentBoard.GetLogDir + '\subject.abn')
+  if FileExists(CurrentBoard.LogDir + '\subject.abn') then
+    threadABoneList.LoadFromFile(CurrentBoard.LogDir + '\subject.abn')
   else
   begin
     threadABoneList.Free;
@@ -16323,9 +16247,9 @@ begin
   end;
 
   if threadABoneList.Count > 0 then
-    threadABoneList.SaveToFile(CurrentBoard.GetLogDir + '\subject.abn')
+    threadABoneList.SaveToFile(CurrentBoard.LogDir + '\subject.abn')
   else
-    SysUtils.DeleteFile(CurrentBoard.GetLogDir + '\subject.abn');
+    SysUtils.DeleteFile(CurrentBoard.LogDir + '\subject.abn');
   threadABoneList.Free;
 
   UpdateListView;
@@ -16931,7 +16855,7 @@ begin
   while i < flist.Count do
   begin
     if not CopyFile(PChar(flist.Strings[i]),
-        PChar(board.GetLogDir + '\' + ExtractFileName(flist.Strings[i])), True) then
+        PChar(board.LogDir + '\' + ExtractFileName(flist.Strings[i])), True) then
     begin
       Log('川；’ー’）＜'+flist.Strings[i] + 'のコピーに失敗しちゃった');
       flist.Delete(i);
@@ -18190,7 +18114,7 @@ begin
   if (CurrentBoard <> nil) and not (CurrentBoard is TFunctionalBoard)
     and (CurrentBoard.CustomSkinIndex <> TMenuItem(Sender).Tag) then
   begin
-    uri := CurrentBoard.GetURIBase;
+    uri := CurrentBoard.URIBase;
     if length(uri) <= 0 then
       exit;
     CurrentBoard.CustomSkinIndex := TMenuItem(Sender).Tag;

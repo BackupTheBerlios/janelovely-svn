@@ -3661,7 +3661,7 @@ begin
   FStream := ExtStream;
 
   ExtStream.Base:= ExThread.ToURL;
-  ExtStream.BBSType := TBoard(ExThread.board).GetBBSType;
+  ExtStream.BBSType := TBoard(ExThread.board).BBSType;
 
   if AnsiPos(#13,ExtStream.Base)>0 then
     ExtStream.Base := copy(ExtStream.Base, 1, AnsiPos(#13, ExtStream.Base) - 1);
@@ -3866,7 +3866,7 @@ var
     board := TBoard(thread.board);
     category := TCategory(board.category);
     if first then
-      brd := '<a href="' + board.GetURIBase + '/">' + board.name + '</a>'
+      brd := '<a href="' + board.URIBase + '/">' + board.name + '</a>'
     else
       brd := board.name;
     {beginner}
@@ -4122,7 +4122,7 @@ begin
               ExtStream.Base := thread.ToURL;
               if AnsiPos(#13,ExtStream.Base)>0 then
                 ExtStream.Base := copy(ExtStream.Base, 1, AnsiPos(#13, ExtStream.Base) - 1);
-              ExtStream.BBSType := TBoard(thread.board).GetBBSType;
+              ExtStream.BBSType := TBoard(thread.board).BBSType;
               if _ExtractKeyword(thread, ExtStream, targetList, 0, GrepMode, RegExp, IncludeRef, True) > 0 then
                 inc(totalCount);
             {/beginner}
@@ -5576,7 +5576,7 @@ function MakeIDInfo(dest: TDatOut; const URI: String;
 
   function GetThreadMaxNum: integer;
   begin
-    case TBoard(thread.board).GetBBSType of
+    case TBoard(thread.board).BBSType of
     bbs2ch:   result := 1000;
     bbsMachi: result := 300;
     else      result := 100000;

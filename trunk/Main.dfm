@@ -5421,6 +5421,10 @@ object MainWnd: TMainWnd
       Caption = #26495#12392#12375#12390#38283#12367'(&B)'
       OnClick = PopupFavOpenFolderByBoardClick
     end
+    object PopupFavRenewCheck: TMenuItem
+      Caption = #26356#26032#12481#12455#12483#12463'(&P)'
+      OnClick = PopupFavRenewCheckClick
+    end
     object N48: TMenuItem
       Caption = '-'
     end

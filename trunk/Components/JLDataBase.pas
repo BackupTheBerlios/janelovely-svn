@@ -6,7 +6,7 @@ unit JLDataBase;
 interface
 
 uses
-  Windows, JLSqlite;
+  Windows, JLSqlite, SysUtils;
 
 type
   TJLSQLiteNotifyEvent = procedure (Sender: TObject) of Object;
@@ -31,8 +31,6 @@ type
     function Open(const zFileName: PChar; mode: Integer; out errmsg: PChar): Boolean;
     function Close: Boolean;
     function Exec(const sql: PChar; sqlite_callback: Pointer; Sender: TObject; out errmsg: PChar): Integer;
-    procedure AddRef;
-    procedure Release;
     property Opened: Boolean read FOpened;
     property Version: string read GetVersion;
     property ResultText: string read FResultText write FResultText;
@@ -117,28 +115,19 @@ end;
 
 function TJLSQLite.Exec(const sql: PChar; sqlite_callback: Pointer; Sender:
   TObject; out errmsg: PChar): Integer;
+var
+  filename: string;
 begin
+  if not FOpened then
+  begin
+    if Length(FFileName) > 0 then
+    begin
+      filename := FFileName;
+      Open(PChar(filename), 0, errmsg);
+    end else
+      raise Exception.Create('DataBaseを開けません!!!!' + #13#10 + 'ファイル名が不明です。');
+  end;
   Result := sqlite_exec(FSqlite, sql, sqlite_callback, Sender, errmsg);
 end;
-
-procedure TJLSQLite.AddRef;
-var
-  msg: PChar;
-begin
-  Inc(FRefCount);
-  if not FOpened then
-    Open(PChar(FFileName), 0, msg);
-end;
-
-procedure TJLSQLite.Release;
-begin
-  Dec(FRefCount);
-  if FRefCount <= 0 then
-  begin
-    FRefCount := 0;
-    Close;
-  end;
-end;
-
 
 end.

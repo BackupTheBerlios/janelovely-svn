@@ -38,11 +38,7 @@ type
   private
     PreView: THogeTextView;
     PreViewItem: TFlexViewItem;
-    BBSLineNumber: Integer;
-    BBSMessageCount: Integer;
-    BBSSubjectCount: Integer;
-    BBSNameCount: Integer;
-    BBSMailCount: Integer;
+    FBBSCount: TBBSCount;
     FBoard: TBoard;
     FThread: TThreadItem;
     postType: TPostType;
@@ -224,8 +220,7 @@ begin
   if not PreWriteWarning(EditNameBox.Text,
     EditMailBox.Text, Memo.Text,
     '', SettingTxt.Lines, TargetThread, TargetBoard,
-    BBSNameCount, BBSMailCount, BBSMessageCount, BBSLineNumber,
-    0, Memo.Lines.Count, formWrite) then //ŒxŠÖŒW
+    Memo.Lines.Count, formWrite) then //ŒxŠÖŒW
     exit;
 
   if (postType = postCheck) and Memo.Modified then
@@ -368,29 +363,29 @@ begin
     Inc(Lines);
 
   tmpColor := MainWnd.WritePanel.Color;
-  if BBSLineNumber > 0 then
-    if Lines > BBSLineNumber * 2 then
+  if FBBSCount.linenumber > 0 then
+    if Lines > FBBSCount.linenumber * 2 then
       tmpColor := $007f7fff
-    else if Lines > BBSLineNumber then
+    else if Lines > FBBSCount.linenumber then
       tmpColor := $007fffff;
   PanelColor[1] := tmpColor;
 
   tmpTxt := Format('%4d',[Lines]);
-  if BBSLineNumber > 0 then
-    WStatusBar.Panels[1].Text := Format('Lines: %4d/%4d',[Lines, BBSLineNumber * 2])
+  if FBBSCount.linenumber > 0 then
+    WStatusBar.Panels[1].Text := Format('Lines: %4d/%4d',[Lines, FBBSCount.linenumber * 2])
   else
     WStatusBar.Panels[1].Text := Format('Lines: %4d/ •s–¾',[Lines]);
 
   MsgCnt := MessageCount(Memo.Text);
 
-  if (BBSMessageCount > 0) and (MsgCnt > BBSMessageCount) then
+  if (FBBSCount.messagecount > 0) and (MsgCnt > FBBSCount.messagecount) then
     PanelColor[0] := $007f7fff
   else
     PanelColor[0] := clBtnFace;
 
   tmpTxt := Format('%4d',[Length(Memo.Text)]);
-  if BBSMessageCount > 0 then
-    WStatusBar.Panels[0].Text := Format('Bytes: %6d/%6d',[MsgCnt, BBSMessageCount])
+  if FBBSCount.messagecount > 0 then
+    WStatusBar.Panels[0].Text := Format('Bytes: %6d/%6d',[MsgCnt, FBBSCount.messagecount])
   else
     WStatusBar.Panels[0].Text := Format('Bytes: %6d/  •s–¾',[MsgCnt]);
 end;
@@ -426,11 +421,11 @@ end;
 
 procedure TWritePanelControl.UnableWrite;
 begin
-  BBSLineNumber := 0;
-  BBSMessageCount := 0;
-  BBSSubjectCount := 0;
-  BBSNameCount := 0;
-  BBSMailCount := 0;
+  FBBSCount.linenumber := 0;
+  FBBSCount.messagecount := 0;
+  FBBSCount.subjectcount := High(Integer);
+  FBBSCount.namecount := High(Integer);
+  FBBSCount.mailcount := High(Integer);
   SettingTxt.Clear;
   ChangeStatusBar;
 end;
@@ -1010,12 +1005,8 @@ begin
   Main.Log('SettingTxt:UpdateSettingTxt:' + FThread.title);
   {$ENDIF}
   FBoard.LoadSettingTXT;
-  SettingTxt.Lines := FBoard.settingText;
-  BBSLineNumber := FBoard.BBSLineNumber;
-  BBSMessageCount := FBoard.BBSMessageCount;
-  BBSSubjectCount := FBoard.BBSSubjectCount;
-  BBSNameCount := FBoard.BBSNameCount;
-  BBSMailCount := FBoard.BBSMailCount;
+  SettingTxt.Lines.Text := FBoard.settingText;
+  FBBSCount := FBoard.BBSCount;
   ChangeStatusBar;
 end;
 

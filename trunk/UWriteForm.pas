@@ -644,7 +644,7 @@ begin
     BBSMailCount := High(Integer);
     SettingTxt.Clear;
     try
-      storedSettingTxt := TLocalCopy.Create(board.GetLogDir + '\setting.txt', '.idb');
+      storedSettingTxt := TLocalCopy.Create(board.LogDir + '\setting.txt', '.idb');
       if storedSettingTxt.Load then
       begin
         SettingTxt.Text := storedSettingTxt.DataString;
@@ -654,7 +654,7 @@ begin
         BBSNameCount := StrToIntDef(SettingTxt.Lines.Values[BBS_NAME_COUNT], BBSNameCount);
         BBSMailCount := StrToIntDef(SettingTxt.Lines.Values[BBS_MAIL_COUNT], BBSMailCount);
         if (storedSettingTxt.Info.Count = 0) or
-           (storedSettingTxt.Info[0] <> board.GetURIBase + '/SETTING.TXT') then
+           (storedSettingTxt.Info[0] <> board.URIBase + '/SETTING.TXT') then
           NeedSETTINGTXT := True;
         if storedSettingTxt.Updated + 30 < Now then
           NeedSETTINGTXT := True;
@@ -663,7 +663,7 @@ begin
     finally
       FreeAndNil(storedSettingTxt);
     end;
-    if (board.GetBBSType = bbs2ch) and NeedSETTINGTXT then
+    if (board.BBSType = bbs2ch) and NeedSETTINGTXT then
       GetSettingTxt;
 
     MemoChange(nil);
@@ -700,8 +700,7 @@ begin
 
   //‘‚«ž‚ÝŒxŠÖŒW
   if not PreWriteWarning(EditNameBox.Text, EditMailBox.Text, Memo.Text,
-    EditSubjectBox.Text, SettingTXT.Lines, thread, board, BBSNameCount,
-    BBSMailCount, BBSMessageCount, BBSLineNumber, BBSSubjectCount,
+    EditSubjectBox.Text, SettingTXT.Lines, thread, board,
     Memo.Lines.Count, formType) then
     exit;
 
@@ -1090,13 +1089,13 @@ begin
   lastModified := '';
   if storedRule = nil then
   begin
-    storedRule := TLocalCopy.Create(board.GetLogDir + '\head.txt', '.idb');
+    storedRule := TLocalCopy.Create(board.LogDir + '\head.txt', '.idb');
     storedRule.Load;
     if 2 <= storedRule.Info.Count then
       lastModified := storedRule.Info.Strings[1];
   end;
   gotRule := tpsWorking;
-  URI := board.GetURIBase + '/head.txt';
+  URI := board.URIBase + '/head.txt';
   procGet := AsyncManager.Get(URI, OnLocalRule, ticket2ch.On2chPreConnect,
                               lastModified);
 end;
@@ -1147,7 +1146,7 @@ begin
     storedRule.Free;
     storedRule := nil;
     gotRule := tpsDone;
-    LocalRuleViewItem.Base := board.GetURIBase + '/';
+    LocalRuleViewItem.Base := board.URIBase + '/';
   end;
 end;
 
@@ -1163,13 +1162,13 @@ begin
   lastModified := '';
   if storedSettingTxt = nil then
   begin
-    storedSettingTxt := TLocalCopy.Create(board.GetLogDir + '\setting.txt', '.idb');
+    storedSettingTxt := TLocalCopy.Create(board.LogDir + '\setting.txt', '.idb');
     storedSettingTxt.Load;
     if 2 <= storedSettingTxt.Info.Count then
       lastModified := storedSettingTxt.Info.Strings[1];
   end;
   gotSettingTxt := tpsWorking;
-  URI := board.GetURIBase + '/SETTING.TXT';
+  URI := board.URIBase + '/SETTING.TXT';
   procGetSettingTxt := AsyncManager.Get(URI, OnSettingTxt, ticket2ch.On2chPreConnect,
                               lastModified);
 end;
@@ -1191,7 +1190,7 @@ begin
           else
           {/aiai}
           storedSettingTxt.WriteString(StringReplace(sender.Content, #10, #13#10, [rfReplaceAll]));
-          storedSettingTxt.Info.Add(board.GetURIBase + '/SETTING.TXT');
+          storedSettingTxt.Info.Add(board.URIBase + '/SETTING.TXT');
           storedSettingTxt.Info.Add(sender.GetLastModified);
           storedSettingTxt.Save;
           SettingTxt.Text := storedSettingTxt.DataString;
@@ -1200,7 +1199,7 @@ begin
           BBSSubjectCount := StrToIntDef(SettingTxt.Lines.Values[BBS_SUBJECT_COUNT], High(Integer));
           BBSNameCount    := StrToIntDef(SettingTxt.Lines.Values[BBS_NAME_COUNT], High(Integer));
           BBSMailCount    := StrToIntDef(SettingTxt.Lines.Values[BBS_MAIL_COUNT], High(Integer));
-          Board.settingText.Assign(SettingTxt.Lines);
+          Board.settingText := SettingTxt.Lines.Text;
           ChangeWriteMemoSettingText(Board);
           MemoChange(nil);
         end;
@@ -1210,7 +1209,7 @@ begin
           if storedSettingTxt.Info.Count >= 2 then
             lastModified := storedSettingTxt.Info.Strings[1];
           storedSettingTxt.Info.Clear;
-          storedSettingTxt.Info.Add(board.GetURIBase + '/SETTING.TXT');
+          storedSettingTxt.Info.Add(board.URIBase + '/SETTING.TXT');
           storedSettingTxt.Info.Add(lastModified);
           storedSettingTxt.Save;
         end;

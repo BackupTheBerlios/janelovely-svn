@@ -33,7 +33,6 @@ procedure SaveKakikomi(const title, url, name, mail, msg: string);
 function MessageCount(Msg: String): Integer;
 function PreWriteWarning(const AName, AMail, AMsg, ATitle: string;
   const settingTxt: TStrings; const thread: TThreadItem; const board: TBoard;
-  const BBSNameCount, BBSMailCount, BBSMessageCount, BBSLineNumber, BBSSubjectCount: Integer;
   const LineCount: Integer; const formType: TFormType): Boolean;
 procedure CreatePreView(View: TFlexViewItem; Browser: THogeTextView;
   thread: TThreadItem; board: TBoard;
@@ -66,7 +65,7 @@ var
 begin
   if TargetBoard.timeValue <= 0 then
     TargetBoard.timeValue := timeValue; //起動時刻
-  case TargetBoard.GetBBSType of
+  case TargetBoard.BBSType of
   bbs2ch, bbsOther:
     begin
       {aiai}
@@ -274,7 +273,7 @@ begin
 
   URIObj := nil;
   try
-    URIObj := TIdURI.Create(TargetBoard.GetURIBase + '/');
+    URIObj := TIdURI.Create(TargetBoard.URIBase + '/');
     referer := URIObj.URI;
   finally
     URIObj.Free;
@@ -282,7 +281,7 @@ begin
   cookie := 'Cookie: NAME=' + encName + '; MAIL=' + encMail;
   list := TStringList.Create;
   {aiai}
-  if (TargetBoard.GetBBSType = bbs2ch) then
+  if (TargetBoard.BBSType = bbs2ch) then
   begin
     if (0 < length(Config.wrtBEIDDMDM)) and (0 < length(Config.wrtBEIDMDMD)) then
       if Config.wrtBeLogin or AnsiStartsStr('be', TargetBoard.host)
@@ -558,7 +557,6 @@ end;
 
 function PreWriteWarning(const AName, AMail, AMsg, ATitle: string;
   const settingTxt: TStrings; const thread: TThreadItem; const board: TBoard;
-  const BBSNameCount, BBSMailCount, BBSMessageCount, BBSLineNumber, BBSSubjectCount: Integer;
   const LineCount: Integer; const formType: TFormType): Boolean;
 var
   WarningList: TStringList;
@@ -616,22 +614,22 @@ begin
     if formType = formBuild then
       if Length(ATitle) <= 0 then
         WarningList.Add('スレタイが空です。')
-      else if MessageCount(ATitle) > BBSSubjectCount then
+      else if MessageCount(ATitle) > board.BBSCount.messagecount then
         WarningList.Add('スレタイが長すぎです。');
     if Length(AMsg) <= 0 then
       WarningList.Add('メッセージが空です。')
-    else if (BBSMessageCount > 0) and (MessageCount(AMsg) > BBSMessageCount) then
+    else if (board.BBSCount.messagecount > 0) and (MessageCount(AMsg) > board.BBSCount.messagecount) then
       WarningList.Add('メッセージが長すぎです。');
-    if MessageCount(AName) > BBSNameCount then
+    if MessageCount(AName) > board.BBSCount.namecount then
       WarningList.Add('名前欄が長すぎです。');
-    if MessageCount(AMail) > BBSMailCount then
+    if MessageCount(AMail) > board.BBSCount.mailcount then
       WarningList.Add('メール欄が長すぎです。');
 
 
     Lines := LineCount;
     if (AMsg <> '') and (AMsg[Length(AMsg)] = #10) then
       Inc(Lines);
-    if (BBSLineNumber > 0) and (Lines > BBSLineNumber * 2) then
+    if (board.BBSCount.linenumber > 0) and (Lines > board.BBSCount.linenumber * 2) then
       WarningList.Add('改行が多すぎです。');
 
     if WarningList.Count > 0 then
@@ -695,7 +693,7 @@ begin
       View.thread := thread;
       dat.Add(MakeDummyDat(thread.lines));
       if Assigned(board) then
-        dat.Add(Res2Dat(AName, AMail, AMsg, settingTxt, board.GetBBSType,
+        dat.Add(Res2Dat(AName, AMail, AMsg, settingTxt, board.BBSType,
         board.NeedConvert))
       else
         dat.Add(Res2Dat(AName, AMail, AMsg, settingTxt, bbsNone, False));
@@ -703,7 +701,7 @@ begin
     end else
     begin
       if Assigned(board) then
-        dat.Add(Res2Dat(AName, AMail, AMsg, settingTxt, board.GetBBSType,
+        dat.Add(Res2Dat(AName, AMail, AMsg, settingTxt, board.BBSType,
         board.NeedConvert))
       else
         dat.Add(Res2Dat(AName, AMail, AMsg, settingTxt, bbsNone, False));

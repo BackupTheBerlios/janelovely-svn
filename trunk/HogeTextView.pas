@@ -2742,8 +2742,11 @@ begin
       end;
       Inc(i);
     end;
-    Move(txt[startPos], result[Position], endPos - startPos + 1);
-    Inc(Position, endPos - startPos + 1);
+    if endPos > startPos + 1 then
+    begin
+      Move(txt[startPos], result[Position], endPos - startPos + 1);
+      Inc(Position, endPos - startPos + 1);
+    end;
   end;
 
 end;

@@ -522,7 +522,7 @@ end;
 (* 拡張子のないファイルの名前を返す *)
 function TThreadItem.GetFileName: string;
 begin
-  result := TBoard(board).GetLogDir + '\' + datName;
+  result := TBoard(board).LogDir + '\' + datName;
 end;
 
 (* URLを返す *)
@@ -543,8 +543,8 @@ var
   //i: integer;
 begin
   if not AnsiStartsStr('http', self.URI) then
-    self.URI := TBoard(board).GetURIBase;
-  case TBoard(board).GetBBSType of
+    self.URI := TBoard(board).URIBase;
+  case TBoard(board).BBSType of
   bbsMachi:
     begin
       SplitThreadURI(self.URI, host, bbs);
@@ -637,7 +637,7 @@ begin
           result := ticket2ch.AppendSID(result, '&');
         end;
       else
-        result := TBoard(board).GetURIBase + '/dat/' + datName + '.dat';
+        result := TBoard(board).URIBase + '/dat/' + datName + '.dat';
       end;
     end;
   end;
@@ -818,7 +818,6 @@ begin
     title2 := AnsiReplaceStr(title, '''', '''''') //ｼﾝｸﾞﾙｸｫｰﾄがある場合はｼﾝｸﾞﾙｸｫｰﾄを二つ重ねる
   else
     title2 := title;
-  TBoard(board).IdxDataBase.AddRef;
   sql := 'INSERT INTO idxlist '+
                     '(datname,title, last_modified, lines,view_pos, idx_mark, uri, state, new_lines, write_name, write_mail, last_wrote, last_got, read_pos) '+
                     'VALUES ('+
@@ -838,7 +837,6 @@ begin
                     ''''+ IntToStr(readPos) +''')';
   err := TBoard(board).IdxDataBase.Exec(PChar(sql), nil, nil, msg);
   SQLCheck(err, title2, sql, msg);
-  TBoard(board).IdxDataBase.Release;
 end;
 (* //DataBase *)
 
@@ -863,7 +861,7 @@ var
   title2: String;
   sql: string;
   {$IFDEF DEVELBENCH}
-  tickcnt: Cardinal;
+  //tickcnt: Cardinal;
   {$ENDIF}
   err: byte;
 begin
@@ -899,12 +897,12 @@ begin
   (* DataBase (aiai) *)
   if not Config.ojvQuickMerge then exit;
   {$IFDEF DEVELBENCH}
-  tickcnt := GetTickCount;
+  //tickcnt := GetTickCount;
+  Bench3(0);
   {$ENDIF}
   With TBoard(board) do
   begin
     IdxDataBase.Result := False;
-    IdxDataBase.AddRef;
     sql := 'SELECT datname FROM idxlist WHERE datname = ' + datName;
     err := IdxDataBase.Exec(PChar(sql), @CallBackSaveIndexData, Self, msg);
     SQLCheck(err, title, sql, msg);
@@ -955,10 +953,9 @@ begin
     end;
     err := IdxDataBase.Exec(PChar(sql), nil, nil, msg);
     SQLCheck(err, title2, sql, msg);
-    IdxDataBase.Release;
   end;
   {$IFDEF DEVELBENCH}
-  Main.Log(title + ':' + IntToStr(GetTickCount - tickcnt));
+  Main.Log(title + ':' + Bench3(1));
   {$ENDIF}
   (* //DataBase *)
 end;
@@ -1092,11 +1089,6 @@ begin
   if (dat = nil) and (load) then
     Activate;
   Inc(refCount);
-
-  (* DataBase (aiai) *)
-  if Config.ojvQuickMerge then
-    TBoard(board).IdxDataBase.AddRef;
-  (* //DataBase *)
 end;
 
 (* 参照カウント減少 *)
@@ -1105,11 +1097,6 @@ begin
   Dec(refCount);
   if refCount <= 0 then
     Deactivate;
-
-  (* DataBase (aiai) *)
-  if Config.ojvQuickMerge then
-    TBoard(board).IdxDataBase.Release;
-  (* //DataBase *)
 end;
 
 (* ログから取得 *)
@@ -1169,11 +1156,9 @@ begin
     (* DataBase (aiai) *)
     if Config.ojvQuickMerge then
     begin
-      TBoard(board).IdxDataBase.AddRef;
       sql := 'DELETE FROM idxlist WHERE datname = '''+ datName +'''';
       err := TBoard(board).IdxDataBase.Exec(PChar(sql), nil, nil, msg);
       SQLCheck(err, title, sql, msg);
-      TBoard(board).IdxDataBase.Release;
     end;
     (* //DataBase *)
 
@@ -1684,7 +1669,7 @@ var
     if line[Length(line)] = #10 then
       SetLength(line, Length(line) - 1);
 
-    if TBoard(board).GetBBSType = bbsJBBSShitaraba then
+    if TBoard(board).BBSType = bbsJBBSShitaraba then
       line := euc2sjis(line);
 
     i := 1;
@@ -1715,7 +1700,7 @@ var
     dateid := GetBetweenStr(line, '投稿日： ', '<br><dd>');
     Delete(line, 1, Pos('<br><dd>', line) + Length('<br><dd>') - 1);
 
-    if (TBoard(board).GetBBSType = bbsMachi) and (line[1] = ' ') then
+    if (TBoard(board).BBSType = bbsMachi) and (line[1] = ' ') then
       Delete(line, 1, 1);
 
     body := line;
@@ -1749,7 +1734,7 @@ var
         if self.title = '' then
         begin
           self.title := GetBetweenStr(asyncObj.dataChunk, '<title>', '</title>');
-          if TBoard(board).GetBBSType = bbsJBBSShitaraba then
+          if TBoard(board).BBSType = bbsJBBSShitaraba then
             self.title := StrictConvertJCode(self.title, EUC_IN, SJIS_OUT);
         end;
         {if lines > 0 then
@@ -1876,9 +1861,9 @@ begin
       if (queryState in [tsTransition1, tsTransition3]) or
          (asyncObj.useCGI and (queryState = tsCurrency)) then
         asyncObj.dropFirstLine := true
-      else if (TBoard(board).GetBBSType = bbsMachi) or
-              (TBoard(board).GetBBSType = bbsJBBSShitaraba) or
-              (TBoard(board).GetBBSType = bbsJBBS) then
+      else if (TBoard(board).BBSType = bbsMachi) or
+              (TBoard(board).BBSType = bbsJBBSShitaraba) or
+              (TBoard(board).BBSType = bbsJBBS) then
       begin
       end
       else begin
@@ -1897,10 +1882,10 @@ begin
 
   asyncObj.synchro.Wait;
   begin
-    if (TBoard(Board).GetBBSType = bbsMachi) or
-       (TBoard(Board).GetBBSType = bbsJBBS) then
+    if (TBoard(Board).BBSType = bbsMachi) or
+       (TBoard(Board).BBSType = bbsJBBS) then
       MachiBBSConvert
-    else if TBoard(Board).GetBBSType = bbsJBBSShitaraba then
+    else if TBoard(Board).BBSType = bbsJBBSShitaraba then
       JBBSShitarabaConvert
     else
     begin
@@ -2067,7 +2052,7 @@ begin
   asyncObj.dataChunk := '';
   asyncObj.pumpCount := 0;
   asyncObj.dropFirstLine := false;
-  if TBoard(board).GetBBSType in [bbsMachi, bbsJBBSShitaraba, bbsJBBS] then
+  if TBoard(board).BBSType in [bbsMachi, bbsJBBSShitaraba, bbsJBBS] then
   begin
     asyncObj.proc := AsyncManager.Get(GetURI,
                                       OnAsyncDoneProc, OnAsyncNotifyProc,
@@ -2194,10 +2179,10 @@ var
 begin
   uri := Self.URI;
   if not AnsiStartsStr('http', uri) then
-    uri := TBoard(board).GetURIBase;
+    uri := TBoard(board).URIBase;
   SplitThreadURI(uri, host, bbs);
 
-  case TBoard(board).GetBBSType of
+  case TBoard(board).BBSType of
   bbs2ch, bbsOther:
     begin
       if (state <> tsCurrency) and (full or (index = '')) then
