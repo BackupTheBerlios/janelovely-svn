@@ -12,7 +12,6 @@ type
     ComboBoxURL: TComboBox;
     ButtonOK: TButton;
     ButtonCancel: TButton;
-    MessageLabel2: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
   private
@@ -30,8 +29,6 @@ uses
 
 procedure TGetBoardListForm.FormCreate(Sender: TObject);
 begin
-  MessageLabel1.Caption := '¹oƒmƒmƒnR' + #13#10 + '@ ì*f[fjƒˆ¤‚Æˆê‚É';
-
   ComboBoxURL.Items.Add('http://www.ff.iij4u.or.jp/~ch2/bbsmenu.html');
   ComboBoxURL.Items.Add('http://azlucky.s25.xrea.com/2chboard/bbsmenu.html');
 

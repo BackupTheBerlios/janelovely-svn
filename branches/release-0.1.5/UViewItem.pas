@@ -5193,19 +5193,18 @@ begin
       FStream.DDOffsetLeft := DD_OFFSET_LEFT div 4;
       Result := _ExtractKeyWord(FThread, FStream, targetList, Max, GREP_OPTION_NORMAL);
       if not FStream.canceled and FBrowser.Trim then
-        PopUp(Point)
-      else
+      begin
+        PopUp(Point);
+        FBrowser.SearchForward(targetList, hloNormal, False);  //aiai
+      end else
       begin
         Result := 0;
         Release;
       end;
     finally
       FreeAndNil(FStream);
+      targetList.Free; //aiai
     end;
-    {aiai}
-    FBrowser.SearchForward(targetList, hloNormal, False);
-    targetList.Free;
-    {/aiai}
   finally
     UnLock;
   end;

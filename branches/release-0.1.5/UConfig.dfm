@@ -52,7 +52,7 @@ object UIConfig: TUIConfig
     Top = 8
     Width = 393
     Height = 345
-    ActivePage = SheetFavPatrol
+    ActivePage = SheetNet
     Style = tsFlatButtons
     TabOrder = 1
     TabStop = False
@@ -62,35 +62,35 @@ object UIConfig: TUIConfig
       TabVisible = False
       object Label6: TLabel
         Left = 16
-        Top = 176
+        Top = 191
         Width = 122
         Height = 12
         Caption = #21463#20449#12479#12452#12512#12450#12454#12488'('#12511#12522#31186')'
       end
       object Label9: TLabel
         Left = 16
-        Top = 208
+        Top = 228
         Width = 101
         Height = 12
         Caption = #12508#12540#12489#19968#35239#21462#24471'URL'
       end
       object Label42: TLabel
         Left = 16
-        Top = 260
+        Top = 285
         Width = 121
         Height = 12
         Caption = #21463#20449#12496#12483#12501#12449#12469#12452#12474'(KB)'
       end
       object EditReadTimeout: TEdit
         Left = 151
-        Top = 171
+        Top = 186
         Width = 65
         Height = 20
         TabOrder = 2
       end
       object EditBBSMenuURL: TEdit
         Left = 16
-        Top = 224
+        Top = 244
         Width = 329
         Height = 20
         TabOrder = 3
@@ -105,7 +105,7 @@ object UIConfig: TUIConfig
       end
       object CheckBoxNetUseReadCGI: TCheckBox
         Left = 16
-        Top = 280
+        Top = 305
         Width = 369
         Height = 25
         Caption = 'ISDN/56K'#12514#12487#12512'( read.cgi )'
@@ -114,7 +114,7 @@ object UIConfig: TUIConfig
       end
       object GroupBoxProxy: TJLXPGroupBox
         Left = 16
-        Top = 24
+        Top = 34
         Width = 361
         Height = 137
         TabOrder = 1
@@ -214,7 +214,7 @@ object UIConfig: TUIConfig
       end
       object EditRecvBufferSize: TEdit
         Left = 151
-        Top = 255
+        Top = 280
         Width = 65
         Height = 20
         MaxLength = 3
@@ -227,28 +227,28 @@ object UIConfig: TUIConfig
       TabVisible = False
       object Label7: TLabel
         Left = 32
-        Top = 38
+        Top = 48
         Width = 79
         Height = 12
         Caption = #12502#12521#12454#12470#12398#12497#12473
       end
       object Label36: TLabel
         Left = 32
-        Top = 102
+        Top = 122
         Width = 258
         Height = 12
         Caption = #12525#12464#12392#12508#12540#12489#19968#35239#12398#12501#12457#12523#12480' ('#27425#22238#36215#21205#26178#12363#12425#26377#21177')'
       end
       object Label37: TLabel
         Left = 32
-        Top = 169
+        Top = 199
         Width = 206
         Height = 12
         Caption = #12473#12461#12531#12398#12501#12457#12523#12480' ('#27425#22238#36215#21205#26178#12363#12425#26377#21177')'
       end
       object Label44: TLabel
         Left = 35
-        Top = 248
+        Top = 285
         Width = 156
         Height = 12
         Caption = #8251#12473#12524#34920#31034#12399#26032#35215#12479#12502#12424#12426#26377#21177
@@ -256,7 +256,7 @@ object UIConfig: TUIConfig
       end
       object Label45: TLabel
         Left = 35
-        Top = 270
+        Top = 307
         Width = 282
         Height = 12
         Caption = #8251#12450#12452#12467#12531#39006#12399#36215#21205#20013#12399#26368#24460#12395#25351#23450#12375#12383#12418#12398#12364#27531#12426#12414#12377
@@ -272,14 +272,14 @@ object UIConfig: TUIConfig
       end
       object EditBrowserPath: TEdit
         Left = 32
-        Top = 57
+        Top = 67
         Width = 289
         Height = 20
         TabOrder = 1
       end
       object ButtonSelBrowser: TButton
         Left = 328
-        Top = 53
+        Top = 63
         Width = 25
         Height = 25
         Caption = '...'
@@ -288,7 +288,7 @@ object UIConfig: TUIConfig
       end
       object EditLogBasePath: TEdit
         Left = 32
-        Top = 125
+        Top = 145
         Width = 289
         Height = 20
         TabOrder = 3
@@ -296,7 +296,7 @@ object UIConfig: TUIConfig
       object ButtonSelLogBaseFolder: TButton
         Tag = 1
         Left = 328
-        Top = 122
+        Top = 142
         Width = 25
         Height = 25
         Caption = '...'
@@ -306,7 +306,7 @@ object UIConfig: TUIConfig
       object ButtonSelSkinFolder: TButton
         Tag = 2
         Left = 328
-        Top = 188
+        Top = 218
         Width = 25
         Height = 25
         Caption = '...'
@@ -315,10 +315,10 @@ object UIConfig: TUIConfig
       end
       object SkinPathBox: TComboBox
         Left = 32
-        Top = 191
+        Top = 221
         Width = 289
         Height = 20
-        ItemHeight = 0
+        ItemHeight = 12
         TabOrder = 5
       end
     end
@@ -328,22 +328,22 @@ object UIConfig: TUIConfig
       TabVisible = False
       object GroupBox2: TJLXPGroupBox
         Left = 16
-        Top = 76
+        Top = 79
         Width = 361
-        Height = 62
+        Height = 69
         Caption = #12473#12524#19968#35239
         TabOrder = 0
         object CheckBoxOprSelPreviousThread: TCheckBox
-          Left = 32
-          Top = 34
+          Left = 25
+          Top = 42
           Width = 289
           Height = 17
           Caption = #26368#24460#12395#35211#12383#12473#12524#12398#20301#32622#12395#12472#12515#12531#12503#12391#12365#12427#12392#12356#12356#12394
           TabOrder = 1
         end
         object CheckBoxOprShowSubjectCache: TCheckBox
-          Left = 32
-          Top = 8
+          Left = 224
+          Top = 13
           Width = 233
           Height = 25
           Caption = #20445#23384#12375#12390#12356#12427#12473#12524#19968#35239#12434#26368#21021#12395#34920#31034#12377#12427
@@ -351,8 +351,8 @@ object UIConfig: TUIConfig
           Visible = False
         end
         object CheckBoxOprOpenThreWNewView: TCheckBox
-          Left = 32
-          Top = 16
+          Left = 25
+          Top = 17
           Width = 201
           Height = 17
           Caption = #26032#12375#12356#12479#12502#12391#12473#12524#12434#38283#12367
@@ -361,29 +361,29 @@ object UIConfig: TUIConfig
       end
       object GroupBox3: TJLXPGroupBox
         Left = 16
-        Top = 144
+        Top = 153
         Width = 361
-        Height = 104
+        Height = 121
         Caption = #12473#12524
         TabOrder = 1
         object Label47: TLabel
-          Left = 32
-          Top = 75
+          Left = 27
+          Top = 95
           Width = 114
           Height = 12
           Caption = #26082#24471#12473#12524#12398#34920#31034#12524#12473#25968
         end
         object CheckBoxOprScrollToNewRes: TCheckBox
-          Left = 32
-          Top = 34
-          Width = 225
+          Left = 25
+          Top = 42
+          Width = 152
           Height = 17
           Caption = #26032#30528#12395#12472#12515#12531#12503#12377#12427
           TabOrder = 1
         end
         object RadioButtonOprScrollTop: TRadioButton
           Left = 184
-          Top = 34
+          Top = 42
           Width = 81
           Height = 17
           Caption = #19978#12395#20986#12377
@@ -391,31 +391,31 @@ object UIConfig: TUIConfig
         end
         object RadioButtonOprScrollBottom: TRadioButton
           Left = 272
-          Top = 34
+          Top = 42
           Width = 81
           Height = 17
           Caption = #19979#12395#20986#12377
           TabOrder = 3
         end
         object CheckBoxOprJumpToPrev: TCheckBox
-          Left = 32
-          Top = 16
+          Left = 25
+          Top = 17
           Width = 201
           Height = 17
           Caption = #35211#12390#12356#12383#12392#12371#12429#12395#12472#12515#12531#12503#12377#12427
           TabOrder = 0
         end
         object CheckBoxOprCheckNewWRedraw: TCheckBox
-          Left = 32
-          Top = 52
+          Left = 25
+          Top = 67
           Width = 225
           Height = 17
           Caption = #26032#30528#12481#12455#12483#12463#26178#12395#26082#24471#12524#12473#12434#25551#12365#30452#12377
           TabOrder = 4
         end
         object ComboBoxOprDrawLines: TComboBox
-          Left = 160
-          Top = 72
+          Left = 153
+          Top = 92
           Width = 97
           Height = 20
           Style = csDropDownList
@@ -437,14 +437,14 @@ object UIConfig: TUIConfig
       end
       object GroupBox6: TJLXPGroupBox
         Left = 16
-        Top = 256
+        Top = 281
         Width = 361
-        Height = 49
+        Height = 51
         Caption = #12362#27671#12395#20837#12426
         TabOrder = 2
         object CheckBoxOprOpenFavWNewView: TCheckBox
-          Left = 32
-          Top = 16
+          Left = 25
+          Top = 17
           Width = 241
           Height = 25
           Caption = #26032#12375#12356#12479#12502#12391#38283#12367
@@ -453,22 +453,22 @@ object UIConfig: TUIConfig
       end
       object GroupBox11: TJLXPGroupBox
         Left = 16
-        Top = 8
+        Top = 5
         Width = 361
-        Height = 62
+        Height = 69
         Caption = #26495#19968#35239
         TabOrder = 3
         object CheckBoxOprBoardExpandOneCategory: TCheckBox
-          Left = 32
-          Top = 34
+          Left = 25
+          Top = 42
           Width = 201
           Height = 17
           Caption = #12459#12486#12468#12522#12434#19968#12388#12375#12363#38283#12363#12394#12356
           TabOrder = 0
         end
         object CheckBoxOprOpenBoardWNewTab: TCheckBox
-          Left = 32
-          Top = 16
+          Left = 25
+          Top = 17
           Width = 201
           Height = 17
           Caption = #26032#12375#12356#12479#12502#12391#26495#12434#38283#12367
@@ -482,7 +482,7 @@ object UIConfig: TUIConfig
       TabVisible = False
       object GroupBox4: TJLXPGroupBox
         Left = 8
-        Top = 40
+        Top = 63
         Width = 228
         Height = 121
         Caption = #26495#12395#38306#12377#12427#25805#20316
@@ -584,7 +584,7 @@ object UIConfig: TUIConfig
       end
       object GroupBox5: TJLXPGroupBox
         Left = 8
-        Top = 176
+        Top = 203
         Width = 228
         Height = 121
         Caption = #12473#12524#12395#38306#12377#12427#25805#20316
@@ -683,8 +683,8 @@ object UIConfig: TUIConfig
         end
       end
       object CheckBoxCatSingleClick: TCheckBox
-        Left = 16
-        Top = 1
+        Left = 20
+        Top = 6
         Width = 241
         Height = 17
         Caption = #12471#12531#12464#12523#12463#12522#12483#12463#12391#12459#12486#12468#12522#12540#12434#38283#12367
@@ -692,7 +692,7 @@ object UIConfig: TUIConfig
       end
       object GroupBox15: TJLXPGroupBox
         Left = 244
-        Top = 40
+        Top = 63
         Width = 140
         Height = 137
         Caption = #12473#12524#12434#35023#12391#38283#12367
@@ -740,7 +740,7 @@ object UIConfig: TUIConfig
       end
       object GroupBox19: TJLXPGroupBox
         Left = 244
-        Top = 184
+        Top = 212
         Width = 140
         Height = 113
         Caption = #12522#12525#12540#12489#21046#38480
@@ -779,8 +779,8 @@ object UIConfig: TUIConfig
           Width = 41
           Height = 21
           MaxLength = 9999
-          MaxValue = 0
-          MinValue = 0
+          MaxValue = 9999
+          MinValue = 2
           TabOrder = 0
           Value = 0
         end
@@ -790,16 +790,16 @@ object UIConfig: TUIConfig
           Width = 41
           Height = 21
           MaxLength = 9999
-          MaxValue = 0
-          MinValue = 0
+          MaxValue = 9999
+          MinValue = 1
           TabOrder = 1
           Value = 0
         end
       end
       object CheckBoxoptCheckNewResSingleClick: TCheckBox
-        Left = 16
-        Top = 20
-        Width = 193
+        Left = 20
+        Top = 32
+        Width = 249
         Height = 17
         Caption = #26356#26032#12398#12354#12427#12473#12524#12434#36984#25246#12391#12522#12525#12540#12489
         TabOrder = 5
@@ -920,7 +920,7 @@ object UIConfig: TUIConfig
       TabVisible = False
       object LabelRecyclableCount: TLabel
         Left = 16
-        Top = 265
+        Top = 279
         Width = 172
         Height = 12
         Caption = #35299#25918#12375#12394#12356#12391#20445#25345#12377#12427#26495#24773#22577#12398#25968
@@ -928,54 +928,54 @@ object UIConfig: TUIConfig
       end
       object Label57: TLabel
         Left = 16
-        Top = 286
+        Top = 305
         Width = 108
         Height = 12
         Caption = #12300#12385#12423#12387#12392#35211#12427#12301#12398#31684#22258
       end
       object CheckBoxComm: TCheckBox
-        Left = 16
-        Top = 3
+        Left = 15
+        Top = 5
         Width = 185
         Height = 17
         Caption = #12385#12423#12387#12392#12488#12524#12540#12473#36861#21152
         TabOrder = 0
       end
       object CheckBoxOprDisableTabInView: TCheckBox
-        Left = 16
-        Top = 21
+        Left = 15
+        Top = 30
         Width = 353
         Height = 17
         Caption = #12393#12358#12379#12472#12515#12531#12503#12391#12365#12394#12356#12363#12425#12473#12524#20869'TAB'#12461#12540#25805#20316#12434#28961#21177#12395#12377#12427
         TabOrder = 1
       end
       object CheckBoxOptEnableBoardMenu: TCheckBox
-        Left = 16
-        Top = 50
+        Left = 15
+        Top = 55
         Width = 249
         Height = 17
         Caption = #26495#35239#12513#12491#12517#12540#12395#12508#12540#12489#19968#35239#12434#23637#38283#12377#12427
         TabOrder = 2
       end
       object CheckBoxOptSaveLastItems: TCheckBox
-        Left = 16
-        Top = 96
+        Left = 15
+        Top = 105
         Width = 273
         Height = 19
         Caption = #32066#20102#26178#12395#38283#12356#12390#12356#12383#12473#12524#12539#26495#12434#27425#22238#36215#21205#26178#12395#38283#12367
         TabOrder = 4
       end
       object CheckBoxOptAllowFavoriteDuplicate: TCheckBox
-        Left = 16
-        Top = 133
+        Left = 15
+        Top = 130
         Width = 241
         Height = 17
         Caption = #12362#27671#12395#20837#12426#12398#37325#35079#12434#35377#21487#12377#12427
         TabOrder = 5
       end
       object CheckBoxOptEnableFavMenu: TCheckBox
-        Left = 16
-        Top = 67
+        Left = 15
+        Top = 80
         Width = 217
         Height = 17
         Caption = #12513#12491#12517#12540#12395#12362#27671#12395#20837#12426#12434#23637#38283#12377#12427
@@ -983,7 +983,7 @@ object UIConfig: TUIConfig
       end
       object SpinEditRecyclableCount: TJLXPSpinEdit
         Left = 199
-        Top = 259
+        Top = 273
         Width = 57
         Height = 21
         MaxValue = 99
@@ -993,38 +993,38 @@ object UIConfig: TUIConfig
       end
       object EditOptChottoView: TEdit
         Left = 136
-        Top = 282
+        Top = 301
         Width = 41
         Height = 20
         TabOrder = 7
       end
       object CheckBoxoptSetFocusOnWriteMemo: TCheckBox
-        Left = 16
-        Top = 190
+        Left = 15
+        Top = 180
         Width = 281
-        Height = 24
+        Height = 17
         Caption = #12522#12525#12540#12489#24460#12395#12501#12457#12540#12459#12473#12434#12513#12514#27396#12395#21512#12431#12379#12427
         TabOrder = 8
       end
       object CheckBoxOldOnCheckNew: TCheckBox
-        Left = 16
-        Top = 218
+        Left = 15
+        Top = 205
         Width = 305
         Height = 17
         Caption = #12522#12525#12540#12489#12377#12427#38555#12395#12381#12428#12414#12391#12398#12524#12473#12434#12377#12409#12390#26082#35501#12395#12377#12427
         TabOrder = 9
       end
       object CheckBoxReadIfScrollBottom: TCheckBox
-        Left = 16
-        Top = 236
+        Left = 15
+        Top = 230
         Width = 289
         Height = 17
         Caption = #26368#24460#12414#12391#12473#12463#12525#12540#12523#12375#12383#12473#12524#12434#26082#35501#12395
         TabOrder = 10
       end
       object CheckBoxHideInTaskTray: TCheckBox
-        Left = 16
-        Top = 150
+        Left = 15
+        Top = 155
         Width = 241
         Height = 17
         Caption = #26368#23567#21270#26178#12399#12479#12473#12463#12488#12524#12452#12395#26684#32013
@@ -1037,28 +1037,28 @@ object UIConfig: TUIConfig
       TabVisible = False
       object Label31: TLabel
         Left = 16
-        Top = 160
+        Top = 183
         Width = 24
         Height = 12
         Caption = #21517#21069
       end
       object Label32: TLabel
         Left = 232
-        Top = 160
+        Top = 183
         Width = 33
         Height = 12
         Caption = #12513#12540#12523
       end
       object Label33: TLabel
         Left = 16
-        Top = 120
+        Top = 146
         Width = 102
         Height = 12
         Caption = #12300#12371#12428#12395#12524#12473#12301#12398#35352#21495
       end
       object Label34: TLabel
         Left = 24
-        Top = 296
+        Top = 319
         Width = 337
         Height = 12
         Caption = #8251#26360#12365#36796#12415#26178#12395'Shift'#25276#12375#12391#12381#12398#12392#12365#12398#21517#21069#12392#12513#12540#12523#12364#36861#21152#12373#12428#12414#12377
@@ -1070,8 +1070,8 @@ object UIConfig: TUIConfig
         Height = 12
       end
       object CheckBoxWrtRecordWriting: TCheckBox
-        Left = 16
-        Top = 8
+        Left = 15
+        Top = 5
         Width = 225
         Height = 17
         Caption = #26360#12365#36796#12415#23653#27508#12434' kakikomi.txt'#12395#20445#23384#12377#12427
@@ -1079,7 +1079,7 @@ object UIConfig: TUIConfig
       end
       object MemoWrtNameList: TMemo
         Left = 16
-        Top = 176
+        Top = 199
         Width = 201
         Height = 113
         ScrollBars = ssVertical
@@ -1088,7 +1088,7 @@ object UIConfig: TUIConfig
       end
       object MemoWrtMailList: TMemo
         Left = 232
-        Top = 176
+        Top = 199
         Width = 137
         Height = 113
         ScrollBars = ssVertical
@@ -1096,7 +1096,7 @@ object UIConfig: TUIConfig
         WordWrap = False
       end
       object CheckBoxWrtDefaultSage: TCheckBox
-        Left = 16
+        Left = 15
         Top = 80
         Width = 153
         Height = 17
@@ -1105,23 +1105,23 @@ object UIConfig: TUIConfig
       end
       object EditWrtReplyMark: TEdit
         Left = 128
-        Top = 120
+        Top = 142
         Width = 57
         Height = 20
         TabOrder = 5
         Text = '>>'
       end
       object CheckBoxTstCloseOnSuccess: TCheckBox
-        Left = 16
-        Top = 32
+        Left = 15
+        Top = 30
         Width = 249
         Height = 17
         Caption = #26360#36796#12415#12364#25104#21151#12375#12383#27671#12364#12377#12427#26178#12395#12399#38281#12376#12427
         TabOrder = 1
       end
       object CheckBoxWrtShowThreadTitle: TCheckBox
-        Left = 16
-        Top = 56
+        Left = 15
+        Top = 55
         Width = 161
         Height = 17
         Caption = #12473#12524#12483#12489#12479#12452#12488#12523#12497#12493#12523#34920#31034
@@ -1129,7 +1129,7 @@ object UIConfig: TUIConfig
       end
       object CheckBoxWrtFmUseTaskBar: TCheckBox
         Left = 200
-        Top = 80
+        Top = 85
         Width = 153
         Height = 17
         Caption = #12479#12473#12463#12496#12540#12434#20351#12358
@@ -1137,7 +1137,7 @@ object UIConfig: TUIConfig
       end
       object CheckBoxWrtUseDefaultName: TCheckBox
         Left = 56
-        Top = 160
+        Top = 183
         Width = 145
         Height = 12
         Caption = '1'#34892#30446#12434#65411#65438#65420#65387#65433#65412#12398#21517#21069#12395
@@ -1145,7 +1145,7 @@ object UIConfig: TUIConfig
       end
       object CheckBoxDiscrepancyWarning: TCheckBox
         Left = 200
-        Top = 104
+        Top = 110
         Width = 97
         Height = 17
         Caption = #35492#29190#35686#21578
@@ -1153,11 +1153,184 @@ object UIConfig: TUIConfig
       end
       object CheckBoxDisableStatusBar: TCheckBox
         Left = 200
-        Top = 128
+        Top = 135
         Width = 161
         Height = 17
         Caption = #12473#12486#12540#12479#12473#12496#12540#38750#34920#31034
         TabOrder = 10
+      end
+    end
+    object SheetDoe: TTabSheet
+      Caption = 'Doe'
+      ImageIndex = 15
+      TabVisible = False
+      object Label46: TLabel
+        Left = 40
+        Top = 12
+        Width = 150
+        Height = 12
+        Caption = #19978#19979#12473#12463#12525#12540#12523#26178#12395#27531#12377#34892#25968
+      end
+      object Label55: TLabel
+        Left = 48
+        Top = 262
+        Width = 196
+        Height = 12
+        Caption = #12502#12521#12454#12470#12398#12501#12457#12531#12488#12469#12452#12474'('#26368#23567#8594#26368#22823')'
+      end
+      object LabelKeywordBrushColor: TLabel
+        Left = 42
+        Top = 311
+        Width = 97
+        Height = 17
+        Alignment = taCenter
+        AutoSize = False
+        Caption = #12495#12452#12521#12452#12488#12398#33394
+        Color = clYellow
+        ParentColor = False
+        Layout = tlCenter
+      end
+      object EditViewVerticalCaretMargin: TEdit
+        Left = 208
+        Top = 8
+        Width = 57
+        Height = 20
+        TabOrder = 0
+      end
+      object GroupBox13: TJLXPGroupBox
+        Left = 40
+        Top = 43
+        Width = 217
+        Height = 169
+        Caption = #12473#12463#12525#12540#12523
+        TabOrder = 1
+        object LabelViewScrollSmoothness: TLabel
+          Left = 32
+          Top = 60
+          Width = 69
+          Height = 12
+          Caption = #12473#12512#12540#12474#12493#12473
+        end
+        object LabelViewScrollFrameRate: TLabel
+          Left = 32
+          Top = 84
+          Width = 74
+          Height = 12
+          Caption = #12501#12524#12540#12512#12524#12540#12488
+        end
+        object RadioButtonViewLineScroll: TRadioButton
+          Left = 16
+          Top = 16
+          Width = 169
+          Height = 17
+          Caption = #27425#12398#34892#25968#12372#12392#12473#12463#12525#12540#12523
+          Checked = True
+          TabOrder = 0
+          TabStop = True
+        end
+        object RadioButtonViewPageScroll: TRadioButton
+          Left = 16
+          Top = 112
+          Width = 153
+          Height = 17
+          Caption = #65297#12506#12540#12472#12372#12392#12473#12463#12525#12540#12523
+          TabOrder = 1
+        end
+        object EditViewScrollLines: TEdit
+          Left = 120
+          Top = 34
+          Width = 57
+          Height = 20
+          TabOrder = 2
+        end
+        object SpinEditViewScrollSmoothness: TJLXPSpinEdit
+          Left = 120
+          Top = 56
+          Width = 57
+          Height = 21
+          MaxValue = 32
+          MinValue = 1
+          TabOrder = 3
+          Value = 3
+        end
+        object SpinEditViewScrollFrameRate: TJLXPSpinEdit
+          Left = 120
+          Top = 80
+          Width = 57
+          Height = 21
+          MaxValue = 150
+          MinValue = 0
+          TabOrder = 4
+          Value = 60
+        end
+        object CheckBoxViewEnableAutoScroll: TCheckBox
+          Left = 16
+          Top = 136
+          Width = 193
+          Height = 17
+          Caption = #12458#12540#12488#12473#12463#12525#12540#12523#12434#26377#21177#12395#12377#12427
+          TabOrder = 5
+        end
+      end
+      object CheckBoxCaretVisible: TCheckBox
+        Left = 48
+        Top = 230
+        Width = 137
+        Height = 17
+        Caption = #12461#12515#12524#12483#12488#12434#34920#31034#12377#12427
+        TabOrder = 2
+      end
+      object EditZoomPoint0: TEdit
+        Left = 56
+        Top = 278
+        Width = 33
+        Height = 20
+        TabOrder = 3
+      end
+      object EditZoomPoint1: TEdit
+        Left = 96
+        Top = 278
+        Width = 33
+        Height = 20
+        TabOrder = 4
+      end
+      object EditZoomPoint2: TEdit
+        Left = 136
+        Top = 278
+        Width = 33
+        Height = 20
+        TabOrder = 5
+      end
+      object EditZoomPoint3: TEdit
+        Left = 176
+        Top = 278
+        Width = 33
+        Height = 20
+        TabOrder = 6
+      end
+      object EditZoomPoint4: TEdit
+        Left = 216
+        Top = 278
+        Width = 33
+        Height = 20
+        TabOrder = 7
+      end
+      object ButtonKeywordBrushColor: TButton
+        Left = 140
+        Top = 311
+        Width = 25
+        Height = 17
+        Caption = '...'
+        TabOrder = 8
+        OnClick = ButtonKeywordBrushColorClick
+      end
+      object CheckBoxCaretScrollSync: TCheckBox
+        Left = 184
+        Top = 230
+        Width = 153
+        Height = 17
+        Caption = #12473#12463#12525#12540#12523#12395#21516#26399#12377#12427
+        TabOrder = 9
       end
     end
     object SheetUserInfo: TTabSheet
@@ -1165,9 +1338,9 @@ object UIConfig: TUIConfig
       ImageIndex = 7
       TabVisible = False
       object GroupBoxUser: TJLXPGroupBox
-        Left = 32
-        Top = 6
-        Width = 321
+        Left = 15
+        Top = 5
+        Width = 360
         Height = 105
         Caption = #65298#12385#12419#12435#12397#12427
         TabOrder = 0
@@ -1236,9 +1409,9 @@ object UIConfig: TUIConfig
         end
       end
       object GroupBoxRem: TJLXPGroupBox
-        Left = 32
-        Top = 119
-        Width = 321
+        Left = 15
+        Top = 135
+        Width = 360
         Height = 97
         Caption = 'Password'#12364#22793#12395#12394#12387#12383#26178#12395#25147#12379#12427#12424#12358#12395#12539#12539#12539
         TabOrder = 1
@@ -1288,9 +1461,9 @@ object UIConfig: TUIConfig
         end
       end
       object GroupBoxBeLogin: TJLXPGroupBox
-        Left = 32
-        Top = 224
-        Width = 321
+        Left = 15
+        Top = 251
+        Width = 360
         Height = 78
         Caption = 'BE@2ch'#25522#31034#26495
         TabOrder = 2
@@ -1317,14 +1490,14 @@ object UIConfig: TUIConfig
         object EditMail_BEID_DMDM: TEdit
           Left = 99
           Top = 16
-          Width = 207
+          Width = 245
           Height = 20
           TabOrder = 0
         end
         object EditCode_BEID_MDMD: TEdit
           Left = 99
           Top = 43
-          Width = 207
+          Width = 245
           Height = 20
           TabOrder = 1
         end
@@ -1569,13 +1742,200 @@ object UIConfig: TUIConfig
         Value = 0
       end
     end
+    object SheetHint2: TTabSheet
+      Caption = #12402#12435#12392'2'
+      ImageIndex = 21
+      TabVisible = False
+      object GroupBoxIDPopup: TJLXPGroupBox
+        Left = 8
+        Top = 142
+        Width = 369
+        Height = 190
+        Caption = 'ID'#12509#12483#12503#12450#12483#12503
+        TabOrder = 0
+        object Label58: TLabel
+          Left = 32
+          Top = 98
+          Width = 81
+          Height = 12
+          Caption = #34920#31034#12524#12473#25968#21046#38480
+        end
+        object LabelIDLinkColorMany: TLabel
+          Left = 118
+          Top = 130
+          Width = 93
+          Height = 18
+          Alignment = taCenter
+          AutoSize = False
+          Caption = #30330#35328#12364#22810#12356'ID'
+          Color = clWhite
+          Font.Charset = SHIFTJIS_CHARSET
+          Font.Color = clRed
+          Font.Height = -12
+          Font.Name = #65325#65331' '#65328#12468#12471#12483#12463
+          Font.Style = []
+          ParentColor = False
+          ParentFont = False
+          Layout = tlCenter
+        end
+        object LabelIDLinkColorNone: TLabel
+          Left = 118
+          Top = 160
+          Width = 93
+          Height = 18
+          Alignment = taCenter
+          AutoSize = False
+          Caption = #30330#35328#12364'1'#12398'ID'
+          Color = clBtnFace
+          ParentColor = False
+          Layout = tlCenter
+        end
+        object Label63: TLabel
+          Left = 253
+          Top = 134
+          Width = 42
+          Height = 12
+          Caption = #12375#12365#12356#25968
+        end
+        object CheckBoxIDPopUp: TCheckBox
+          Left = 20
+          Top = 25
+          Width = 225
+          Height = 17
+          Caption = 'ID'#12509#12483#12503#12450#12483#12503#12434#20351#29992#12377#12427
+          TabOrder = 0
+        end
+        object SpinEditIDPopUpMaxCount: TJLXPSpinEdit
+          Left = 129
+          Top = 95
+          Width = 59
+          Height = 21
+          MaxValue = 0
+          MinValue = 0
+          TabOrder = 1
+          Value = 0
+        end
+        object CheckBoxIDPopOnMOver: TCheckBox
+          Left = 20
+          Top = 60
+          Width = 243
+          Height = 17
+          Caption = #12510#12454#12473#12458#12540#12496#12540#12391#12509#12483#12503#12450#12483#12503#12377#12427
+          TabOrder = 2
+        end
+        object CheckBoxIDLinkColor: TCheckBox
+          Left = 20
+          Top = 130
+          Width = 89
+          Height = 17
+          Caption = #12522#12531#12463#12398#30528#33394
+          TabOrder = 3
+        end
+        object ButtonIDLinkColorNone: TButton
+          Left = 211
+          Top = 160
+          Width = 25
+          Height = 20
+          Caption = '...'
+          TabOrder = 4
+          OnClick = ButtonIDLinkColorNoneClick
+        end
+        object ButtonIDLinkColorMany: TButton
+          Left = 211
+          Top = 130
+          Width = 25
+          Height = 20
+          Caption = '...'
+          TabOrder = 5
+          OnClick = ButtonIDLinkColorManyClick
+        end
+        object SpinEditIDLinkThreshold: TJLXPSpinEdit
+          Left = 307
+          Top = 130
+          Width = 49
+          Height = 21
+          MaxValue = 50
+          MinValue = 2
+          TabOrder = 6
+          Value = 5
+        end
+      end
+      object GroupBoxTreePopup: TJLXPGroupBox
+        Left = 8
+        Top = 0
+        Width = 369
+        Height = 134
+        Caption = #12484#12522#12540#12539#12450#12454#12488#12521#12452#12531#12509#12483#12503#12450#12483#12503
+        TabOrder = 1
+        object LabelLenofOutLineRes: TLabel
+          Left = 32
+          Top = 60
+          Width = 171
+          Height = 12
+          Caption = #12450#12454#12488#12521#12452#12531#12391#34920#31034#12377#12427#12524#12473#12398#38263#12373
+        end
+        object LabelLinkedNumColor: TLabel
+          Left = 193
+          Top = 94
+          Width = 93
+          Height = 18
+          Alignment = taCenter
+          AutoSize = False
+          Caption = '100'
+          Color = clBtnFace
+          Font.Charset = SHIFTJIS_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -12
+          Font.Name = #65325#65331' '#65328#12468#12471#12483#12463
+          Font.Style = [fsUnderline]
+          ParentColor = False
+          ParentFont = False
+          Layout = tlCenter
+        end
+        object CheckBoxAllowTreeDup: TCheckBox
+          Left = 20
+          Top = 25
+          Width = 249
+          Height = 17
+          Caption = #12484#12522#12540#12289#12450#12454#12488#12521#12452#12531#34920#31034#12391#37325#35079#12434#35377#21487#12377#12427
+          TabOrder = 0
+        end
+        object SpinEditLenofOutLineRes: TJLXPSpinEdit
+          Left = 218
+          Top = 55
+          Width = 65
+          Height = 21
+          MaxValue = 0
+          MinValue = 0
+          TabOrder = 1
+          Value = 0
+        end
+        object CheckBoxColordNumber: TCheckBox
+          Left = 20
+          Top = 95
+          Width = 153
+          Height = 17
+          Caption = #12522#12531#12463#12373#12428#12383#12524#12473#30058#12434#30528#33394
+          TabOrder = 2
+        end
+        object ButtonColordNumber: TButton
+          Left = 284
+          Top = 93
+          Width = 25
+          Height = 20
+          Caption = '...'
+          TabOrder = 3
+          OnClick = ButtonColordNumberClick
+        end
+      end
+    end
     object SheetAbone: TTabSheet
       Caption = #12354#12412#12540#12435
       ImageIndex = 10
       TabVisible = False
       object ButtonAddNGWord: TButton
         Left = 107
-        Top = 280
+        Top = 308
         Width = 75
         Height = 25
         Caption = #36861#21152'(&A)'
@@ -1584,7 +1944,7 @@ object UIConfig: TUIConfig
       end
       object ButtonDeleteNGWord: TButton
         Left = 211
-        Top = 280
+        Top = 308
         Width = 75
         Height = 25
         Caption = #21066#38500'(&D)'
@@ -1593,7 +1953,7 @@ object UIConfig: TUIConfig
       end
       object EditNG: TEdit
         Left = 8
-        Top = 256
+        Top = 284
         Width = 377
         Height = 20
         TabOrder = 1
@@ -1602,7 +1962,7 @@ object UIConfig: TUIConfig
         Left = 0
         Top = 0
         Width = 385
-        Height = 249
+        Height = 276
         ActivePage = Sheet_NGName
         Align = alTop
         TabIndex = 0
@@ -1613,7 +1973,7 @@ object UIConfig: TUIConfig
             Left = 0
             Top = 0
             Width = 377
-            Height = 222
+            Height = 249
             Style = lbOwnerDrawFixed
             Align = alClient
             ItemHeight = 12
@@ -1633,7 +1993,7 @@ object UIConfig: TUIConfig
             Left = 0
             Top = 0
             Width = 377
-            Height = 222
+            Height = 249
             Style = lbOwnerDrawFixed
             Align = alClient
             ItemHeight = 12
@@ -1652,7 +2012,7 @@ object UIConfig: TUIConfig
             Left = 0
             Top = 0
             Width = 377
-            Height = 222
+            Height = 249
             Style = lbOwnerDrawFixed
             Align = alClient
             ItemHeight = 12
@@ -1671,7 +2031,7 @@ object UIConfig: TUIConfig
             Left = 0
             Top = 0
             Width = 377
-            Height = 222
+            Height = 249
             Style = lbOwnerDrawFixed
             Align = alClient
             ItemHeight = 12
@@ -1690,7 +2050,7 @@ object UIConfig: TUIConfig
             Left = 0
             Top = 0
             Width = 377
-            Height = 222
+            Height = 249
             Style = lbOwnerDrawFixed
             Align = alClient
             ItemHeight = 12
@@ -1711,7 +2071,7 @@ object UIConfig: TUIConfig
             Left = 0
             Top = 0
             Width = 377
-            Height = 222
+            Height = 249
             Style = lbOwnerDrawFixed
             Align = alClient
             ItemHeight = 12
@@ -1727,7 +2087,7 @@ object UIConfig: TUIConfig
           ImageIndex = 5
           object Label60: TLabel
             Left = 24
-            Top = 95
+            Top = 119
             Width = 191
             Height = 12
             Caption = 'NGName,Addr,Word,Thread'#12398#26399#38480'('#26085')'
@@ -1735,7 +2095,7 @@ object UIConfig: TUIConfig
           end
           object Label61: TLabel
             Left = 24
-            Top = 160
+            Top = 189
             Width = 123
             Height = 12
             Caption = #12487#12501#12457#12523#12488#12398#12354#12412#12540#12435#27861
@@ -1743,7 +2103,7 @@ object UIConfig: TUIConfig
           end
           object Label62: TLabel
             Left = 24
-            Top = 123
+            Top = 147
             Width = 83
             Height = 12
             Caption = 'NGID'#12398#26399#38480'('#26085')'
@@ -1751,7 +2111,7 @@ object UIConfig: TUIConfig
           end
           object Label80: TLabel
             Left = 24
-            Top = 190
+            Top = 219
             Width = 161
             Height = 12
             Caption = #12487#12501#12457#12523#12488#12398#12473#12524#12483#12489#12354#12412#65374#12435#27861
@@ -1759,7 +2119,7 @@ object UIConfig: TUIConfig
           end
           object CheckBoxLinkAbone: TCheckBox
             Left = 32
-            Top = 61
+            Top = 76
             Width = 97
             Height = 17
             Caption = #36899#37782#12354#12412#65374#12435
@@ -1767,7 +2127,7 @@ object UIConfig: TUIConfig
           end
           object cbPermanentNG: TCheckBox
             Left = 8
-            Top = 17
+            Top = 23
             Width = 281
             Height = 17
             Caption = 'NG'#12434#12354#12412#65374#12435'(NG'#12527#12540#12489#12434#21066#38500#12375#12390#12418#24489#27963#12375#12394#12356')'
@@ -1776,7 +2136,7 @@ object UIConfig: TUIConfig
           end
           object cbPermanentMarking: TCheckBox
             Left = 32
-            Top = 37
+            Top = 52
             Width = 305
             Height = 17
             Caption = #37325#35201#12461#12540#12527#12540#12489#12434#21547#12416#12524#12473#12434#33258#21205#30340#12395#12481#12455#12483#12463#12377#12427
@@ -1784,7 +2144,7 @@ object UIConfig: TUIConfig
           end
           object seNGItemLifeSpan: TJLXPSpinEdit
             Left = 225
-            Top = 91
+            Top = 115
             Width = 65
             Height = 21
             MaxValue = 0
@@ -1794,7 +2154,7 @@ object UIConfig: TUIConfig
           end
           object seNGIDLifeSpan: TJLXPSpinEdit
             Left = 225
-            Top = 119
+            Top = 143
             Width = 65
             Height = 21
             MaxValue = 0
@@ -1804,7 +2164,7 @@ object UIConfig: TUIConfig
           end
           object cmbAboneLevel: TComboBox
             Left = 225
-            Top = 156
+            Top = 185
             Width = 113
             Height = 20
             Style = csDropDownList
@@ -1818,7 +2178,7 @@ object UIConfig: TUIConfig
           end
           object cmbThreAboneLevel: TComboBox
             Left = 224
-            Top = 188
+            Top = 217
             Width = 113
             Height = 20
             Style = csDropDownList
@@ -1833,7 +2193,7 @@ object UIConfig: TUIConfig
       end
       object CheckBoxViewTransparencyAbone: TCheckBox
         Left = 8
-        Top = 285
+        Top = 313
         Width = 97
         Height = 17
         Caption = #36879#26126#12354#12412#12540#12435
@@ -1846,7 +2206,7 @@ object UIConfig: TUIConfig
       TabVisible = False
       object Label35: TLabel
         Left = 264
-        Top = 296
+        Top = 322
         Width = 112
         Height = 12
         Caption = '*'#27425#22238#36215#21205#26178#12363#12425#26377#21177
@@ -1855,7 +2215,7 @@ object UIConfig: TUIConfig
         Left = 16
         Top = 0
         Width = 361
-        Height = 185
+        Height = 206
         KeyOptions = [keyEdit, keyAdd, keyDelete]
         Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColSizing, goRowSelect, goThumbTracking]
         TabOrder = 0
@@ -1870,7 +2230,7 @@ object UIConfig: TUIConfig
       end
       object ButtonCmdAdd: TButton
         Left = 24
-        Top = 280
+        Top = 306
         Width = 81
         Height = 25
         Caption = #36861#21152'(&A)'
@@ -1879,7 +2239,7 @@ object UIConfig: TUIConfig
       end
       object ButtonCmdDel: TButton
         Left = 296
-        Top = 208
+        Top = 230
         Width = 81
         Height = 25
         Caption = #21066#38500'(&D)'
@@ -1888,7 +2248,7 @@ object UIConfig: TUIConfig
       end
       object EditCmdName: TLabeledEdit
         Left = 16
-        Top = 208
+        Top = 230
         Width = 249
         Height = 20
         EditLabel.Width = 51
@@ -1900,7 +2260,7 @@ object UIConfig: TUIConfig
       end
       object EditCmdExe: TLabeledEdit
         Left = 16
-        Top = 248
+        Top = 270
         Width = 249
         Height = 20
         EditLabel.Width = 85
@@ -1912,7 +2272,7 @@ object UIConfig: TUIConfig
       end
       object ButtonCmdIns: TButton
         Left = 120
-        Top = 280
+        Top = 306
         Width = 75
         Height = 25
         Caption = #25407#20837'(&I)'
@@ -1921,7 +2281,7 @@ object UIConfig: TUIConfig
       end
       object ButtonCmdUp: TButton
         Left = 296
-        Top = 248
+        Top = 270
         Width = 25
         Height = 25
         Caption = #8593
@@ -1931,7 +2291,7 @@ object UIConfig: TUIConfig
       end
       object ButtonCmdDown: TButton
         Left = 336
-        Top = 248
+        Top = 270
         Width = 25
         Height = 25
         Caption = #8595
@@ -1945,8 +2305,8 @@ object UIConfig: TUIConfig
       ImageIndex = 9
       TabVisible = False
       object CheckBoxMseUseWheelTabChange: TCheckBox
-        Left = 16
-        Top = 0
+        Left = 15
+        Top = 5
         Width = 257
         Height = 17
         Caption = #12479#12502#19978#12507#12452#12540#12523#22238#36578#12391#12479#12502#20999#12426#26367#12360
@@ -1954,9 +2314,9 @@ object UIConfig: TUIConfig
       end
       object GroupBox12: TJLXPGroupBox
         Left = 16
-        Top = 40
+        Top = 53
         Width = 361
-        Height = 265
+        Height = 282
         Caption = #12510#12454#12473#12472#12455#12473#12481#12515#12540
         TabOrder = 1
         object Label40: TLabel
@@ -1994,7 +2354,7 @@ object UIConfig: TUIConfig
           Height = 20
           Style = csDropDownList
           DropDownCount = 12
-          ItemHeight = 0
+          ItemHeight = 12
           TabOrder = 1
         end
         object ComboBoxMseGestures: TComboBox
@@ -2078,8 +2438,8 @@ object UIConfig: TUIConfig
         object ValueListMouseGesture: TValueListEditor
           Left = 8
           Top = 120
-          Width = 345
-          Height = 105
+          Width = 346
+          Height = 119
           DefaultRowHeight = 16
           KeyOptions = [keyUnique]
           Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColSizing, goRowSelect, goThumbTracking]
@@ -2089,7 +2449,7 @@ object UIConfig: TUIConfig
             #12513#12491#12517#12540)
           ColWidths = (
             122
-            217)
+            218)
         end
         object ComboBoxMseSubMenus: TComboBox
           Left = 216
@@ -2098,13 +2458,13 @@ object UIConfig: TUIConfig
           Height = 20
           Style = csDropDownList
           DropDownCount = 12
-          ItemHeight = 0
+          ItemHeight = 12
           TabOrder = 2
           OnDropDown = ComboBoxMseSubMenusDropDown
         end
         object ButtonMseAdd: TButton
           Left = 168
-          Top = 232
+          Top = 246
           Width = 75
           Height = 25
           Caption = #36861#21152'(&A)'
@@ -2113,7 +2473,7 @@ object UIConfig: TUIConfig
         end
         object ButtonMseDelete: TButton
           Left = 256
-          Top = 232
+          Top = 246
           Width = 75
           Height = 25
           Caption = #21066#38500'(&D)'
@@ -2142,7 +2502,7 @@ object UIConfig: TUIConfig
       end
       object CheckBoxWheelScrollUnderCursor: TCheckBox
         Left = 16
-        Top = 18
+        Top = 25
         Width = 313
         Height = 17
         Caption = #12459#12540#12477#12523#12398#19979#12395#12354#12427#12506#12452#12531#12434#12507#12452#12540#12523#12473#12463#12525#12540#12523
@@ -2185,6 +2545,408 @@ object UIConfig: TUIConfig
         ParentCtl3D = False
         ReadOnly = True
         TabOrder = 1
+      end
+    end
+    object SheetFavPatrol: TTabSheet
+      Caption = #26908#32034#12539#26356#26032
+      ImageIndex = 20
+      TabVisible = False
+      object GroupBoxCheck: TJLXPGroupBox
+        Left = 15
+        Top = 208
+        Width = 360
+        Height = 124
+        Caption = #26356#26032#12481#12455#12483#12463
+        TabOrder = 0
+        object CheckBoxFavPatrolCheckServerDown: TCheckBox
+          Left = 25
+          Top = 20
+          Width = 288
+          Height = 18
+          Caption = #26356#26032#65409#65386#65391#65400#21069#12395#12469#12540#12496#12540#12364#33853#12385#12390#12394#12356#12363#12481#12455#12483#12463#12377#12427
+          TabOrder = 0
+        end
+        object CheckBoxFavPatrolOpenNewResThread: TCheckBox
+          Left = 25
+          Top = 45
+          Width = 257
+          Height = 18
+          Caption = #26356#26032#65409#65386#65391#65400#24460#12395#26356#26032#12398#12354#12427#12473#12524#12483#12489#12434#12377#12409#12390#38283#12367
+          TabOrder = 1
+        end
+        object CheckBoxFavPatrolOpenBack: TCheckBox
+          Left = 25
+          Top = 70
+          Width = 201
+          Height = 18
+          Caption = #26356#26032#65409#65386#65391#65400#12434#12496#12483#12463#12464#12521#12454#12531#12489#12391#34892#12358
+          TabOrder = 2
+        end
+        object CheckBoxFavPatrolMessageBox: TCheckBox
+          Left = 25
+          Top = 95
+          Width = 249
+          Height = 18
+          Caption = #26356#26032#65409#65386#65391#65400#23436#20102#12398#30906#35469#12480#12452#12450#12525#12464#12434#34920#31034#12377#12427
+          TabOrder = 3
+        end
+      end
+      object GroupBoxSearch: TJLXPGroupBox
+        Left = 15
+        Top = 5
+        Width = 360
+        Height = 199
+        Caption = #26908#32034
+        TabOrder = 1
+        object Label52: TLabel
+          Left = 15
+          Top = 98
+          Width = 72
+          Height = 12
+          Caption = #36215#21205#26178#12398#35373#23450
+        end
+        object Label64: TLabel
+          Left = 32
+          Top = 49
+          Width = 20
+          Height = 12
+          Caption = 'DLL'
+        end
+        object Label71: TLabel
+          Left = 31
+          Top = 70
+          Width = 24
+          Height = 12
+          Caption = #36766#26360
+        end
+        object Label75: TLabel
+          Left = 15
+          Top = 170
+          Width = 48
+          Height = 12
+          Caption = #26908#32034#26041#27861
+        end
+        object ComboBoxDefaultSearch: TComboBox
+          Left = 80
+          Top = 166
+          Width = 227
+          Height = 20
+          Style = csDropDownList
+          ItemHeight = 12
+          TabOrder = 0
+          Items.Strings = (
+            #36890#24120#26908#32034
+            'Migemo'#26908#32034
+            #27491#35215#26908#32034)
+        end
+        object EditMigemoPath: TEdit
+          Left = 70
+          Top = 45
+          Width = 217
+          Height = 20
+          TabOrder = 1
+        end
+        object EditMigemoDic: TEdit
+          Left = 70
+          Top = 67
+          Width = 218
+          Height = 20
+          TabOrder = 2
+        end
+        object ButtonMigemoPath: TButton
+          Tag = 1
+          Left = 288
+          Top = 47
+          Width = 25
+          Height = 17
+          Caption = '...'
+          TabOrder = 3
+          OnClick = ButtonMigemoPathClick
+        end
+        object ButtonMigemoDic: TButton
+          Tag = 2
+          Left = 288
+          Top = 68
+          Width = 25
+          Height = 17
+          Caption = '...'
+          TabOrder = 4
+          OnClick = ButtonMigemoPathClick
+        end
+        object CheckBoxShowListToolbarOnStartup: TCheckBox
+          Left = 25
+          Top = 137
+          Width = 141
+          Height = 17
+          Caption = #12473#12524#19968#35239#26908#32034#12496#12540#34920#31034
+          TabOrder = 5
+        end
+        object CheckBoxShowToolbarOnStartup: TCheckBox
+          Left = 177
+          Top = 117
+          Width = 121
+          Height = 17
+          Caption = #12473#12524#26908#32034#12496#12540#34920#31034
+          TabOrder = 6
+        end
+        object CheckBoxShowTreeToolbarOnStartup: TCheckBox
+          Left = 25
+          Top = 120
+          Width = 145
+          Height = 16
+          Caption = #26495#12484#12522#12540#26908#32034#12496#12540#34920#31034
+          TabOrder = 7
+        end
+        object CheckBoxEnableMigemo: TCheckBox
+          Left = 25
+          Top = 20
+          Width = 161
+          Height = 17
+          Caption = 'Migemo('#20877#36215#21205#24460#12395#26377#21177')'
+          TabOrder = 8
+          OnClick = CheckBoxEnableMigemoClick
+        end
+      end
+    end
+    object SheetForView: TTabSheet
+      Caption = #12381#12398#20182'2'
+      ImageIndex = 17
+      TabVisible = False
+      object Label59: TLabel
+        Left = 16
+        Top = 61
+        Width = 265
+        Height = 12
+        Caption = #12300#9675#9675#12434#12377#12409#12390#38283#12367#12301#12391#38283#12367#12473#12524#12483#12489#12398#19978#38480'(0'#12391#28961#21046#38480')'
+      end
+      object ShowDayOfWeekCheckBox: TCheckBox
+        Left = 15
+        Top = 5
+        Width = 145
+        Height = 17
+        Caption = #25237#31295#26085#12395#26332#26085#12434#20184#12369#12427
+        Checked = True
+        State = cbChecked
+        TabOrder = 0
+      end
+      object SpinEditOpenNewResThreadLimit: TJLXPSpinEdit
+        Left = 291
+        Top = 55
+        Width = 65
+        Height = 21
+        MaxValue = 0
+        MinValue = 0
+        TabOrder = 1
+        Value = 0
+      end
+      object CheckBoxQuickMerge: TCheckBox
+        Left = 15
+        Top = 30
+        Width = 192
+        Height = 17
+        Caption = #39640#36895'Merge('#8251#20877#36215#21205#24460#12395#26377#21177')'
+        TabOrder = 2
+      end
+    end
+    object SheetColumn: TTabSheet
+      Caption = #12473#12524#35239#38917#30446
+      ImageIndex = 16
+      TabVisible = False
+      object Label50: TLabel
+        Left = 49
+        Top = 2
+        Width = 78
+        Height = 12
+        Caption = #27531#12387#12390#12356#12427#38917#30446
+      end
+      object Label51: TLabel
+        Left = 256
+        Top = 2
+        Width = 80
+        Height = 12
+        Caption = #36984#25246#12373#12428#12383#38917#30446
+      end
+      object LabelCheckNewThreadInHour: TLabel
+        Left = 77
+        Top = 215
+        Width = 234
+        Height = 12
+        Caption = #26178#38291#20197#20869#12395#31435#12387#12383#12473#12524#12434#65281#12391#12481#12455#12483#12463'(0'#12391#28961#21177')'
+      end
+      object Label69: TLabel
+        Left = 18
+        Top = 237
+        Width = 54
+        Height = 12
+        Caption = #26495#12398#12477#12540#12488
+      end
+      object Label70: TLabel
+        Left = 175
+        Top = 237
+        Width = 150
+        Height = 12
+        Caption = #12525#12464#19968#35239#12289#12362#27671#12395#20837#12426#12398#12477#12540#12488
+      end
+      object ListBoxClmnRest: TListBox
+        Left = 31
+        Top = 21
+        Width = 121
+        Height = 153
+        ItemHeight = 12
+        Items.Strings = (
+          '0 = '#65281
+          '1 = '#30058#21495
+          '2 = '#12479#12452#12488#12523
+          '3 = '#12524#12473
+          '4 = '#21462#24471
+          '5 = '#26032#30528
+          '6 = '#26368#32066#21462#24471
+          '7 = '#26368#32066#26360#36796
+          '8 = since'
+          '9 = '#26495
+          '10 = '#21218#12356
+          '11 = '#22679#12524#12473)
+        TabOrder = 0
+        OnKeyDown = ListBoxClmnRestKeyDown
+      end
+      object ListBoxClmnSelected: TListBox
+        Left = 237
+        Top = 21
+        Width = 121
+        Height = 153
+        ItemHeight = 12
+        TabOrder = 1
+        OnKeyDown = ListBoxClmnSelectedKeyDown
+      end
+      object ButtonClmnAdd: TButton
+        Left = 170
+        Top = 67
+        Width = 49
+        Height = 25
+        Caption = '>>'
+        TabOrder = 2
+        TabStop = False
+        OnClick = ButtonClmnAddClick
+      end
+      object ButtonClmnDel: TButton
+        Left = 170
+        Top = 99
+        Width = 49
+        Height = 25
+        Caption = '<<'
+        TabOrder = 3
+        TabStop = False
+        OnClick = ButtonClmnDelClick
+      end
+      object ButtonClmnUp: TButton
+        Left = 265
+        Top = 180
+        Width = 25
+        Height = 25
+        Caption = #8593
+        TabOrder = 4
+        TabStop = False
+        OnClick = ButtonClmnUpClick
+      end
+      object ButtonClmnDown: TButton
+        Left = 309
+        Top = 180
+        Width = 25
+        Height = 25
+        Caption = #8595
+        TabOrder = 5
+        TabStop = False
+        OnClick = ButtonClmnDownClick
+      end
+      object seCheckNewThreadInHour: TJLXPSpinEdit
+        Left = 15
+        Top = 210
+        Width = 57
+        Height = 21
+        MaxValue = 96
+        MinValue = 0
+        TabOrder = 6
+        Value = 0
+      end
+      object CheckBoxCheckThreadMadeAfterLstMdfy2: TCheckBox
+        Left = 15
+        Top = 186
+        Width = 185
+        Height = 17
+        Caption = #26032#35215#12395#31435#12387#12383#12473#12524#12434#65281#12391#12481#12455#12483#12463
+        TabOrder = 7
+      end
+      object ComboBoxDefSortColumn: TComboBox
+        Left = 15
+        Top = 254
+        Width = 121
+        Height = 20
+        Style = csDropDownList
+        ItemHeight = 12
+        ItemIndex = 1
+        TabOrder = 8
+        Text = #30058#21495#38918
+        Items.Strings = (
+          #65281
+          #30058#21495#38918
+          #12479#12452#12488#12523
+          #12524#12473
+          #21462#24471
+          #26032#30528
+          #26368#32066#21462#24471
+          #26368#32066#26360#36796
+          'since'
+          #26495
+          #21218#12356
+          #22679#12524#12473)
+      end
+      object ComboBoxDefFuncSortColumn: TComboBox
+        Left = 172
+        Top = 254
+        Width = 145
+        Height = 20
+        Style = csDropDownList
+        ItemHeight = 12
+        ItemIndex = 1
+        TabOrder = 9
+        Text = #30058#21495#38918
+        Items.Strings = (
+          #65281
+          #30058#21495#38918
+          #12479#12452#12488#12523
+          #12524#12473
+          #21462#24471
+          #26032#30528
+          #26368#32066#21462#24471
+          #26368#32066#26360#36796
+          'since'
+          #26495
+          #21218#12356
+          #22679#12524#12473)
+      end
+      object CheckBoxHideHistoricalLog: TCheckBox
+        Left = 15
+        Top = 316
+        Width = 113
+        Height = 17
+        Caption = #36942#21435#12525#12464#38750#34920#31034
+        TabOrder = 10
+      end
+      object CheckBoxUpOpenThread: TCheckBox
+        Left = 15
+        Top = 277
+        Width = 193
+        Height = 17
+        Caption = #38283#12356#12390#12356#12427#12473#12524#12483#12489#12434#19978#12408#12477#12540#12488
+        TabOrder = 11
+      end
+      object CheckBoxUpImportantThread: TCheckBox
+        Left = 15
+        Top = 296
+        Width = 266
+        Height = 17
+        Caption = #37325#35201#12473#12524#12483#12489#12539#12481#12455#12483#12463#12375#12383#12473#12524#12483#12489#12434#19978#12408#12477#12540#12488
+        TabOrder = 12
       end
     end
     object SheetTab: TTabSheet
@@ -2494,16 +3256,16 @@ object UIConfig: TUIConfig
       TabVisible = False
       object Label43: TLabel
         Left = 24
-        Top = 298
+        Top = 321
         Width = 336
         Height = 12
         Caption = #8251#12473#12524#12499#12517#12540#12398#12501#12457#12531#12488#12398#31278#39006#12399#12473#12461#12531#12289#22823#12365#12373#12399#31379#12513#12491#12517#12540#12391#35373#23450
       end
       object GroupBox7: TJLXPGroupBox
-        Left = 16
-        Top = 0
+        Left = 15
+        Top = 5
         Width = 169
-        Height = 289
+        Height = 310
         Caption = #12503#12524#12499#12517#12540
         TabOrder = 0
         object LabelTree: TLabel
@@ -2520,7 +3282,7 @@ object UIConfig: TUIConfig
         end
         object LabelFavorite: TLabel
           Left = 8
-          Top = 42
+          Top = 44
           Width = 153
           Height = 22
           Alignment = taCenter
@@ -2532,7 +3294,7 @@ object UIConfig: TUIConfig
         end
         object LabelList: TLabel
           Left = 8
-          Top = 69
+          Top = 73
           Width = 153
           Height = 22
           Alignment = taCenter
@@ -2543,7 +3305,7 @@ object UIConfig: TUIConfig
         end
         object LabelLog: TLabel
           Left = 8
-          Top = 96
+          Top = 102
           Width = 153
           Height = 22
           Alignment = taCenter
@@ -2555,7 +3317,7 @@ object UIConfig: TUIConfig
         end
         object LabelTextView: TLabel
           Left = 8
-          Top = 123
+          Top = 131
           Width = 153
           Height = 22
           Alignment = taCenter
@@ -2567,7 +3329,7 @@ object UIConfig: TUIConfig
         end
         object LabelThreadTitle: TLabel
           Left = 8
-          Top = 150
+          Top = 160
           Width = 153
           Height = 22
           Alignment = taCenter
@@ -2579,7 +3341,7 @@ object UIConfig: TUIConfig
         end
         object LabelWriteMemo: TLabel
           Left = 8
-          Top = 177
+          Top = 189
           Width = 153
           Height = 22
           Alignment = taCenter
@@ -2591,7 +3353,7 @@ object UIConfig: TUIConfig
         end
         object LabelWrite: TLabel
           Left = 8
-          Top = 205
+          Top = 218
           Width = 153
           Height = 22
           Alignment = taCenter
@@ -2603,7 +3365,7 @@ object UIConfig: TUIConfig
         end
         object LabelHint: TLabel
           Left = 8
-          Top = 232
+          Top = 247
           Width = 105
           Height = 22
           Alignment = taCenter
@@ -2615,7 +3377,7 @@ object UIConfig: TUIConfig
         end
         object LabelHintFix: TLabel
           Left = 120
-          Top = 232
+          Top = 247
           Width = 41
           Height = 22
           Alignment = taCenter
@@ -2627,7 +3389,7 @@ object UIConfig: TUIConfig
         end
         object LabelDefault: TLabel
           Left = 8
-          Top = 260
+          Top = 276
           Width = 153
           Height = 22
           Alignment = taCenter
@@ -2638,15 +3400,15 @@ object UIConfig: TUIConfig
       end
       object GroupBox8: TJLXPGroupBox
         Left = 192
-        Top = 0
+        Top = 5
         Width = 81
-        Height = 289
+        Height = 310
         Caption = #12501#12457#12531#12488
         TabOrder = 1
         object ButtonTraceFont: TButton
           Tag = 3
           Left = 8
-          Top = 73
+          Top = 79
           Width = 65
           Height = 25
           Caption = #12488#12524#12540#12473'...'
@@ -2656,7 +3418,7 @@ object UIConfig: TUIConfig
         object ButtonListFont: TButton
           Tag = 2
           Left = 8
-          Top = 43
+          Top = 47
           Width = 65
           Height = 25
           Caption = #12473#12524#35239'...'
@@ -2666,7 +3428,7 @@ object UIConfig: TUIConfig
         object ButtonDefFont: TButton
           Tag = 4
           Left = 8
-          Top = 227
+          Top = 239
           Width = 65
           Height = 25
           Caption = #12381#12398#20182'...'
@@ -2676,7 +3438,7 @@ object UIConfig: TUIConfig
         object ButtonTreeFont: TButton
           Tag = 1
           Left = 8
-          Top = 13
+          Top = 15
           Width = 65
           Height = 25
           Caption = #12484#12522#12540'...'
@@ -2686,7 +3448,7 @@ object UIConfig: TUIConfig
         object ButtonAllFonts: TButton
           Tag = 10
           Left = 8
-          Top = 257
+          Top = 271
           Width = 65
           Height = 25
           Caption = #12377#12409#12390'...'
@@ -2696,7 +3458,7 @@ object UIConfig: TUIConfig
         object ButtonThreadTitleFont: TButton
           Tag = 11
           Left = 8
-          Top = 104
+          Top = 111
           Width = 65
           Height = 25
           Caption = #65405#65434#65408#65394#65412#65433'...'
@@ -2706,7 +3468,7 @@ object UIConfig: TUIConfig
         object ButtonWriteFont: TButton
           Tag = 5
           Left = 8
-          Top = 134
+          Top = 143
           Width = 65
           Height = 25
           Caption = #26360#12365#36796#12415'...'
@@ -2716,7 +3478,7 @@ object UIConfig: TUIConfig
         object ButtonHintFont: TButton
           Tag = 200
           Left = 8
-          Top = 196
+          Top = 207
           Width = 33
           Height = 25
           Caption = #12498#12531#12488
@@ -2726,7 +3488,7 @@ object UIConfig: TUIConfig
         object ButtonHintFontLink: TButton
           Tag = 201
           Left = 48
-          Top = 196
+          Top = 207
           Width = 25
           Height = 25
           Caption = 'Lnk'
@@ -2736,7 +3498,7 @@ object UIConfig: TUIConfig
         object ButtonWriteMemoFont: TButton
           Tag = 300
           Left = 7
-          Top = 165
+          Top = 175
           Width = 65
           Height = 25
           Caption = #12513#12514#27396
@@ -2746,15 +3508,15 @@ object UIConfig: TUIConfig
       end
       object GroupBox9: TJLXPGroupBox
         Left = 280
-        Top = 0
+        Top = 5
         Width = 89
-        Height = 289
+        Height = 310
         Caption = #32972#26223#33394
         TabOrder = 2
         object ButtonTextColor: TButton
           Tag = 5
-          Left = 14
-          Top = 134
+          Left = 11
+          Top = 143
           Width = 65
           Height = 25
           Caption = #12473#12524#12499#12517#12540'...'
@@ -2763,8 +3525,8 @@ object UIConfig: TUIConfig
         end
         object ButtonListColor: TButton
           Tag = 3
-          Left = 14
-          Top = 73
+          Left = 11
+          Top = 79
           Width = 65
           Height = 25
           Caption = #12473#12524#35239'...'
@@ -2773,8 +3535,8 @@ object UIConfig: TUIConfig
         end
         object ButtonFavoriteColor: TButton
           Tag = 2
-          Left = 14
-          Top = 43
+          Left = 11
+          Top = 47
           Width = 65
           Height = 25
           Caption = #12362#27671#12395#20837#12426'...'
@@ -2783,8 +3545,8 @@ object UIConfig: TUIConfig
         end
         object ButtonLogColor: TButton
           Tag = 4
-          Left = 14
-          Top = 104
+          Left = 11
+          Top = 111
           Width = 65
           Height = 25
           Caption = #12488#12524#12540#12473'...'
@@ -2793,8 +3555,8 @@ object UIConfig: TUIConfig
         end
         object ButtonTreeColor: TButton
           Tag = 1
-          Left = 14
-          Top = 13
+          Left = 11
+          Top = 15
           Width = 65
           Height = 25
           Caption = #26495#35239'...'
@@ -2803,8 +3565,8 @@ object UIConfig: TUIConfig
         end
         object ButtonAllColors: TButton
           Tag = 10
-          Left = 14
-          Top = 257
+          Left = 11
+          Top = 271
           Width = 65
           Height = 25
           Caption = #12377#12409#12390'...'
@@ -2813,8 +3575,8 @@ object UIConfig: TUIConfig
         end
         object ButtonThreadTitleColor: TButton
           Tag = 11
-          Left = 14
-          Top = 165
+          Left = 11
+          Top = 175
           Width = 65
           Height = 25
           Caption = #65405#65434#65408#65394#65412#65433'...'
@@ -2823,8 +3585,8 @@ object UIConfig: TUIConfig
         end
         object ButtonHintColor: TButton
           Tag = 200
-          Left = 14
-          Top = 227
+          Left = 11
+          Top = 239
           Width = 35
           Height = 25
           Caption = #12498#12531#12488
@@ -2833,8 +3595,8 @@ object UIConfig: TUIConfig
         end
         object ButtonHintColorFix: TButton
           Tag = 201
-          Left = 56
-          Top = 227
+          Left = 53
+          Top = 239
           Width = 23
           Height = 25
           Caption = #22266
@@ -2843,578 +3605,14 @@ object UIConfig: TUIConfig
         end
         object ButtonWriteMemoColor: TButton
           Tag = 300
-          Left = 14
-          Top = 196
+          Left = 11
+          Top = 207
           Width = 65
           Height = 25
           Caption = #12513#12514#27396
           TabOrder = 9
           OnClick = ButtonColorClick
         end
-      end
-    end
-    object SheetDoe: TTabSheet
-      Caption = 'Doe'
-      ImageIndex = 15
-      TabVisible = False
-      object Label46: TLabel
-        Left = 40
-        Top = 8
-        Width = 150
-        Height = 12
-        Caption = #19978#19979#12473#12463#12525#12540#12523#26178#12395#27531#12377#34892#25968
-      end
-      object Label55: TLabel
-        Left = 48
-        Top = 240
-        Width = 196
-        Height = 12
-        Caption = #12502#12521#12454#12470#12398#12501#12457#12531#12488#12469#12452#12474'('#26368#23567#8594#26368#22823')'
-      end
-      object LabelKeywordBrushColor: TLabel
-        Left = 42
-        Top = 287
-        Width = 97
-        Height = 17
-        Alignment = taCenter
-        AutoSize = False
-        Caption = #12495#12452#12521#12452#12488#12398#33394
-        Color = clYellow
-        ParentColor = False
-        Layout = tlCenter
-      end
-      object EditViewVerticalCaretMargin: TEdit
-        Left = 208
-        Top = 8
-        Width = 57
-        Height = 20
-        TabOrder = 0
-      end
-      object GroupBox13: TJLXPGroupBox
-        Left = 40
-        Top = 40
-        Width = 217
-        Height = 169
-        Caption = #12473#12463#12525#12540#12523
-        TabOrder = 1
-        object LabelViewScrollSmoothness: TLabel
-          Left = 32
-          Top = 60
-          Width = 69
-          Height = 12
-          Caption = #12473#12512#12540#12474#12493#12473
-        end
-        object LabelViewScrollFrameRate: TLabel
-          Left = 32
-          Top = 84
-          Width = 74
-          Height = 12
-          Caption = #12501#12524#12540#12512#12524#12540#12488
-        end
-        object RadioButtonViewLineScroll: TRadioButton
-          Left = 16
-          Top = 16
-          Width = 169
-          Height = 17
-          Caption = #27425#12398#34892#25968#12372#12392#12473#12463#12525#12540#12523
-          Checked = True
-          TabOrder = 0
-          TabStop = True
-        end
-        object RadioButtonViewPageScroll: TRadioButton
-          Left = 16
-          Top = 112
-          Width = 153
-          Height = 17
-          Caption = #65297#12506#12540#12472#12372#12392#12473#12463#12525#12540#12523
-          TabOrder = 1
-        end
-        object EditViewScrollLines: TEdit
-          Left = 120
-          Top = 34
-          Width = 57
-          Height = 20
-          TabOrder = 2
-        end
-        object SpinEditViewScrollSmoothness: TJLXPSpinEdit
-          Left = 120
-          Top = 56
-          Width = 57
-          Height = 21
-          MaxValue = 32
-          MinValue = 1
-          TabOrder = 3
-          Value = 3
-        end
-        object SpinEditViewScrollFrameRate: TJLXPSpinEdit
-          Left = 120
-          Top = 80
-          Width = 57
-          Height = 21
-          MaxValue = 150
-          MinValue = 0
-          TabOrder = 4
-          Value = 60
-        end
-        object CheckBoxViewEnableAutoScroll: TCheckBox
-          Left = 16
-          Top = 136
-          Width = 193
-          Height = 17
-          Caption = #12458#12540#12488#12473#12463#12525#12540#12523#12434#26377#21177#12395#12377#12427
-          TabOrder = 5
-        end
-      end
-      object CheckBoxCaretVisible: TCheckBox
-        Left = 48
-        Top = 216
-        Width = 137
-        Height = 17
-        Caption = #12461#12515#12524#12483#12488#12434#34920#31034#12377#12427
-        TabOrder = 2
-      end
-      object EditZoomPoint0: TEdit
-        Left = 56
-        Top = 256
-        Width = 33
-        Height = 20
-        TabOrder = 3
-      end
-      object EditZoomPoint1: TEdit
-        Left = 96
-        Top = 256
-        Width = 33
-        Height = 20
-        TabOrder = 4
-      end
-      object EditZoomPoint2: TEdit
-        Left = 136
-        Top = 256
-        Width = 33
-        Height = 20
-        TabOrder = 5
-      end
-      object EditZoomPoint3: TEdit
-        Left = 176
-        Top = 256
-        Width = 33
-        Height = 20
-        TabOrder = 6
-      end
-      object EditZoomPoint4: TEdit
-        Left = 216
-        Top = 256
-        Width = 33
-        Height = 20
-        TabOrder = 7
-      end
-      object ButtonKeywordBrushColor: TButton
-        Left = 140
-        Top = 287
-        Width = 25
-        Height = 17
-        Caption = '...'
-        TabOrder = 8
-        OnClick = ButtonKeywordBrushColorClick
-      end
-      object CheckBoxCaretScrollSync: TCheckBox
-        Left = 184
-        Top = 216
-        Width = 153
-        Height = 17
-        Caption = #12473#12463#12525#12540#12523#12395#21516#26399#12377#12427
-        TabOrder = 9
-      end
-    end
-    object SheetColumn: TTabSheet
-      Caption = #12473#12524#35239#38917#30446
-      ImageIndex = 16
-      TabVisible = False
-      object Label50: TLabel
-        Left = 49
-        Top = 2
-        Width = 78
-        Height = 12
-        Caption = #27531#12387#12390#12356#12427#38917#30446
-      end
-      object Label51: TLabel
-        Left = 256
-        Top = 2
-        Width = 80
-        Height = 12
-        Caption = #36984#25246#12373#12428#12383#38917#30446
-      end
-      object LabelCheckNewThreadInHour: TLabel
-        Left = 68
-        Top = 215
-        Width = 234
-        Height = 12
-        Caption = #26178#38291#20197#20869#12395#31435#12387#12383#12473#12524#12434#65281#12391#12481#12455#12483#12463'(0'#12391#28961#21177')'
-      end
-      object Label69: TLabel
-        Left = 11
-        Top = 237
-        Width = 54
-        Height = 12
-        Caption = #26495#12398#12477#12540#12488
-      end
-      object Label70: TLabel
-        Left = 168
-        Top = 237
-        Width = 150
-        Height = 12
-        Caption = #12525#12464#19968#35239#12289#12362#27671#12395#20837#12426#12398#12477#12540#12488
-      end
-      object ListBoxClmnRest: TListBox
-        Left = 31
-        Top = 21
-        Width = 121
-        Height = 153
-        ItemHeight = 12
-        Items.Strings = (
-          '0 = '#65281
-          '1 = '#30058#21495
-          '2 = '#12479#12452#12488#12523
-          '3 = '#12524#12473
-          '4 = '#21462#24471
-          '5 = '#26032#30528
-          '6 = '#26368#32066#21462#24471
-          '7 = '#26368#32066#26360#36796
-          '8 = since'
-          '9 = '#26495
-          '10 = '#21218#12356
-          '11 = '#22679#12524#12473)
-        TabOrder = 0
-        OnKeyDown = ListBoxClmnRestKeyDown
-      end
-      object ListBoxClmnSelected: TListBox
-        Left = 237
-        Top = 21
-        Width = 121
-        Height = 153
-        ItemHeight = 12
-        TabOrder = 1
-        OnKeyDown = ListBoxClmnSelectedKeyDown
-      end
-      object ButtonClmnAdd: TButton
-        Left = 170
-        Top = 67
-        Width = 49
-        Height = 25
-        Caption = '>>'
-        TabOrder = 2
-        TabStop = False
-        OnClick = ButtonClmnAddClick
-      end
-      object ButtonClmnDel: TButton
-        Left = 170
-        Top = 99
-        Width = 49
-        Height = 25
-        Caption = '<<'
-        TabOrder = 3
-        TabStop = False
-        OnClick = ButtonClmnDelClick
-      end
-      object ButtonClmnUp: TButton
-        Left = 265
-        Top = 182
-        Width = 25
-        Height = 25
-        Caption = #8593
-        TabOrder = 4
-        TabStop = False
-        OnClick = ButtonClmnUpClick
-      end
-      object ButtonClmnDown: TButton
-        Left = 309
-        Top = 182
-        Width = 25
-        Height = 25
-        Caption = #8595
-        TabOrder = 5
-        TabStop = False
-        OnClick = ButtonClmnDownClick
-      end
-      object seCheckNewThreadInHour: TJLXPSpinEdit
-        Left = 6
-        Top = 210
-        Width = 57
-        Height = 21
-        MaxValue = 96
-        MinValue = 0
-        TabOrder = 6
-        Value = 0
-      end
-      object CheckBoxCheckThreadMadeAfterLstMdfy2: TCheckBox
-        Left = 8
-        Top = 186
-        Width = 185
-        Height = 17
-        Caption = #26032#35215#12395#31435#12387#12383#12473#12524#12434#65281#12391#12481#12455#12483#12463
-        TabOrder = 7
-      end
-      object ComboBoxDefSortColumn: TComboBox
-        Left = 8
-        Top = 254
-        Width = 121
-        Height = 20
-        Style = csDropDownList
-        ItemHeight = 12
-        ItemIndex = 1
-        TabOrder = 8
-        Text = #30058#21495#38918
-        Items.Strings = (
-          #65281
-          #30058#21495#38918
-          #12479#12452#12488#12523
-          #12524#12473
-          #21462#24471
-          #26032#30528
-          #26368#32066#21462#24471
-          #26368#32066#26360#36796
-          'since'
-          #26495
-          #21218#12356
-          #22679#12524#12473)
-      end
-      object ComboBoxDefFuncSortColumn: TComboBox
-        Left = 165
-        Top = 254
-        Width = 145
-        Height = 20
-        Style = csDropDownList
-        ItemHeight = 12
-        ItemIndex = 1
-        TabOrder = 9
-        Text = #30058#21495#38918
-        Items.Strings = (
-          #65281
-          #30058#21495#38918
-          #12479#12452#12488#12523
-          #12524#12473
-          #21462#24471
-          #26032#30528
-          #26368#32066#21462#24471
-          #26368#32066#26360#36796
-          'since'
-          #26495
-          #21218#12356
-          #22679#12524#12473)
-      end
-      object CheckBoxHideHistoricalLog: TCheckBox
-        Left = 8
-        Top = 288
-        Width = 113
-        Height = 17
-        Caption = #36942#21435#12525#12464#38750#34920#31034
-        TabOrder = 10
-      end
-    end
-    object SheetForView: TTabSheet
-      Caption = #12381#12398#20182'2'
-      ImageIndex = 17
-      TabVisible = False
-      object LabelLenofOutLineRes: TLabel
-        Left = 16
-        Top = 30
-        Width = 171
-        Height = 12
-        Caption = #12450#12454#12488#12521#12452#12531#12391#34920#31034#12377#12427#12524#12473#12398#38263#12373
-      end
-      object Label58: TLabel
-        Left = 129
-        Top = 67
-        Width = 36
-        Height = 12
-        Caption = #34920#31034#25968
-      end
-      object Label59: TLabel
-        Left = 16
-        Top = 262
-        Width = 265
-        Height = 12
-        Caption = #12300#9675#9675#12434#12377#12409#12390#38283#12367#12301#12391#38283#12367#12473#12524#12483#12489#12398#19978#38480'(0'#12391#28961#21046#38480')'
-      end
-      object Label63: TLabel
-        Left = 265
-        Top = 100
-        Width = 42
-        Height = 12
-        Caption = #12375#12365#12356#25968
-      end
-      object LabelIDLinkColorMany: TLabel
-        Left = 139
-        Top = 96
-        Width = 93
-        Height = 18
-        Alignment = taCenter
-        AutoSize = False
-        Caption = #30330#35328#12364#22810#12356'ID'
-        Color = clWhite
-        Font.Charset = SHIFTJIS_CHARSET
-        Font.Color = clRed
-        Font.Height = -12
-        Font.Name = #65325#65331' '#65328#12468#12471#12483#12463
-        Font.Style = []
-        ParentColor = False
-        ParentFont = False
-        Layout = tlCenter
-      end
-      object LabelIDLinkColorNone: TLabel
-        Left = 139
-        Top = 123
-        Width = 93
-        Height = 18
-        Alignment = taCenter
-        AutoSize = False
-        Caption = #30330#35328#12364'1'#12398'ID'
-        Color = clBtnFace
-        ParentColor = False
-        Layout = tlCenter
-      end
-      object LabelLinkedNumColor: TLabel
-        Left = 139
-        Top = 189
-        Width = 93
-        Height = 18
-        Alignment = taCenter
-        AutoSize = False
-        Caption = '100'
-        Color = clBtnFace
-        Font.Charset = SHIFTJIS_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -12
-        Font.Name = #65325#65331' '#65328#12468#12471#12483#12463
-        Font.Style = [fsUnderline]
-        ParentColor = False
-        ParentFont = False
-        Layout = tlCenter
-      end
-      object CheckBoxAllowTreeDup: TCheckBox
-        Left = 16
-        Top = 1
-        Width = 249
-        Height = 17
-        Caption = #12484#12522#12540#12289#12450#12454#12488#12521#12452#12531#34920#31034#12391#37325#35079#12434#35377#21487#12377#12427
-        TabOrder = 0
-      end
-      object SpinEditLenofOutLineRes: TJLXPSpinEdit
-        Left = 202
-        Top = 25
-        Width = 65
-        Height = 21
-        MaxValue = 0
-        MinValue = 0
-        TabOrder = 1
-        Value = 0
-      end
-      object ShowDayOfWeekCheckBox: TCheckBox
-        Left = 16
-        Top = 235
-        Width = 145
-        Height = 17
-        Caption = #25237#31295#26085#12395#26332#26085#12434#20184#12369#12427
-        Checked = True
-        State = cbChecked
-        TabOrder = 2
-      end
-      object CheckBoxIDPopUp: TCheckBox
-        Left = 15
-        Top = 65
-        Width = 98
-        Height = 17
-        Caption = 'ID'#12509#12483#12503#12450#12483#12503
-        TabOrder = 3
-      end
-      object SpinEditIDPopUpMaxCount: TJLXPSpinEdit
-        Left = 174
-        Top = 62
-        Width = 59
-        Height = 21
-        MaxValue = 0
-        MinValue = 0
-        TabOrder = 4
-        Value = 0
-      end
-      object SpinEditOpenNewResThreadLimit: TJLXPSpinEdit
-        Left = 291
-        Top = 257
-        Width = 65
-        Height = 21
-        MaxValue = 0
-        MinValue = 0
-        TabOrder = 5
-        Value = 0
-      end
-      object CheckBoxColordNumber: TCheckBox
-        Left = 16
-        Top = 161
-        Width = 153
-        Height = 17
-        Caption = #12522#12531#12463#12373#12428#12383#12524#12473#30058#12434#30528#33394
-        TabOrder = 6
-      end
-      object ButtonColordNumber: TButton
-        Left = 233
-        Top = 188
-        Width = 25
-        Height = 20
-        Caption = '...'
-        TabOrder = 7
-        OnClick = ButtonColordNumberClick
-      end
-      object CheckBoxIDPopOnMOver: TCheckBox
-        Left = 253
-        Top = 64
-        Width = 97
-        Height = 17
-        Caption = #12510#12454#12473#12458#12540#12496#12540
-        TabOrder = 8
-      end
-      object CheckBoxIDLinkColor: TCheckBox
-        Left = 41
-        Top = 97
-        Width = 89
-        Height = 17
-        Caption = #12522#12531#12463#12398#30528#33394
-        TabOrder = 9
-      end
-      object ButtonIDLinkColorMany: TButton
-        Left = 232
-        Top = 96
-        Width = 25
-        Height = 20
-        Caption = '...'
-        TabOrder = 10
-        OnClick = ButtonIDLinkColorManyClick
-      end
-      object ButtonIDLinkColorNone: TButton
-        Left = 233
-        Top = 123
-        Width = 25
-        Height = 20
-        Caption = '...'
-        TabOrder = 11
-        OnClick = ButtonIDLinkColorNoneClick
-      end
-      object SpinEditIDLinkThreshold: TJLXPSpinEdit
-        Left = 313
-        Top = 95
-        Width = 49
-        Height = 21
-        MaxValue = 50
-        MinValue = 2
-        TabOrder = 12
-        Value = 5
-      end
-      object CheckBoxQuickMerge: TCheckBox
-        Left = 169
-        Top = 235
-        Width = 192
-        Height = 17
-        Caption = #39640#36895'Merge('#8251#20877#36215#21205#24460#12395#26377#21177')'
-        TabOrder = 13
       end
     end
     object SheetTabColor: TTabSheet
@@ -3425,7 +3623,7 @@ object UIConfig: TUIConfig
         Left = 0
         Top = 0
         Width = 385
-        Height = 297
+        Height = 329
         Align = alCustom
         Caption = #12479#12502#12398#33394
         TabOrder = 0
@@ -3440,7 +3638,7 @@ object UIConfig: TUIConfig
         end
         object LabelWriteWait: TLabel
           Left = 154
-          Top = 224
+          Top = 257
           Width = 105
           Height = 22
           Alignment = taCenter
@@ -3452,7 +3650,7 @@ object UIConfig: TUIConfig
         end
         object LabelAutoReload: TLabel
           Left = 154
-          Top = 257
+          Top = 295
           Width = 105
           Height = 22
           Alignment = taCenter
@@ -3465,7 +3663,7 @@ object UIConfig: TUIConfig
         object ButtonProcessText: TButton
           Tag = 4
           Left = 272
-          Top = 157
+          Top = 172
           Width = 97
           Height = 22
           Caption = #26356#26032#20013
@@ -3475,7 +3673,7 @@ object UIConfig: TUIConfig
         object ButtonNewText: TButton
           Tag = 2
           Left = 272
-          Top = 97
+          Top = 102
           Width = 97
           Height = 22
           Caption = #26032#30528#12354#12427#26178
@@ -3496,7 +3694,7 @@ object UIConfig: TUIConfig
           Left = 18
           Top = 16
           Width = 120
-          Height = 201
+          Height = 230
           Align = alCustom
           Caption = #12450#12463#12486#12451#12502#12398#26178
           TabOrder = 3
@@ -3514,7 +3712,7 @@ object UIConfig: TUIConfig
           end
           object LabelNewActive: TLabel
             Left = 8
-            Top = 80
+            Top = 85
             Width = 105
             Height = 22
             Alignment = taCenter
@@ -3526,7 +3724,7 @@ object UIConfig: TUIConfig
           end
           object LabelNew2Active: TLabel
             Left = 8
-            Top = 110
+            Top = 120
             Width = 105
             Height = 22
             Alignment = taCenter
@@ -3538,7 +3736,7 @@ object UIConfig: TUIConfig
           end
           object LabelProcessActive: TLabel
             Left = 8
-            Top = 140
+            Top = 155
             Width = 105
             Height = 22
             Alignment = taCenter
@@ -3550,7 +3748,7 @@ object UIConfig: TUIConfig
           end
           object LabelDisableWriteActive: TLabel
             Left = 8
-            Top = 170
+            Top = 190
             Width = 105
             Height = 22
             Alignment = taCenter
@@ -3575,12 +3773,12 @@ object UIConfig: TUIConfig
           Left = 144
           Top = 16
           Width = 120
-          Height = 201
+          Height = 230
           Caption = #12450#12463#12486#12451#12502#12376#12419#12394#12356#26178
           TabOrder = 4
           object LabelNew2NoActive: TLabel
             Left = 8
-            Top = 110
+            Top = 120
             Width = 105
             Height = 22
             Alignment = taCenter
@@ -3604,7 +3802,7 @@ object UIConfig: TUIConfig
           end
           object LabelNewNoActive: TLabel
             Left = 8
-            Top = 80
+            Top = 85
             Width = 105
             Height = 22
             Alignment = taCenter
@@ -3616,7 +3814,7 @@ object UIConfig: TUIConfig
           end
           object LabelProcessNoActive: TLabel
             Left = 8
-            Top = 140
+            Top = 155
             Width = 105
             Height = 22
             Alignment = taCenter
@@ -3628,7 +3826,7 @@ object UIConfig: TUIConfig
           end
           object LabelDisableWriteNoActive: TLabel
             Left = 8
-            Top = 170
+            Top = 190
             Width = 105
             Height = 22
             Alignment = taCenter
@@ -3652,7 +3850,7 @@ object UIConfig: TUIConfig
         object ButtonDisableWriteText: TButton
           Tag = 5
           Left = 272
-          Top = 187
+          Top = 207
           Width = 97
           Height = 22
           Caption = #26360#12365#36796#12417#12394#12356
@@ -3662,7 +3860,7 @@ object UIConfig: TUIConfig
         object ButtonWriteWait: TButton
           Tag = 3
           Left = 272
-          Top = 225
+          Top = 258
           Width = 92
           Height = 22
           Caption = 'WriteWait'#20013
@@ -3672,7 +3870,7 @@ object UIConfig: TUIConfig
         object ButtonAutoReload: TButton
           Tag = 4
           Left = 272
-          Top = 257
+          Top = 295
           Width = 92
           Height = 22
           Caption = #12458#12540#12488#12522#12525#12540#12489#20013
@@ -3682,183 +3880,13 @@ object UIConfig: TUIConfig
         object ButtonNew2Text: TButton
           Tag = 3
           Left = 272
-          Top = 127
+          Top = 137
           Width = 97
           Height = 22
           Caption = #26356#26032#12354#12427#26178
           TabOrder = 8
           OnClick = ButtonTextColorClick
         end
-      end
-    end
-    object SheetFavPatrol: TTabSheet
-      Caption = #26908#32034#12539#26356#26032
-      ImageIndex = 20
-      TabVisible = False
-      object JLXPGroupBox1: TJLXPGroupBox
-        Left = 8
-        Top = 180
-        Width = 369
-        Height = 125
-        Caption = #26356#26032#12481#12455#12483#12463
-        TabOrder = 0
-        object CheckBoxFavPatrolCheckServerDown: TCheckBox
-          Left = 17
-          Top = 20
-          Width = 288
-          Height = 18
-          Caption = #26356#26032#65409#65386#65391#65400#21069#12395#12469#12540#12496#12540#12364#33853#12385#12390#12394#12356#12363#12481#12455#12483#12463#12377#12427
-          TabOrder = 0
-        end
-        object CheckBoxFavPatrolOpenNewResThread: TCheckBox
-          Left = 17
-          Top = 46
-          Width = 257
-          Height = 18
-          Caption = #26356#26032#65409#65386#65391#65400#24460#12395#26356#26032#12398#12354#12427#12473#12524#12483#12489#12434#12377#12409#12390#38283#12367
-          TabOrder = 1
-        end
-        object CheckBoxFavPatrolOpenBack: TCheckBox
-          Left = 17
-          Top = 72
-          Width = 201
-          Height = 18
-          Caption = #26356#26032#65409#65386#65391#65400#12434#12496#12483#12463#12464#12521#12454#12531#12489#12391#34892#12358
-          TabOrder = 2
-        end
-        object CheckBoxFavPatrolMessageBox: TCheckBox
-          Left = 17
-          Top = 98
-          Width = 249
-          Height = 18
-          Caption = #26356#26032#65409#65386#65391#65400#23436#20102#12398#30906#35469#12480#12452#12450#12525#12464#12434#34920#31034#12377#12427
-          TabOrder = 3
-        end
-      end
-      object JLXPGroupBox2: TJLXPGroupBox
-        Left = 8
-        Top = 2
-        Width = 369
-        Height = 173
-        Caption = #26908#32034
-        TabOrder = 1
-        object Label52: TLabel
-          Left = 16
-          Top = 96
-          Width = 72
-          Height = 12
-          Caption = #36215#21205#26178#12398#35373#23450
-        end
-        object Label64: TLabel
-          Left = 17
-          Top = 51
-          Width = 20
-          Height = 12
-          Caption = 'DLL'
-        end
-        object Label71: TLabel
-          Left = 16
-          Top = 74
-          Width = 24
-          Height = 12
-          Caption = #36766#26360
-        end
-        object Label75: TLabel
-          Left = 24
-          Top = 152
-          Width = 48
-          Height = 12
-          Caption = #26908#32034#26041#27861
-        end
-        object ComboBoxDefaultSearch: TComboBox
-          Left = 89
-          Top = 148
-          Width = 145
-          Height = 20
-          Style = csDropDownList
-          ItemHeight = 12
-          TabOrder = 0
-          Items.Strings = (
-            #36890#24120#26908#32034
-            'Migemo'#26908#32034
-            #27491#35215#26908#32034)
-        end
-        object EditMigemoPath: TEdit
-          Left = 56
-          Top = 49
-          Width = 217
-          Height = 20
-          TabOrder = 1
-        end
-        object EditMigemoDic: TEdit
-          Left = 55
-          Top = 70
-          Width = 218
-          Height = 20
-          TabOrder = 2
-        end
-        object ButtonMigemoPath: TButton
-          Tag = 1
-          Left = 273
-          Top = 51
-          Width = 25
-          Height = 17
-          Caption = '...'
-          TabOrder = 3
-          OnClick = ButtonMigemoPathClick
-        end
-        object ButtonMigemoDic: TButton
-          Tag = 2
-          Left = 274
-          Top = 72
-          Width = 25
-          Height = 17
-          Caption = '...'
-          TabOrder = 4
-          OnClick = ButtonMigemoPathClick
-        end
-        object CheckBoxUseSearchBar: TCheckBox
-          Left = 16
-          Top = 13
-          Width = 105
-          Height = 17
-          Caption = #26908#32034#12496#12540#12434#20351#12358
-          TabOrder = 5
-          Visible = False
-        end
-        object CheckBoxShowListToolbarOnStartup: TCheckBox
-          Left = 24
-          Top = 129
-          Width = 141
-          Height = 17
-          Caption = #12473#12524#19968#35239#26908#32034#12496#12540#34920#31034
-          TabOrder = 6
-        end
-        object CheckBoxShowToolbarOnStartup: TCheckBox
-          Left = 176
-          Top = 109
-          Width = 121
-          Height = 17
-          Caption = #12473#12524#26908#32034#12496#12540#34920#31034
-          TabOrder = 7
-        end
-        object CheckBoxShowTreeToolbarOnStartup: TCheckBox
-          Left = 24
-          Top = 112
-          Width = 145
-          Height = 16
-          Caption = #26495#12484#12522#12540#26908#32034#12496#12540#34920#31034
-          TabOrder = 8
-        end
-      end
-      object CheckBoxEnableMigemo: TCheckBox
-        Left = 24
-        Top = 32
-        Width = 161
-        Height = 17
-        Caption = 'Migemo('#20877#36215#21205#24460#12395#26377#21177')'
-        TabOrder = 2
-        OnClick = CheckBoxEnableMigemoClick
       end
     end
   end
@@ -3880,14 +3908,14 @@ object UIConfig: TUIConfig
   end
   object OpenDialog: TOpenDialog
     Filter = #12502#12521#12454#12470'(*.exe)|*.exe|'#12377#12409#12390'(*.*)|*.*'
-    Left = 128
-    Top = 336
+    Left = 48
+    Top = 304
   end
   object PopupNGWord: TPopupMenu
     AutoHotkeys = maManual
     OnPopup = PopupNGWordPopup
-    Left = 12
-    Top = 300
+    Left = 15
+    Top = 302
     object MenuDeleteNGWord: TMenuItem
       Caption = #21066#38500'(&D)'
       OnClick = ButtonDeleteNGWordClick
@@ -3957,7 +3985,7 @@ object UIConfig: TUIConfig
   object ColorDialog: TColorDialog
     Ctl3D = True
     Options = [cdFullOpen]
-    Left = 156
+    Left = 52
     Top = 336
   end
   object FontDialog: TFontDialog
@@ -3968,7 +3996,7 @@ object UIConfig: TUIConfig
     Font.Style = []
     MinFontSize = 0
     MaxFontSize = 0
-    Left = 80
+    Left = 16
     Top = 336
   end
 end

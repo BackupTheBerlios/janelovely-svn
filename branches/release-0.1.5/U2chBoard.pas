@@ -730,6 +730,7 @@ begin
       TThreadItem(refered.Objects[i]).Free
     else begin
       TThreadItem(refered.Objects[i]).number := 0; //false;
+      TThreadItem(refered.Objects[i]).ThreAboneType := 0;
       Add(refered.Objects[i]);
       {aiai}
       if refresh then

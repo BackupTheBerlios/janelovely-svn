@@ -42,7 +42,7 @@ const
   JANE2CH  = 'JaneLovely 0.1.5 pre1';
   KEYWORD_OF_USER_AGENT = 'JaneLovely';      (*  *)
 
-  DISTRIBUTORS_SITE = 'http://www.geocities.jp/openjane4714/';
+  DISTRIBUTORS_SITE = 'http://janelovely.berlios.de/';
 
   Copyrights: array[0..20] of string
     = ('Copyright (c) 2002 Project Open Jane - <a href="http://sakots.pekori.jp/OpenJane/">http://sakots.pekori.jp/OpenJane/</a> (<a href="https://sourceforge.jp/projects/jane/">SourceForge.jp</a>)',
@@ -336,7 +336,7 @@ type
     actTreeToggleVisible: TAction;
     UrlEdit: TEdit;
     ToolButton12: TToolbutton;
-    ToolButton13: TToolbutton;
+    ToolButtonRemoveLog: TToolButton;
     ToolButton14: TToolbutton;
     MainToolImages: TImageList;
     ThreadToolImages: TImageList;
@@ -579,7 +579,6 @@ type
     TextPopupOpenByLovelyBrowser: TMenuItem;
     LovelyBrowser1: TMenuItem;
     MenuThreCheckNewAll: TMenuItem;
-    TabPtrlButton: TToolbutton;
     MenuThrePtrl: TMenuItem;
     actAutoReSc: TAction;
     N67: TMenuItem;
@@ -710,7 +709,6 @@ type
     MenuOptSetNewsSize: TMenuItem;
     StatusBar: TJLXPStatusBar;
     MDIClientPanel: TPanel;
-    ThreMaxButton: TToolButton;
     actMaxView: TAction;
     MenuWindowTileVertically: TMenuItem;
     MenuWindowTileHorizontally: TMenuItem;
@@ -728,7 +726,6 @@ type
     MenuThreSysRestoreAll: TMenuItem;
     N84: TMenuItem;
     N85: TMenuItem;
-    Image1: TImage;
     N86: TMenuItem;
     MenuMemoRestore: TMenuItem;
     N87: TMenuItem;
@@ -865,6 +862,14 @@ type
     N97: TMenuItem;
     N106: TMenuItem;
     N107: TMenuItem;
+    PopupThreReload: TPopupMenu;
+    U1: TMenuItem;
+    N108: TMenuItem;
+    N110: TMenuItem;
+    actMaxView1: TMenuItem;
+    N112: TMenuItem;
+    actCloseTab1: TMenuItem;
+    N113: TMenuItem;
     {/aiai}
     procedure FormCreate(Sender: TObject);
     procedure MenuToolsOptionsClick(Sender: TObject);
@@ -4214,6 +4219,7 @@ begin
         currentBoard.ResetListState;
         ListView.OnData := ListViewData;
         UpdateListView;
+        currentBoard.Release;
         exit;
       end else
         call := false;
@@ -7403,9 +7409,9 @@ begin
   ThreadAboneFilter;
   {/aiai}
 
-  currentSortColumn := 1;
+  currentSortColumn := High(Integer);
 
-  if currentBoard.sortColumn <> 1 then //ソート状態の設定
+  //if currentBoard.sortColumn <> 1 then //ソート状態の設定
     ListViewColumnSort(currentBoard.sortColumn);
 
   //if Config.oprSelPreviousThread then
@@ -9130,6 +9136,7 @@ procedure TMainWnd.ViewItemStateChanged;
     actAddFavorite.Enabled := false;
     actDeleteFavorite.Enabled := false;
     actRemvoeLog.Enabled := false;
+    ToolButtonRemoveLog.Enabled := False;
     actSaveDat.Enabled := false; //aiai
     actCopyDat.Enabled := false; //aiai
     actCopyDI.Enabled := false;  //aiai
@@ -9272,6 +9279,7 @@ begin
       actAddFavorite.Enabled  := true;
       actDeleteFavorite.Enabled := false;
       actRemvoeLog.Enabled    := true;
+      ToolButtonRemoveLog.Enabled := True;
       actReload.Enabled       := true;
       actCloseTab.Enabled     := true;
       {aiai}
@@ -9281,10 +9289,10 @@ begin
       if Assigned(browser) then begin
         actMaxView.Enabled := true;
         if TMDITextView(browser).WndState = MTV_NOR then begin
-          actMaxView.ImageIndex := 12;
+          actMaxView.Caption := '最大化';
           actMaxView.Hint := '最大化';
         end else begin
-          actMaxView.ImageIndex := 11;
+          actMaxView.Caption := '元のサイズに戻す';
           actMaxView.Hint := '元のサイズに戻す';
         end;
       end else
@@ -12268,12 +12276,16 @@ begin
     begin
       newView := NewPopUpView(viewItem);
       try
-        newView.Lock;
+        //newView.Lock;
+        restrainContext := True;
         Result := (NewView.ExtractKeyword('extract:' + ref, viewItem.thread , ref, 20, Mouse.CursorPos) > 0);
         if Assigned(viewItem.PossessionView) then
+        begin
           viewItem.PossessionView.Enabled := True;
+          viewItem.PossessionView.OwnerCofirmation := True;
+        end;
       finally
-        newView.UnLock;
+        //newView.UnLock;
       end;
     end else
     begin
@@ -17200,10 +17212,10 @@ begin
   viewItem := GetActiveView;
   if Assigned(viewItem) then
     if viewList.ViewMaximize(viewItem) then begin
-      actMaxView.ImageIndex := 11;
+      actMaxView.Caption := '元のサイズに戻す';
       actMaxView.Hint := '元のサイズに戻す';
     end else begin
-      actMaxView.ImageIndex := 12;
+      actMaxView.Caption := '最大化';
       actMaxView.Hint := '最大化';
     end;
 end;
@@ -17211,28 +17223,28 @@ end;
 procedure TMainWnd.MenuWindowCascadeClick(Sender: TObject);
 begin
   viewList.ViewCascade;
-  actMaxView.ImageIndex := 12;
+  actMaxView.Caption := '最大化';
   actMaxView.Hint := '最大化';
 end;
 
 procedure TMainWnd.MenuWindowTileVerticallyClick(Sender: TObject);
 begin
   viewList.ViewTile(False);
-  actMaxView.ImageIndex := 12;
+  actMaxView.Caption := '最大化';
   actMaxView.Hint := '最大化';
 end;
 
 procedure TMainWnd.MenuWindowTileHorizontallyClick(Sender: TObject);
 begin
   viewList.ViewTile(True);
-  actMaxView.ImageIndex := 12;
+  actMaxView.Caption := '最大化';
   actMaxView.Hint := '最大化';
 end;
 
 procedure TMainWnd.MenuWindowRestoreAllClick(Sender: TObject);
 begin
   viewList.ViewAllRestore;
-  actMaxView.ImageIndex := 12;
+  actMaxView.Caption := '最大化';
   actMaxView.Hint := '最大化';
 end;
 
@@ -17244,7 +17256,7 @@ begin
   if Assigned(viewItem) and Assigned(viewItem.browser) then
   begin
     viewList.ViewAllMaximize(viewItem.browser);
-    actMaxView.ImageIndex := 11;
+    actMaxView.Caption := '元のサイズに戻す';
     actMaxView.Hint := '元のサイズに戻す';
   end;
 end;
