@@ -396,6 +396,7 @@ begin
   begin
     FSubjectText := '';
     FLastModified := '';
+    FLast2Modified := '';
     FDatModified := false;
     FIdxModified := false;
     if dbclose and Config.ojvQuickMerge then
