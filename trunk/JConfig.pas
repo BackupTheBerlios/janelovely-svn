@@ -387,6 +387,8 @@ type
     stlUpOpenThread: Boolean;
     stlUpImportantThread: Boolean;
 
+    stlMarkOpenThread: Boolean;
+
     {/aiai}
 
     cmdExecuteList: TStringList;
@@ -898,6 +900,8 @@ begin
   stlDefFuncSortColumn := 1;
   stlUpOpenThread := true;
   stlUpImportantThread := true;
+
+  stlMarkOpenThread := true;
 
   {/aiai}
 
@@ -1599,6 +1603,8 @@ begin
   stlDefFuncSortColumn := ini.ReadInteger(INI_STL_SECT, 'DefFuncSortColumn', stlDefFuncSortColumn);
   stlUpOpenThread := ini.ReadBool(INI_STL_SECT, 'UpOpenThread', stlUpOpenThread);
   stlUpImportantThread := ini.ReadBool(INI_STL_SECT, 'UpImportantThread', stlUpImportantThread);
+
+  stlMarkOpenThread := ini.ReadBool(INI_STL_SECT, 'MarkOpenThread', stlMarkOpenThread);
   {/aiai}
 
   setAutoScrollArray(ini);
@@ -2075,6 +2081,8 @@ begin
   (* SORT OPTION *)
   ini.WriteInteger(INI_STL_SECT, 'DefSortColumn', stlDefSortColumn);
   ini.WriteInteger(INI_STL_SECT, 'DefFuncSortColumn', stlDefFuncSortColumn);
+
+  ini.WriteBool(INI_STL_SECT, 'MarkOpenThread', stlMarkOpenThread);
 
   setScrollSpeedArray(ini);
   {/aiai}

@@ -5060,7 +5060,7 @@ begin
       OpenThreads.Add(thread);
       thread.AddRef(false);
     end;
-    thread.Opened := true;
+    thread.Opened := Config.stlMarkOpenThread;
     {/aiai}
     if not newViewP then
       viewItem := GetActiveView;
@@ -5068,7 +5068,9 @@ begin
       viewItem := NewView(relative, background, Left, Top, Right, Bottom, wndstate)
     {aiai} //viewItemが「このタブは閉じない」のスレの場合は新しいタブで開く
     else if not viewItem.thread.canclose then
-      viewItem := NewView(relative, background, Left, Top, Right, Bottom, wndstate);
+      viewItem := NewView(relative, background, Left, Top, Right, Bottom, wndstate)
+    else if viewItem.thread <> thread then
+      viewItem.thread.Opened := False;
     {/aiai}
   end;
   viewItem.NewRequest(thread, oprType, number, false, Config.oprCheckNewWRedraw);
@@ -7275,7 +7277,7 @@ begin
   if Result <> 0 then
     exit;
 
-  if Config.stlUpOpenThread then
+  if Config.stlMarkOpenThread and Config.stlUpOpenThread then
     Result := ListCompareFuncOpenThread(Item1, Item2);
 
   if Result <> 0 then
