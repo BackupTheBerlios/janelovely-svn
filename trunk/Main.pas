@@ -9798,6 +9798,10 @@ begin
   if index >= 0 then
     SetCurrentView(index);
 
+  //▼連続で閉じたときタブが見えなくなる問題の対策
+  if not TabControl.MultiLine then
+    TabControl.ScrollTabs(-1);
+    
   ListView.DoubleBuffered := True;
   ListView.Repaint;
   ListView.DoubleBuffered := False;
@@ -10455,6 +10459,10 @@ begin
   index := viewList.FindFirstViewItem;
   if index >= 0 then
     SetCurrentView(index);
+    
+  //▼連続で閉じたときタブが見えなくなる問題の対策
+  if not TabControl.MultiLine then
+    TabControl.ScrollTabs(-1);
 
   ListView.DoubleBuffered := True;
   ListView.Repaint;
