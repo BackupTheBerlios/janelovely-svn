@@ -2,7 +2,7 @@ unit JLSqlite;
 
 (* sqliteÇÃÉwÉbÉ_Å[Ç›ÇΩÇ¢Ç»Ç‡ÇÃ *)
 
-(* aiwota Programer *)
+(* aiwota Programmer *)
 
 interface
 
@@ -42,7 +42,7 @@ const
   SQLITE_VERSION = '3.0.8';
   {$ELSE}
   SQLITE_DLL_NAME = 'sqlite.dll';
-  SQLITE_VERSION = '2.8.15';
+  SQLITE_VERSION = '2.8.16';
   {$ENDIF}
 
 (* ------------------------------------------------------------------------- *)
