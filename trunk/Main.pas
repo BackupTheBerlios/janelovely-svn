@@ -42,8 +42,8 @@ uses
   {/aiai}
 
 const
-  VERSION  = '0.1.3.5';      (* Printable ASCIIコード厳守。')'はダメ *)
-  JANE2CH  = 'JaneLovely 0.1.3.5';
+  VERSION  = '0.1.3.6';      (* Printable ASCIIコード厳守。')'はダメ *)
+  JANE2CH  = 'JaneLovely 0.1.3.6';
   KEYWORD_OF_USER_AGENT = 'JaneLovely';      (*  *)
 
   DISTRIBUTORS_SITE = 'http://www.geocities.jp/openjane4714/';
@@ -765,7 +765,7 @@ type
     MenuListViewSearchIgnoreFullHalf: TMenuItem;
     ThreViewSearchToolBar: TJLXPToolBar;
     ThreViewSearchToolButton: TToolButton;
-    ThreViewSearchEditBox: TComboBoxEx;
+    ThreViewSearchEditBox: TComboBox;
     ThreViewSearchCloseButton: TToolButton;
     ListViewSearchSep: TToolButton;
     ThreViewSearchSep1: TToolButton;
@@ -1313,13 +1313,13 @@ type
     procedure MenuUrlEditDeleteClick(Sender: TObject);
     procedure MenuUrlEditSelectAllClick(Sender: TObject);
     procedure MenuListViewSearchCopyClick(Sender: TObject);
-    procedure ListViewSearchEditBoxKeyDown(Sender: TObject; var Key: Word;
-      Shift: TShiftState);
     procedure MenuTreeViewSearchCopyClick(Sender: TObject);
-    procedure TreeViewSearchEditBoxKeyDown(Sender: TObject; var Key: Word;
-      Shift: TShiftState);
-    procedure ThreViewSearchEditBoxKeyDown(Sender: TObject; var Key: Word;
-      Shift: TShiftState);
+    procedure ListViewSearchEditBoxKeyPress(Sender: TObject;
+      var Key: Char);
+    procedure TreeViewSearchEditBoxKeyPress(Sender: TObject;
+      var Key: Char);
+    procedure ThreViewSearchEditBoxKeyPress(Sender: TObject;
+      var Key: Char);
     {/aiai}
   private
   { Private 宣言 }
@@ -3175,6 +3175,8 @@ begin
   ListViewSearchToolBar.Visible := Config.schUseSearchBar and Config.schShowListToolbarOnStartup;
   //ThreViewSearchToolBar.Visible := Config.schUseSearchBar and Config.schShowToolbarOnStartup;
   TreeViewSearchToolBar.Visible := Config.schUseSearchBar and Config.schShowTreeToolbarOnStartup;
+  ListViewSearchEditBox.Items := Config.grepSearchList;
+  TreeViewSearchEditBox.Items := Config.grepSearchList;
   {/aiai}
 
   OpenStartupThread;
@@ -17824,13 +17826,11 @@ begin
     MenuListViewSearchNormal.Checked := True;
   end;
   1: begin  //Migemo
-    if MigemoOBJ.CanUse then begin
-      ListViewSearchToolButton.ImageIndex := 1;
-      ListViewSearchEditBox.OnChange := ListViewSearchEditBoxChange;
-    end else begin
+    if Config.schEnableMigemo and MigemoOBJ.CanUse then
+      ListViewSearchToolButton.ImageIndex := 1
+    else
       ListViewSearchToolButton.ImageIndex := 2;
-      ListViewSearchEditBox.OnChange := nil;
-    end;
+    ListViewSearchEditBox.OnChange := ListViewSearchEditBoxChange;
     MenuListViewSearchMigemo.Checked := True;
   end;
   2: begin  //正規表現
@@ -17850,20 +17850,21 @@ begin
   SearchTimer.Enabled := Config.schIncremental;
 end;
 
-procedure TMainWnd.ListViewSearchEditBoxKeyDown(Sender: TObject;
-  var Key: Word; Shift: TShiftState);
+procedure TMainWnd.ListViewSearchEditBoxKeyPress(Sender: TObject;
+  var Key: Char);
 begin
-  if Key = VK_RETURN then
+  if Ord(Key) = VK_RETURN then
   Case ListViewSearchEditBox.Tag of
-  0: begin ListViewSearchNormalSearch; end;
+  0: begin ListViewSearchNormalSearch; Key := #0; end;
   1:
     begin
-      if MigemoOBJ.CanUse then
+      if Config.schEnableMigemo and MigemoOBJ.CanUse then
         ListViewSearchMigemoSearch
       else
         ListViewSearchNormalSearch;
+       Key := #0;
     end;
-  2: begin ListViewSearchRegExpSearch; end;
+  2: begin ListViewSearchRegExpSearch; Key := #0; end;
   end;
 end;
 
@@ -17877,7 +17878,10 @@ begin
     end;
   1:  //Migemo検索
     begin
-      ListViewSearchMigemoSearch;
+      if Config.schEnableMigemo and MigemoOBJ.CanUse then
+        ListViewSearchMigemoSearch
+      else
+        ListViewSearchNormalSearch;
     end;
   end;  //Case
 end;
@@ -18285,21 +18289,22 @@ end;
 
 //▼ スレ内検索
 
-procedure TMainWnd.ThreViewSearchEditBoxKeyDown(Sender: TObject;
-  var Key: Word; Shift: TShiftState);
+procedure TMainWnd.ThreViewSearchEditBoxKeyPress(Sender: TObject;
+  var Key: Char);
 begin
-  if Key = VK_RETURN then
+  if Ord(Key) = VK_RETURN then
   begin
     Case ThreViewSearchEditBox.Tag of
-    0: begin ThreViewSearchNormalSearch; end;
+    0: begin ThreViewSearchNormalSearch; Key := #0; end;
     1:
       begin
-        if MigemoOBJ.CanUse then
+        if Config.schEnableMigemo and MigemoOBJ.CanUse then
           ThreViewSearchMigemoSearch
         else
           ThreViewSearchNormalSearch;
+        Key := #0;
       end;
-    2: begin ThreViewSearchRegExpSearch; end;
+    2: begin ThreViewSearchRegExpSearch; Key := #0; end;
     end;
   end;
 end;
@@ -18315,13 +18320,12 @@ begin
     MenuThreViewSearchNormal.Checked := True;
   end;
   1: begin  //Migemo
-    if MigemoOBJ.CanUse then begin
+    if Config.schEnableMigemo and MigemoOBJ.CanUse then begin
       ThreViewSearchToolButton.ImageIndex := 1;
-      ThreViewSearchEditBox.OnChange := ThreViewSearchEditBoxChange;
     end else begin
       ThreViewSearchToolButton.ImageIndex := 2;
-      ThreViewSearchEditBox.OnChange := nil;
     end;
+      ThreViewSearchEditBox.OnChange := ThreViewSearchEditBoxChange;
     MenuThreViewSearchMigemo.Checked := True;
   end;
   2: begin  //正規表現
@@ -18348,7 +18352,13 @@ begin
     exit;
   case ThreViewSearchEditBox.Tag of
   0: ThreViewSearchNormalSearch;
-  1: ThreViewSearchMigemoSearch;
+  1:
+    begin
+      if Config.schEnableMigemo and MigemoOBJ.CanUse then
+        ThreViewSearchMigemoSearch
+      else
+        ThreViewSearchNormalSearch;
+    end;
   end;
 end;
 
@@ -18409,23 +18419,6 @@ end;
 
 //▼ 板ツリー検索
 
-procedure TMainWnd.TreeViewSearchEditBoxKeyDown(Sender: TObject;
-  var Key: Word; Shift: TShiftState);
-begin
-  if Key = VK_RETURN then
-  Case TreeViewSearchEditBox.Tag of
-  0: begin TreeViewSearchNormalSearch; end;
-  1:
-    begin
-      if MigemoOBJ.CanUse then
-        TreeViewSearchMigemoSearch
-      else
-        TreeViewSearchNormalSearch;
-    end;
-  2: begin TreeViewSearchRegExpSearch; end;
-  end;
-end;
-
 procedure TMainWnd.TreeViewSearchSetSearch(index: integer);
 begin
   TreeViewSearchEditBox.Tag := index;
@@ -18437,7 +18430,7 @@ begin
     MenuTreeViewSearchNormal.Checked := True;
   end;
   1: begin  //Migemo
-    if MigemoOBJ.CanUse then begin
+    if Config.schEnableMigemo and MigemoOBJ.CanUse then begin
       TreeViewSearchToolButton.ImageIndex := 1;
       TreeViewSearchEditBox.OnChange := TreeViewSearchEditBoxChange;
     end else begin
@@ -18465,7 +18458,35 @@ procedure TMainWnd.TreeSearchTimerTimer(Sender: TObject);
 begin
   Case TreeViewSearchEditBox.Tag of
   0: TreeViewSearchNormalSearch;
-  1: TreeViewSearchMigemoSearch;
+  1:
+    begin
+      if Config.schEnableMigemo and MigemoOBJ.CanUse then
+        TreeViewSearchMigemoSearch
+      else
+        TreeViewSearchNormalSearch;
+    end;
+  end;
+end;
+
+procedure TMainWnd.TreeViewSearchEditBoxKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+  if Ord(Key) = VK_RETURN then
+  Case TreeViewSearchEditBox.Tag of
+  0:
+    begin
+      TreeViewSearchNormalSearch;
+      Key := #0;
+    end;
+  1:
+    begin
+      if Config.schEnableMigemo and MigemoOBJ.CanUse then
+        TreeViewSearchMigemoSearch
+      else
+        TreeViewSearchNormalSearch;
+      Key := #0;
+    end;
+  2: begin TreeViewSearchRegExpSearch; Key := #0; end;
   end;
 end;
 

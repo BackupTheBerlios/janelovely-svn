@@ -2683,20 +2683,16 @@ object MainWnd: TMainWnd
               Style = tbsDropDown
               OnClick = ThreViewSearchToolButtonClick
             end
-            object ThreViewSearchEditBox: TComboBoxEx
+            object ThreViewSearchEditBox: TComboBox
               Left = 38
-              Top = 0
+              Top = 1
               Width = 145
-              Height = 21
-              ItemsEx.CaseSensitive = False
-              ItemsEx.SortType = stNone
-              ItemsEx = <>
-              StyleEx = []
-              ItemHeight = 16
+              Height = 20
+              AutoComplete = False
+              ItemHeight = 12
               TabOrder = 0
               OnChange = ThreViewSearchEditBoxChange
-              OnKeyDown = ThreViewSearchEditBoxKeyDown
-              DropDownCount = 8
+              OnKeyPress = ThreViewSearchEditBoxKeyPress
             end
             object ThreViewSearchSep1: TToolButton
               Left = 183
@@ -2918,11 +2914,12 @@ object MainWnd: TMainWnd
               Top = 1
               Width = 145
               Height = 20
+              AutoComplete = False
               ItemHeight = 12
               PopupMenu = PopupListViewSearch
               TabOrder = 0
               OnChange = ListViewSearchEditBoxChange
-              OnKeyDown = ListViewSearchEditBoxKeyDown
+              OnKeyPress = ListViewSearchEditBoxKeyPress
             end
             object ListViewSearchSep: TToolButton
               Left = 183
@@ -3176,7 +3173,7 @@ object MainWnd: TMainWnd
               PopupMenu = PopupTreeViewSearch
               TabOrder = 0
               OnChange = TreeViewSearchEditBoxChange
-              OnKeyDown = TreeViewSearchEditBoxKeyDown
+              OnKeyPress = TreeViewSearchEditBoxKeyPress
             end
           end
         end
