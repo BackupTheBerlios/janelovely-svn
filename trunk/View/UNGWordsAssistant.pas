@@ -10,6 +10,7 @@ uses
 type
 
   TNGItemIdent = (NG_ITEM_NAME = 0, NG_ITEM_MAIL = 1, NG_ITEM_MSG = 2, NG_ITEM_ID = 3);
+  TNGExItemIdent = (NGEX_ITEM_NAME = 0, NGEX_ITEM_MAIL = 1, NGEX_ITEM_MSG = 2, NGEX_ITEM_ID = 3, NGEX_ITEM_URL = 4);
 
   TNGItemPChar = Record
     pStart: PChar;
@@ -19,6 +20,7 @@ type
   end;
 
   TArrayOfNGItemPChar = Array[TNGItemIdent] of TNGItemPChar;
+  TArrayOfNGExItemPChar = Array[TNGExItemIdent] of TNGItemPChar;
 
   TBaseNGItem = class(TObject)
   public
@@ -32,17 +34,20 @@ type
   end;
 
   TExNgItem = class(TBaseNGItem)
+  private
+    FTargetURL: Integer;
+    FTargetURLBody: string;
   protected
-    SearchObj: array[TNGItemIdent] of TObject;
+    SearchObj: array[TNGExItemIdent] of TObject;
   public
-    SearchOpt: array[TNGItemIdent] of Integer;
-    SearchStr: array[TNGItemIdent] of string;
+    SearchOpt: array[TNGExItemIdent] of Integer;
+    SearchStr: array[TNGExItemIdent] of string;
     constructor Create;
     destructor Destroy; override;
     procedure GetValue(Name: String; Ini: TCustomIniFile);
     procedure SetValue(Name: String; Ini: TCustomIniFile);
     procedure MakeSearchObj;
-    function Search(NGItem: TArrayOfNGItemPChar): Boolean;
+    function Search(NGItem: TArrayOfNGExItemPChar): Boolean;
   end;
 
   TNGItemData = class(TBaseNGItem)
@@ -95,10 +100,15 @@ const
 
   NG_EX_FILE = 'NGEx.txt';
 
-  NGItemStr:     array[TNGItemIdent] of String =
-                    ('Name',        'Mail',        'Msg',         'ID');
-  NGItemBodyStr: array[TNGItemIdent] of String =
-                    ('NameBody',    'MailBody',    'MsgBody',     'IDBody');
+//  NGItemStr:     array[TNGItemIdent] of String =
+//                    ('Name',        'Mail',        'Msg',         'ID');
+//  NGItemBodyStr: array[TNGItemIdent] of String =
+//                    ('NameBody',    'MailBody',    'MsgBody',     'IDBody');
+
+  NGExItemStr:     array[TNGExItemIdent] of String =
+                    ('Name',        'Mail',        'Msg',         'ID',     'TargetURL');
+  NGExItemBodyStr: array[TNGExItemIdent] of String =
+                    ('NameBody',    'MailBody',    'MsgBody',     'IDBody', 'TargetURLBody');
 {
   NGItemSearchTypeStr: array[0..5] of String =  //偶数はNOT
                     ('Contain',  'NotContain',
@@ -111,6 +121,11 @@ const
   NG_COUNT           = 'Count';
   NG_LIFESPAN        = 'LifeSpan';
   NG_ABONETYPE       = 'AboneType';
+
+  NG_TARGETURL       = 'TargetURL';
+  NG_TARGETURLBODY   = 'TargetURLBody';
+
+
 
 
 implementation
@@ -147,7 +162,7 @@ end;
 
 constructor TExNgItem.Create;
 var
-  i: TNGItemIdent;
+  i: TNGExItemIdent;
 begin
   inherited;
   for i := Low(i) to High(i) do
@@ -157,9 +172,9 @@ end;
 //破棄
 destructor TExNgItem.Destroy;
 var
-  i: TNGItemIdent;
+  i: TNGExItemIdent;
 begin
-  for i := low(TNGItemIdent) to high(TNGItemIdent) do
+  for i := low(TNGExItemIdent) to high(TNGExItemIdent) do
     SearchObj[i].Free;
   inherited;
 end;
@@ -168,7 +183,7 @@ end;
 //IniFileにデータを出力
 procedure TExNgItem.GetValue(Name: String; Ini: TCustomIniFile);
 var
-  i: TNGItemIdent;
+  i: TNGExItemIdent;
 begin
   Ini.WriteFloat(Name, NG_REGISTER,        Registered);
   Ini.WriteFloat(Name, NG_EARLY_ARRESTING, EarliestArresting);
@@ -178,10 +193,10 @@ begin
   Ini.WriteInteger(Name, NG_COUNT     , Count);
   Ini.WriteInteger(Name, NG_ABONETYPE , AboneType);
 
-  for i := Low(TNGItemIdent) to High(TNGItemIdent) do
+  for i := Low(TNGExItemIdent) to High(TNGExItemIdent) do
     if SearchOpt[i] >= 0 then begin
-      Ini.WriteInteger(Name, NGItemStr[i], SearchOpt[i]);
-      Ini.WriteString(Name, NGItemBodyStr[i], '"' + SearchStr[i] + '"');
+      Ini.WriteInteger(Name, NGExItemStr[i], SearchOpt[i]);
+      Ini.WriteString(Name, NGExItemBodyStr[i], '"' + SearchStr[i] + '"');
     end;
 
 end;
@@ -190,7 +205,7 @@ end;
 //IniFileからデータを受け取る
 procedure TExNgItem.SetValue(Name: String; Ini: TCustomIniFile);
 var
-  i: TNGItemIdent;
+  i: TNGExItemIdent;
   tmp: String;
 begin
 
@@ -202,10 +217,13 @@ begin
   Count     := Ini.ReadInteger(Name, NG_COUNT, 0);
   AboneType := Ini.ReadInteger(Name, NG_ABONETYPE, 0);
 
-  for i := Low(TNGItemIdent) to High(TNGItemIdent) do begin
-    SearchOpt[i] := Ini.ReadInteger(Name, NGItemStr[i], -1);
+  FTargetURL := Ini.ReadInteger(Name, NG_TARGETURL, -1);
+  FTargetURLBody := Ini.ReadString(Name, NG_TARGETURLBODY, '');
+
+  for i := Low(TNGExItemIdent) to High(TNGExItemIdent) do begin
+    SearchOpt[i] := Ini.ReadInteger(Name, NGExItemStr[i], -1);
     if SearchOpt[i] >= 0 then begin
-      tmp := Ini.ReadString(Name, NGItemBodyStr[i], '');
+      tmp := Ini.ReadString(Name, NGExItemBodyStr[i], '');
       if Length(tmp) > 2 then
         SearchStr[i] := copy(tmp, 2, Length(tmp) - 2)
       else
@@ -220,16 +238,16 @@ end;
 //検索用のオブジェクトを準備する
 procedure TExNgItem.MakeSearchObj;
 var
-  i: TNGItemIdent;
+  i: TNGExItemIdent;
 begin
-  for i := Low(TNGItemIdent) to High(TNGItemIdent) do begin
+  for i := Low(TNGExItemIdent) to High(TNGExItemIdent) do begin
     FreeAndNil(SearchObj[i]);
     if SearchStr[i] <> '' then begin
       case SearchOpt[i] of
         0, 1: begin //含む、含まない
           SearchObj[i] := TBMSearch.Create;
           with TBMSearch(SearchObj[i]) do begin
-            IgnoreCase := (i <> NG_ITEM_ID);
+            IgnoreCase := (i <> NGEx_ITEM_ID);
             Subject := SearchStr[i];
           end;
         end;
@@ -237,7 +255,7 @@ begin
         4, 5: begin //正規検索 Hit/Hitなし
           SearchObj[i] := TRegExpr.Create;
           with TRegExpr(SearchObj[i]) do begin
-            ModifierI := (i <> NG_ITEM_ID);
+            ModifierI := (i <> NGEx_ITEM_ID);
             Expression := SearchStr[i];
           end;
         end;
@@ -248,13 +266,13 @@ end;
 
 
 //名前、メアド、ID、メッセージを検索
-function TExNgItem.Search(NGItem: TArrayOfNGItemPChar): Boolean;
+function TExNgItem.Search(NGItem: TArrayOfNGExItemPChar): Boolean;
 var
-  i: TNGItemIdent;
+  i: TNGExItemIdent;
   tmpResult :Boolean;
 begin
   Result := True;
-  for i := Low(TNGItemIdent) to High(TNGItemIdent) do begin
+  for i := Low(TNGExItemIdent) to High(TNGExItemIdent) do begin
     tmpResult := False;
     case SearchOpt[i] of
       0, 1: //BM
@@ -479,6 +497,12 @@ var
   Ini: TMemIniFile;
   i: Integer;
 begin
+
+  {aiai}
+  FreeItems;
+  Clear;
+  {/aiai}
+
   Ini := TMemIniFile.Create(FileName);
   try
     Ini.ReadSections(Self);

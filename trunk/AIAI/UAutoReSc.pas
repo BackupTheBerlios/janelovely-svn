@@ -10,7 +10,7 @@ uses
   Controls,
   UViewItem,
   JConfig,
-  JLWritePanel;
+  UWritePanelControl;
 
 const
   scrProgressNormal        = 1;    //実行中
@@ -273,7 +273,7 @@ begin
     item.NewRequest(item.thread, gotCHECK, -1, false, false);
     MainWnd.UpdateTabTexts;
     if Config.optSetFocusOnWriteMemo then
-    SetFocusToWriteMemo;
+    try MainWnd.MemoWriteMain.SetFocus; except end;
   end
 end;
 (* --------以上オートリロード--------------------*)

@@ -39,8 +39,8 @@ object ImageViewPreference: TImageViewPreference
     Top = 0
     Width = 497
     Height = 289
-    ActivePage = TabSheetGeneral
-    TabIndex = 0
+    ActivePage = TabSheetCache
+    TabIndex = 5
     TabOrder = 2
     object TabSheetGeneral: TJLXPTabSheet
       Caption = #25805#20316
@@ -670,9 +670,9 @@ object ImageViewPreference: TImageViewPreference
         Width = 313
         Height = 20
         Color = clBtnFace
+        ReadOnly = True
         TabOrder = 4
         OnKeyDown = edCachePathKeyDown
-        OnKeyPress = edCachePathKeyPress
       end
       object btnSelectCachePath: TButton
         Left = 328

@@ -229,32 +229,6 @@ object WriteForm: TWriteForm
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 1
-    object Panel3: TPanel
-      Left = 305
-      Top = 0
-      Width = 179
-      Height = 32
-      Align = alRight
-      BevelOuter = bvNone
-      TabOrder = 0
-      object ButtonWrite: TButton
-        Left = 14
-        Top = 5
-        Width = 74
-        Height = 25
-        Action = writeActWrite
-        Caption = #26360#12365#36796#12415'(&W)'
-        TabOrder = 0
-      end
-      object ButtonCancel: TButton
-        Left = 96
-        Top = 5
-        Width = 74
-        Height = 25
-        Action = writeActCancel
-        TabOrder = 1
-      end
-    end
     object CheckBoxTop: TCheckBox
       Left = 138
       Top = 4
@@ -275,7 +249,6 @@ object WriteForm: TWriteForm
       Caption = 'ToolBarTool'
       EdgeBorders = []
       Flat = True
-      Images = MainWnd.MemoImageList
       TabOrder = 2
       Transparent = True
       Wrapable = False
@@ -283,7 +256,7 @@ object WriteForm: TWriteForm
         Left = 0
         Top = 0
         Hint = #12467#12486#12495#12531#35352#25014
-        ImageIndex = 3
+        ImageIndex = 4
         ParentShowHint = False
         ShowHint = True
         OnClick = ToolButtonRecordNameMailClick
@@ -292,7 +265,7 @@ object WriteForm: TWriteForm
         Left = 23
         Top = 0
         Hint = #26411#23614#25972#24418
-        ImageIndex = 4
+        ImageIndex = 5
         ParentShowHint = False
         ShowHint = True
         OnClick = ToolButtonTrimClick
@@ -301,14 +274,14 @@ object WriteForm: TWriteForm
         Left = 46
         Top = 0
         Caption = 'ToolButtonWriteWait'
-        ImageIndex = 5
+        ImageIndex = 6
         OnClick = ToolButtonWriteWaitClick
       end
       object ToolButtonNameWarn: TToolButton
         Left = 69
         Top = 0
         Hint = #12467#12486#12495#12531#35686#21578#26377#21177
-        ImageIndex = 6
+        ImageIndex = 7
         ParentShowHint = False
         ShowHint = True
         OnClick = ToolButtonNameWarnClick
@@ -317,10 +290,36 @@ object WriteForm: TWriteForm
         Left = 92
         Top = 0
         Hint = 'BeLogin'
-        ImageIndex = 7
+        ImageIndex = 8
         ParentShowHint = False
         ShowHint = True
         OnClick = ToolButtonBeLoginClick
+      end
+    end
+    object Panel3: TPanel
+      Left = 304
+      Top = 0
+      Width = 180
+      Height = 32
+      Align = alRight
+      BevelOuter = bvNone
+      TabOrder = 0
+      object ButtonWrite: TButton
+        Left = 14
+        Top = 5
+        Width = 74
+        Height = 25
+        Action = writeActWrite
+        Caption = #26360#12365#36796#12415'(&W)'
+        TabOrder = 0
+      end
+      object ButtonCancel: TButton
+        Left = 96
+        Top = 5
+        Width = 74
+        Height = 25
+        Action = writeActCancel
+        TabOrder = 1
       end
     end
   end

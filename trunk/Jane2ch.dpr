@@ -81,14 +81,14 @@ uses
   UTTSearch in 'AIAI\UTTSearch.pas',
   UCheckSeverDown in 'AIAI\UCheckSeverDown.pas',
   HogeTextView in 'HogeTextView.pas',
-  JLBaseWritePanel in 'AIAI\JLBaseWritePanel.pas',
-  JLWritePanel in 'AIAI\JLWritePanel.pas',
+  UWritePanelControl in 'AIAI\UWritePanelControl.pas',
   UWriteForm in 'UWriteForm.pas' {WriteForm},
   sqlite in 'AIAI\sqlite.pas',
   ClipBrdSub in 'AIAI\ClipBrdSub.pas',
   UMDITextView in 'AIAI\UMDITextView.pas',
   UMigemo in 'AIAI\UMigemo.pas',
-  UWriteWait in 'AIAI\UWriteWait.pas';
+  UWriteWait in 'AIAI\UWriteWait.pas',
+  WriteSub in 'AIAI\WriteSub.pas';
 
 {$R *.res}
 

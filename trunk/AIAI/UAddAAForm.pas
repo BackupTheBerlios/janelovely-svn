@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ExtCtrls, StdCtrls, ComCtrls, HogeTextView, UViewItem, UDat2HTML,
-  U2chThread, StrUtils, UCrypt, IniFiles, StrSub, JLWritePanel;
+  U2chThread, StrUtils, UCrypt, IniFiles, StrSub, UWritePanelControl;
 
 type
   TAddAAForm = class(TForm)
@@ -332,7 +332,7 @@ var
     begin
       Config.aaAAList.Add(MemoEdit.Lines.Strings[0]);
     end;
-    UpdateAAComboBox;
+    WritePanelControl.SetAAList;
     Config.aaAAList.SaveToFile(Config.BasePath + 'AAlist.txt');
   end;
 
@@ -398,7 +398,7 @@ begin
     Config.aaAAList.Insert(index, MemoEdit.Lines.Strings[0]);
   end;
 
-  UpdateAAComboBox;
+  WritePanelControl.SetAAList;;
   Config.aaAAList.SaveToFile(Config.BasePath + 'AAlist.txt');
 
   Result := true;

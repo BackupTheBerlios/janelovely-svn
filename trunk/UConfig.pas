@@ -11,7 +11,7 @@ uses
   JConfig, ExtCtrls, U2chTicket, UBase64, UCryptAuto, IniFiles, Menus,
   Grids, ValEdit,HogeTextView,
   UNGWordsAssistant, UAdvAboneRegist, Buttons, ExtDlgs, //beginner
-  JLWritePanel, JLXPSpin, JLXPStdCtrls, JLXPComCtrls, JLXPExtCtrls;
+  UWritePanelControl, JLXPSpin, JLXPStdCtrls, JLXPComCtrls, JLXPExtCtrls;
 
 const
 {  NG_NAMES_FILE         = 'NGnames.txt';
@@ -333,7 +333,7 @@ type
     LabelViewScrollFrameRate: TLabel;
     SpinEditViewScrollFrameRate: TJLXPSpinEdit;
     CheckBoxViewEnableAutoScroll: TCheckBox;
-    TabSheet1: TTabSheet;
+    Sheet_NGEx: TTabSheet;
     ListBoxNGEx: TListBox;
     SheetTabColor: TTabSheet;
     ButtonActiveBack: TButton;
@@ -397,7 +397,7 @@ type
     ComboBoxDefFuncSortColumn: TComboBox;
     CheckBoxoptCheckNewResSingleClick: TCheckBox;
     CheckBoxWheelScrollUnderCursor: TCheckBox;
-    NGThread: TTabSheet;
+    Sheet_NGThread: TTabSheet;
     ListBoxNGThread: TListBox;
     LabelDefaultActive: TLabel;
     LabelNewActive: TLabel;
@@ -467,6 +467,8 @@ type
     SpinEditPopupSizeContrainY: TJLXPSpinEdit;
     Label78: TLabel;
     Label79: TLabel;
+    Label80: TLabel;
+    cmbThreAboneLevel: TComboBox;
     procedure FormShow(Sender: TObject);
     procedure OkButtonClick(Sender: TObject);
     procedure CancelButtonClick(Sender: TObject);
@@ -615,13 +617,13 @@ procedure TUIConfig.OkButtonClick(Sender: TObject);
     end;
   end;
   {/beginner}
-  procedure SaveNGThreadList(fn: String; lb: TListBox);
-  begin
-    if (lb.Items.Count > 0) or FileExists(Config.BasePath + fn) then
-    begin
-      lb.Items.SaveToFile(Config.BasePath + fn);
-    end;
-  end;
+//  procedure SaveNGThreadList(fn: String; lb: TListBox);
+//  begin
+//    if (lb.Items.Count > 0) or FileExists(Config.BasePath + fn) then
+//    begin
+//      lb.Items.SaveToFile(Config.BasePath + fn);
+//    end;
+//  end;
 
 var
   port: integer;
@@ -908,6 +910,8 @@ begin
   Main.Config.viewNGLifeSpan[4]    := self.seNGItemLifeSpan.Value;
   Main.Config.viewAboneLevel       := self.cmbAboneLevel.ItemIndex-1;
 
+  Main.Config.viewThreAboneLevel   := self.cmbThreAboneLevel.ItemIndex-1;
+
   Main.Config.optOldOnCheckNew := self.CheckBoxOldOnCheckNew.Checked;
   Main.Config.viewReadIfScrollBottom := self.CheckBoxReadIfScrollBottom.Checked;
 
@@ -1101,7 +1105,8 @@ begin
     SaveNGWords(NG_FILE[NG_ITEM_ID],ListBoxNGid, False);
     SaveNGWords(NG_EX_FILE, ListBoxNGEx, True);
     {/beginner}
-    SaveNGThreadList(NG_THREAD_FILE, ListBoxNGThread);  //aiai
+    SaveNGWords(NG_THREAD_FILE, ListBoxNGThread, False);  //aiai
+//    SaveNGThreadList(NG_THREAD_FILE, ListBoxNGThread);  //aiai
   end;
 
   {aiai}
@@ -1147,6 +1152,7 @@ begin
   FreeObject(ListBoxNGWord.Items);
   FreeObject(ListBoxNGid.Items);
   FreeObject(ListBoxNGEx.Items);
+  FreeObject(ListBoxNGThread.Items);
 end;
 
 procedure TUIConfig.FormShow(Sender: TObject);
@@ -1309,6 +1315,8 @@ begin
   self.seNGItemLifeSpan.Value     := Config.viewNGLifeSpan[0];
   self.seNGIDLifeSpan.Value       := Config.viewNGLifeSpan[3];
   self.cmbAboneLevel.ItemIndex    := Config.viewAboneLevel+1;
+
+  self.cmbThreAboneLevel.ItemIndex := Config.viewThreAboneLevel+1;
 
   self.SpinEditListReloadInterval.Value := Config.oprListReloadInterval;
   self.SpinEditThreadReloadInterval.Value := Config.oprThreadReloadInterval;
@@ -1594,10 +1602,10 @@ begin
         Exit;
       end;
       lb.Items.AddObject(NewName, NewItem);
-    {aiai}
-    end else if lb = ListBoxNGThread then begin
-      lb.Items.Add(EditNG.Text);
-    {/aiai}
+//    {aiai}
+//    end else if lb = ListBoxNGThread then begin
+//      lb.Items.Add(EditNG.Text);
+//    {/aiai}
     end else begin
       NewItem := TNGItemData.Create('', tmp);
       lb.Items.AddObject(EditNG.Text, NewItem);
@@ -1667,6 +1675,7 @@ begin
     2 : lb := ListBoxNGWord;
     3 : lb := ListBoxNGid;
     4 : lb := ListBoxNGEx; //beginner
+    5 : lb := ListBoxNGThread;  //aiai
   else
     exit;
   end;
@@ -1781,7 +1790,11 @@ begin
     0 : lb := ListBoxNGName;
     1 : lb := ListBoxNGAddr;
     2 : lb := ListBoxNGWord;
-    4 : lb := ListBoxNGid;
+    3 : lb := ListBoxNGid;
+    {aiai}
+    4 : lb := ListBoxNGEx;
+    5 : lb := ListBoxNGThread;
+    {/aiai}
   else
     exit;
   end;
@@ -1790,6 +1803,24 @@ begin
     for i:=0 to PopupNGWord.Items.Count-1 do
       PopupNGWord.Items[i].Enabled:=False
   end else begin
+
+    {aiai}
+    //NGExは「削除」のみ
+    case PageControlNGWord.ActivePageIndex of
+      4: begin
+        PopupNGWord.Items[0].Enabled := True;
+        for i := 1 to PopupNGWord.Items.Count - 1 do
+          PopupNGWord.Items[i].Enabled := False;
+        exit;
+      end;
+    end;
+
+    if lb = ListBoxNGThread then
+       MenuNGWordMarking.Caption := '重要スレ(&M)'
+    else
+      MenuNGWordMarking.Caption := '重要レス(&M)';
+    {/aiai}
+
     for i:=0 to PopupNGWord.Items.Count-1 do
       PopupNGWord.Items[i].Enabled:=True;
 
@@ -1846,6 +1877,7 @@ begin
     1 : lb := ListBoxNGAddr;
     2 : lb := ListBoxNGWord;
     3 : lb := ListBoxNGid;
+    5 : lb := ListBoxNGThread;  //aiai
   else
     exit;
   end;
@@ -1874,6 +1906,7 @@ begin
     1 : lb := ListBoxNGAddr;
     2 : lb := ListBoxNGWord;
     3 : lb := ListBoxNGid;
+    5 : lb := ListBoxNGThread;  //aiai
   else
     exit;
   end;
@@ -2305,18 +2338,18 @@ var
     end;
   end;
   {/beginner}
-  {aiai}
-  procedure LoadNGThreadList(fn: String; lb: TListBox);
-  begin
-    if FileExists(Config.BasePath + fn) then
-    begin
-      try
-        lb.Items.LoadFromFile(Config.BasePath + fn);
-      except
-      end;
-    end;
-  end;
-  {/aiai}
+//  {aiai}
+//  procedure LoadNGThreadList(fn: String; lb: TListBox);
+//  begin
+//    if FileExists(Config.BasePath + fn) then
+//    begin
+//      try
+//        lb.Items.LoadFromFile(Config.BasePath + fn);
+//      except
+//      end;
+//    end;
+//  end;
+//  {/aiai}
 
 begin
   self.Caption := '設定 - 【' + PageControl.ActivePage.Caption + '】';
@@ -2453,7 +2486,8 @@ begin
     LoadNGWord(NG_EX_FILE, ListBoxNGEx, True);
     {aiai}
     ListBoxNGThread.ItemHeight := Abs(ListBoxNGThread.Font.Height);
-    LoadNGThreadList(NG_THREAD_FILE, ListBoxNGThread);
+    LoadNGWord(NG_THREAD_FILE, ListBoxNGThread, False);
+    //LoadNGThreadList(NG_THREAD_FILE, ListBoxNGThread);
     {/aiai}
     {beginner}
   end

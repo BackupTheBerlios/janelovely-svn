@@ -208,8 +208,6 @@ type
     function _ExtractKeyWord(thread: TThreadItem; dest: TDatOut;
       target:string; Max: Integer; {koreawatcher} RegExp: TRegExpr = nil;
       IncludeRef: Boolean = False; NeedTitle: Boolean = False{/koreawatcher}): Integer;
-    function _ExtractID(thread: TThreadItem; dest: TDatOut;
-      target:string; Max: Integer; IncludeRef: Boolean = false): integer; //aiai
   public
     constructor Create;
     destructor Destroy; override;
@@ -487,14 +485,21 @@ type
     NewMarkHTML: String;
     PopupRecHTML: String;
   end;
+
+  TSkinCollectionList = class(TList)
+  private
+    function GetItems(index: integer): TSkinCollection;
+  public
+    property Items[index: integer]: TSkinCollection read GetItems;
+  end;
   {/aiai}
 
   TDat2HTMLType = (dhtRes, dhtNewRes, dhtPopupRes, dhtSearchRes);
 
 procedure Make2chInfo(dest: TDatOut; URI: string; basethread: TThreadItem;
   board: TBoard; thread: TThreadItem; RangeArray: TRangeArray);
-procedure MakeIDInfo(dest: TDatOut; const URI: String;
-  const thread: TThreadItem; Max: integer);
+function MakeIDInfo(dest: TDatOut; const URI: String;
+  const thread: TThreadItem; Max: integer): Integer;
 function PickUpRes(thread: TThreadItem; startLine, endLine: integer): string;
 function SetUpDat2HTML(const body: string; d2htype: TDat2HTMLType): TDat2HTML;
 
@@ -2027,7 +2032,8 @@ begin
 
   FtmpDat.Free;
   FtmpDat := thread.DupData;
-  D2HTML := SetUpDat2HTML(TSkinCollection(SkinCollectionList.Items[TBoard(FThread.board).CustomSkinIndex]).RecHTML, dhtRes);
+  D2HTML := SetUpDat2HTML((SkinCollectionList.Items[TBoard(FThread.board).CustomSkinIndex]).RecHTML, dhtRes);
+  D2HTML.URL := FThread.ToURL;
   D2HTML.ToDatOut(Self, FtmpDat ,Pos, thread.lines - Pos + 1, FThread.ABoneArray, FThread.NeedConvert);
   D2HTML.Free;
 end;
@@ -2453,77 +2459,6 @@ begin
   Result := False;
 end;
 
-{aiai}
-function TBaseViewItem._ExtractID(thread: TThreadItem; dest: TDatOut;
-  target:string; Max: Integer; IncludeRef: Boolean = false): Integer;
-  procedure ShowTitle(ID: String; Count: Integer);
-  {var
-    pid: PChar;
-    size: integer;}
-  begin
-    dest.WriteHTML('抽出 ID:' + ID + ' (' + IntToStr(Count) + '回)<br><br>');
-    {pid := PChar(ID);
-    size := Length(ID);
-    dest.WriteText('抽出');
-    dest.WriteText(pid, size);
-    dest.WriteHTML(' (' + IntToStr(Count) + '回)<br><br>');}
-  end;
-
-  function GetThreadMaxNum: integer;
-  begin
-    case TBoard(thread.board).GetBBSType of
-    bbs2ch:   result := 1000;
-    bbsMachi: result := 300;
-    else      result := 100000;
-    end;
-  end;
-
-var
-  i: Integer;
-  list: array of integer;
-  dup: TThreadData;
-  //s: string;
-  p: PChar;
-  size: integer;
-  //SEARCHD2HTML: TDat2HTML;
-  POPUPD2HTML: TDat2HTML;
-begin
-  Result := 0;
-  if (Length(target) <= 0) or (thread = nil) or (thread.dat = nil) then
-    exit;
-  //Bench(0);
-  dup := thread.DupData;
-  SetLength(list, GetThreadMaxNum);
-  //SEARCHD2HTML := SetUpDat2HTML('<DATE/>', dhtSearchRes);
-  POPUPD2HTML := SetUpDat2HTML(TSkinCollection(SkinCollectionList.Items[TBoard(FThread.board).CustomSkinIndex]).PopupRecHTML, dhtPopupRes);
-  try
-    Result := 0;
-    for i := 1 to thread.lines do
-    begin
-      //s := SEARCHD2HTML.ToID(dup, i);
-      if dup.FetchIDP(i, p, size) and (StrLComp(p, PChar(target), size) = 0) then
-      //if StrComp(PChar(s), PChar(target)) = 0 then
-      begin
-        list[result] := i;
-        Inc(result);
-      end;
-    end;
-    ShowTitle(target, result);
-    if result < Max then Max := result;
-    for i := result - Max to result - 1 do
-    begin
-      POPUPD2HTML.ToDatOut(dest, dup, list[i], 1, thread.ABoneArray, thread.NeedConvert);
-    end;
-  finally
-    dup.Free;
-    //SEARCHD2HTML.Free;
-    POPUPD2HTML.Free;
-    SetLength(list, 0);
-    //Bench(1);
-  end;
-end;
-{/aiai}
-
 function TBaseViewItem._ExtractKeyWord(thread: TThreadItem; dest: TDatOut;
   target:string; Max: Integer; {koreawatcher} RegExp: TRegExpr = nil;
   IncludeRef: Boolean = False; NeedTitle: Boolean = False{/koreawatcher}): Integer;
@@ -2553,6 +2488,7 @@ begin
   Tree := nil;
   SEARCHD2HTML := SetUpDat2HTML(TSkinCollection(SkinCollectionList.Items[TBoard(thread.board).CustomSkinIndex]).PopupRecHTML, dhtSearchRes);
   D2HTML := SetUpDat2HTML(TSkinCollection(SkinCollectionList.Items[TBoard(thread.board).CustomSkinIndex]).RecHTML, dhtRes);
+  D2HTML.URL := thread.ToURL; 
   try
     if IncludeRef then
     begin
@@ -3212,12 +3148,13 @@ begin
     if useTrace[39] then
       Log(Format(traceString[39], [FThread.dat.Size - FThread.dat.Position+1]));
     {//ayaya}
-    NEWD2HTML := SetUpDat2HTML(TSkinCollection(SkinCollectionList.Items[TBoard(FThread.board).CustomSkinIndex]).NewRecHTML, dhtNewRes);
+    NEWD2HTML := SetUpDat2HTML((SkinCollectionList.Items[TBoard(FThread.board).CustomSkinIndex]).NewRecHTML, dhtNewRes);
+    NEWD2HTML.URL := thread.ToURL;
     try
     try
       if currentStartLine = FThread.anchorLine +1 then
       begin
-        NewMarkHTML := PChar(TSkinCollection(SkinCollectionList.Items[TBoard(FThread.board).CustomSkinIndex]).NewMarkHTML);
+        NewMarkHTML := PChar((SkinCollectionList.Items[TBoard(FThread.board).CustomSkinIndex]).NewMarkHTML);
         WriteSkin(NewMarkHTML, Length(NewMarkHTML));
       end;
       //NEWD2HTML.AboneArray := FThread.AboneArray; //※[457]
@@ -3228,7 +3165,7 @@ begin
         Inc(currentStartLine, lines);
         if currentStartLine - 1 = FThread.readPos then
         begin
-          BookMarkHTML := PChar(TSkinCollection(SkinCollectionList.Items[TBoard(FThread.board).CustomSkinIndex]).BookMarkHTML);
+          BookMarkHTML := PChar((SkinCollectionList.Items[TBoard(FThread.board).CustomSkinIndex]).BookMarkHTML);
           WriteSkin(BookMarkHTML, length(BookMarkHTML)); // ここまで読んだ
           lines := NEWD2HTML.ToDatOut(FStream, FThread.dat, FThread.readPos + 1, High(integer), FThread.AboneArray, FThread.NeedConvert);
         end;
@@ -3282,9 +3219,9 @@ procedure TViewItem.DoWorking;
     begin
       if FThread.board <> nil then
         With TBoard(FThread.board) do
-          HeaderHTML := PChar(TSkinCollection(SkinCollectionList.Items[CustomSkinIndex]).HeaderHTML)
+          HeaderHTML := PChar((SkinCollectionList.Items[CustomSkinIndex]).HeaderHTML)
       else
-        HeaderHTML := PChar(TSkinCollection(SkinCollectionList.Items[0]).HeaderHTML);
+        HeaderHTML := PChar((SkinCollectionList.Items[0]).HeaderHTML);
       WriteSkin(HeaderHTML, length(HeaderHTML));
     end;
     FStream.EnableFontTag := false;
@@ -3314,12 +3251,13 @@ procedure TViewItem.DoWorking;
       if useTrace[40] then
         Log(Format(traceString[40], [FThread.dat.Size]));
       {//ayaya}
-      D2HTML := SetUpDat2HTML(TSkinCollection(SkinCollectionList.Items[TBoard(FThread.board).CustomSkinIndex]).RecHTML, dhtRes);
+      D2HTML := SetUpDat2HTML((SkinCollectionList.Items[TBoard(FThread.board).CustomSkinIndex]).RecHTML, dhtRes);
+      D2HTML.URL := FThread.ToURL;
       if currentStartLine = 1 then
       begin
         D2HTML.ToDatOut(FStream, FThread.dat, 1, 1, FThread.AboneArray, FThread.NeedConvert);
         if FThread.readPos = 1 then
-          FStream.WriteHTML(PChar(TSkinCollection(SkinCollectionList.Items[TBoard(FThread.board).CustomSkinIndex]).BookMarkHTML),length(TSkinCollection(SkinCollectionList.Items[TBoard(FThread.board).CustomSkinIndex]).BookMarkHTML));
+          FStream.WriteHTML(PChar((SkinCollectionList.Items[TBoard(FThread.board).CustomSkinIndex]).BookMarkHTML),length((SkinCollectionList.Items[TBoard(FThread.board).CustomSkinIndex]).BookMarkHTML));
         Inc(currentStartLine);
       end;
       if currentStartLine < drawStartLine then // 表示レス数指定
@@ -3329,7 +3267,7 @@ procedure TViewItem.DoWorking;
       begin
         D2HTML.ToDatOut(FStream, FThread.dat,
                         currentStartLine, FThread.readPos - currentStartLine + 1, FThread.AboneArray, FThread.NeedConvert);
-        BookMarkHTML := PChar(TSkinCollection(SkinCollectionList.Items[TBoard(FThread.board).CustomSkinIndex]).BookMarkHTML);
+        BookMarkHTML := PChar((SkinCollectionList.Items[TBoard(FThread.board).CustomSkinIndex]).BookMarkHTML);
         WriteSkin(BookMarkHTML,length(BookMarkHTML)); // ここまで読んだ
         D2HTML.ToDatOut(FStream, FThread.dat,
                         FThread.readPos + 1, FThread.oldLines - FThread.readPos, FThread.AboneArray, FThread.NeedConvert);
@@ -3647,9 +3585,9 @@ begin
   begin
     if (ExThread.board <> nil) then
       With TBoard(ExThread.board) do
-        HeaderHTML := PChar(TSkinCollection(SkinCollectionList.Items[CustomSkinIndex]).HeaderHTML)
+        HeaderHTML := PChar((SkinCollectionList.Items[CustomSkinIndex]).HeaderHTML)
     else
-      HeaderHTML := PChar(TSkinCollection(SkinCollectionList.Items[0]).HeaderHTML);
+      HeaderHTML := PChar((SkinCollectionList.Items[0]).HeaderHTML);
     WriteSkin(HeaderHTML, length(HeaderHTML), ExThread);
   end;
   ExtStream.EnableFontTag := false;
@@ -3745,9 +3683,9 @@ begin
   else
   begin
     if ExThread.board <> nil then
-      HeaderHTML := PChar(TSkinCollection(SkinCollectionList.Items[TBoard(ExThread.board).CustomSkinIndex]).HeaderHTML)
+      HeaderHTML := PChar((SkinCollectionList.Items[TBoard(ExThread.board).CustomSkinIndex]).HeaderHTML)
     else
-      HeaderHTML := PChar(TSkinCollection(SkinCollectionList.Items[0]).HeaderHTML);
+      HeaderHTML := PChar((SkinCollectionList.Items[0]).HeaderHTML);
     ExtStream.WriteHTML(HeaderHTML, length(HeaderHTML));
   end;
   ExtStream.EnableFontTag := false;
@@ -3921,7 +3859,7 @@ begin
   tvc := TSimpleDat2View.Create(FBrowser);
   {beginner}
   if ShowDirect then begin
-    HeaderHTML := PChar(TSkinCollection(SkinCollectionList.Items[0]).HeaderHTML);
+    HeaderHTML := PChar((SkinCollectionList.Items[0]).HeaderHTML);
     ExtStream := TDat2ViewForExtraction.Create(FBrowser);
     ExtStream.EnableFontTag := True;
     ExtStream.WriteHTML(HeaderHTML, length(HeaderHTML));
@@ -3937,8 +3875,8 @@ begin
   {/beginner}
     tvc.WriteHTML('<html><body><p>【取得済みログ一覧】</p><ul>'#10);
 
-  SEARCHD2HTML := SetUpDat2HTML(TSkinCollection(SkinCollectionList.Items[0]).PopupRecHTML, dhtSearchRes);
-  POPUPD2HTML := SetUpDat2HTML(TSkinCollection(SkinCollectionList.Items[0]).PopupRecHTML, dhtPopupRes);
+  SEARCHD2HTML := SetUpDat2HTML((SkinCollectionList.Items[0]).PopupRecHTML, dhtSearchRes);
+  POPUPD2HTML := SetUpDat2HTML((SkinCollectionList.Items[0]).PopupRecHTML, dhtPopupRes);
 
   for i := 0 to targetBoardList.Count -1 do
   begin
@@ -4974,7 +4912,8 @@ begin
 
     try
       FStream.DDOffsetLeft := DD_OFFSET_LEFT div 4;
-      Result := _ExtractID(FThread, FStream, Target, Max, false);
+      //Result := _ExtractID(FThread, FStream, Target, Max, false);
+      Result := MakeIDInfo(FStream, Target, FThread, Max);
       if not FStream.canceled and FBrowser.Trim then
         PopUp(Point)
       else
@@ -5320,6 +5259,11 @@ begin
   inherited Destroy;
 end;
 
+function TSkinCollectionList.GetItems(index: integer): TSkinCollection;
+begin
+  result := inherited Items[index];
+end;
+
 (*=======================================================*)
 
 (* destに指定されたレスを出力する *) //thread.addrefは呼び出し側責任
@@ -5345,7 +5289,8 @@ procedure Make2chInfo(dest: TDatOut; URI: string; basethread: TThreadItem;
     if Config.hintForOtherThread or (thread = BaseThread) then
     begin
       dat := thread.DupData;
-      POPUPD2HTML := SetUpDat2HTML(TSkinCollection(SkinCollectionList.Items[TBoard(thread.board).CustomSkinIndex]).PopupRecHTML, dhtPopupRes);
+      POPUPD2HTML := SetUpDat2HTML((SkinCollectionList.Items[TBoard(thread.board).CustomSkinIndex]).PopupRecHTML, dhtPopupRes);
+      POPUPD2HTML.URL := thread.ToURL;
       try
       if RangeArray[0].st >= 0 then
         for i := 0 to Length(RangeArray) - 1 do
@@ -5373,8 +5318,8 @@ begin
   dest.Flush;
 end;
 
-procedure MakeIDInfo(dest: TDatOut; const URI: String;
-        const thread: TThreadItem; Max: integer);
+function MakeIDInfo(dest: TDatOut; const URI: String;
+        const thread: TThreadItem; Max: integer): Integer;
   procedure ShowTitle(ID: String; Count: Integer);
   begin
     dest.WriteHTML('抽出 ID:' + ID + ' (' + IntToStr(Count) + '回)<br><br>');
@@ -5390,42 +5335,45 @@ procedure MakeIDInfo(dest: TDatOut; const URI: String;
   end;
 
 var
-  i: Integer;
+  i, size: Integer;
   list: array of integer;
   dup: TThreadData;
-  index: integer;
-  s: String;
-  SEARCHD2HTML: TDat2HTML;
+  p: PChar;
   POPUPD2HTML: TDat2HTML;
 begin
-  if (thread = nil) or (thread.dat = nil) then
+  Result := 0;
+  if (Length(URI) <= 0) or (thread = nil) or (thread.dat = nil) then
     exit;
+  {$IFDEF DEVELBENCH}{$IFDEF BENCH}
+  Bench(0);
+  {$ENDIF}{$ENDIF}
   dup := thread.DupData;
-  setLength(list, GetThreadMaxNum);
-  SEARCHD2HTML := SetUpDat2HTML('<DATE/>', dhtSearchRes);
-  POPUPD2HTML := SetUpDat2HTML(TSkinCollection(SkinCollectionList.Items[TBoard(thread.board).CustomSkinIndex]).PopupRecHTML, dhtPopupRes);
+  SetLength(list, GetThreadMaxNum);
+  POPUPD2HTML := SetUpDat2HTML((SkinCollectionList.Items[TBoard(thread.board).CustomSkinIndex]).PopupRecHTML, dhtPopupRes);
+  POPUPD2HTML.URL := thread.ToURL;
   try
-    index := 0;
+    Result := 0;
     for i := 1 to thread.lines do
     begin
-      s := SEARCHD2HTML.ToID(dup, i);
-      if StrComp(PChar(s), PChar(URI)) = 0 then
+      if dup.FetchIDP(i, p, size) and (StrLComp(p, PChar(URI), size) = 0) then
       begin
-        list[index] := i ;
-        Inc(index);
+        list[result] := i;
+        Inc(result);
       end;
     end;
-    ShowTitle(URI, index);
-    if index < Max then Max := index;
-    for i := index - Max to index - 1 do
+    ShowTitle(URI, result);
+    if result < Max then Max := result;
+    for i := result - Max to result - 1 do
     begin
       POPUPD2HTML.ToDatOut(dest, dup, list[i], 1, thread.ABoneArray, thread.NeedConvert);
     end;
   finally
     dup.Free;
-    SEARCHD2HTML.Free;
     POPUPD2HTML.Free;
     SetLength(list, 0);
+    {$IFDEF DEVELBENCH}{$IFDEF BENCH}
+    Bench(1);
+    {$ENDIF}{$ENDIF}
   end;
 end;
 
@@ -5440,7 +5388,7 @@ begin
     exit;
   dest := TStrDatOut.Create;
   dup := thread.DupData;
-  POPUPD2HTML := SetUpDat2HTML(TSkinCollection(SkinCollectionList.Items[TBoard(thread.board).CustomSkinIndex]).PopupRecHTML, dhtPopupRes);
+  POPUPD2HTML := SetUpDat2HTML((SkinCollectionList.Items[TBoard(thread.board).CustomSkinIndex]).PopupRecHTML, dhtPopupRes);
   try
     POPUPD2HTML.PickUpRes(dest, dup, thread.abonearray, thread.NeedConvert, startLine, endLine);
     Result := dest.Text;

@@ -43,12 +43,9 @@ uses
   ULocalCopy,
   StrSub,
   UCrypt,
-  jconvert, ToolWin, JLXPComCtrls;
+  jconvert, ToolWin, JLXPComCtrls, WriteSub;
 
 type
-  TPostType = (postNormal, postCheck);
-  TFormType = (formWrite, formBuild);
-
   TWriteForm = class(TForm)
     PageControl: TPageControl;
     TabSheetMain: TTabSheet;
@@ -85,7 +82,7 @@ type
     ToolBar1: TJLXPToolBar;
     ToolButtonRecordNameMail: TToolButton;
     ToolButtonTrim: TToolButton;
-    ToolButtonNameWarn: TToolButton;  //rika
+    ToolButtonNameWarn: TToolButton;
     ToolButtonBeLogin: TToolButton;
     ToolButtonWriteWait: TToolButton;
 
@@ -149,7 +146,7 @@ type
     gotSettingTxt: TProgState;
     storedSettingTxt: TLocalCopy;
     procGetSettingTxt: TAsyncReq;
-    BBSLineNumuber: Integer;
+    BBSLineNumber: Integer;
     BBSMessageCount: Integer;
     BBSSubjectCount: Integer;
     BBSNameCount: Integer;
@@ -157,16 +154,14 @@ type
     PanelColor: array[0..2] of TColor;  //パネルの数だけ確保
     procedure GetSettingTxt;
     procedure OnSettingTxt(sender: TAsyncReq);
-    procedure PostArticle;
     procedure GetLocalRule;
+    procedure OnPostDone(Sender: TObject);
     procedure OnNotify(sender: TAsyncReq; code: TAsyncNotifyCode);
     procedure OnWritten(sender: TAsyncReq);
     procedure OnLocalRule(sender: TAsyncReq);
-    procedure WritePreview;
     procedure MakePreview;
     procedure RequestToGetLocalRule;
     procedure PasteAAListItem;
-    procedure SetNameBox(NameCombo: TCombobox; NameList: TStringList; const Board: string);  //beginner(by nono)
     {aiai}
     procedure WaitTimerStart;
     procedure WaitTimerStop;
@@ -175,7 +170,6 @@ type
 
   protected
     procedure CreateParams(var Params: TCreateParams); override;
-    function Res2Dat: string;
 
   public
     { Public 宣言 }
@@ -185,7 +179,6 @@ type
     chotto: boolean;   //rika
     procedure Show(threadItem: TThreadItem); overload;
     procedure Show(boardItem: TBoard); overload;
-    class function Trip(const Key: string): string;
     function SavedBoundsRect:TRect; //beginner
     procedure MainWndOnHide; //beginner
     procedure MainWndOnShow; //beginner
@@ -205,51 +198,9 @@ implementation
 (*=======================================================*)
 
 uses
-  Main, IdCookie, JLWritePanel;
+  Main, IdCookie, UWritePanelControl;
 
 {$R *.dfm}
-
-const
-  BBS_LINE_NUMBER   = 'BBS_LINE_NUMBER';
-  BBS_MESSAGE_COUNT = 'BBS_MESSAGE_COUNT';
-  BBS_SUBJECT_COUNT = 'BBS_SUBJECT_COUNT';
-  BBS_NAME_COUNT    = 'BBS_NAME_COUNT';
-  BBS_MAIL_COUNT    = 'BBS_MAIL_COUNT';
-
-  BUTTON_WRITE_CAPTION = '書き込む(&W)';
-
-(* 書き込み可否判定用のメッセージバイト数 *)
-//途中にヌルを含まず改行=CRLFのSJIS文字列専用
-function MessageCount(Msg: String): Integer;
-var
-  p: PChar;
-Label
-  PermanentLoop;
-begin
-  Result := Length(Msg);
-  p := PChar(Msg);
-  PermanentLoop: //極力軽くするためgotoのLoop
-  begin
-    case p^ of
-      #0: Exit; //末尾判定これだけなので注意
-      #13:
-        begin
-          Inc(p, 2);
-          Inc(Result, 4);
-        end;
-      '>', '<':
-        begin
-          Inc(p);
-          Inc(Result, 3);
-        end;
-      #$81..#$9f, #$e0..#$fc:
-        Inc(p, 2);
-      else
-        Inc(p);
-    end;
-  end;
-  goto PermanentLoop;
-end;
 
 
 (* ローカルルール、SETTING.TXT取得、プレビュー生成キック *)
@@ -624,30 +575,6 @@ begin
   inherited Show;
 end;
 
-procedure TWriteForm.SetNameBox(NameCombo: TCombobox; NameList: TStringList; const Board: string);
-var
-  i: Integer;
-  tkBoard, tkName: string;
-begin
-  NameCombo.Items.Clear;
-  for i := 0 to NameList.Count - 1 do
-  begin
-    if (NameList[i] <> '') and (NameList[i][1] = '<') and (AnsiPos('>', NameList[i]) <> 0) then
-    begin
-      tkBoard := Copy(NameList[i], 2, AnsiPos('>', NameList[i]) - 2);
-      tkName := Copy(NameList[i], AnsiPos('>', NameList[i]) + 1, Length(NameList[i]) - AnsiPos('>', NameList[i]));
-    end else
-    begin
-      tkBoard := '*';
-      tkName := NameList[i];
-    end;
-
-    if (tkBoard = Board) or (tkBoard = '*') then
-      if NameCombo.Items.IndexOf(tkName) < 0 then
-        NameCombo.Items.Add(tkName);
-  end;
-end;
-
 (* 表示時処理 *)
 procedure TWriteForm.FormShow(Sender: TObject);
 var
@@ -710,7 +637,7 @@ begin
     //SETTING.TXT処理
     FreeAndNil(storedSettingTxt);
     NeedSETTINGTXT := False;
-    BBSLineNumuber := 0;
+    BBSLineNumber := 0;
     BBSMessageCount := 0;
     BBSSubjectCount := High(Integer);
     BBSNameCount := High(Integer);
@@ -721,7 +648,7 @@ begin
       if storedSettingTxt.Load then
       begin
         SettingTxt.Text := storedSettingTxt.DataString;
-        BBSLineNumuber := StrToIntDef(SettingTxt.Lines.Values[BBS_LINE_NUMBER], 0);
+        BBSLineNumber := StrToIntDef(SettingTxt.Lines.Values[BBS_LINE_NUMBER], 0);
         BBSMessageCount := StrToIntDef(SettingTxt.Lines.Values[BBS_MESSAGE_COUNT], 0);
         BBSSubjectCount := StrToIntDef(SettingTxt.Lines.Values[BBS_SUBJECT_COUNT], BBSSubjectCount);
         BBSNameCount := StrToIntDef(SettingTxt.Lines.Values[BBS_NAME_COUNT], BBSNameCount);
@@ -765,9 +692,6 @@ procedure TWriteForm.ButtonWriteClick(Sender: TObject);
   end;
 var
   BoardName: string;
-  WarningList: TStringList;
-  ActView: TViewItem;
-  Lines: Integer;
 begin
   {aiai}
   if Config.wrtTrimRight then
@@ -775,91 +699,20 @@ begin
   {/aiai}
 
   //書き込み警告関係
-  WarningList := nil;
-  try
-    WarningList := TStringList.Create;
-    if board.bbs = 'morningcoffee' then
-    begin
-      if Config.wrtNameMailWarning and (EditNameBox.Text <> MORNINGCOFFEE_NAME) then
-        WarningList.Add('コテハンで書き込みます。');
-    end else
-    begin
-      if EditNameBox.Text = '' then
-      begin
-        if pos('fusianasan', SettingTxt.Lines.Values['BBS_NONAME_NAME']) > 0 then
-          WarningList.Add('この板のデフォルトの名無しはfusianasan(IP表示)です。')
-        else if SettingTxt.Lines.Values['NANASHI_CHECK'] = '1' then
-          WarningList.Add('名前強制入力の板です。');
-      end
-      else if Config.wrtNameMailWarning
-             and (EditNameBox.Text <> SettingTxt.Lines.Values['BBS_NONAME_NAME']) then
-        WarningList.Add('コテハンで書き込みます。');
-    end;
-
-    if Config.wrtNameMailWarning and (EditMailBox.Text <> '')
-            and  (EditMailBox.Text <> 'sage') then
-      WarningList.Add('メール欄にsage以外の内容が含まれています。');
-
-    if Config.wrtDiscrepancyWarning then
-    begin
-      if formType = formWrite then
-      begin
-        ActView := MainWnd.GetActiveView;
-        if Assigned(ActView) and (ActView.thread <> thread) then
-          WarningList.Add(Format('スレ欄と違うところ「%s」に書き込みます。', [thread.title]));
-      end else
-      begin
-        if (MainWnd.currentBoard <> board) then
-           WarningList.Add(Format('スレ一覧と違うところ「%s」にスレ立てします。', [board.name]));
-      end;
-    end;
-
-    {aiai}
-    if not AnsiStartsStr('be', board.host)
-      and not (SettingTxt.Lines.Values['BBS_BE_ID'] = '1')
-        and Config.wrtBeLogin and (Length(Config.wrtBEIDDMDM) > 0)
-          and (Length(Config.wrtBEIDMDMD) > 0) then
-      Warninglist.Add('Beにログインして書き込みます。');
-    {/aiai}
-    if formType = formBuild then
-      if Length(EditSubjectBox.Text) <= 0 then
-        WarningList.Add('スレタイが空です。')
-      else if MessageCount(EditSubjectBox.Text) > BBSSubjectCount then
-        WarningList.Add('スレタイが長すぎです。');
-    if MessageCount(EditNameBox.Text) > BBSNameCount then
-      WarningList.Add('名前欄が長すぎです。');
-    if MessageCount(EditMailBox.Text) > BBSMailCount then
-      WarningList.Add('メール欄が長すぎです。');
-
-    if Length(Memo.Text) <= 0 then
-      WarningList.Add('メッセージが空です。')
-    else if (BBSMessageCount > 0) and (MessageCount(Memo.Text) > BBSMessageCount) then
-      WarningList.Add('メッセージが長すぎです。');
-
-    Lines := Memo.Lines.Count;
-    if (Memo.Text <> '') and (Memo.Text[Length(Memo.Text)] = #10) then
-      Inc(Lines);
-    if (BBSLineNumuber > 0) and (Lines > BBSLineNumuber * 2) then
-      WarningList.Add('改行が多すぎです。');
-
-    if WarningList.Count > 0 then
-    begin
-      WarningList.Add('');
-      WarningList.Add('書き込みますか？');
-      // MessageDlgだと最前面フォームに隠れてしまう
-      if MessageBox(self.Handle, PChar(WarningList.Text), '警告', MB_ICONEXCLAMATION or MB_OKCANCEL) <> IDOK then
-        Exit;
-    end;
-  finally
-    WarningList.Free;
-  end;
+  if not PreWriteWarning(EditNameBox.Text, EditMailBox.Text, Memo.Text,
+    EditSubjectBox.Text, SettingTXT.Lines, thread, board, BBSNameCount,
+    BBSMailCount, BBSMessageCount, BBSLineNumber, BBSSubjectCount,
+    Memo.Lines.Count, formType) then
+    exit;
 
   if (postType = postCheck) and Memo.Modified then
     postType := postNormal;
   writeRetryCount := 0;
   cookieRetryCount := 0;
   Result.Clear;
-  PostArticle;
+  ProcPost := PostArticle(board, thread, EditNameBox.Text, EditMailBox.Text,
+    Memo.Text, EditSubjectBox.Text, formType, PostType, PostCode, settingTxt.Lines,
+      OnWritten, OnNotify, OnPostDone);
   Memo.Modified := false;
   //▼シフト押してたらリストに追加
   if GetKeyState(VK_SHIFT) < 0 then
@@ -876,7 +729,7 @@ begin
     begin
       Config.wrtNameList.Add(BoardName);
       SetNameBox(EditNameBox, Config.wrtNameList, board.bbs);
-      JLWritePanel.SetNameBox; //aiai
+      SetNameBox(MainWnd.ComboBoxWriteName, Config.wrtNameList, WritePanelControl.board.bbs);
     end;
    end; //aiai
    if EditMailBox.Text <> '' then begin //aiai
@@ -884,7 +737,7 @@ begin
     begin
       Config.wrtMailList.Add(EditMailBox.Text);
       EditMailBox.Items := Config.wrtMailList;
-      JLWritePanel.SetMailBox; //aiai
+      MainWnd.ComboBoxWriteMail.Items := Config.wrtMailList;
     end;
    end; //aiai
    if (EditNameBox.Text <> '') or (EditMailBox.Text <> '') then //aiai
@@ -903,278 +756,19 @@ begin
   end;
 end;
 
-procedure TWriteForm.PostArticle;
-var
-  URI: string;
-  encName, encMail: string;
-  postDat: string;
-  URIObj: TIdURI;
-  referer: string;
-  list: TStringList;
-  cookie: string;
+procedure TWriteForm.OnPostDone;
 begin
-  if board.timeValue <= 0 then
-    board.timeValue := timeValue; //起動時刻
-  case board.GetBBSType of
-  bbs2ch, bbsOther:
-    begin
-      {aiai}
-      if board.NeedConvert then
-      begin
-        if (EditNameBox.Text = '') and (board.bbs = 'morningcoffee') then
-          encName := URLEncode(sjis2euc(MORNINGCOFFEE_NAME))
-        else
-          encName := URLEncode(sjis2euc(EditNameBox.Text));
-        encMail := URLEncode(sjis2euc(EditMailBox.Text));
-      end else
-      begin
-        if (EditNameBox.Text = '') and (board.bbs = 'morningcoffee') then
-          encName := URLEncode(MORNINGCOFFEE_NAME)
-        else
-          encName := URLEncode(EditNameBox.Text);
-        encMail := URLEncode(EditMailBox.Text);
-      end;
-      {/aiai}
-      case formType of
-      formWrite:
-        begin
-          case postType of
-          postNormal:
-            begin
-              URI := 'http://' + board.host + '/test/bbs.cgi';
-              if board.NeedConvert then
-                postDat := 'submit=' + URLEncode(sjis2euc('書き込む'))
-                         + '&FROM=' + encName
-                         + '&mail=' + encMail
-                         + '&MESSAGE=' + URLEncode(sjis2euc(Memo.Text))
-                         + '&bbs='  + board.bbs
-                         + '&key='  + ChangeFileExt(thread.datName, '')
-                         + '&time=' + IntToStr(board.timeValue)
-              else
-                postDat := 'submit=' + URLEncode('書き込む')
-                         + '&FROM=' + encName
-                         + '&mail=' + encMail
-                         + '&MESSAGE=' + URLEncode(Memo.Text)
-                         + '&bbs='  + board.bbs
-                         + '&key='  + ChangeFileExt(thread.datName, '')
-                         + '&time=' + IntToStr(board.timeValue);
-            end;
-          postCheck:
-            begin
-              URI := 'http://' + board.host + '/test/subbbs.cgi';
-              if board.NeedConvert then
-                postDat := 'bbs='  + board.bbs
-                         + '&key='  + ChangeFileExt(thread.datName, '')
-                         + '&time=' + IntToStr(board.timeValue)
-                         + '&subject='
-                         + '&FROM=' + encName
-                         + '&mail=' + encMail
-                         + '&MESSAGE=' + URLEncode(sjis2euc(Memo.Text))
-                         + '&code='  + postCode
-                         + '&submit=' + URLEncode(sjis2euc('全責任を負うことを承諾して書き込む'))
-              else
-                postDat := 'bbs='  + board.bbs
-                         + '&key='  + ChangeFileExt(thread.datName, '')
-                         + '&time=' + IntToStr(board.timeValue)
-                         + '&subject='
-                         + '&FROM=' + encName
-                         + '&mail=' + encMail
-                         + '&MESSAGE=' + URLEncode(Memo.Text)
-                         + '&code='  + postCode
-                         + '&submit=' + URLEncode('全責任を負うことを承諾して書き込む');
-            end;
-          end;
-        end;
-      formBuild:
-        begin
-          case postType of
-          postNormal:
-            begin
-              URI := 'http://' + board.host + '/test/bbs.cgi';
-              if board.NeedConvert then
-                postDat := 'subject=' + URLEncode(sjis2euc(EditSubjectBox.Text))
-                         + '&submit=' + URLEncode(sjis2euc('新規スレッド作成'))
-                         + '&FROM=' + encName
-                         + '&mail=' + encMail
-                         + '&MESSAGE=' + URLEncode(sjis2euc(Memo.Text))
-                         + '&bbs='  + board.bbs
-                         + '&time=' + IntToStr(board.timeValue)
-              else
-                postDat := 'subject=' + URLEncode(EditSubjectBox.Text)
-                         + '&submit=' + URLEncode('新規スレッド作成')
-                         + '&FROM=' + encName
-                         + '&mail=' + encMail
-                         + '&MESSAGE=' + URLEncode(Memo.Text)
-                         + '&bbs='  + board.bbs
-                         + '&time=' + IntToStr(board.timeValue);
-            end;
-          postCheck:
-            begin
-              URI := 'http://' + board.host + '/test/subbbs.cgi';
-              if board.NeedConvert then
-                postDat := 'subject=' + URLEncode(sjis2euc(EditSubjectBox.Text))
-                         + '&FROM=' + encName
-                         + '&mail=' + encMail
-                         + '&MESSAGE=' + URLEncode(sjis2euc(Memo.Text))
-                         + '&bbs='  + board.bbs
-                         + '&time=' + IntToStr(board.timeValue)
-                         + '&submit=' + URLEncode(sjis2euc('全責任を負うことを承諾して書き込む'))
-              else
-                postDat := 'subject=' + URLEncode(EditSubjectBox.Text)
-                         + '&FROM=' + encName
-                         + '&mail=' + encMail
-                         + '&MESSAGE=' + URLEncode(Memo.Text)
-                         + '&bbs='  + board.bbs
-                         + '&time=' + IntToStr(board.timeValue)
-                         + '&submit=' + URLEncode('全責任を負うことを承諾して書き込む');
-            end;
-          end;
-        end;
-      end;
-      postDat := postDat + ticket2ch.GetSID(URI, '&');
-    end;
-  bbsJBBSShitaraba:
-    begin
-      encName := URLEncode(sjis2euc(EditNameBox.Text));
-      encMail := URLEncode(sjis2euc(EditMailBox.Text));
-      //▼ Nightly Tue Sep 28 13:39:43 2004 UTC by lxc
-      // したらばのURL対応を少し汎用的に
-      URI := 'http://' + Config.bbsJBBSServers[0] + '/bbs/write.cgi';
-      //▲ Nightly Tue Sep 28 13:39:43 2004 UTC by lxc
-      case formType of
-      formWrite:
-        begin
-          postDat := 'submit=' + URLEncode(sjis2euc('書き込む'))
-                   + '&NAME=' + encName
-                   + '&MAIL=' + encMail
-                   + '&MESSAGE=' + URLEncode(sjis2euc(Memo.Text))
-                   + '&DIR=' + GetJBBSShitarabaCategory(board.host)
-                   + '&BBS='  + board.bbs
-                   + '&KEY='  + ChangeFileExt(thread.datName, '')
-                   + '&TIME=' + IntToStr(UTC);
-        end;
-      formBuild:
-        begin
-          postDat := 'SUBJECT=' + URLEncode(sjis2euc(EditSubjectBox.Text))
-                   + '&submit=' + URLEncode(sjis2euc('新規書き込み'))
-                   + '&NAME=' + encName
-                   + '&MAIL=' + encMail
-                   + '&MESSAGE=' + URLEncode(sjis2euc(Memo.Text))
-                   + '&DIR=' + GetJBBSShitarabaCategory(board.host)
-                   + '&BBS='  + board.bbs
-                   + '&TIME=' + IntToStr(UTC);
-        end;
-      end;
-    end;
-  bbsMachi, bbsJBBS:
-    begin
-      encName := URLEncode(EditNameBox.Text);
-      encMail := URLEncode(EditMailBox.Text);
-      URI := 'http://' + board.host + '/bbs/write.cgi';
-      case formType of
-      formWrite:
-        begin
-          postDat := 'submit=' + URLEncode(sjis2euc('書き込む'))
-                   + '&NAME=' + encName
-                   + '&MAIL=' + encMail
-                   + '&MESSAGE=' + URLEncode(Memo.Text)
-                   + '&BBS='  + board.bbs
-                   + '&KEY='  + ChangeFileExt(thread.datName, '')
-                   + '&TIME=' + IntToStr(UTC);
-        end;
-      formBuild:
-        begin
-          postDat := 'SUBJECT=' + URLEncode(EditSubjectBox.Text)
-                   + '&submit=' + URLEncode(sjis2euc('新規書き込み'))
-                   + '&NAME=' + encName
-                   + '&MAIL=' + encMail
-                   + '&MESSAGE=' + URLEncode(Memo.Text)
-                   + '&BBS='  + board.bbs
-                   + '&TIME=' + IntToStr(UTC);
-        end;
-      end;
-    end;
-  {bbsOther:
-    begin
-      encName := URLEncode(EditNameBox.Text);
-      encMail := URLEncode(EditMailBox.Text);
-      URI := 'http://' + board.host + '/test/bbs.cgi';
-      case formType of
-      formWrite:
-        begin
-          postDat := 'submit=' + URLEncode('書き込む')
-                   + '&FROM=' + encName
-                   + '&mail=' + encMail
-                   + '&MESSAGE=' + URLEncode(Memo.Text)
-                   + '&bbs='  + board.bbs
-                   + '&key='  + ChangeFileExt(thread.datName, '')
-                   + '&time=' + IntToStr(UTC);
-        end;
-      formBuild:
-        begin
-          postDat := 'subject=' + URLEncode(EditSubjectBox.Text)
-                   + '&submit=' + URLEncode('新規スレッド作成')
-                   + '&FROM=' + encName
-                   + '&mail=' + encMail
-                   + '&MESSAGE=' + URLEncode(Memo.Text)
-                   + '&bbs='  + board.bbs
-                   + '&time=' + IntToStr(UTC);
-        end;
-      end;
-    end;}
-  end;
-
-  URIObj := nil;
-  try
-    URIObj := TIdURI.Create(board.GetURIBase + '/');
-    referer := URIObj.URI;
-  finally
-    URIObj.Free;
-  end;
-  cookie := 'Cookie: NAME=' + encName + '; MAIL=' + encMail;
-  list := TStringList.Create;
-  {aiai}
-  (*
-  if (board.GetBBSType = bbs2ch) and (0 < length(Config.tstWrtCookie)) then
-  begin
-    {if Pos('=', Config.tstWrtCookie) < 0 then
-      list.Add('Cookie: SPID=' + Config.tstWrtCookie + ';')
-    else}
-      cookie := cookie + '; ' + Config.tstWrtCookie;
-  end;
-  *)
-  if (board.GetBBSType = bbs2ch) then
-  begin
-    if (0 < length(Config.wrtBEIDDMDM)) and (0 < length(Config.wrtBEIDMDMD)) then
-      if Config.wrtBeLogin or AnsiStartsStr('be', board.host)
-        {or AnsiStartsStr('live14', board.host)}
-        or (SettingTxt.Lines.Values['BBS_BE_ID'] = '1') then
-        cookie := cookie + '; DMDM=' + Config.wrtBEIDDMDM
-          + '; MDMD=' + Config.wrtBEIDMDMD;
-    if (0 < length(Config.tstWrtCookie)) then
-      cookie := cookie + '; ' + Config.tstWrtCookie;
-  end;
-  {/aiai}
-  list.Add(cookie);
-  procPost := Main.AsyncManager.Post(URI, postDat, referer, list,
-                                     OnWritten, OnNotify);
-  if procPost <> nil then
-  begin
-    ButtonWrite.Enabled := false;
-    {aiai}
-    MainWnd.PauseToggleAutoReSc(false);
-    JLWritePanel.SetWriteButtonEnabled(false);
-    Main.writing := True;
-    if Config.wrtUseWriteWait then
-      WaitTimerStart;
-    {/aiai}
-    Result.Lines.Add('--------------------');
-    Result.Lines.Add('書込み中・・・');
-    Result.Lines.Add('--------------------');
-    TabSheetResult.TabVisible := true;
-    PageControl.ActivePage := TabSheetResult;
-  end;
-  list.Free;
+  ButtonWrite.Enabled := false;
+  MainWnd.PauseToggleAutoReSc(false);
+  MainWnd.ButtonWriteWrite.Enabled := false;
+  Main.writing := True;
+  if Config.wrtUseWriteWait then
+    WaitTimerStart;
+  Result.Lines.Add('--------------------');
+  Result.Lines.Add('書込み中・・・');
+  Result.Lines.Add('--------------------');
+  TabSheetResult.TabVisible := true;
+  PageControl.ActivePage := TabSheetResult;
 end;
 
 procedure TWriteForm.OnNotify(sender: TAsyncReq; code: TAsyncNotifyCode);
@@ -1233,55 +827,9 @@ var
     Result.Lines.Add('確認したらもう一度「書き込む」を押してください・・・');
     Result.Lines.Add('--------------------');
     ButtonWrite.Enabled := true;
-    JLWritePanel.SetWriteButtonEnabled(true);
+    MainWnd.ButtonWriteWrite.Enabled := true;
     MainWnd.PauseToggleAutoReSc(true);  //aiai
   end;
-
-  {aiai}  //書き込み履歴保存部分を分離
-  procedure SaveKakikomi;
-  var
-    kakikomistr: TStringList;
-    kakikomiFile: TFileStream;
-  begin
-    if not FileExists(Config.BasePath + 'kakikomi.txt') then
-    try
-      FileClose(FileCreate(Config.BasePath + 'kakikomi.txt'));
-    except
-    end;
-
-    try
-      kakikomiFile := TFileStream.Create(Config.BasePath + 'kakikomi.txt',
-                               fmOpenReadWrite or fmShareDenyWrite);
-    except
-    //エラーの場合は抜ける
-      on E: Exception do begin
-        Log(e.Message);
-        exit;
-      end;
-    end;
-
-    kakikomistr := TStringList.Create;
-    try
-      kakikomistr.Add('--------------------------------------------');
-      kakikomistr.Add('Date   : ' + DateToStr(Date) + ' ' + TimeToStr(Time));
-      kakikomistr.Add('Subject: ' + thread.title);
-      kakikomistr.Add('URL    : ' + thread.ToURL(false));
-      kakikomistr.Add('FROM   : ' + EditNameBox.Text);
-      kakikomistr.Add('MAIL   : ' + EditMailBox.Text);
-      kakikomistr.Add('');
-      kakikomistr.AddStrings(Memo.Lines);
-      kakikomistr.Add('');
-      kakikomistr.Add('');
-
-      kakikomiFile.Seek(0, soFromEnd);
-      kakikomiFile.Write(PChar(kakikomistr.Text)^, length(kakikomistr.Text));
-    finally
-      kakikomistr.Free;
-      FreeAndNil(kakikomiFile);  //書き込み後ファイルを閉じる
-    end;
-  end;
-  {/aiai}
-
 
 var
   i: integer;
@@ -1341,7 +889,9 @@ begin
       Result.Lines.Add('--------------------');
       Result.Lines.Add('ログインから再試行中・・・');
       Result.Lines.Add('--------------------');
-      PostArticle;
+      ProcPost := PostArticle(board, thread, EditNameBox.Text, EditMailBox.Text,
+        Memo.Text, EditSubjectBox.Text, formType, PostType, PostCode, settingTxt.Lines,
+        OnWritten, OnNotify, OnPostDone);
       exit;
     end;
 
@@ -1358,8 +908,8 @@ begin
       MainWnd.PauseToggleAutoReSc(true);
       if Assigned(thread) then
         ButtonWrite.Enabled := not MainWnd.WriteWaitTimer.IsThisHost(thread.GetHost);
-      if Assigned(WriteMemo) and Assigned(WriteMemo.board) then
-        ChangeWirteButtonEnabled(MainWnd.WriteWaitTimer.IsThisHost(WriteMemo.board.host));
+      if Assigned(WritePanelControl) and Assigned(WritePanelControl.board) then
+        MainWnd.ButtonWriteWrite.Enabled := MainWnd.WriteWaitTimer.IsThisHost(WritePanelControl.board.host);
       exit;
     end;
     {/aiai}
@@ -1395,7 +945,9 @@ begin
         end;
       end;
       Config.Modified := True;
-      PostArticle;
+      ProcPost := PostArticle(board, thread, EditNameBox.Text, EditMailBox.Text,
+        Memo.Text, EditSubjectBox.Text, formType, PostType, PostCode, settingTxt.Lines,
+        OnWritten, OnNotify, OnPostDone);
       exit;
     end;
 
@@ -1454,7 +1006,8 @@ begin
 
     //▼書き込み履歴保存
     if Config.wrtRecordWriting then
-      SaveKakikomi;
+      SaveKakikomi(thread.title, thread.ToURL(false), EditNameBox.Text,
+        EditMailBox.Text, Memo.Text);
 
     viewItem := viewList.FindViewItem(thread);
     {aiai}
@@ -1492,8 +1045,8 @@ begin
   {aiai}
   if Assigned(thread) then
     ButtonWrite.Enabled := not MainWnd.WriteWaitTimer.IsThisHost(thread.GetHost);
-  if Assigned(WriteMemo) and Assigned(WriteMemo.board) then
-    ChangeWirteButtonEnabled(not MainWnd.WriteWaitTimer.IsThisHost(WriteMemo.board.host));
+  if Assigned(WritePanelControl) and Assigned(WritePanelControl.board) then
+    MainWnd.ButtonWriteWrite.Enabled := not MainWnd.WriteWaitTimer.IsThisHost(WritePanelControl.board.host);
   {/aiai}
 end;
 
@@ -1642,7 +1195,7 @@ begin
           storedSettingTxt.Info.Add(sender.GetLastModified);
           storedSettingTxt.Save;
           SettingTxt.Text := storedSettingTxt.DataString;
-          BBSLineNumuber  := StrToIntDef(SettingTxt.Lines.Values[BBS_LINE_NUMBER], 0);
+          BBSLineNumber  := StrToIntDef(SettingTxt.Lines.Values[BBS_LINE_NUMBER], 0);
           BBSMessageCount := StrToIntDef(SettingTxt.Lines.Values[BBS_MESSAGE_COUNT], 0);
           BBSSubjectCount := StrToIntDef(SettingTxt.Lines.Values[BBS_SUBJECT_COUNT], High(Integer));
           BBSNameCount    := StrToIntDef(SettingTxt.Lines.Values[BBS_NAME_COUNT], High(Integer));
@@ -1720,258 +1273,10 @@ end;
 {------------------------------------------------------------------------}
 {------------------------------------------------------------------------}
 
-class function TWriteForm.Trip(const Key: string): string;
-{----------------------------------
-$salt = substr($key."H.", 1, 2);//<--ぁゃιぃ
-$salt =~ s/[^\.-z]/\./go;
-$salt =~ tr/:;<=>?@[\\]^_`/ABCDEFGabcdef/;
------------------------------------}
-  function MakeSalt(const Key: string): string;
-  var
-    i: Integer;
-  begin
-    Result := Copy(Copy(Key, 2, 2) + 'H.', 1, 2);
-
-    for i:=1 to Length(Result) do
-    begin
-      if ( Ord(Result[i]) < Ord('.') ) or ( Ord('z') < Ord(Result[i]) ) then
-        Result[i] := '.';
-
-      if ((Ord(':') <= Ord(Result[i])) and (Ord(Result[i]) <= Ord('@'))) then
-        Result[i] := Char(Ord(Result[i]) - Ord(':') + Ord('A'))
-      else if ((Ord('[') <= Ord(Result[i])) and (Ord(Result[i]) <= Ord('`'))) then
-        Result[i] := Char(Ord(Result[i]) - Ord('[') + Ord('a'));
-    end;
-  end;
-var
-  Salt: string;
-begin
-  if Key = '' then
-  begin
-    Result := '#';
-  end else
-  begin
-    Salt := MakeSalt(Key);
-    Result := ' ◆' + Copy(crypt(Key, Salt), 4, 10);
-  end;
-end;
-
-{------------------------------------------------------------------------}
-
-
-function TWriteForm.Res2Dat: string;
-  function HtmlPost(const S: string):string;
-  begin
-    Result := S;
-    Result := AnsiReplaceStr(Result, '<', '&lt;');
-    Result := AnsiReplaceStr(Result, '>', '&gt;');
-    Result := AnsiReplaceStr(Result, #13#10, '<br>');
-    Result := AnsiReplaceStr(Result, #13, '<br>');
-    Result := AnsiReplaceStr(Result, #10, '<br>');
-  end;
-  function NameConv(const S: string):string;
-  begin
-    Result := HtmlPost(S);
-    Result := AnsiReplaceStr(Result, '★', '☆');
-    Result := AnsiReplaceStr(Result, '◆', '◇');
-    if AnsiPos('#', Result) > 0 then
-    begin
-      if Board.NeedConvert then
-        Result := Copy(Result, 1, AnsiPos('#', Result) - 1) + '</b>'
-          + Trip(sjis2euc(Copy(Result,AnsiPos('#', Result) + 1, Length(Result)))) + ' <b>'
-      else
-        Result := Copy(Result, 1, AnsiPos('#', Result) - 1) + '</b>'
-          + Trip(Copy(Result,AnsiPos('#', Result) + 1, Length(Result))) + ' <b>';
-    end;
-    if AnsiPos('＃', Result) > 0 then
-    begin
-      Result := Copy(Result, 1, AnsiPos('＃', Result) - 1) + '</b>'
-        + Trip(Copy(Result,AnsiPos('＃', Result) + 2, Length(Result))) + ' <b>';
-    end;
-    if not Config.tstAuthorizedAccess then
-    begin
-      Result := AnsiReplaceStr(Result, '●', '○');
-    end;
-    Result := AnsiReplaceStr(Result, '"', '&quot;');
-  end;
-  function MailConv(const S: string):string;
-  begin
-    Result := HtmlPost(S);
-    if AnsiPos('#', Result) > 0 then
-    begin
-      Result := Copy(Result, 1, AnsiPos('#', Result) - 1);
-    end;
-    if AnsiPos('＃', Result) > 0 then
-    begin
-      Result := Copy(Result, 1, AnsiPos('＃', Result) - 1);
-    end;
-    Result := AnsiReplaceStr(Result, '"', '&quot;');
-  end;
-  function MessageConv(const S: string):string;
-  begin
-    Result := HtmlPost(S);
-    Result := AnsiReplaceStr(Result, '"', '&quot;');
-  end;
-var
-  aName, aMail, aDate, aMessage: string;
-  p1, p2: PChar;
-  tmp: String; //beginner
-begin
-  if EditNameBox.Text <> '' then
-  begin
-    if board.GetBBSType = bbs2ch then
-      aName := StringReplace(EditNameBox.Text, '&r', '', [rfReplaceAll])
-    else
-      aName := EditNameBox.Text;
-  end else
-    aName := SettingTxt.Lines.Values['BBS_NONAME_NAME'];
-
-  aMail := EditMailBox.Text;
-  aDate := FormatDateTime('yy/mm/dd hh:nn', Now);
-  if SameText(SettingTxt.Lines.Values['BBS_FORCE_ID'], 'checked') then
-    aDate := aDate + ' ID:xxxxxxxxxx'
-  else if (SettingTxt.Lines.Values['BBS_NO_ID'] = '') or
-          SameText(SettingTxt.Lines.Values['ID_DISP'], 'show') then
-    if Length(aMail) = 0 then
-      aDate := aDate + ' ID:xxxxxxxxxx'
-    else
-      aDate := aDate + ' ID:???';
-
-  aMessage := Memo.Text;
-
-  aName := NameConv(aName);
-  aMail := MailConv(aMail);
-  aMessage := MessageConv(aMessage);
-
-  if Length(aName) = 0 then
-    aName := '<b>名無しさん</b>';
-
-  Result := aName + '<>'
-          + aMail + '<>'
-          + aDate + '<>'
-          + aMessage + '<>' + #10;
-
-  //Unicode置換板の処理
-  if SameText(SettingTxt.Lines.Values['BBS_UNICODE'], 'change') then
-  begin
-    p1 := PChar(Result);
-    SetLength(tmp, Length(Result));
-    p2 := PChar(tmp);
-    while True do
-    begin
-      if (p1^ = '&') and ((p1 + 1)^ ='#') then
-      begin
-        p2^ := #$81;
-        inc(p2);
-        p2^ := #$48;
-        inc(p2);
-        inc(p1, 2);
-        while p1^ in ['0'..'9'] do
-          inc(p1);
-        if p1^ = ';' then
-          inc(p1);
-      end else
-      begin
-        if p1^ in LeadBytes then
-        begin
-          p2^ := p1^;
-          inc(p1);
-          inc(p2);
-          p2^ := p1^;
-          inc(p1);
-          inc(p2);
-        end else
-        begin
-          p2^ := p1^;
-          if p1^ = #10 then
-            Break;
-          inc(p1);
-          inc(p2);
-        end;
-      end;
-    end;
-    Result := copy(tmp, 1, p2 - PChar(tmp) + 1);
-  end;
-end;
-
-function ZoomToPoint(zoom: integer): Integer;
-begin
-  result := -12; // 9;
-  {case zoom of
-  0: result := -9;
-  1: result := -10;
-  2: result := -12;
-  3: result := -14;//521 -16
-  4: result := -15;//521 -24
-  end;}
-end;
-
-function ZoomToExternalLeading(zoom: integer): Integer;
-begin
-  result := 1;
-  case zoom of
-  0: result := 1;
-  1: result := 2;
-  2: result := 2;
-  3: result := 3;
-  4: result := 4;
-  end;
-end;
-
 procedure TWriteForm.MakePreview;
 begin
-  PreviewItem.thread := thread;
-  PreviewItem.Base := '';
-  Preview.HoverTime := Config.hintHoverTime;
-  Preview.Clear;
-  WritePreview;
-end;
-
-procedure TWriteForm.WritePreview;
-  function MakeDummyDat(line: Integer):string;
-  const
-//  dummyDat : string = '名無し<>sage<>01/01/01 00:00<> message <>'#10;
-    dummyDat : string = '<><><><>'#10;
-  begin
-    Result := DupeString(dummyDat, line);
-  end;
-const
-  HeaderSkin = '<html><body><font face="ＭＳ Ｐゴシック"><dl>';
-var
-  dat: TThreadData;
-  ResSkin: string;
-  TempStream: TDat2PreViewView;
-  PreviewD2HTML: TDat2HTML;
-begin
-  TempStream := TDat2PreViewView.Create(Preview);
-  if EditMailBox.Text='' then
-    ResSkin := '<dt><SA i=1><b><PLAINNUMBER/></b><SA i=0> ：<SA i=2><b><NAME/></b></b><SA i=0>[<MAIL/>] ：<DATE/></dt><dd><MESSAGE/><br><br></dd>'#10
-  else
-    ResSkin := '<dt><SA i=1><b><PLAINNUMBER/></b><SA i=0> ：<SA i=1><b><NAME/></b></b><SA i=0>[<MAIL/>] ：<DATE/></dt><dd><MESSAGE/><br><br></dd>'#10;
-
-  PreviewD2HTML := TDat2HTML.Create(resSkin, Config.SkinPath);
-  dat := TThreadData.Create;
-  try
-    Preview.ExternalLeading := ZoomToExternalLeading(Config.viewZoomSize);
-    Preview.SetFont(Preview.Font.Name, ZoomToPoint(Config.viewZoomSize));
-    TempStream.WriteHTML(HeaderSkin);
-    TempStream.Flush;
-    if Assigned(thread) then
-    begin
-      dat.Add(MakeDummyDat(thread.lines));
-      dat.Add(Res2Dat);
-      PreviewD2HTML.ToDatOut(TempStream, dat, thread.lines + 1, 1)
-    end else
-    begin
-      dat.Add(Res2Dat);
-      PreviewD2HTML.ToDatOut(TempStream, dat, 1, 1);
-    end;
-    TempStream.Flush;
-  finally
-    dat.Free;
-    PreviewD2HTML.Free;
-    TempStream.Free;
-  end;
+  CreatePreView(PreViewItem, PreView, thread, board, EditNameBox.Text,
+    EditMailBox.Text, Memo.Text, settingTxt.Lines);
 end;
 
 procedure TWriteForm.writeActFocusThreadExecute(Sender: TObject);
@@ -2117,16 +1422,16 @@ begin
     Inc(Lines);
 
   tmpColor := Self.Color;
-  if BBSLineNumuber > 0 then
-    if Lines > BBSLineNumuber * 2 then
+  if BBSLineNumber > 0 then
+    if Lines > BBSLineNumber * 2 then
       tmpColor := $007f7fff
-    else if Lines > BBSLineNumuber then
+    else if Lines > BBSLineNumber then
       tmpColor := $007fffff;
   PanelColor[1] := tmpColor;
 
   tmpTxt := Format('%4d',[Lines]);
-  if BBSLineNumuber > 0 then
-    WStatusBar.Panels[1].Text := Format('Lines: %4d/%4d',[Lines, BBSLineNumuber * 2])
+  if BBSLineNumber > 0 then
+    WStatusBar.Panels[1].Text := Format('Lines: %4d/%4d',[Lines, BBSLineNumber * 2])
   else
     WStatusBar.Panels[1].Text := Format('Lines: %4d/ 不明',[Lines]);
 
@@ -2212,35 +1517,35 @@ procedure TWriteForm.ToolButtonRecordNameMailClick(Sender: TObject);
 begin
   Config.wrtRecordNameMail := not Config.wrtRecordNameMail;
   ToolButtonRecordNameMail.Down := Config.wrtRecordNameMail;
-  JLWritePanel.SetRecordNameMailCheckBox(Config.wrtRecordNameMail);
+  MainWnd.ToolButtonWriteRecordNameMail.Down := Config.wrtRecordNameMail;
 end;
 
 procedure TWriteForm.ToolButtonTrimClick(Sender: TObject);
 begin
   Config.wrtTrimRight := not Config.wrtTrimRight;
   ToolButtonTrim.Down := Config.wrtTrimRight;
-  JLWritePanel.SetTrimRightCheckBox(Config.wrtTrimRight);
+  MainWnd.ToolButtonWriteTrim.Down := Config.wrtTrimRight;
 end;
 
 procedure TWriteForm.ToolButtonWriteWaitClick(Sender: TObject);
 begin
   Config.wrtUseWriteWait := not Config.wrtUseWriteWait;
   ToolButtonWriteWait.Down := Config.wrtUseWriteWait;
-  JLWritePanel.SetWriteWait(Config.wrtUseWriteWait);
+  MainWnd.ToolButtonWriteUseWriteWait.Down := Config.wrtUseWriteWait;
 end;
 
 procedure TWriteForm.ToolButtonNameWarnClick(Sender: TObject);
 begin
   Config.wrtNameMailWarning := not Config.wrtNameMailWarning;
   ToolButtonNameWarn.Down := Config.wrtNameMailWarning;
-  JLWritePanel.SetNameMailWarning(Config.wrtNameMailWarning);
+  MainWnd.ToolButtonWriteNameMailWarning.Down := Config.wrtNameMailWarning;
 end;
 
 procedure TWriteForm.ToolButtonBeLoginClick(Sender: TObject);
 begin
   Config.wrtBeLogin := not Config.wrtBeLogin;
   ToolButtonBeLogin.Down := Config.wrtBeLogin;
-  JLWritePanel.SetBeLogin(Config.wrtBeLogin);
+  MainWnd.ToolButtonWriteBelogin.Down := Config.wrtBeLogin;
 end;
 
 procedure TWriteForm.WaitTimerStart;

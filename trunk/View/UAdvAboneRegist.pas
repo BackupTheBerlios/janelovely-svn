@@ -33,6 +33,9 @@ type
     EditName: TEdit;
     EditNGWord: TEdit;
     ButtonRename: TButton;
+    ComboBoxNGURLType: TComboBox;
+    Label8: TLabel;
+    EditNGURL: TEdit;
     procedure FormCreate(Sender: TObject);
     procedure ComboBoxNGChange(Sender: TObject);
     procedure EditNGChange(Sender: TObject);
@@ -40,8 +43,8 @@ type
     procedure ButtonRenameClick(Sender: TObject);
     procedure EditNameExit(Sender: TObject);
   protected
-    ComboBoxNGItems: array[TNGItemIdent] of TComboBox;
-    EditNGItems    : array[TNGItemIdent] of TEdit;
+    ComboBoxNGItems: array[TNGExItemIdent] of TComboBox;
+    EditNGItems    : array[TNGExItemIdent] of TEdit;
     FItemName: String;
     FOnChangeNameQuery: TChangeNameQueryEvent;
     function Validate: Boolean;
@@ -63,22 +66,24 @@ implementation
 //Create時にコンポーネント配列を設定
 procedure TAdvAboneRegist.FormCreate(Sender: TObject);
 begin
-  ComboBoxNGItems[NG_ITEM_NAME] := ComboBoxNGNameType;
-  ComboBoxNGItems[NG_ITEM_MAIL] := ComboBoxNGMailType;
-  ComboBoxNGItems[NG_ITEM_MSG]  := ComboBoxNGWordType;
-  ComboBoxNGItems[NG_ITEM_ID]   := ComboBoxNGIdType;
+  ComboBoxNGItems[NGEX_ITEM_NAME] := ComboBoxNGNameType;
+  ComboBoxNGItems[NGEX_ITEM_MAIL] := ComboBoxNGMailType;
+  ComboBoxNGItems[NGEX_ITEM_MSG]  := ComboBoxNGWordType;
+  ComboBoxNGItems[NGEX_ITEM_ID]   := ComboBoxNGIdType;
+  ComboBoxNGItems[NGEX_ITEM_URL]  := ComboBoxNGURLType;
 
-  EditNGItems[NG_ITEM_NAME] := EditNGName;
-  EditNGItems[NG_ITEM_MAIL] := EditNGMail;
-  EditNGItems[NG_ITEM_MSG]  := EditNGWord;
-  EditNGItems[NG_ITEM_ID]   := EditNGId;
+  EditNGItems[NGEX_ITEM_NAME] := EditNGName;
+  EditNGItems[NGEX_ITEM_MAIL] := EditNGMail;
+  EditNGItems[NGEX_ITEM_MSG]  := EditNGWord;
+  EditNGItems[NGEX_ITEM_ID]   := EditNGId;
+  EditNGItems[NGEX_ITEM_URL]  := EditNGURL;
 end;
 
 
 //本体部分　(Itemの内容を表示、変更)
 function TAdvAboneRegist.ShowModal(var ItemName: string; Item: TExNgItem): Integer;
 var
-  i: TNGItemIdent;
+  i: TNGExItemIdent;
 begin
 
   FItemName := ItemName;
@@ -124,7 +129,7 @@ end;
 //よろしボタンをEnableにしてもいいか判定
 function TAdvAboneRegist.Validate;
 var
-  i: TNGItemIdent;
+  i: TNGExItemIdent;
   NotNop: Boolean;
 begin
   Result := True;
@@ -145,7 +150,7 @@ end;
 //「無視」にしたらキーワードをヌルに
 procedure TAdvAboneRegist.ComboBoxNGChange(Sender: TObject);
 var
-  i: TNGItemIdent;
+  i: TNGExItemIdent;
 begin
   if (Sender as TComboBox).ItemIndex = 0 then
     for i := Low(i) to High(i) do
@@ -158,7 +163,7 @@ end;
 //キーワードがヌルでなくなったら「無視」から「含む」に
 procedure TAdvAboneRegist.EditNGChange(Sender: TObject);
 var
-  i: TNGItemIdent;
+  i: TNGExItemIdent;
 begin
   if (Sender as TEdit).Text <> '' then
     for i := Low(i) to High(i) do

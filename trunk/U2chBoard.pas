@@ -83,7 +83,7 @@ type
     sortColumn: integer;    (* スレ一覧でのソート状態 *)
     threadSearched: Boolean; (* スレ一覧でのスレ絞込み状態 *)
     timeValue: Int64;       (* サーバ時間 bbs.cgiへのPOST時に使用 *)
-    BBSLineNumuber: Integer;
+    BBSLineNumber: Integer;
     BBSMessageCount: Integer;
     BBSSubjectCount: Integer;
     BBSNameCount: Integer;
@@ -119,7 +119,7 @@ type
     procedure Activate;
     procedure ResetListState; virtual; (* 仮想メソッドにする (aiai) *)
     //改造▽ 追加 (スレッドあぼ～ん)
-    function ThreadAbone(ABoneList: TList): boolean; (* スレッドあぼ～ん *)
+    function ThreadAbone(ABoneList: TList; AboneType: Byte): boolean; (* スレッドあぼ～ん *)
     //改造△ 追加 (スレッドあぼ～ん)
     (* Drag and Drop でログ追加 (aiai) *)
     procedure MergeCacheFrequency(fnamelist: TStringList);
@@ -205,7 +205,7 @@ implementation
 (*=======================================================*)
 
 uses
-  U2chCat, Main, JLWritePanel;
+  U2chCat, Main, UWritePanelControl;
 
 const
   SUBJECT_TXT = '\subject.txt';
@@ -516,7 +516,7 @@ var
     nums: string;
     num: integer;
     idx: integer;
-    abone: boolean;
+    abone: ShortInt;
   begin
     (* dat-name delimiter subject space (num) *)
     (* dat *)
@@ -525,22 +525,41 @@ var
     if (refEnd <= 0) then
       exit;
     datName := ChangeFileExt(Copy(txt, refPos, refEnd - refPos), '');
-    abone := False;
+    abone := 0;
     //スレッドあぼ～ん
     idx := threadABoneList.IndexOfName(datName);
     if idx >= 0 then
     begin
-      threadABoneNext.Add(threadABoneList.Strings[idx]); //ヒットしたスレを加える
-      abone := True;
+      if Length(threadABoneList.Values[datName]) > 0 then
+      begin
+        abone := StrToIntDef(threadAboneList.Values[datName][1], 1) or TThreABNFLAG;
+      end else
+        abone := 1 or TThreABNFLAG;
+      threadABoneNext.Add(threadAboneList.Strings[idx]);
     end;
     (* subject *)
     refPos := topOfSubject(refEnd);
     refEnd := endOfSubject(refPos, endOfRec);
     subject := Copy(txt, refPos, refEnd - refPos);
     //NGThread
-    if not abone then
-      for idx := 0 to Main.NGThreadItems.Count - 1 do
-        abone := 0 < AnsiPos(Main.NGThreadItems.Strings[idx], subject);
+    if abone = 0 then
+      for idx := 0 to Main.ThreNGList.Count - 1 do
+      begin
+        if ThreNGList.NGData[idx].BMSearch.Search(PChar(subject), Length(subject)) <> nil then
+        begin
+          Inc(ThreNGList.NGData[idx].Count);
+          case ThreNGList.NGData[idx].AboneType of
+          0: //通常
+            abone := 1;
+          2: //透明
+            abone := 2;
+          4: //重要
+            abone := 4;
+          end;
+          //threadABoneNext.Add(datName + '=' + IntToStr(abone) + ' ' + subject); //ヒットしたスレを加える
+          break;
+        end;
+      end;
     (* numを取得 *)
     refPos := topOfNums(refEnd, endOfRec);
     refEnd := endOfNums(refPos, endOfRec);
@@ -560,7 +579,7 @@ var
     item.datName := datName;
     item.previousitemCount := item.itemCount;
     item.itemCount := num;
-    item.IsThisAbone := abone;
+    item.ThreAboneType := abone;
     Add(item);
     item.number := Count;
     //item.contemporary := true;
@@ -1355,7 +1374,7 @@ end;
 
 //改造▽ 追加 (スレッドあぼ～ん)
 (* スレッドあぼ～ん *)
-function TBoard.ThreadAbone(ABoneList: TList): boolean;
+function TBoard.ThreadAbone(ABoneList: TList; AboneType: Byte): boolean;
 var
   i, intIndex: integer;
   threadABoneList: TStringList;
@@ -1400,15 +1419,16 @@ begin
       Continue;
 
     //すでに登録されているかどうか
-    //if threadABoneList.IndexOfName(thread.datName) >= 0 then
-    //  Continue;
+    intIndex := threadABoneList.IndexOfName(thread.datName);
+    if intIndex >= 0 then
+      threadABoneList.Delete(intIndex); 
 
     //あぼ～んリストに加える
-    threadABoneList.Add(thread.datName + '=' + thread.title);
+    threadABoneList.Add(thread.datName + '=' + IntToStr(AboneType) + ' ' + thread.title);
 
     //スレッドを削除
     //thread.Free;
-    thread.IsThisAbone := True;
+    thread.ThreAboneType := AboneType or TThreABNFLAG;
 
     //板から削除
     //Self.Delete(intIndex);
@@ -1618,7 +1638,7 @@ begin
   gotSettingTxt := tpsNone;
   FreeAndNil(storedSettingTxt);
   NeedSETTINGTXT := False;
-  BBSLineNumuber := 0;
+  BBSLineNumber := 0;
   BBSMessageCount := 0;
   BBSSubjectCount := High(Integer);
   BBSNameCount := High(Integer);
@@ -1629,7 +1649,7 @@ begin
     if storedSettingTxt.Load then
     begin
       SettingTxt.Text := storedSettingTxt.DataString;
-      BBSLineNumuber := StrToIntDef(SettingTxt.Values[BBS_LINE_NUMBER], 0);
+      BBSLineNumber := StrToIntDef(SettingTxt.Values[BBS_LINE_NUMBER], 0);
       BBSMessageCount := StrToIntDef(SettingTxt.Values[BBS_MESSAGE_COUNT], 0);
       BBSSubjectCount := StrToIntDef(SettingTxt.Values[BBS_SUBJECT_COUNT], BBSSubjectCount);
       BBSNameCount := StrToIntDef(SettingTxt.Values[BBS_NAME_COUNT], BBSNameCount);
@@ -1689,7 +1709,7 @@ begin
           storedSettingTxt.Info.Add(sender.GetLastModified);
           storedSettingTxt.Save;
           SettingTxt.Text := storedSettingTxt.DataString;
-          BBSLineNumuber  := StrToIntDef(SettingTxt.Values[BBS_LINE_NUMBER], 0);
+          BBSLineNumber  := StrToIntDef(SettingTxt.Values[BBS_LINE_NUMBER], 0);
           BBSMessageCount := StrToIntDef(SettingTxt.Values[BBS_MESSAGE_COUNT], 0);
           BBSSubjectCount := StrToIntDef(SettingTxt.Values[BBS_SUBJECT_COUNT], High(Integer));
           BBSNameCount    := StrToIntDef(SettingTxt.Values[BBS_NAME_COUNT], High(Integer));
@@ -1714,7 +1734,7 @@ begin
           storedSettingTxt.Info.Add(sender.GetLastModified);
           storedSettingTxt.Save;
           SettingTxt.Text := storedSettingTxt.DataString;
-          BBSLineNumuber  := StrToIntDef(SettingTxt.Values[BBS_LINE_NUMBER], 0);
+          BBSLineNumber  := StrToIntDef(SettingTxt.Values[BBS_LINE_NUMBER], 0);
           BBSMessageCount := StrToIntDef(SettingTxt.Values[BBS_MESSAGE_COUNT], 0);
           BBSSubjectCount := StrToIntDef(SettingTxt.Values[BBS_SUBJECT_COUNT], High(Integer));
           BBSNameCount    := StrToIntDef(SettingTxt.Values[BBS_NAME_COUNT], High(Integer));

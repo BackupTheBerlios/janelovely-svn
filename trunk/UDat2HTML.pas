@@ -255,6 +255,7 @@ type
     PermanentMarking:Boolean;
     {/beginner}
     LinkABone: Boolean;  //aiai
+    URL: string;
     constructor Create(body: string; skinpath: string);
     destructor Destroy; override;
     function ToDatOut(dest: TDatOut; dat: TThreadData;
@@ -2325,6 +2326,7 @@ var
   ResItems: TArrayOfNGItemPChar;
   {/beginner}
   {aiai}
+  ResItemsEx: TArrayOfNGExItemPChar;
   convname, convmail, convmsg: string;
   {/aiai}
 
@@ -2483,6 +2485,20 @@ begin
     ResItems[NG_ITEM_MSG ].Size := msgSize;
     ResItems[NG_ITEM_ID  ].Size := dateSize;
 
+    {aiai}
+    ResItemsEx[NGEX_ITEM_NAME].pStart := name;
+    ResItemsEx[NGEX_ITEM_MAIL].pStart := mail;
+    ResItemsEx[NGEX_ITEM_MSG ].pStart := msg;
+    ResItemsEx[NGEX_ITEM_ID  ].pStart := PChar(DataString) + dateStart - 1;
+    ResItemsEx[NGEX_ITEM_URL].pStart := PChar(URL);
+
+    ResItemsEx[NGEX_ITEM_NAME].Size := nameSize;
+    ResItemsEx[NGEX_ITEM_MAIL].Size := mailSize;
+    ResItemsEx[NGEX_ITEM_MSG ].Size := msgSize;
+    ResItemsEx[NGEX_ITEM_ID  ].Size := dateSize;
+    ResItemsEx[NGEX_ITEM_URL].Size := Length(URL);
+    {/aiai}
+
     if AboneArray <> nil then AboneType := AboneArray[line];
 
     for ngi := Low(TNGItemIdent) to High(TNGItemIdent) do begin
@@ -2495,7 +2511,7 @@ begin
 
     if Assigned(ExNGList) then
       for i := 0 to ExNGList.Count - 1 do
-        if ExNGList.NGData[i].Search(ResItems) then
+        if ExNGList.NGData[i].Search(ResItemsEx) then
           AboneType := Arrest(AboneType, ExNGList.NGData[i]);
     {òAçΩÇ†Ç⁄Å[ÇÒ}
 //koreawatcher Åü9iLyiaWJOQ

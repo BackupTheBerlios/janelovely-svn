@@ -1,10 +1,10 @@
 object UIConfig: TUIConfig
   Left = 306
-  Top = 149
+  Top = 147
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = #35373#23450
-  ClientHeight = 390
+  ClientHeight = 392
   ClientWidth = 512
   Color = clBtnFace
   Font.Charset = SHIFTJIS_CHARSET
@@ -52,7 +52,7 @@ object UIConfig: TUIConfig
     Top = 8
     Width = 393
     Height = 345
-    ActivePage = SheetNet
+    ActivePage = SheetColors
     Style = tsFlatButtons
     TabOrder = 1
     TabStop = False
@@ -1683,7 +1683,7 @@ object UIConfig: TUIConfig
             OnMouseMove = ListBoxNGWordMouseMove
           end
         end
-        object TabSheet1: TTabSheet
+        object Sheet_NGEx: TTabSheet
           Caption = 'NGEx'
           ImageIndex = 4
           object ListBoxNGEx: TListBox
@@ -1702,18 +1702,24 @@ object UIConfig: TUIConfig
             OnMouseMove = ListBoxNGWordMouseMove
           end
         end
-        object NGThread: TTabSheet
+        object Sheet_NGThread: TTabSheet
+          HelpType = htKeyword
           Caption = 'NGThread'
           ImageIndex = 6
+          PopupMenu = PopupNGWord
           object ListBoxNGThread: TListBox
             Left = 0
             Top = 0
             Width = 377
             Height = 222
+            Style = lbOwnerDrawFixed
             Align = alClient
             ItemHeight = 12
             MultiSelect = True
+            PopupMenu = PopupNGWord
             TabOrder = 0
+            OnDrawItem = ListBoxNGNameDrawItem
+            OnMouseMove = ListBoxNGWordMouseMove
           end
         end
         object Sheet_Option: TJLXPTabSheet
@@ -1721,15 +1727,15 @@ object UIConfig: TUIConfig
           ImageIndex = 5
           object Label60: TLabel
             Left = 24
-            Top = 112
-            Width = 154
+            Top = 95
+            Width = 191
             Height = 12
-            Caption = 'NGName,Addr,Word'#12398#26399#38480'('#26085')'
+            Caption = 'NGName,Addr,Word,Thread'#12398#26399#38480'('#26085')'
             Transparent = True
           end
           object Label61: TLabel
             Left = 24
-            Top = 176
+            Top = 160
             Width = 123
             Height = 12
             Caption = #12487#12501#12457#12523#12488#12398#12354#12412#12540#12435#27861
@@ -1737,15 +1743,23 @@ object UIConfig: TUIConfig
           end
           object Label62: TLabel
             Left = 24
-            Top = 144
+            Top = 123
             Width = 83
             Height = 12
             Caption = 'NGID'#12398#26399#38480'('#26085')'
             Transparent = True
           end
+          object Label80: TLabel
+            Left = 24
+            Top = 190
+            Width = 161
+            Height = 12
+            Caption = #12487#12501#12457#12523#12488#12398#12473#12524#12483#12489#12354#12412#65374#12435#27861
+            Transparent = True
+          end
           object CheckBoxLinkAbone: TCheckBox
             Left = 32
-            Top = 73
+            Top = 61
             Width = 97
             Height = 17
             Caption = #36899#37782#12354#12412#65374#12435
@@ -1753,7 +1767,7 @@ object UIConfig: TUIConfig
           end
           object cbPermanentNG: TCheckBox
             Left = 8
-            Top = 22
+            Top = 17
             Width = 281
             Height = 17
             Caption = 'NG'#12434#12354#12412#65374#12435'(NG'#12527#12540#12489#12434#21066#38500#12375#12390#12418#24489#27963#12375#12394#12356')'
@@ -1762,15 +1776,15 @@ object UIConfig: TUIConfig
           end
           object cbPermanentMarking: TCheckBox
             Left = 32
-            Top = 49
+            Top = 37
             Width = 305
             Height = 17
             Caption = #37325#35201#12461#12540#12527#12540#12489#12434#21547#12416#12524#12473#12434#33258#21205#30340#12395#12481#12455#12483#12463#12377#12427
             TabOrder = 2
           end
           object seNGItemLifeSpan: TJLXPSpinEdit
-            Left = 192
-            Top = 108
+            Left = 225
+            Top = 91
             Width = 65
             Height = 21
             MaxValue = 0
@@ -1779,8 +1793,8 @@ object UIConfig: TUIConfig
             Value = 0
           end
           object seNGIDLifeSpan: TJLXPSpinEdit
-            Left = 192
-            Top = 140
+            Left = 225
+            Top = 119
             Width = 65
             Height = 21
             MaxValue = 0
@@ -1789,8 +1803,8 @@ object UIConfig: TUIConfig
             Value = 0
           end
           object cmbAboneLevel: TComboBox
-            Left = 168
-            Top = 170
+            Left = 225
+            Top = 156
             Width = 113
             Height = 20
             Style = csDropDownList
@@ -1800,6 +1814,19 @@ object UIConfig: TUIConfig
               #12392#12358#12417#12356
               #12405#12388#12358
               #12413#12387#12407#12354#12387#12407
+              #12373#12412#12426)
+          end
+          object cmbThreAboneLevel: TComboBox
+            Left = 224
+            Top = 188
+            Width = 113
+            Height = 20
+            Style = csDropDownList
+            ItemHeight = 12
+            TabOrder = 6
+            Items.Strings = (
+              #12392#12358#12417#12356
+              #12405#12388#12358
               #12373#12412#12426)
           end
         end
@@ -3860,8 +3887,8 @@ object UIConfig: TUIConfig
   object PopupNGWord: TPopupMenu
     AutoHotkeys = maManual
     OnPopup = PopupNGWordPopup
-    Left = 44
-    Top = 332
+    Left = 12
+    Top = 300
     object MenuDeleteNGWord: TMenuItem
       Caption = #21066#38500'(&D)'
       OnClick = ButtonDeleteNGWordClick

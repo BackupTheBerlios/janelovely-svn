@@ -328,7 +328,6 @@ type
     procedure btnSelectCachePathClick(Sender: TObject);
     procedure edCachePathKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
-    procedure edCachePathKeyPress(Sender: TObject; var Key: Char);
     procedure cbSusiePluginsEnabledClick(Sender: TObject);
   private
     { Private 宣言 }
@@ -1236,17 +1235,9 @@ end;
 procedure TImageViewPreference.edCachePathKeyDown(Sender: TObject;
   var Key: Word; Shift: TShiftState);
 begin
-  case Key of
-    VK_DELETE, VK_BACK: edCachePath.Text := '';
-  end;
+  if Key = VK_DELETE then
+    edCachePath.Clear;
 end;
-
-procedure TImageViewPreference.edCachePathKeyPress(Sender: TObject;
-  var Key: Char);
-begin
-  Key := #0;
-end;
-
 
 //マックバイナリ部分のスキップ
 function SeekSkipMacBin(Stream: TStream): Boolean;

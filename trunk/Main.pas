@@ -38,7 +38,7 @@ uses
   UAutoScrollSettingForm, ULovelyWebForm, UNews, UGetBoardListForm,
   UChottoForm, UImageViewCacheListForm,
   UCheckSeverDown, UMDITextView, UWriteWait,
-  JLWritePanel, JLTab, JLToolButton, JLSideBar, JLXPComCtrls;
+  UWritePanelControl, JLToolButton, JLSideBar, JLXPComCtrls;
   {/aiai}
 
 const
@@ -690,9 +690,6 @@ type
     N56: TMenuItem;
     MenuStatusOpenByLovelyBrowser: TMenuItem;
     BoardSplitter: TSplitter;
-    Panel6: TPanel;
-    TreeViewTab: TJLTab;
-    FavoriteViewTab: TJLTab;
     MenuBoardCanMove: TMenuItem;
     WritePanel: TPanel;
     WritePanelTitle: TPanel;
@@ -701,11 +698,6 @@ type
     ToolButtonWriteTitle: TJLToolButton;
     ToolButtonWriteTitleAutoHide: TJLToolButton;
     ToolButtonWriteTitleClose: TJLToolButton;
-    Panel5: TPanel;
-    JLTabWrite: TJLTab;
-    JLTabPreView: TJLTab;
-    JLTabSettingTXT: TJLTab;
-    JLTabResult: TJLTab;
     WritePanelSplitter: TSplitter;
     PopupWritePanel: TPopupMenu;
     MenuWritePanelPos: TMenuItem;
@@ -836,6 +828,49 @@ type
     PopupTreeCustomSkinDefault: TMenuItem;
     PopupViewCopyURL: TMenuItem;
     TextPopupTrensferToWriteMemo: TMenuItem;
+    N77: TMenuItem;
+    MenuListAboneNormal: TMenuItem;
+    actThreadAboneNormal: TAction;
+    actThreadAboneImportantResOnly: TAction;
+    N99: TMenuItem;
+    actThreadAbone3: TAction;
+    N100: TMenuItem;
+    actThreadAbone4: TAction;
+    N101: TMenuItem;
+    N102: TMenuItem;
+    N103: TMenuItem;
+    N104: TMenuItem;
+    N105: TMenuItem;
+    PageControlWrite: TPageControl;
+    TabSheetWriteMain: TTabSheet;
+    TabSheetWritePreview: TTabSheet;
+    TabSheetWriteSettingTxt: TTabSheet;
+    TabSheetWriteResult: TTabSheet;
+    StatusBarWrite: TJLXPStatusBar;
+    MemoWriteResult: TMemo;
+    MemoWriteSettingTxt: TMemo;
+    PanelWriteNameMail: TPanel;
+    LabelWriteName: TLabel;
+    ComboBoxWriteName: TComboBox;
+    LabelWriteMail: TLabel;
+    ComboBoxWriteMail: TComboBox;
+    CheckBoxWriteSage: TCheckBox;
+    MemoWriteMain: TMemo;
+    PanelWriteTool: TPanel;
+    ToolBarWriteTool: TJLXPToolBar;
+    ToolButtonWriteAA: TToolButton;
+    ToolButtonWriteSave: TToolButton;
+    ToolButtonWriteLoad: TToolButton;
+    ToolButtonWriteClear: TToolButton;
+    ToolButtonWriteRecordNameMail: TToolButton;
+    ToolButtonWriteTrim: TToolButton;
+    ToolButton20: TToolButton;
+    ToolButtonWriteUseWriteWait: TToolButton;
+    ToolButtonWriteNameMailWarning: TToolButton;
+    ToolButtonWriteBelogin: TToolButton;
+    ButtonWriteWrite: TButton;
+    Button2: TButton;
+    TreeTabControl: TTabControl;
     {/aiai}
     procedure FormCreate(Sender: TObject);
     procedure MenuToolsOptionsClick(Sender: TObject);
@@ -1063,9 +1098,7 @@ type
     procedure MenuViewTreeToggleVisibleClick(Sender: TObject);
     procedure MenuViewDivisionChangeClick(Sender: TObject);
     procedure MenuViewPaneModeChangeClick(Sender: TObject);
-    {aiai}
-    //procedure TreeTabControlChange(Sender: TObject);
-    {/aiai}
+    procedure TreeTabControlChange(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure actDeleteFavoriteExecute(Sender: TObject);
     procedure ViewPopupDelFavClick(Sender: TObject);
@@ -1233,8 +1266,6 @@ type
     procedure PopupTaskTrayRestoreClick(Sender: TObject);
     procedure MenuViewClick(Sender: TObject);
     procedure PanelTitlePanelClick(Sender: TObject);
-    procedure TreeViewTabMouseDown(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
     procedure ToolButtonWriteTitleAutoHideClick(Sender: TObject);
     procedure ToolButtonWriteTitleCloseClick(Sender: TObject);
     procedure WritePanelEnter(Sender: TObject);
@@ -1251,8 +1282,6 @@ type
     procedure LabelWriteTitleMouseUp(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure ToolButtonWriteTitleMouseDown(Sender: TObject;
-      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure JLTabControlMouseDown(Sender: TObject;
       Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure ToolButtonTreeTitleMouseDown(Sender: TObject;
       Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -1331,6 +1360,12 @@ type
     procedure actThreadAboneShowExecute(Sender: TObject);
     procedure PopupTreeCustomSkinClick(Sender: TObject);
     procedure PopupViewCopyURLClick(Sender: TObject);
+    procedure ButtonWriteWriteClick(Sender: TObject);
+    procedure ToolButtonWriteClick(Sender: TObject);
+    procedure PageControlWriteChange(Sender: TObject);
+    procedure MemoWriteMainEnter(Sender: TObject);
+    procedure MemoWriteMainExit(Sender: TObject);
+    procedure ToolButtonWriteAAClick(Sender: TObject);
     {/aiai}
   private
   { Private 宣言 }
@@ -1389,7 +1424,6 @@ type
     //preWindowState: TWindowState;
 
     TreePanelVisible: Boolean;
-    TreeTabControlIndex: Byte;
     TreePanelCanMove: Boolean;
     TreePanelMouseDowned: Boolean;
     TreePanelOriginalX: Integer;
@@ -1398,7 +1432,6 @@ type
     TreePanelFixedWidth: Integer;
 
     WritePanelCanMove: Boolean;
-    WritePanelTabControlIndex: Byte;
     WritePanelMouseDowned: Boolean;
     WritePanelOriginalX: Integer;
     WritePanelOriginalY: Integer;
@@ -1406,14 +1439,7 @@ type
     WritePanelHoverRect: TRect;
     WritePanelFixedHeight: Integer;
 
-    //改造▽ 追加 (スレビューに壁紙を設定する。Doe用)
-    //改造メモ：メモリ節約対応。壁紙の保持をTHogeTextViewの外で行う
-    BrowserWallPaper: TGraphic;
-    //改造△ 追加 (スレビューに壁紙を設定する。Doe用)
-
     CanAutoCheckNewRes: Boolean; //更新のあるスレを選択するだけでリロード可能してよいかどうか
-
-    LocalThreadAboneSetting: Byte;
     {/aiai}
 
     procedure SaveWindowPos;
@@ -1680,8 +1706,9 @@ const
 var
   MainWnd: TMainWnd;
   Config: TJaneConfig;
-  SkinCollectionList: TList;
+  SkinCollectionList: TSkinCollectionList;
   AboneLevel: ShortInt;
+  ThreAboneLevel: ShortInt;
   AsyncManager: TAsyncManager;
   HeaderFile: string;
   urlHeadCache: TUrlHeadCache;
@@ -1722,13 +1749,15 @@ var
   {aiai}
   writing: Boolean;      //現在書き込み中かどうか
   MyNews: TNews;
-  NGThreadItems: TStringList;
+  //NGThreadItems: TStringList;
   PictViewList: TPictureViewList;
 
   MigemoOBJ: TMigemo;
 //  WSHRegExp: Variant;
   NGItems: TNGList;
   ExNGList: TExNGList;
+  ThreNGList: TNGStringList;
+  WritePanelControl: TWritePanelControl;
   {/aiai}
 
 procedure SaveImeMode(wnd: HWND);
@@ -2482,7 +2511,7 @@ var
   BookMarkHTML: string;
   NewMarkHTML: string;
 begin
-  SkinCollectionList := TList.Create;
+  SkinCollectionList := TSkinCollectionList.Create;
 
   Skin := TSkinCollection.Create;
 
@@ -2639,11 +2668,14 @@ begin
     ExNGList.NGData[j].MakeSearchObj;
 
   {aiai}
-  if FileExists(Config.BasePath + NG_THREAD_FILE) then
-    try
-      NGThreadItems.LoadFromFile(Config.BasePath + NG_THREAD_FILE);
-    except
-    end;
+  SetupNGStringList(ThreNGList, NG_THREAD_FILE, Ord(High(TNGItemIdent)) + 2);
+  SetupBMSearch(ThreNGList, true);
+
+//  if FileExists(Config.BasePath + NG_THREAD_FILE) then
+//    try
+//      NGThreadItems.LoadFromFile(Config.BasePath + NG_THREAD_FILE);
+//    except
+//    end;
   {/aiai}
 
 {/beginner}
@@ -2774,7 +2806,7 @@ begin
     StatusBar.Font.Assign(font);
     TabControl.Font.Assign(font);
     ListTabControl.Font.Assign(font);
-    //TreeTabControl.Font.Assign(font);  //aiai
+    TreeTabControl.Font.Assign(font);
     font.Free;
   end;
   if Config.viewTreeFontInfo.face <> '' then
@@ -2851,16 +2883,18 @@ begin
   NGItems[NG_ITEM_MSG ] := TNGStringList.Create;
   NGItems[NG_ITEM_ID  ] := TNGStringList.Create;
   ExNGList := TExNGList.Create;
-  NGThreadItems := TStringList.Create;  //aiai
+  ThreNGList := TNGStringList.Create;  //aiai
+//  NGThreadItems := TStringList.Create;  //aiai
 
   SetupNGWords;
 
-  LocalThreadAboneSetting := 0; //スレッドあぼ～ん表示レベルの初期設定
+  ThreAboneLevel := Config.viewThreAboneLevel; //スレッドあぼ～ん表示レベルの初期設定
   AboneLevel := Config.viewAboneLevel;  //あぼーん表示レベルの初期設定
 
-  case LocalThreadAboneSetting of
-    0: actThreadAboneTranseparency.Checked := True;
-    1: actThreadAboneIgnore.Checked := True;
+  case ThreAboneLevel of
+   -1: MenuListAboneTranseparency.Checked := True;
+    0: MenuListAboneNormal.Checked := True;
+    1: MenuListAboneIgnore.Checked := True;
   end;
   {beginner}
   case AboneLevel of
@@ -3019,6 +3053,28 @@ begin
   TreeViewSearchToolBar.Visible := Config.schUseSearchBar and Config.schShowTreeToolbarOnStartup;
   ListViewSearchEditBox.Items := Config.grepSearchList;
   TreeViewSearchEditBox.Items := Config.grepSearchList;
+
+  (* WriteWaitTimer *)
+  WriteWaitTimer := TWriteWaitTimer.Create;
+  WriteWaitTimer.OnNotify := WriteWaitTimerNotify;
+  WriteWaitTimer.OnEnd := WriteWaitTimerEnd;
+
+  (* メモ欄のセットアップ *)
+  WritePanelControl := TWritePanelControl.Create(Self);
+  With WritePanelControl do
+  begin
+    EditNameBox := ComboboxWriteName;
+    EditMailBox := ComboBoxWriteMail;
+    Memo := MemoWriteMain;
+    SettingTxt := MemoWriteSettingTxt;
+    Result := MemoWriteResult;
+    PageControl := PageControlWrite;
+    WStatusBar := StatusBarWrite;
+    ButtonWrite := ButtonWriteWrite;
+    CheckBoxSage := CheckBoxWriteSage;
+    SetUp;
+    SetAAList;
+  end;
   {/aiai}
 
   OpenStartupThread;
@@ -3027,19 +3083,10 @@ begin
   userImeMode := imDontCare;
 
   {aiai}
-  //ShortDateFormat := 'yy/mm/dd""ddd';
   MenuOptUseNews.Checked := Config.tstUseNews;
   CreateNewsBar;
-
-  (* メモ欄のセットアップ *)
-  CreateWriteMemo(Self, WritePanel, MemoImageList);
-
-  //LoadWindowPos;
   PictViewList := TPictureViewList.Create;
 
-  WriteWaitTimer := TWriteWaitTimer.Create;
-  WriteWaitTimer.OnNotify := WriteWaitTimerNotify;
-  WriteWaitTimer.OnEnd := WriteWaitTimerEnd;
   {/aiai}
 
 //  Application.OnMessage := Self.OnMessage;
@@ -3183,8 +3230,11 @@ begin
   {/beginner}
 
   {aiai}
-  NGThreadItems.SaveToFile(Config.BasePath + NG_THREAD_FILE);
-  NGThreadItems.Free;
+  ThreNGList.SaveToFile(Config.BasePath + NG_THREAD_FILE);
+  ThreNGList.FreeItems;
+  ThreNGList.Free;
+  //NGThreadItems.SaveToFile(Config.BasePath + NG_THREAD_FILE);
+//  NGThreadItems.Free;
   {/aiai}
 
   {ゐ}
@@ -3212,14 +3262,8 @@ begin
   subjectReadyEvent.Free;
   TabSwitchList.Free;
 
-  //改造▽ 修正 (スレビューに壁紙を設定する。Doe用)
-  //改造メモ：メモリ節約対応。壁紙の保持をTHogeTextViewの外で行う
-  if Assigned(BrowserWallpaper) then begin
-    FreeAndNil(BrowserWallpaper);
-  end;
   if Assigned(PictViewList) then
     FreeAndNil(PictViewList);
-  //改造△ 修正 (スレビューに壁紙を設定する。Doe用)
 
   if Assigned(AutoReload) then
     AutoReload.Free;
@@ -3306,7 +3350,7 @@ begin
   iniFile.WriteInteger(INI_WIN_SECT, 'LogHeight', LogPanel.Height);
   (* TreeView / board list *)
   {aiai}
-  iniFile.WriteInteger(INI_WIN_SECT, 'TreeTab', TreeTabControlIndex);
+  iniFile.WriteInteger(INI_WIN_SECT, 'TreeTab', TreeTabControl.TabIndex);
   //iniFile.WriteBool(INI_WIN_SECT, 'TreeAutoHide', TreePanelAutoHide);
   //iniFile.WriteBool(INI_WIN_SECT, 'savedTreePanelVisible', savedTreePanelVisible);
   iniFile.WriteBool(INI_STL_SECT, 'TreeVisible', TreePanel.Visible);
@@ -3351,7 +3395,7 @@ begin
   iniFile.WriteBool(INI_WIN_SECT, 'WriteMemoCanMove', WritePanelCanMove);
   wh.Width := 0;
   wh.Height := 0;
-  wh := SaveAAListBoundsRect(wh);
+  wh := WritePanelControl.SaveAAListBoundsRect(wh);
   iniFile.WriteInteger(INI_WIN_SECT, 'WriteMemoAAWidth', wh.Width);
   iniFile.WriteInteger(INI_WIN_SECT, 'WriteMemoAAHeight', wh.Height);
   iniFile.WriteBool(INI_WIN_SECT, 'WriteMemoTopBar', WritePanelTitle.Visible);
@@ -3419,9 +3463,10 @@ var
   var
     i: integer;
   begin
-    TreeTabControlIndex := iniFile.ReadInteger(INI_WIN_SECT, 'TreeTab', 0);
-    if (TreeTabControlIndex > 1) then
-      TreeTabControlIndex := 0;
+    i := iniFile.ReadInteger(INI_WIN_SECT, 'TreeTab', 0);
+    if (i > 1) then
+      i := 0;
+    TreeTabControl.TabIndex := i;
     TreePanelVisible := iniFile.ReadBool(INI_STL_SECT, 'TreeVisible', True);  //aiai
     TreePanelCanMove := iniFile.ReadBool(INI_WIN_SECT, 'TreePanelCanMove', True);
     TreePanelHoverRect.Left := iniFile.ReadInteger(INI_WIN_SECT, 'TreePanelHoverLeft', 10);
@@ -3431,7 +3476,7 @@ var
 
     ToggleTreePanel(TreePanelVisible);
     if TreePanel.Visible then
-      SetTabSetIndex(TreeTabControlIndex);
+      SetTabSetIndex(TreeTabControl.TabIndex);
     if TreePanelCanMove then
       ToggleTreePanelCanMove(TreePanelCanMove);
 
@@ -3522,13 +3567,13 @@ begin
   end;
 
   (* Memo *)
-  WritePanel.Height := iniFile.ReadInteger(INI_WIN_SECT, 'WriteMemoHeight', WriteMemo.Height);
+  WritePanel.Height := iniFile.ReadInteger(INI_WIN_SECT, 'WriteMemoHeight', WritePanel.Height);
   WritePanelFixedHeight := WritePanel.Height;
   WritePanel.Visible := iniFile.ReadBool(INI_WIN_SECT, 'WriteMemoVisible', True);
   WritePanelPos := iniFile.ReadBool(INI_WIN_SECT, 'WriteMemoPos', True);
   wh.Width := iniFile.ReadInteger(INI_WIN_SECT, 'WriteMemoAAWidth', 100);
   wh.Height := iniFile.ReadInteger(INI_WIN_SECT, 'WriteMemoAAHeight', 50);
-  SaveAAListBoundsRect(wh);
+  WritePanelControl.SaveAAListBoundsRect(wh);
   WritePanelTitle.Visible := iniFile.ReadBool(INI_WIN_SECT, 'WriteMemoTopBar', True);
 
   WritePanelCanMove := iniFile.ReadBool(INI_WIN_SECT, 'WriteMemoCanMove', True);
@@ -3620,7 +3665,6 @@ begin
   for i := Low(TNGItemIdent) to High(TNGItemIdent) do
     NGItems[i].SaveToFile(config.basepath + NG_FILE[i]);
   ExNGList.SaveToFile(Config.BasePath + NG_EX_FILE);
-  ExNGList.FreeItems;
   {/beginner}
   Config.tmpChanged := false;
   oldSkinPath := Config.SkinPath;
@@ -4169,10 +4213,7 @@ begin
     begin
       if ssCtrl	in Shift then
       begin
-        {aiai}
-        //SetTabSetIndex(TreeTabControl.TabIndex - 1);
-        SetTabSetIndex(TreeTabControlIndex - 1);
-        {/aiai}
+        SetTabSetIndex(TreeTabControl.TabIndex - 1);
         Key := 0;
       end;
     end;
@@ -4180,10 +4221,7 @@ begin
     begin
       if ssCtrl in Shift then
       begin
-        {aiai}
-        //SetTabSetIndex(TreeTabControl.TabIndex + 1);
-        SetTabSetIndex(TreeTabControlIndex + 1);
-        {/aiai}
+        SetTabSetIndex(TreeTabControl.TabIndex + 1);
         Key := 0;
       end;
     end;
@@ -4192,10 +4230,7 @@ begin
     begin
       if ssCtrl in Shift then
       begin
-        {aiai}
-        //SetTabSetIndex(TreeTabControl.TabIndex + 1);
-        SetTabSetIndex(TreeTabControlIndex + 1);
-        {/aiai}
+        SetTabSetIndex(TreeTabControl.TabIndex + 1);
         Key := 0;
       end;
     end;
@@ -4786,7 +4821,10 @@ var
       end;
     LVSC_TITLE:
       begin
-        result := HTML2String(thread.title);
+        if (ThreAboneLevel = 0) and (thread.ThreAboneType and TThreAboneTypeMASK = 1) then
+          result := 'あぼ～ん'
+        else
+          result := HTML2String(thread.title);
       end;
     LVSC_ITEMS:
       begin
@@ -6163,14 +6201,16 @@ begin
       self.actListAlready.Enabled := haveData and (thread.lines > thread.oldlines);
       self.actListCopyDat.Enabled := haveData;
       self.actListCopyDI.Enabled := haveData;
-      self.actThreadAbone2.Enabled := thread.IsThisAbone;
+      self.actThreadAbone2.Enabled := thread.ThreAboneType and TThreABNFLAG = TThreABNFLAG;
       {/aiai}
     end;
     self.actListCopyURL.Enabled := true;
     self.actListCopyTITLE.Enabled := true; //aiai
     self.actListCopyTU.Enabled := true;
     self.actThreadAbone.Enabled := not (CurrentBoard is TFunctionalBoard); //aiai
-    self.actThreadAbone2.Visible := not (CurrentBoard is TFunctionalBoard) and (LocalThreadAboneSetting > 0);  //aiai
+    self.actThreadAbone3.Enabled := not (CurrentBoard is TFunctionalBoard); //aiai
+    self.actThreadAbone4.Enabled := not (CurrentBoard is TFunctionalBoard);  //aiai
+    self.actThreadAbone2.Visible := not (CurrentBoard is TFunctionalBoard);  //aiai
     currentBoard.selDatName := TThreadItem(Item.Data).datName;
   end
   else begin
@@ -6194,6 +6234,8 @@ begin
     self.actListCopyDat.Enabled := false;
     self.actListCopyDI.Enabled := false;
     self.actThreadAbone.Enabled := false;
+    self.actThreadAbone3.Enabled := false;
+    self.actThreadAbone4.Enabled := false;
     self.actThreadAbone2.Visible := false;
     {/aiai}
   end;
@@ -6309,8 +6351,7 @@ begin
     SetRPane(ptView);
     {aiai}
     if Config.optSetFocusOnWriteMemo then
-       //try WritePanel.SetFocus; except end;
-       SetFocusToWriteMemo;
+       try MemoWriteMain.SetFocus; except end;
     {/aiai}
   end;
 end;
@@ -6439,7 +6480,9 @@ begin
     if thread <> nil then begin
       dest := TStrDatOutForHint.Create;
       try
+        thread.AddRef;
         MakeIDInfo(dest, URI, OwnerView.thread, Config.ojvIDPopUpMaxCount);
+        thread.Release;
         with dest as TStrDatOutForHint do
           if Text <> '' then ShowHint(Point, Text);
       finally
@@ -7399,27 +7442,41 @@ begin
   end;
 
   //あぼ～ん非表示
-  case LocalThreadAboneSetting of
-
-    0: begin //透明
-      index := 0;
+  index := 0;
+  case ThreAboneLevel of
+   -1: begin //透明
       while index < ListView.List.Count do
-        if TThreadItem(ListView.List.Items[index]).IsThisAbone then
+        if TThreadItem(ListView.List.Items[index]).ThreAboneType and TThreAboneTypeMASK in [1,2] then //通常、透明
           ListView.List.Delete(index)
         else
           Inc(index);
       ListView.Items.Count := ListView.List.Count;
     end;
 
-    1:;    //さぼり
-
-    2: begin //はきだめ
-      index := 0;
+    0, 1: begin //通常,さぼり
       while index < ListView.List.Count do
-        if not TThreadItem(ListView.List.Items[index]).IsThisAbone then
+        if TThreadItem(ListView.List.Items[index]).ThreAboneType and TThreAboneTypeMASK = 2 then //透明
           ListView.List.Delete(index)
         else
           Inc(index);
+      ListView.Items.Count := ListView.List.Count;
+    end;
+
+    2: begin  //よりごのみ
+      while index < ListView.List.Count do
+        if TThreadItem(ListView.List.Items[index]).ThreAboneType and TThreAboneTypeMASK = 4 then //重要
+          Inc(index)
+        else
+          ListView.List.Delete(index);
+      ListView.Items.Count := ListView.List.Count;
+    end;
+
+    3: begin //はきだめ
+      while index < ListView.List.Count do
+        if TThreadItem(ListView.List.Items[index]).ThreAboneType and TThreAboneTypeMASK in [1,2] then //通常、透明
+          Inc(index)
+        else
+          ListView.List.Delete(index);
       ListView.Items.Count := ListView.List.Count;
     end;
 
@@ -8041,10 +8098,7 @@ begin
     begin
       if ssCtrl	in Shift then
       begin
-        {aiai}
-        //SetTabSetIndex(TreeTabControl.TabIndex - 1);
-        SetTabSetIndex(TreeTabControlIndex - 1);
-        {/aiai}
+        SetTabSetIndex(TreeTabControl.TabIndex - 1);
         Key := 0;
       end;
     end;
@@ -8052,10 +8106,7 @@ begin
     begin
       if ssCtrl in Shift then
       begin
-        {aiai}
-        //SetTabSetIndex(TreeTabControl.TabIndex + 1);
-        SetTabSetIndex(TreeTabControlIndex + 1);
-        {/aiai}
+        SetTabSetIndex(TreeTabControl.TabIndex + 1);
         Key := 0;
       end;
     end;
@@ -8064,9 +8115,7 @@ begin
     begin
       if ssCtrl	in Shift then
       begin
-        {aiai}
-        //SetTabSetIndex(TreeTabControl.TabIndex - 1);
-        SetTabSetIndex(TreeTabControlIndex - 1);
+        SetTabSetIndex(TreeTabControl.TabIndex - 1);
         Key := 0;
       end;
     end;
@@ -9373,7 +9422,7 @@ procedure TMainWnd.ViewItemStateChanged;
 	  ThreadTitleLabel.Caption := '';   //※[JS]
     ThreadTitleLabel.Transparent := True; //koreawatcher
     {aiai}
-    ChangeWirteButtonEnabled(False);
+    ButtonWriteWrite.Enabled := False;
     actAutoReSc.Enabled := false;
     actAutoReSc.Checked := false;
     StopAutoReSc;
@@ -9524,7 +9573,7 @@ begin
       MenuThreReadPosClear.Enabled := (thread <> nil) and (thread.ReadPos <> 0);
       MenuThreCheckRes.Enabled := (thread <> nil);
 
-      ChangeWriteMemoThread(thread); //aiai
+      WritePanelControl.SetThread(thread); //aiai
       if (thread <> nil) then
         LabelWriteTitle.Caption := '  『' + HTML2String(thread.title) + '』'
             + 'にレス'
@@ -10155,10 +10204,7 @@ begin
   (*  *)
   if TreeView.Focused or FavoriteView.Focused then
   begin
-    {aiai}
-    //SetTabSetIndex(TreeTabControl.TabIndex + 1);
-    SetTabSetIndex(TreeTabControlIndex + 1);
-    {/aiai}
+    SetTabSetIndex(TreeTabControl.TabIndex + 1);
   end
   //▼スレ覧のタブ切り替え
   else if ListTabPanel.Visible and ListView.Focused then
@@ -10201,10 +10247,7 @@ begin
   (*  *)
   if TreeView.Focused or FavoriteView.Focused then
   begin
-    {aiai}
-    //SetTabSetIndex(TreeTabControl.TabIndex - 1);
-    SetTabSetIndex(TreeTabControlIndex - 1);
-    {/aiai}
+    SetTabSetIndex(TreeTabControl.TabIndex - 1);
   end
   //▼スレ覧のタブ切り替え
   else if ListTabPanel.Visible and ListView.Focused then
@@ -10586,11 +10629,11 @@ end;
 procedure TMainWnd.PopupViewReplyClick(Sender: TObject);
 begin
   {aiai} //メモ欄で
-  if (Sender = PopupViewReplyOnWriteMemo) and WriteMemo.Enabled then
+  if (Sender = PopupViewReplyOnWriteMemo) then
   begin
-    ChangeWriteMemoText(Config.wrtReplyMark + IntToStr(TMenuItem(Sender).Tag) + #13#10);
+    WritePanelControl.SetMemoText(Config.wrtReplyMark + IntToStr(TMenuItem(Sender).Tag) + #13#10);
     ToggleWritePanelVisible(True);
-    SetFocusToWriteMemo;
+    try MemoWriteMain.SetFocus; except end;
   end else
   {/aiai}
   //▼開いているときは番号追加
@@ -10692,9 +10735,9 @@ begin
     s := s + '> ' + strList.Strings[i] + #13#10;
   strList.Free;
 
-  ChangeWriteMemoText(Copy(s, 1, Length(s)));
+  WritePanelControl.SetMemoText(Copy(s, 1, Length(s)));
   ToggleWritePanelVisible(True);
-  SetFocusToWriteMemo;
+  try MemoWriteMain.SetFocus; except end;
 end;
 
 (* 既読にする *)//aiai
@@ -11389,9 +11432,9 @@ begin
   {aiai}
   if TMenuItem(Sender).Tag = 1 then
   begin
-    ChangeWriteMemoText('> ' + StringReplace(SelString, #13#10, #13#10'> ', [rfReplaceAll]) + #13#10);
+    WritePanelControl.SetMemoText('> ' + StringReplace(SelString, #13#10, #13#10'> ', [rfReplaceAll]) + #13#10);
     ToggleWritePanelVisible(True);
-    SetFocusToWriteMemo;
+    try MemoWriteMain.SetFocus; except end;
   end else
   {/aiai}
   if (WriteForm <> nil) and WriteForm.Visible then
@@ -12321,7 +12364,8 @@ end;
 function TMainWnd.IsShortCut(var Message: TWMKey): Boolean;
 begin
   if FavoriteView.IsEditing or UrlEdit.Focused
-    or WriteMemoIsFocused
+    or ComboBoxWriteName.Focused or ComboBoxWriteMail.Focused
+      or MemoWriteMain.Focused
       or ListViewSearchEditBox.Focused or ThreViewSearchEditBox.Focused
         or TreeViewSearchEditBox.Focused then
   begin
@@ -13777,9 +13821,13 @@ begin
     //ListView.Canvas.Brush.Color := clHighlight;
     //ListView.Canvas.Font.Color := clHighlightText;
     sethotstate := true;
-  end else if TThreadItem(Item.Data).IsThisAbone then
+  end else if (TThreadItem(Item.Data).ThreAboneType and TThreAboneTypeMASK in [1, 2]) then
   begin
     Sender.Canvas.Font.Color := clGray;
+    sethotstate := true;
+  end else if (TThreadItem(Item.Data).ThreAboneType and TThreAboneTypeMASK = 4) then
+  begin
+    Sender.Canvas.Font.Color := clBlue;
     sethotstate := true;
   end;
 (*
@@ -14549,13 +14597,6 @@ begin
   MenuPopupBarMenu.Checked := MenuViewMenuToggleVisible.Checked; //aiai
 end;
 
-{aiai}
-//procedure TMainWnd.TreeTabControlChange(Sender: TObject);
-//begin
-  //ChangeActiveTreePane(TreeTabControl.TabIndex);
-//end;
-{/aiai}
-
 procedure TMainWnd.SetStyle;
 var
   i: integer;
@@ -14580,14 +14621,12 @@ begin
     ListTabControl.Style := ComCtrls.TTabSTyle(Config.stlListTabStyle);
     ListTabPanel.Visible := true;
   end;
-  {aiai}
-  //if Config.stlTreeTabStyle = 3 then
-  //  TreeTabControl.Visible := false
-  //else begin
-  //  TreeTabControl.Style   := ComCtrls.TTabSTyle(Config.stlTreeTabStyle);
-  //  TreeTabControl.Visible := true;
-  //end;
-  {/aiai}
+  if Config.stlTreeTabStyle = 3 then
+    TreeTabControl.Visible := false
+  else begin
+    TreeTabControl.Style   := ComCtrls.TTabSTyle(Config.stlTreeTabStyle);
+    TreeTabControl.Visible := true;
+  end;
 
   if TabPanel.Visible then
   begin
@@ -15040,7 +15079,7 @@ begin
     exit;
 
   TAction(Sender).Checked := True;
-  LocalThreadAboneSetting := TAction(Sender).Tag;
+  ThreAboneLevel := TAction(Sender).Tag;
 
   if (currentBoard <> nil) then
   begin
@@ -16627,17 +16666,11 @@ procedure TMainWnd.actThreadAboneExecute(Sender: TObject);
 var
   listItem: TListItem;
   thread: TThreadItem;
-  viewItem: TViewItem;
-  index: Integer;
+//  viewItem: TViewItem;
+//  index: Integer;
   deletelist: TList;
 begin
   if CurrentBoard is TFunctionalBoard then Exit;
-
-  //if MyMessageDlg('「スレッドあぼ～ん」しますか？' + #13#10 + #13#10
-  //                         + '(※ログも同時に削除されます！)')
-  //                            = mrCancel then begin
-  //  Exit;
-  //end;
 
   listItem := ListView.Selected;
   thread := nil;
@@ -16649,25 +16682,10 @@ begin
 
   while (listItem <> nil) and (listItem.Data <> thread) do begin
     thread := TThreadItem(listItem.Data);
-    {aiai}  //開いている場合は閉じる
-    viewItem := viewList.FindViewItem(thread);
-    if viewItem <> nil then
-      for index := 0 to TabControl.Tabs.Count - 1 do
-        if viewItem = viewList.Items[index] then
-        begin
-          tabRightClickedIndex := index;
-          CloseThisTab(False);
-          break;
-        end;
-    {/aiai}
-    thread.CancelAsyncRead;
-    thread.RemoveLog;
-    UnRegisterFavorite(thread);
     deleteList.Add(thread);
-    //TBoard(thread.board).ThreadAbone(thread);
     listItem := ListView.GetNextItem(listItem, sdBelow, [isSelected]);
   end;
-  CurrentBoard.ThreadAbone(deleteList);
+  CurrentBoard.ThreadAbone(deleteList, TAction(Sender).Tag);
   deleteList.Free;
 
   UpdateListView;
@@ -16703,13 +16721,13 @@ begin
 
   while (listItem <> nil) and (listItem.Data <> thread) do begin
     thread := TThreadItem(listItem.Data);
-    if (thread <> nil) and thread.IsThisAbone then
+    if (thread <> nil) and (thread.ThreAboneType and TThreABNFLAG = TThreABNFLAG) then
     begin
       index := threadABoneList.IndexOfName(thread.datName);
       if index >= 0 then
       begin
         threadABoneList.Delete(index);
-        thread.IsThisAbone := False;
+        thread.ThreAboneType := 0;
       end;
     end;
     listItem := ListView.GetNextItem(listItem, sdBelow, [isSelected]);
@@ -16807,9 +16825,6 @@ begin
   if (index < 0) or (1 < index) then
     exit;
 
-  if TreeTabControlIndex <> index then
-    TreeTabControlIndex := index;
-
   case index of
   0:
     begin
@@ -16821,8 +16836,6 @@ begin
       TreeView.TabStop := true;
       FavoriteView.TabStop := false;
       try TreeView.SetFocus; except end;
-      TreeViewTab.Checked := True;
-      FavoriteViewTab.Checked := False;
     end;
   1:
     begin
@@ -16834,10 +16847,12 @@ begin
       FavoriteView.TabStop := true;
       TreeView.TabStop := false;
       try FavoriteView.SetFocus; except end;
-      TreeViewTab.Checked := False;
-      FavoriteViewTab.Checked := True;
     end;
   end;
+
+  if TreeTabControl.TabIndex <> index then
+    TreeTabControl.TabIndex := index;
+
 end;
 
 //TreePanelの表示切替
@@ -16856,8 +16871,6 @@ begin
   end else
   begin
     TreePanel.Visible := False;
-    TreeViewTab.Checked := False;
-    FavoriteViewTab.Checked := False;
     BoardSplitter.Visible := False;
     actTreeToggleVisible.Checked := False;
     SideBar.Checked := False;
@@ -16909,28 +16922,27 @@ end;
 
 
 //各種イベントハンドラ
+procedure TMainWnd.TreeTabControlChange(Sender: TObject);
+begin
+  SetTabSetIndex(TreeTabControl.TabIndex);
+end;
+
 procedure TMainWnd.MenuViewTreeToggleVisibleClick(Sender: TObject);
 begin
   ToggleTreePanel(not TreePanel.Visible);
   if TreePanel.Visible then
-    SetTabSetIndex(TreeTabControlIndex);
+    SetTabSetIndex(TreeTabControl.TabIndex);
 end;
 
 procedure TMainWnd.MenuWndBoardClick(Sender: TObject);
 begin
   tag := TComponent(Sender).Tag;
 
-  TreeTabControlIndex := tag;
+  TreeTabControl.TabIndex := tag;
   if not TreePanel.Visible then
     ToggleTreePanel(True);
 
-  SetTabSetIndex(TreeTabControlIndex);
-end;
-
-procedure TMainWnd.TreeViewTabMouseDown(Sender: TObject;
-  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-begin
-  MenuWndBoardClick(Sender);
+  SetTabSetIndex(TreeTabControl.TabIndex);
 end;
 
 procedure TMainWnd.PanelTitlePanelClick(Sender: TObject);
@@ -16967,7 +16979,7 @@ end;
 procedure TMainWnd.LabelTreeTitleMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
-  if TreeTabControlIndex = 0 then
+  if TreeTabControl.TabIndex = 0 then
     try TreeView.SetFocus; except end
   else
     try FavoriteView.SetFocus; except end;
@@ -17026,7 +17038,7 @@ end;
 procedure TMainWnd.ToolButtonTreeTitleMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
-  if TreeTabControlIndex = 0 then
+  if TreeTabControl.TabIndex = 0 then
     try TreeView.SetFocus; except end
   else
     try FavoriteView.SetFocus; except end;
@@ -17062,7 +17074,8 @@ begin
   begin
     ToggleWritePanelTabSheet(0);
     ToolButtonWriteTitleAutoHide.PictureIndex := 1 + Integer(WritePanelCanMove);
-    JLWritePanel.SetStatusBarVisible(not Config.wrtDisableStatusBar);
+    StatusBarWrite.Visible := not Config.wrtDisableStatusBar;
+    StatusBarWrite.Top := WritePanel.Height;
   end else
   begin
     viewItem := GetActiveView;
@@ -17082,18 +17095,6 @@ end;
 
 procedure TMainWnd.ToggleWritePanelTabSheet(AIndex: Integer);
 begin
-  WritePanelTabControlIndex := AIndex;
-  ChangeMainPageControlActiveTab(WritePanelTabControlIndex);
-  JLTabWrite.Checked := False;
-  JLTabPreView.Checked := False;
-  JLTabSettingTXT.Checked := False;
-  JLTabResult.Checked := False;
-  Case WritePanelTabControlIndex of
-    0: JLTabWrite.Checked := True;
-    1: JLTabPreView.Checked := True;
-    2: JLTabSettingTXT.Checked := True;
-    3: JLTabResult.Checked := True;
-  end; //Case
 end;
 
 //CanMove切り替え
@@ -17178,24 +17179,11 @@ begin
   ToggleWritePanelVisible(False);
 end;
 
-procedure TMainWnd.JLTabControlMouseDown(Sender: TObject;
-  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-begin
-  if Button <> mbLeft then
-    exit;
-  ChangeMainPageControlActiveTab((Sender as TJLTab).Tag);
-  JLTabWrite.Checked := False;
-  JLTabPreView.Checked := False;
-  JLTabSettingTXT.Checked := False;
-  JLTabResult.Checked := False;
-  (Sender as TJLTab).Checked := True;
-end;
-
 procedure TMainWnd.ToolButtonWriteTitleMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
   try WritePanel.SetFocus; except end;
-  SetFocusToWriteMemo;
+  try MemoWriteMain.SetFocus; except end;
 end;
 
 procedure TMainWnd.LabelWriteTitleMouseDown(Sender: TObject;
@@ -17204,7 +17192,7 @@ var
   Point: TPoint;
 begin
   try WritePanel.SetFocus; except end;
-  SetFocusToWriteMemo;
+  try MemoWriteMain.SetFocus; except end;
   if (not WritePanelCanMove) or (Button <> mbLeft) then
     exit;
 
@@ -17375,7 +17363,10 @@ procedure TMainWnd.StatusBarClick(Sender: TObject);
 begin
   ToggleWritePanelVisible(not WritePanel.Visible);
   if WritePanel.Visible then
-    JLTabControlMouseDown(JLTabWrite, mbLeft, [], 0, 0);
+  begin
+    PageControlWrite.ActivePage := TabSheetWriteMain;
+    try MemoWriteMain.SetFocus; except end;
+  end;
 end;
 
 {procedure TMainWnd.StatusBar2RClick(Sender: TObject);
@@ -18341,7 +18332,7 @@ begin
     exit;
   end;
 
-  if TreeTabControlIndex = 1 then
+  if TreeTabControl.TabIndex = 1 then
     tree := FavoriteView
   else
     tree := TreeView;
@@ -18454,7 +18445,7 @@ begin
   if Config.schIgnoreFullHalf then
     unifiedtarget := StrUnify(target);
 
-  if TreeTabControlIndex = 1 then
+  if TreeTabControl.TabIndex = 1 then
     tree := FavoriteView
   else
     tree := TreeView;
@@ -18543,7 +18534,7 @@ begin
     exit;
   end;
 
-  if TreeTabControlIndex = 1 then
+  if TreeTabControl.TabIndex = 1 then
     tree := FavoriteView
   else
     tree := TreeView;
@@ -18688,14 +18679,14 @@ end;
 procedure TMainWnd.WriteWaitTimerNotify(Sender: TObject; DomainName: String;
   Remainder: Integer);
 begin
-  JLWritePanel.WriteWaitNotify(DomainName, Remainder);
+  WritePanelControl.WriteWaitNotify(DomainName, Remainder);
   if Assigned(WriteForm) then WriteForm.WriteWaitNotify(DomainName, Remainder);
 end;
 
 procedure TMainWnd.WriteWaitTimerEnd(Sender: TObject);
 begin
   TabControl.Refresh;
-  JLWritePanel.WriteWaitEnd;
+  WritePanelControl.WriteWaitEnd;
   if Assigned(WriteForm) then WriteForm.WriteWaitEnd;
   MainWnd.TabControl.Refresh;
 end;
@@ -18747,6 +18738,43 @@ begin
   end;
 end;
 //▲ もっと変えたいβ
+
+procedure TMainWnd.ButtonWriteWriteClick(Sender: TObject);
+var
+  viewItem: TViewItem;
+begin
+  viewItem := GetActiveView;
+  if (viewItem <> nil) and (viewItem.thread <> nil) then
+    WritePanelControl.Post(viewItem.thread);
+end;
+
+procedure TMainWnd.ToolButtonWriteClick(Sender: TObject);
+begin
+  WritePanelControl.ToolButtonHandle(TToolButton(Sender), TToolButton(Sender).Tag);
+end;
+
+procedure TMainWnd.PageControlWriteChange(Sender: TObject);
+begin
+  if PageControlWrite.ActivePage = TabSheetWriteMain then
+    try MemoWriteMain.SetFocus; except end
+  else if PageControlWrite.ActivePage = TabSheetWritePreview then
+    WritePanelControl.MakePreView;
+end;
+
+procedure TMainWnd.MemoWriteMainEnter(Sender: TObject);
+begin
+  WritePanelControl.ChangeMemoIme;
+end;
+
+procedure TMainWnd.MemoWriteMainExit(Sender: TObject);
+begin
+  WritePanelControl.SaveMemoIme;
+end;
+
+procedure TMainWnd.ToolButtonWriteAAClick(Sender: TObject);
+begin
+  WritePanelControl.writeActShowAAListExecute(Sender);
+end;
 
 initialization
   OleInitialize(nil);

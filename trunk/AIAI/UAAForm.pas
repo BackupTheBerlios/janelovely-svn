@@ -13,7 +13,7 @@ uses
   Controls,
   Forms,
   Dialogs,
-  JConfig, StdCtrls, ExtCtrls, Menus, JLWritePanel;
+  JConfig, StdCtrls, ExtCtrls, Menus, UWritePanelControl;
 
 type
   TAAForm = class(TForm)
@@ -202,7 +202,7 @@ begin
     ComboBox.Items.Insert(index - 1, Edit.Lines.Strings[0]);
     ComboBox.Text := Edit.Lines.Strings[0];
 
-    JLWritePanel.UpdateAAComboBox;
+    WritePanelControl.SetAAList;
   end;
 end;
 

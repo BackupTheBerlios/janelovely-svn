@@ -176,7 +176,7 @@ type
     viewTransparencyAbone: boolean;
     {beginner}
     viewAboneLevel: ShortInt;
-    viewNGLifeSpan: array[0..4] of Integer;
+    viewNGLifeSpan: array[0..5] of Integer;
     viewPermanentNG:Boolean;
     viewPermanentMarking:Boolean;
     {/beginner}
@@ -291,6 +291,7 @@ type
     tstNewsBarSize: Integer;
 
     viewLinkAbone: Boolean;
+    viewThreAboneLevel: ShortInt;
     viewReadIfScrollBottom: Boolean;
 
     optWriteMemoImeMode: Boolean;
@@ -454,7 +455,7 @@ const
 implementation
 (*=======================================================*)
 uses
-  Main, JLWritePanel;
+  Main;
 
 function BitToFontStyles(bit: integer): TFontStyles;
 begin
@@ -673,11 +674,13 @@ begin
   viewTransparencyAbone := false;
   {beginner}
   viewAboneLevel:=0;
+  viewThreAboneLevel := 0;  //aiai
   viewNGLifeSpan[0]:=0; //NGName
   viewNGLifeSpan[1]:=0; //NGAddr
   viewNGLifeSpan[2]:=0; //NGWord
   viewNGLifeSpan[3]:=3; //NGID
   viewNGLifeSpan[4]:=0; //NGEX
+  viewNGLifeSpan[5]:=0; //NGThread //aiai
   viewPermanentNG:=false;  //aiai
   viewPermanentMarking:=False;
   {/beginner}
@@ -1376,9 +1379,11 @@ begin
   viewNGLifeSpan[2] := ini.ReadInteger(INI_VIEW_SECT, 'NGWordLifeSpan', viewNGLifeSpan[2]);
   viewNGLifeSpan[3] := ini.ReadInteger(INI_VIEW_SECT, 'NGIdLifeSpan', viewNGLifeSpan[3]);
   viewNGLifeSpan[4] := ini.ReadInteger(INI_VIEW_SECT, 'NGExLifeSpan', viewNGLifeSpan[4]);
+  viewNGLifeSpan[5] := ini.ReadInteger(INI_VIEW_SECT, 'NGThreadLifeSpan', viewNGLifeSpan[5]); //aiai
   viewPermanentNG := ini.ReadBool(INI_VIEW_SECT, 'PermanentNG', viewPermanentNG);
   viewPermanentMarking := ini.ReadBool(INI_VIEW_SECT, 'PermanentMarking', viewPermanentMarking);
   {//beginner}
+  viewThreAboneLevel := ini.ReadInteger(INI_VIEW_SECT, 'ThreAboneLevel', viewThreAboneLevel);  //aiai
   viewLinkAbone := ini.ReadBool(INI_VIEW_SECT, 'LinkAbone', viewLinkAbone);  //aiai
   viewListMarkerNone := ini.ReadString(INI_VIEW_SECT, 'ListMarkerNone', viewListMarkerNone);
   viewListMarkerRead := ini.ReadString(INI_VIEW_SECT, 'ListMarkerRead', viewListMarkerRead);
@@ -1902,12 +1907,14 @@ begin
   ini.WriteInteger(INI_VIEW_SECT, 'NGWordLifeSpan', viewNGLifeSpan[2]);
   ini.WriteInteger(INI_VIEW_SECT, 'NGIdLifeSpan', viewNGLifeSpan[3]);
   ini.WriteInteger(INI_VIEW_SECT, 'NGExLifeSpan', viewNGLifeSpan[4]);
+  ini.WriteInteger(INI_VIEW_SECT, 'NGThreadLifeSpan', viewNGLifeSpan[5]);  //aiai
   ini.WriteBool(INI_VIEW_SECT, 'PermanentNG', viewPermanentNG);
   ini.WriteBool(INI_VIEW_SECT, 'PermanentMarking', viewPermanentMarking);
 
   ini.WriteBool(INI_OJV_SECT, 'AllowTreeDup', ojvAllowTreeDup);
   ini.WriteInteger(INI_OJV_SECT, 'LenofOutLineRes', ojvLenofOutLineRes);
   {/beginner}
+  ini.WriteInteger(INI_VIEW_SECT, 'ThreAboneLevel', viewThreAboneLevel);  //aiai
 
   ini.WriteBool(INI_VIEW_SECT, 'LinkAbone', viewLinkAbone);  //aiai
 

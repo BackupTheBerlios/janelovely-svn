@@ -10,6 +10,10 @@ uses
   StrSub, FileSub, UAsync, USynchro, UXTime, UDat2HTML, U2chTicket, JConvert,
   IniFiles, MMSystem;
 
+const
+  TThreAboneTypeMASK   = $07;
+  TThreABNFLAG         = $08;
+
 type
   (*-------------------------------------------------------*)
   TThreadItem = class;
@@ -59,6 +63,7 @@ type
                   tsComplete=3,
                   tsTransition1=4, tsTransition2=5, tsTransition3=6);
   (*-------------------------------------------------------*)
+
 
   (*-------------------------------------------------------*)
   (* スレ *)
@@ -111,7 +116,7 @@ type
     selectedaboneline: Integer;
     ABoneArray: TABoneArray;
 
-    IsThisAbone: Boolean;  //aiai
+    ThreAboneType: Byte;  //aiai (* $00: あぼ～んではない $01:通常 $02:透明 $04:重要 $08マスクはsubject.abnによるあぼ～ん*)
 
     constructor Create(board: TObject);
     destructor Destroy; override;
