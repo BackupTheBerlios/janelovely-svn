@@ -511,6 +511,7 @@ object MainWnd: TMainWnd
                     Anchors = [akTop, akRight]
                     Caption = 'Sage:'
                     TabOrder = 2
+                    OnClick = CheckBoxWriteSageClick
                   end
                 end
                 object MemoWriteMain: TMemo

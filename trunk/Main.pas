@@ -1370,6 +1370,7 @@ type
     procedure MemoWriteMainKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure MemoWriteMainKeyPress(Sender: TObject; var Key: Char);
+    procedure CheckBoxWriteSageClick(Sender: TObject);
     {/aiai}
   private
   { Private êÈåæ }
@@ -18806,6 +18807,16 @@ begin
     Key := #0;
     WritePanelControl.writeActShowAAListExecute(Self);
   end;
+end;
+
+procedure TMainWnd.CheckBoxWriteSageClick(Sender: TObject);
+begin
+  ComboBoxWriteMail.Enabled := not CheckBoxWriteSage.Checked;
+  if ComboBoxWriteMail.Enabled then
+    ComboBoxWriteMail.Text := ''
+  else
+    ComboBoxWriteMail.Text := 'sage';
+  try MemoWriteMain.SetFocus; except end;
 end;
 
 initialization
