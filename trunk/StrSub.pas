@@ -69,6 +69,8 @@ function Nth(const AString: string; target: Char; n: Integer): Integer;
 function StrUnify(const AString: string): string; //※[457]
 function StrUnify2(const AString: string): string; //aiai
 
+function NumAlpha(const str: PChar; const size: integer): Boolean;  //aiai
+
 function CombineURI(const BaseURI, RelativeURI: String): String;
 
 (*=======================================================*)
@@ -615,6 +617,31 @@ begin
   LCMapString($411, LCMAP_FULLWIDTH, PChar(AString), -1, pstr, len);
   result := pstr;
   StrDispose(pstr);
+end;
+
+//aiai 数字・アルファベット＋'-'かどうか
+function NumAlpha(const str: PChar; const size: integer): Boolean;
+var
+  i: integer;
+begin
+  Result := False;
+  i := 0;
+  while i < size do
+  begin
+    case (str + i)^ of
+    '-', 'A'..'Z', 'a'..'z', '0'..'9', ' ':;
+    #$81:
+      begin
+        if not (i < size - 1) or not ((str + i + 1)^ = #$40) then //全角空白でない
+          exit;
+        Inc(i);
+      end;
+    else
+      exit;
+    end; //case
+    Inc(i);
+  end;
+  Result := True;
 end;
 
 //---------------------------------------------------------------------------

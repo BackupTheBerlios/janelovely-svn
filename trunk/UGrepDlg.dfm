@@ -8,14 +8,9 @@ inherited GrepDlg: TGrepDlg
   OnDestroy = FormDestroy
   PixelsPerInch = 96
   TextHeight = 12
-  inherited InputPanel: TPanel
-    inherited Edit: TComboBoxEx
-      Style = csExDropDown
-    end
-  end
   object GrepPanel: TPanel
     Left = 0
-    Top = 53
+    Top = 56
     Width = 537
     Height = 254
     Align = alTop
@@ -88,7 +83,7 @@ inherited GrepDlg: TGrepDlg
           OnKeyPress = NumOnlyKeyPress
         end
       end
-      object RadioGroupSearchRange: TRadioGroup
+      object RadioGroupSearchRange: TJLXPRadioGroup
         Left = 8
         Top = 112
         Width = 177
@@ -100,7 +95,7 @@ inherited GrepDlg: TGrepDlg
           #12473#12524#12479#12452#12488#12523#12398#12415'(&T)')
         TabOrder = 1
       end
-      object RadioGroupTarget: TRadioGroup
+      object RadioGroupTarget: TJLXPRadioGroup
         Left = 8
         Top = 4
         Width = 177
@@ -205,7 +200,7 @@ inherited GrepDlg: TGrepDlg
     Left = 0
     Top = 36
     Width = 537
-    Height = 17
+    Height = 20
     Align = alTop
     AutoSize = True
     BevelOuter = bvNone
@@ -219,23 +214,31 @@ inherited GrepDlg: TGrepDlg
       TabOrder = 0
       OnClick = CheckBoxIncludeRefClick
     end
-    object CheckBoxRegularExpression: TCheckBox
-      Left = 192
-      Top = 0
-      Width = 81
-      Height = 17
-      Caption = #27491#35215#26908#32034
-      TabOrder = 1
-    end
     object CheckBoxSaveHistroy: TCheckBox
-      Left = 313
-      Top = 0
-      Width = 97
+      Left = 234
+      Top = 1
+      Width = 112
       Height = 17
       Caption = #26908#32034#23653#27508#12434#20445#23384
       Checked = True
       State = cbChecked
+      TabOrder = 1
+    end
+    object ComboBoxOption: TComboBox
+      Left = 400
+      Top = 0
+      Width = 128
+      Height = 20
+      Style = csDropDownList
+      ItemHeight = 12
+      ItemIndex = 0
       TabOrder = 2
+      Text = #36890#24120#26908#32034
+      Items.Strings = (
+        #36890#24120#26908#32034
+        #27491#35215#34920#29694
+        #12510#12523#12481#12527#12540#12489'(AND)'
+        #12510#12523#12481#12527#12540#12489'(OR)')
     end
   end
   object ListPopupMenu: TPopupMenu

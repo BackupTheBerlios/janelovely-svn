@@ -3017,7 +3017,7 @@ begin
     end;
   if not selall and (FHighlightOption = Option) then
   begin
-    col := editpoint.X - 1;
+    col := editpoint.X;
     for line := line downto 0 do
     begin
       item := FStrings[line];
@@ -3056,7 +3056,7 @@ begin
       SetLength(hlight, 0);
       if Option = hloNormal then
       begin
-        col := length(cw) + 1;
+        col := length(cw);
         while 0 < col do
         begin
           if (cw[col] <> #0) and
@@ -3117,7 +3117,7 @@ begin
               SetLength(hlight, Length(hlight) - 1);
               Continue;
             end;
-            for k := 0 to Length(hlight) - 1 do
+            for k := 0 to Length(hlight) - 2 do
             begin
               if (hlight[k].startp <= hlight[Length(hlight) - 1].startp)
                 and (hlight[k].endp >= hlight[Length(hlight) - 1].endp) then
@@ -3141,11 +3141,7 @@ begin
         end;
       end;
       SetLength(item.FHighLight, Length(hlight));
-      if Option = hloNormal then
-        item.FHighLight := hlight
-      else
-        for i := 0 to Length(hlight) - 1 do
-          item.FHighLight[i] := hlight[Length(hlight) - 1 - i];
+      item.FHighLight := hlight;
       item.FHighLightTargetList := FHighlightTargetList;
       item.FHighLightOption := Option;
       Dec(line);

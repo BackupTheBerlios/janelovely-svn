@@ -15,16 +15,25 @@ uses
    HogeTextView,
    UTVSub,
    UPopupTextView,
-   RegExpr, UCardinalList,  //beginner
+   UCardinalList,  //beginner
    StrUtils,
    Forms,
-   IdGlobal, Types, Windows,
+   IdGlobal, Types, Windows, VBScript_RegExp_55_TLB,
    U2chThread, U2chBoard, U2chCat, U2chCatList, UAsync, JConfig, UDat2HTML,
    USynchro, StrSub, StdCtrls, ApiBmp, PNGImage, GifImage, Graphics, IniFiles;
 
 {const
   TESTVER = 'test71+75';
   SYRUPTESTVER = 'Syrup_test35';}
+
+const
+  {aiai}
+  GREP_OPTION_NORMAL = 0;
+  GREP_OPTION_REGEXP = 1;
+  GREP_OPTION_AND    = 2;
+  GREP_OPTION_OR     = 3;
+  {/aiai}
+
 type
   ECancelViewException = class (Exception);
 
@@ -206,7 +215,7 @@ type
     function GetDerivativeStream: TDatOut; virtual; abstract;
     function GetStreamCanceled: Boolean; virtual; abstract;
     function _ExtractKeyWord(thread: TThreadItem; dest: TDatOut;
-      target:string; Max: Integer; {koreawatcher} RegExp: TRegExpr = nil;
+      targetList: TStrings; Max: Integer; GrepMode: Byte;{koreawatcher} RegExp: TRegExp = nil;
       IncludeRef: Boolean = False; NeedTitle: Boolean = False{/koreawatcher}): Integer;
   public
     constructor Create;
@@ -326,8 +335,8 @@ type
     function CanGoForword: boolean;
     function MessageLoop: boolean;
     procedure ExtractKeyword(const target:string; ExThread:TThreadItem;
-      RegExpMode: Boolean; IncludeRef: Boolean; MigemoMode: Boolean = False);
-    procedure Grep(const target: string; targetBoardList: TList; RegExpMode: Boolean;  //beginner
+      GrepMode: Byte; IncludeRef: Boolean; MigemoMode: Boolean = False);
+    procedure Grep(const target: string; targetBoardList: TList; GrepMode: Byte;
                threadtitleonly: boolean = false; writepopup: boolean = false;
                ShowDirect: boolean = false; IncludeRef: Boolean = False;  //beginner
                const popupmaxseq: Integer = 5; const popupeachthremax: Integer = 10);
@@ -2467,7 +2476,7 @@ begin
 end;
 
 function TBaseViewItem._ExtractKeyWord(thread: TThreadItem; dest: TDatOut;
-  target:string; Max: Integer; {koreawatcher} RegExp: TRegExpr = nil;
+  targetList: TStrings; Max: Integer; GrepMode: Byte;{koreawatcher} RegExp: TRegExp = nil;
   IncludeRef: Boolean = False; NeedTitle: Boolean = False{/koreawatcher}): Integer;
   procedure ShowTitle(thread: TThreadItem);
   var
@@ -2482,13 +2491,14 @@ function TBaseViewItem._ExtractKeyWord(thread: TThreadItem; dest: TDatOut;
     dest.WriteHTML('<br>=================================================</b><br><br><dl>'#13#10);
   end;
 var
-  i: Integer;
+  i, j: Integer;
   s: String;
   dup: TThreadData;
   Mask: TBits;
   Tree: TIndexTree;
   SEARCHD2HTML: TDat2HTML;
   D2HTML: TDat2HTML;
+  hr: Boolean;
 begin
   dup := thread.DupData;
   Mask := nil;
@@ -2496,7 +2506,7 @@ begin
   SEARCHD2HTML := SetUpDat2HTML(TSkinCollection(SkinCollectionList.Items[TBoard(thread.board).CustomSkinIndex]).PopupRecHTML, dhtSearchRes);
   D2HTML := SetUpDat2HTML(TSkinCollection(SkinCollectionList.Items[TBoard(thread.board).CustomSkinIndex]).RecHTML, dhtRes);
   D2HTML.URL := thread.ToURL; 
-  D2HTML.Title := thread.title; 
+  D2HTML.Title := thread.title;
   try
     if IncludeRef then
     begin
@@ -2508,21 +2518,35 @@ begin
       Tree.HeadLineLength := Config.ojvLenofOutLineRes;
       Tree.Mask := Mask;
       Tree.Build(thread, 1);
-    //end
-    //else
-    //begin
-    //  Mask:= nil;
-    //  Tree:= nil;
     end;
     Result := 0;
     for i := 1 to thread.lines do
     begin
       s := SEARCHD2HTML.ToString(dup, i, 1, thread.NeedConvert);
+      hr := GrepMode = GREP_OPTION_AND;
       if Assigned(RegExp) then
       begin
         s := AnsiReplaceStr(s, #10' ', #10);
         s := AnsiReplaceStr(s, ' '#13, #13);
-        if RegExp.Exec(s) then
+        for j := 0 to targetList.Count - 1 do
+        begin
+          try
+            RegExp.Pattern := targetList.Strings[j];
+            if GrepMode = GREP_OPTION_AND then
+              hr := hr and RegExp.Test(s)
+            else if RegExp.Test(s) then
+            begin
+              hr := true;
+              break;
+            end;
+          except
+            on E: Exception do begin
+              Log('TBaseViewItem._ExtractKeyWord: ' + e.Message);
+              exit;
+            end;
+          end;
+        end;
+        if hr then
         begin
           if NeedTitle then
           begin
@@ -2542,7 +2566,17 @@ begin
       end
       else
       begin
-        if AnsiContainsText(s, target) then
+        for j := 0 to targetList.Count - 1 do
+        begin
+          if GrepMode = GREP_OPTION_AND then
+            hr := hr and AnsiContainsText(s, targetList.Strings[j])
+          else if AnsiContainsText(s, targetList.Strings[j]) then
+          begin
+            hr := true;
+            break;
+          end;
+        end;
+        if hr then
         begin
           if NeedTitle then
           begin
@@ -3541,22 +3575,38 @@ end;
 
 {beginner} //スレッドのキーワード抽出
 procedure TViewItem.ExtractKeyword(const target:string; ExThread:TThreadItem;
-  RegExpMode: Boolean; IncludeRef: Boolean; MigemoMode: Boolean = False);
+  GrepMode: Byte; IncludeRef: Boolean; MigemoMode: Boolean = False);
 var
-  count: Integer;
+  i, count: Integer;
   ExtStream :TDat2ViewForExtraction;
-  RegExp: TRegExpr;
+  RegExp: TRegExp;
   baseViewItem: TViewItem;
   baseBrowser: THogeTextView;
   HeaderHTML: PChar;
   targetList: TStringList;
   str: PChar;
-  search: string;
+  starttime: Cardinal;
 begin
   if ExThread = nil then
     exit;
 
-  search := target;
+  {aiai}
+  starttime := GetTickCount;
+
+  targetList := TStringList.Create;
+  if Config.schMultiWord then
+  begin
+    targetList.Delimiter := #$20;
+    targetList.DelimitedText := ReplaceStr(target, #$81#$40, #$20);
+  end else
+    targetList.Add(target);
+  if targetList.Count = 0 then
+  begin
+    targetList.Free;
+    exit;
+  end;
+  {/aiai}
+
   MainWnd.TabControl.Tabs.Strings[viewList.IndexOf(self)] := '抽出';
   SetWindowText(FBrowser.Handle, '抽出');  //aiai
   ExThread.AddRef;
@@ -3565,6 +3615,7 @@ begin
   ClearBrowser;
   ZoomBrowser(Config.viewZoomSize);
 
+  {aiai}
   if Config.ojvIDLinkColor then
   begin
    baseViewItem := viewList.FindViewItem(ExThread);
@@ -3577,6 +3628,7 @@ begin
       FBrowser.IDList.Assign(baseBrowser.IDList);
     end;
   end;
+  {/aiai}
 
   ExtStream := TDat2ViewForExtraction.Create(FBrowser);
   FStream := ExtStream;
@@ -3610,33 +3662,33 @@ begin
 
   ExtStream.WriteHTML('【レス抽出】<br>対象スレ： ');
   ExtStream.WriteAnchor('',ExtStream.Base,pchar(ExThread.title), length(ExThread.title));
-  ExtStream.WriteHTML('<br>キーワード： ' + search + '<br><br><br>');
+  ExtStream.WriteHTML('<br>キーワード： ' + target + '<br><br><br>');
   ExtStream.Flush;
 
-  MigemoMode := MigemoOBJ.CanUse;
+  {aiai}
+  MigemoMode := MigemoMode and MigemoOBJ.CanUse;
   if MigemoMode then
   begin
-    str := MigemoOBJ.Query(search);
-    search := Copy(str, 1, Length(str));
-    MigemoOBJ.Release(str);
-  end;
-
-  RegExp := nil;
-  if RegExpMode or MigemoMode then begin
-    RegExp := TRegExpr.Create;
-    try
-      RegExp.ModifierI := True;
-      RegExp.ModifierM := True;
-      RegExp.Expression := search;
-    except
-      FreeAndNil(RegExp);
-      ExtStream.WriteHTML('キーワードは有効な正規表現ではありません');
-      ExtStream.Flush;
+    for i := 0 to targetList.Count - 1 do
+    begin
+      str := MigemoOBJ.Query(targetList[i]);
+      targetList.Delete(i);
+      targetList.Insert(i, str);
+      MigemoOBJ.Release(str);
     end;
   end;
+  {/aiai}
 
-  if not(RegExpMode) or Assigned(RegExp) then
-    Count := _ExtractKeyWord(ExThread, ExtStream, search, 0, RegExp,IncludeRef, False)
+  if (GrepMode = GREP_OPTION_REGEXP) or MigemoMode then begin
+    RegExp := TRegExp.Create(nil);
+    RegExp.IgnoreCase := True;
+  end else
+    RegExp := nil;
+
+
+  if (GrepMode <> GREP_OPTION_REGEXP) or Assigned(RegExp) then
+    Count := _ExtractKeyWord(ExThread, ExtStream, targetList, 0, GrepMode,
+      RegExp, IncludeRef, False)
   else
     Count := 0;
 
@@ -3657,13 +3709,15 @@ begin
   FBrowser.SetPhysicalCaret(0,0);
 
   {aiai}
-  targetList := TStringList.Create;
-  targetList.Add(search);
-  if RegExpMode or MigemoMode then
+  if (GrepMode = GREP_OPTION_REGEXP) or MigemoMode then
     FBrowser.SearchForward(targetList, hloReg, False)
   else
     FBrowser.SearchForward(targetList, hloNormal, False);
+
   targetList.Free;
+
+  Log('レス抽出完了: ' + FloatToStr((GetTickCount - starttime) / 1000) + '秒');
+
   {/aiai}
 
   FProgress := tpsNone;
@@ -3761,7 +3815,7 @@ begin
 end;
 
 (* ログ検索 *)
-procedure TViewItem.Grep(const target: string; targetBoardList: TList; RegExpMode: Boolean;  //beginner
+procedure TViewItem.Grep(const target: string; targetBoardList: TList; GrepMode: Byte;
                threadtitleonly: boolean = false; writepopup: boolean = false;
                ShowDirect: boolean = false; IncludeRef: Boolean = False;  //beginner
                const popupmaxseq: Integer = 5; const popupeachthremax: Integer = 10);
@@ -3770,10 +3824,11 @@ var
   tvc: TSimpleDat2View;
   SEARCHD2HTML: TDat2HTML;
   POPUPD2HTML: TDat2HTML;
-  RegExp: TRegExpr;
+  RegExp: TRegExp;
   ExtStream :TDat2ViewForExtraction;
   TickCount: Cardinal;
   totalCount: integer;
+  targetList: TStringList;
 
   procedure ShowEntry(const additional: string = ''; first: boolean = false);
   var
@@ -3825,6 +3880,17 @@ var
     RegExp.Free;
     {/beginner}
 
+    if Assigned(targetList) then
+    begin
+      if not Canceled then
+      begin
+        if GrepMode = GREP_OPTION_REGEXP then
+          FBrowser.SearchForward(targetList, hloReg, false)
+        else
+          FBrowser.SearchForward(targetList, hloNormal, false);
+      end;
+      targetList.Free;
+    end;
     index := viewList.IndexOf(self);
     if 0 <= index then begin
       MainWnd.TabControl.Tabs.Strings[index] := '検索結果';
@@ -3837,7 +3903,7 @@ var
 
 var
   index: integer;
-  i, k, l: integer;
+  i, j, k, l: integer;
   board: TBoard;
   category: TCategory;
   tgt: string;
@@ -3861,14 +3927,13 @@ begin
   rc := False;
   if hasTarget then
   begin
-    {beginner}
+    {beginner} // VBScript_RegExpに変更 by aiai
     RegExp := nil;
-    if RegExpMode then begin
-      RegExp := TRegExpr.Create;
+    if GrepMode = GREP_OPTION_REGEXP then begin
+      RegExp := TRegExp.Create(nil);
+      RegExp.IgnoreCase := True;
       try
-        RegExp.ModifierI := True;
-        RegExp.ModifierM := True;
-        RegExp.Expression := target;
+        RegExp.Pattern := target;
       except
         FreeAndNil(RegExp);
       end;
@@ -3878,6 +3943,18 @@ begin
     tgt := StringReplace(tgt, '&', '&amp;', [rfReplaceAll]);
     tgt := StringReplace(tgt, '<', '&lt;', [rfReplaceAll]);
     tgt := StringReplace(tgt, '>', '&gt;', [rfReplaceAll]);
+
+    {aiai}
+    targetList := TStringList.Create;
+    if GrepMode in [GREP_OPTION_AND, GREP_OPTION_OR] then
+    begin
+      targetList.Delimiter := #$20;
+      targetList.DelimitedText := ReplaceStr(tgt, #$81#$40, #$20);
+    end else if GrepMode = GREP_OPTION_REGEXP then
+      targetList.Add(target)
+    else
+      targetList.Add(tgt);
+    {/aiai}
   end;
   index := viewList.IndexOf(self);
   MainWnd.TabControl.Tabs.Strings[index] := 'ログ検索中';
@@ -3901,7 +3978,7 @@ begin
   end;
   if hasTarget then begin
     tvc.WriteHTML('<html><body><p>【'+ tgt +'】の検索</p><ul>'#10);
-    if RegExpMode and (RegExp = nil) then
+    if (GrepMode = GREP_OPTION_REGEXP) and (RegExp = nil) then
       tvc.WriteHTML('キーワードは有効な正規表現ではありません');
   end else
   {/beginner}
@@ -3912,24 +3989,43 @@ begin
 
   for i := 0 to targetBoardList.Count -1 do
   begin
-    if MessageLoop then
-      break;
     board := TBoard(targetBoardList.Items[i]);
     board.AddRef;
     category := TCategory(board.category);
     log('  ' + board.name);
     MainWnd.WriteStatus(board.name);
-    try
-      rc := hasTarget and (Assigned(RegExp) and RegExp.Exec(board.name));
-    except
-      On E: Exception do
-      begin
-        Windows.MessageBox(MainWnd.Handle, PChar(E.Message), '正規表現のエラーらしい', MB_ICONERROR or MB_OK);
-        board.Release;
-        break;
-      end;
+    if MessageLoop then
+    begin
+      board.Release;
+      break;
     end;
-    if hasTarget and (rc or (0 < FindPosIC(tgt, board.name, 1))) then //beginner
+    {aiai}
+    if hasTarget and (GrepMode <> GREP_OPTION_REGEXP) then
+    begin
+      rc := (GrepMode = GREP_OPTION_AND) and (targetList.Count > 0);
+      for j := 0 to targetList.Count - 1 do
+      begin
+        if GrepMode = GREP_OPTION_AND then
+          rc := rc and (0 < FindPosIC(targetList.Strings[j], board.name, 1))
+        else if (0 < FindPosIC(targetList.Strings[j], board.name, 1)) then
+        begin
+          rc := true;
+          break;
+        end;
+      end;
+    end else
+      try
+        rc := hasTarget and (Assigned(RegExp) and RegExp.Test(board.name));
+      except
+        On E: Exception do
+        begin
+          Windows.MessageBox(MainWnd.Handle, PChar(E.Message), '正規表現のエラーらしい', MB_ICONERROR or MB_OK);
+          board.Release;
+          break;
+       end;
+      end;
+    {/aiai}
+    if hasTarget and rc then //beginner
     begin
       if ShowDirect then
         tvc.WriteHTML('<b>');
@@ -3950,18 +4046,34 @@ begin
       thread := board.Items[k];
       if hasTarget then
       begin
-        try
-          rc := (Assigned(RegExp) and RegExp.Exec(thread.title));
-        except
-          On E: Exception do
+        {aiai}
+        if (GrepMode <> GREP_OPTION_REGEXP) then
+        begin
+          rc := (GrepMode = GREP_OPTION_AND) and (targetList.Count > 0);
+          for j := 0 to targetList.Count - 1 do
           begin
-            Windows.MessageBox(MainWnd.Handle, PChar(E.Message), '正規表現のエラーらしい', MB_ICONERROR or MB_OK);
-            board.Release;
-            Ending;
-            exit;
+            if GrepMode = GREP_OPTION_AND then
+              rc := rc and (0 < FindPosIC(targetList.Strings[j], thread.title, 1))
+            else if (0 < FindPosIC(targetList.Strings[j], thread.title, 1)) then
+            begin
+              rc := true;
+              break;
+            end;
           end;
-        end;
-        if rc or (0 < FindPosIC(tgt, thread.title, 1)) then //beginner
+        end else
+          try
+            rc := (Assigned(RegExp) and RegExp.Test(thread.title));
+          except
+            On E: Exception do
+            begin
+              Windows.MessageBox(MainWnd.Handle, PChar(E.Message), '正規表現のエラーらしい', MB_ICONERROR or MB_OK);
+              board.Release;
+              Ending;
+              exit;
+            end;
+          end;
+        {/aiai}
+        if rc then //beginner
         begin
           if thread.lines <= 0 then
             ShowEntry('(未取得)')
@@ -3984,89 +4096,117 @@ begin
               if AnsiPos(#13,ExtStream.Base)>0 then
                 ExtStream.Base := copy(ExtStream.Base, 1, AnsiPos(#13, ExtStream.Base) - 1);
               ExtStream.BBSType := TBoard(thread.board).GetBBSType;
-              if _ExtractKeyword(thread, ExtStream, tgt, 0, RegExp, IncludeRef, True) > 0 then
+              if _ExtractKeyword(thread, ExtStream, targetList, 0, GrepMode, RegExp, IncludeRef, True) > 0 then
                 inc(totalCount);
-            end else if thread.dat.Contains(tgt, board.NeedConvert) or Assigned(RegExp) then
             {/beginner}
+            end else
             begin
-              EntryFlag := True; //beginner
-
-              if writepopup then
-              begin
-                popupstartline := 0;
-                popupcountthread := 0;
-                popupbreak := false;
-                tmpDat := thread.DupData;
-                for l:=1 to thread.lines do
+              {aiai}
+              rc := Assigned(RegExp);
+              if not rc then
+                for j := 0 to targetList.Count - 1 do
                 begin
-                  {beginner}
-                  if Assigned(RegExp) then begin
-                    s := AnsiReplaceStr(AnsiReplaceStr(POPUPD2HTML.ToString(tmpDat, l, 1, board.NeedConvert), ' '#13, #13), #10' ', #10);
-                  end else begin
-                    s := SEARCHD2HTML.ToString(tmpDat, l, 1, board.NeedConvert);
-                  end;
-                  try
-                    rc := ((RegExp = nil) and AnsiContainsText(s, target)) or (Assigned(RegExp) and RegExp.Exec(s));
-                  except
-                    On E: Exception do
-                    begin
-                      Windows.MessageBox(MainWnd.Handle, PChar(E.Message), '正規表現のエラーらしい', MB_ICONERROR or MB_OK);
-                      board.Release;
-                      thread.Release;
-                      Ending;
-                      exit;
-                    end;
-                  end;
-                  if rc then
-                  {/beginner}
+                  rc := thread.dat.Contains(targetList[j], board.NeedConvert);
+                  if rc then break;
+                end;
+              {/aiai}
+              if rc then
+              begin
+                EntryFlag := True; //beginner
+
+                if writepopup then
+                begin
+                  popupstartline := 0;
+                  popupcountthread := 0;
+                  popupbreak := false;
+                  tmpDat := thread.DupData;
+                  for l:=1 to thread.lines do
                   begin
                     {beginner}
-                    if EntryFlag then begin
-                      ShowEntry;
-                      Inc(totalCount);
-                      EntryFlag := False;
+                    if Assigned(RegExp) then begin
+                      s := AnsiReplaceStr(AnsiReplaceStr(POPUPD2HTML.ToString(tmpDat, l, 1, board.NeedConvert), ' '#13, #13), #10' ', #10);
+                    end else begin
+                      s := SEARCHD2HTML.ToString(tmpDat, l, 1, board.NeedConvert);
                     end;
+                    {aiai}
+                    if (GrepMode <> GREP_OPTION_REGEXP) then
+                    begin
+                      rc := (GrepMode = GREP_OPTION_AND) and (targetList.Count > 0);
+                      for j := 0 to targetList.Count - 1 do
+                      begin
+                        if GrepMode = GREP_OPTION_AND then
+                          rc := rc and AnsiContainsText(s, targetList.Strings[j])
+                        else if AnsiContainsText(s, targetList.Strings[j]) then
+                        begin
+                          rc := true;
+                          break;
+                        end;
+                      end;
+                    {/aiai}
+                    end else
+                      try
+                        rc := ((RegExp = nil) and AnsiContainsText(s, target)) or (Assigned(RegExp) and RegExp.Test(s));
+                      except
+                        On E: Exception do
+                        begin
+                          Windows.MessageBox(MainWnd.Handle, PChar(E.Message), '正規表現のエラーらしい', MB_ICONERROR or MB_OK);
+                          board.Release;
+                          thread.Release;
+                          Ending;
+                          exit;
+                        end;
+                      end;
+                    if rc then
                     {/beginner}
-                    if popupstartline = 0 then
-                      popupstartline := l
-                    else if l - popupstartline >= popupmaxseq then //あんまり長いと読めない
                     begin
-                      ShowPopUpEntry(IntToStr(popupstartline) + '-' + IntToStr(l-1));
-                      Inc(popupcountthread);
-                      popupstartline := l;
+                      {beginner}
+                      if EntryFlag then begin
+                        ShowEntry;
+                        Inc(totalCount);
+                        EntryFlag := False;
+                      end;
+                      {/beginner}
+                      if popupstartline = 0 then
+                        popupstartline := l
+                      else if l - popupstartline >= popupmaxseq then //あんまり長いと読めない
+                      begin
+                        ShowPopUpEntry(IntToStr(popupstartline) + '-' + IntToStr(l-1));
+                        Inc(popupcountthread);
+                        popupstartline := l;
+                      end;
+                    end
+                    else begin
+                      if popupstartline <> 0 then
+                      begin
+                        if(popupstartline <> l-1) then
+                          ShowPopUpEntry(IntToStr(popupstartline) + '-' + IntToStr(l-1))
+                        else
+                          ShowPopUpEntry(IntToStr(popupstartline));
+                        popupstartline := 0;
+                        Inc(popupcountthread);
+                      end;
                     end;
-                  end
-                  else begin
-                    if popupstartline <> 0 then
+                    if popupcountthread >= popupeachthremax then
                     begin
-                      if(popupstartline <> l-1) then
-                        ShowPopUpEntry(IntToStr(popupstartline) + '-' + IntToStr(l-1))
-                      else
-                        ShowPopUpEntry(IntToStr(popupstartline));
-                      popupstartline := 0;
-                      Inc(popupcountthread);
+                      tvc.WriteHTML('(以下略)');
+                      popupbreak := true;
+                      break;
                     end;
                   end;
-                  if popupcountthread >= popupeachthremax then
+                  tmpDat.Free;
+
+                  if (popupstartline <> 0) and (not popupbreak) then
                   begin
-                    tvc.WriteHTML('(以下略)');
-                    popupbreak := true;
-                    break;
+                    if(popupstartline <> thread.lines) then
+                      ShowPopUpEntry(IntToStr(popupstartline) + '-' + IntToStr(thread.lines))
+                    else
+                      ShowPopUpEntry(IntToStr(popupstartline));
                   end;
-                end;
-                tmpDat.Free;
 
-                if (popupstartline <> 0) and (not popupbreak) then
-                begin
-                  if(popupstartline <> thread.lines) then
-                    ShowPopUpEntry(IntToStr(popupstartline) + '-' + IntToStr(thread.lines))
-                  else
-                    ShowPopUpEntry(IntToStr(popupstartline));
-                end;
-
-                if popupcountthread > 0 then
-                begin
-                  tvc.WriteHTML('<BR>');
+                  if popupcountthread > 0 then
+                  begin
+                    tvc.WriteHTML('<BR>');
+                  end;
                 end;
               end;
 
@@ -5013,11 +5153,16 @@ begin
     FStream := TDat2PopupView.Create(FBrowser);
     Result := 0;
 
-    SetResNumIDList; //aiai レス番とIDのリストをコピー
+    {aiai}
+    SetResNumIDList; //レス番とIDのリストをコピー
+
+    targetList := TStringList.Create;
+    targetList.Add(target);
+    {/aiai}
 
     try
       FStream.DDOffsetLeft := DD_OFFSET_LEFT div 4;
-      Result := _ExtractKeyWord(FThread, FStream, Target, Max);
+      Result := _ExtractKeyWord(FThread, FStream, targetList, Max, GREP_OPTION_NORMAL);
       if not FStream.canceled and FBrowser.Trim then
         PopUp(Point)
       else
@@ -5029,8 +5174,6 @@ begin
       FreeAndNil(FStream);
     end;
     {aiai}
-    targetList := TStringList.Create;
-    targetList.Add(target);
     FBrowser.SearchForward(targetList, hloNormal, False);
     targetList.Free;
     {/aiai}

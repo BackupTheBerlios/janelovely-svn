@@ -885,6 +885,12 @@ type
     MenuThreViewSearchExtract: TMenuItem;
     MenuThreViewSearchExtractTree: TMenuItem;
     N108: TMenuItem;
+    MenuTreeViewSearchNext: TMenuItem;
+    MenuTreeViewSearchPrev: TMenuItem;
+    N110: TMenuItem;
+    MenuListViewSearchNext: TMenuItem;
+    MenuListViewSearchPrev: TMenuItem;
+    N111: TMenuItem;
     {/aiai}
     procedure FormCreate(Sender: TObject);
     procedure MenuToolsOptionsClick(Sender: TObject);
@@ -1525,7 +1531,7 @@ type
     procedure SetRPane(paneType: TPaneType);
     function TreeViewGetNode(sender: TObject): TTreeNode;
     procedure SetCaption(const BoardName: string);
-    procedure FindInTree(forwardP: boolean; tree: TTreeView);
+    procedure FindInTree(forwardP: boolean);
     procedure FindInList(forwardP: boolean);
     procedure FindInView(forwardP: boolean);
     procedure ListViewSelectIntoView(item: TListItem);
@@ -1628,15 +1634,9 @@ type
     //▲ スレ絞込み
     //▼ スレ内検索
     procedure ThreViewSearchSetSearch(index: integer);
-    procedure ThreViewSearchMigemoSearch(ForwardP: Boolean);
-    procedure ThreViewSearchNormalSearch(ForwardP: Boolean);
-    procedure ThreViewSearchRegExpSearch(ForwardP: Boolean);
     //▲ スレ内検索
     //▼ 板ツリー検索
     procedure TreeViewSearchSetSearch(index: integer);
-    procedure TreeViewSearchMigemoSearch;
-    procedure TreeViewSearchNormalSearch;
-    procedure TreeViewSearchRegExpSearch;
     //▲ 板ツリー検索
     //▼ WriteWaitTimerのイベントハンドラ
     procedure WriteWaitTimerNotify(Sender: TObject; DomainName: String; Remainder: Integer);
@@ -2484,6 +2484,7 @@ var
     LoadCustomImageListSub(skinPath + 'ttoolimg.bmp', ThreadToolImages);
     LoadCustomImageListSub(skinPath + 'mtoolimg.bmp', MainToolImages);
     LoadCustomImageListSub(skinPath + 'memoimg.bmp', MemoImageList);
+    LoadCustomImageListSub(skinPath + 'searchimg.bmp', SearchImages);
   end;
 
   (* 新しいボタン数とアイコンサイズにツールバーをあわせる *)
@@ -3072,9 +3073,9 @@ begin
   ListViewSearchSetSearch(Config.schDefaultSearch);
   ThreViewSearchSetSearch(Config.schDefaultSearch);
   TreeViewSearchSetSearch(Config.schDefaultSearch);
-  ListViewSearchToolBar.Visible := Config.schUseSearchBar and Config.schShowListToolbarOnStartup;
-  ThreViewSearchToolBar.Visible := Config.schUseSearchBar and Config.schShowToolbarOnStartup;
-  TreeViewSearchToolBar.Visible := Config.schUseSearchBar and Config.schShowTreeToolbarOnStartup;
+  ListViewSearchToolBar.Visible := {Config.schUseSearchBar and} Config.schShowListToolbarOnStartup;
+  ThreViewSearchToolBar.Visible := {Config.schUseSearchBar and} Config.schShowToolbarOnStartup;
+  TreeViewSearchToolBar.Visible := {Config.schUseSearchBar and} Config.schShowTreeToolbarOnStartup;
   ListViewSearchEditBox.Items := Config.grepSearchList;
   ThreViewSearchEditBox.Items := Config.grepSearchList;
   TreeViewSearchEditBox.Items := Config.grepSearchList;
@@ -7575,7 +7576,7 @@ begin
 //    exit;
   searchTarget := target;
   SetRPane(ptView);
-  NewView.Grep(target, GrepDlg.targetBoardList, GrepDlg.CheckBoxRegularExpression.Checked, GrepDlg.RadioGroupSearchRange.ItemIndex=1,
+  NewView.Grep(target, GrepDlg.targetBoardList, GrepDlg.ComboBoxOption.ItemIndex, GrepDlg.RadioGroupSearchRange.ItemIndex=1,
                GrepDlg.CheckBoxPopup.Checked, GrepDlg.CheckBoxShowDirect.Checked, GrepDlg.CheckBoxIncludeRef.Checked,
                StrToInt(GrepDlg.PopupMaxSeqEdit.Text), StrToInt(GrepDlg.PopupEachThreMaxEdit.Text));
   UpdateTabTexts;
@@ -7613,7 +7614,7 @@ begin
     exit;
   searchTarget := target;
 
-  NewView(true).ExtractKeyword(target, viewItem.thread, false, false);
+  NewView(true).ExtractKeyword(target, viewItem.thread, GREP_OPTION_NORMAL, false);
 end;
 
 {beginner} // キーワード抽出の実体
@@ -7664,208 +7665,12 @@ begin
   if length(target) <= 0 then
     exit;
 
-  NewView(true).ExtractKeyword(target, viewItem.thread,
-                         not UseSelection and GrepDlg.CheckBoxRegularExpression.Checked,
-                         not UseSelection and GrepDlg.CheckBoxIncludeRef.Checked);
-end;
-
-(* 検索 *)
-procedure TMainWnd.MenuFindClick(Sender: TObject);
-var
-  rc: integer;
-  target: string;
-  viewItem: TViewItem;
-begin
-  if Config.schUseSearchBar then
-    if TreeView.Focused or FavoriteView.Focused then
-    begin
-      TreeViewSearchToolBar.Visible := true;
-      try
-        TreeViewSearchEditBox.SetFocus;
-      except end;
-      exit;
-    end else if FavoriteView.Focused then
-    begin
-
-    end else if (ListView.Focused or (Config.oprToggleRView and (mdRPane = ptList))) then
-    begin
-      ListViewSearchToolBar.Visible := true;
-      try
-        ListViewSearchEditBox.SetFocus;
-      except end;
-      exit;
-    end else
-    begin
-      ThreViewSearchToolBar.Visible := true;
-      try
-        ThreViewSearchEditBox.SetFocus;
-      except end;
-      exit;
-    end;
-
-  viewItem := GetActiveView;
-  if GrepDlg = nil then
-    GrepDlg := TGrepDlg.Create(self);
-
-  GrepDlg.Caption := '検索';
-  if viewItem <> nil then
-    GrepDlg.Edit.Text := viewItem.GetSelection;
-  if length(GrepDlg.Edit.Text) <= 0 then
-    GrepDlg.Edit.Text := searchTarget;
-  if (length(GrepDlg.Edit.Text) <= 0) and (GrepDlg.Edit.Items.Count > 0) then
-    GrepDlg.Edit.Text := GrepDlg.Edit.Items.Strings[0];  //aiai
-
-  GrepDlg.grepMode := false;
-  GrepDlg.extractMode := false; //beginner
-
-  rc := GrepDlg.ShowModal;
-  if (rc <> 3) and (rc <> -3) then
-    exit;
-  target := Trim(GrepDlg.Edit.Text);
-  if length(target) <= 0 then
-    exit;
-  searchTarget := target;
-  if rc = 3 then
-    FindNextClick(self)
+  if UseSelection then
+    NewView(true).ExtractKeyword(target, viewItem.thread, GREP_OPTION_NORMAL,
+      False)
   else
-    FindPrevClick(self);
-end;
-
-(* 順方向検索 *)
-procedure TMainWnd.FindNextClick(Sender: TObject);
-begin
-  if TreeView.Focused then
-    FindInTree(true, TreeView)
-  else if FavoriteView.Focused then
-    FindInTree(true, FavoriteView)
-  else if ListView.Focused or (Config.oprToggleRView and (mdRPane = ptList)) then
-    FindInList(true)
-  else
-    FindInView(true);
-end;
-
-procedure TMainWnd.FindPrevClick(Sender: TObject);
-begin
-  if TreeView.Focused then
-    FindInTree(false, TreeView)
-  else if FavoriteView.Focused then
-    FindInTree(false, FavoriteView)
-  else if ListView.Focused or
-     (Config.oprToggleRView and (mdRPane = ptList)) then
-    FindInList(false)
-  else
-    FindInView(false);
-end;
-
-procedure TMainWnd.FindInTree(forwardP: boolean; tree: TTreeView);
-var
-  i: integer;
-  node: TTreeNode;
-  unifiedtarget: string;
-begin
-  if length(searchTarget) <= 0 then
-    exit;
-  node := tree.Selected;
-  unifiedtarget := StrUnify(searchTarget);
-  if forwardP then
-  begin
-    if node = nil then
-      i := 0
-    else
-      i := node.AbsoluteIndex + 1;
-    for i := i to tree.Items.Count -1 do
-    begin
-      node := tree.Items[i];
-      if 0 < AnsiPos(unifiedtarget, StrUnify(node.Text)) then
-      begin
-        tree.Selected := nil;
-        tree.Selected := tree.Items[i];
-        exit;
-      end;
-    end;
-  end
-  else begin
-    if node = nil then
-      i := tree.Items.Count -1
-    else
-      i := node.AbsoluteIndex -1;
-    for i := i downto 0 do
-    begin
-      node := tree.Items[i];
-      if 0 < AnsiPos(unifiedtarget, StrUnify(node.Text)) then
-      begin
-        tree.Selected := nil;
-        tree.Selected := tree.Items[i];
-        exit;
-      end;
-    end;
-  end;
-end;
-
-procedure TMainWnd.FindInList(forwardP: boolean);
-var
-  i: integer;
-  item: TListItem;
-  unifiedtarget: string; //※[457]
-begin
-  if length(searchTarget) <= 0 then
-    exit;
-  item := ListView.ItemFocused;
-  unifiedtarget := StrUnify(searchTarget); //※[457]
-  if forwardP then
-  begin
-    if item = nil then
-      i := 0
-    else
-      i := item.Index + 1;
-    for i := i to ListView.Items.Count -1 do
-    begin
-      //if 0 < FindPosIC(searchTarget, ListView.Items[i].SubItems.Strings[LVSC_TITLE], 1) then
-      //※[457]
-      if 0 < AnsiPos(unifiedtarget,
-                 StrUnify(HTML2String(TThreadItem(ListView.List[i]).title))) then
-      begin
-        ListView.Selected := nil;
-        ListViewSelectIntoView(ListView.Items[i]);
-        exit;
-      end;
-    end;
-  end
-  else begin
-    if item = nil then
-      i := ListView.Items.Count -1
-    else
-      i := item.Index -1;
-    for i := i downto 0 do
-    begin
-      //if 0 < FindPosIC(searchTarget, ListView.Items[i].SubItems.Strings[LVSC_TITLE], 1) then
-      //※[457]
-      if 0 < AnsiPos(unifiedtarget,
-                 StrUnify(HTML2String(TThreadItem(ListView.List[i]).title))) then
-      begin
-        ListView.Selected := nil;
-        ListViewSelectIntoView(ListView.Items[i]);
-        exit;
-      end;
-    end;
-  end;
-end;
-
-procedure TMainWnd.FindInView(forwardP: boolean);
-var
-  viewItem: TViewItem;
-begin
-  viewItem := GetActiveView;
-  if viewItem = nil then
-    exit;
-  if length(searchTarget) <= 0 then
-    exit;
-  {aiai}
-  if forwardP then
-    ThreViewSearchUpDownClick(Self, btPrev)
-  else
-    ThreViewSearchUpDownClick(Self, btNext);
-  {/aiai}
+    NewView(true).ExtractKeyword(target, viewItem.thread,
+      GrepDlg.ComboBoxOption.ItemIndex, GrepDlg.CheckBoxIncludeRef.Checked);
 end;
 
 procedure TMainWnd.FindNavigateClick(Sender: TObject);
@@ -13653,79 +13458,79 @@ end;
 
 //aiai
 procedure TMainWnd.MenuFindThreadClick(Sender: TObject);
-var
-  rc, i: integer;
-  target: string;
+//var
+//  rc, i: integer;
+//  target: string;
 begin
-  if Config.schUseSearchBar then
-  begin
+//  if Config.schUseSearchBar then
+//  begin
     ListViewSearchToolBar.Visible := not ListViewSearchToolBar.Visible;
     if ListViewSearchToolBar.Visible then
       try
         ListViewSearchEditBox.SetFocus;
       except end;
     exit;
-  end;
-
-  if currentBoard = nil then
-    exit;
-
-  if GrepDlg = nil then
-    GrepDlg := TGrepDlg.Create(self);
-
-  if not currentBoard.threadSearched or (Sender = MenuFindThreadNew) then
-    GrepDlg.Caption := 'スレ絞り込み強調'
-  else
-    GrepDlg.Caption := 'スレ絞り込み強調(現在の結果から更に絞り込む)';
-  GrepDlg.Edit.Text := searchTarget;
-  if (length(GrepDlg.Edit.Text) <= 0) and (GrepDlg.Edit.Items.Count > 0) then
-    GrepDlg.Edit.Text := GrepDlg.Edit.Items.Strings[0];  //aiai
-
-  GrepDlg.grepMode := false;
-  GrepDlg.extractMode := false; //beginner
-
-  rc := GrepDlg.ShowModal;
-  if (rc <> 3) then
-    exit;
-
-  searchTarget := Trim(GrepDlg.Edit.Text);
-  target := StrUnify(searchTarget);
-
-  if currentBoard.threadSearched and (Sender = MenuFindThreadNew) then
-    for i := 0 to ListView.Items.Count -1 do
-      TThreadItem(LIstView.List[i]).liststate := 0;
-
-  if not currentBoard.threadSearched or (Sender = MenuFindThreadNew) then
-  begin
-    if target <> '' then
-      for i := 0 to ListView.Items.Count -1 do
-        with TThreadItem(LIstView.List[i]) do
-          if 0 < AnsiPos(target, StrUnify(HTML2String(title))) then
-            liststate := 1;
-  end else //絞り込み済みの場合更に絞り込む
-  begin
-    currentBoard.threadSearched := False;
-    for i := 0 to ListView.Items.Count -1 do
-      with TThreadItem(LIstView.List[i]) do
-        if (liststate <> 0) then
-        begin
-          if ((target = '') or (0 >= AnsiPos(target, StrUnify(HTML2String(title))))) then
-            liststate := 0
-          else
-            currentBoard.threadSearched := True;
-        end;
-  end;
-
-  ListView.Sort(@ListCompareFuncSearchState);
-  ListView.SetTopItem(ListView.Items[0]);
-  //ListView.Refresh;
-
-  currentBoard.threadSearched := (TThreadItem(ListView.Items[0].Data).liststate <> 0);
-  if currentBoard.threadSearched then
-    currentSortColumn := 100
-  else begin
-    currentSortColumn := 1;
-  end;
+//  end;
+//
+//  if currentBoard = nil then
+//    exit;
+//
+//  if GrepDlg = nil then
+//    GrepDlg := TGrepDlg.Create(self);
+//
+//  if not currentBoard.threadSearched or (Sender = MenuFindThreadNew) then
+//    GrepDlg.Caption := 'スレ絞り込み強調'
+//  else
+//    GrepDlg.Caption := 'スレ絞り込み強調(現在の結果から更に絞り込む)';
+//  GrepDlg.Edit.Text := searchTarget;
+//  if (length(GrepDlg.Edit.Text) <= 0) and (GrepDlg.Edit.Items.Count > 0) then
+//    GrepDlg.Edit.Text := GrepDlg.Edit.Items.Strings[0];  //aiai
+//
+//  GrepDlg.grepMode := false;
+//  GrepDlg.extractMode := false; //beginner
+//
+//  rc := GrepDlg.ShowModal;
+//  if (rc <> 3) then
+//    exit;
+//
+//  searchTarget := Trim(GrepDlg.Edit.Text);
+//  target := StrUnify(searchTarget);
+//
+//  if currentBoard.threadSearched and (Sender = MenuFindThreadNew) then
+//    for i := 0 to ListView.Items.Count -1 do
+//      TThreadItem(LIstView.List[i]).liststate := 0;
+//
+//  if not currentBoard.threadSearched or (Sender = MenuFindThreadNew) then
+//  begin
+//    if target <> '' then
+//      for i := 0 to ListView.Items.Count -1 do
+//        with TThreadItem(LIstView.List[i]) do
+//          if 0 < AnsiPos(target, StrUnify(HTML2String(title))) then
+//            liststate := 1;
+//  end else //絞り込み済みの場合更に絞り込む
+//  begin
+//    currentBoard.threadSearched := False;
+//    for i := 0 to ListView.Items.Count -1 do
+//      with TThreadItem(LIstView.List[i]) do
+//        if (liststate <> 0) then
+//        begin
+//          if ((target = '') or (0 >= AnsiPos(target, StrUnify(HTML2String(title))))) then
+//            liststate := 0
+//          else
+//            currentBoard.threadSearched := True;
+//        end;
+//  end;
+//
+//  ListView.Sort(@ListCompareFuncSearchState);
+//  ListView.SetTopItem(ListView.Items[0]);
+//  //ListView.Refresh;
+//
+//  currentBoard.threadSearched := (TThreadItem(ListView.Items[0].Data).liststate <> 0);
+//  if currentBoard.threadSearched then
+//    currentSortColumn := 100
+//  else begin
+//    currentSortColumn := 1;
+//  end;
 end;
 
 (* スレッドタイトル検索 *) //aiai
@@ -17592,6 +17397,432 @@ end;
 
 //▲ MDI
 
+//▼検索
+
+(* 検索 *)
+procedure TMainWnd.MenuFindClick(Sender: TObject);
+var
+  target: string;
+  viewItem: TViewItem;
+begin
+  if TreeView.Focused or FavoriteView.Focused
+    or TreeViewSearchEditBox.Focused then
+  begin
+    TreeViewSearchToolBar.Visible := true;
+    try
+      TreeViewSearchEditBox.SetFocus;
+    except end;
+    exit;
+  end else if ListView.Focused
+    or (Config.oprToggleRView and (mdRPane = ptList))
+      or ListViewSearchEditBox.Focused then
+  begin
+    ListViewSearchToolBar.Visible := true;
+    try
+      ListViewSearchEditBox.SetFocus;
+    except end;
+    exit;
+  end else
+  begin
+    viewItem := GetActiveView;
+    if viewItem <> nil then
+    begin
+      target := viewItem.GetSelection;
+      if target <> '' then
+        ThreViewSearchEditBox.Text := target;
+    end;
+    ThreViewSearchToolBar.Visible := true;
+    try
+      ThreViewSearchEditBox.SetFocus;
+    except end;
+    exit;
+  end;
+end;
+
+(* 順方向検索 *)
+procedure TMainWnd.FindNextClick(Sender: TObject);
+begin
+  if TreeView.Focused or FavoriteView.Focused
+    or TreeViewSearchEditBox.Focused then
+    FindInTree(true)
+  else if ListView.Focused
+    or (Config.oprToggleRView and (mdRPane = ptList))
+      or ListViewSearchEditBox.Focused then
+    FindInList(true)
+  else
+    FindInView(true);
+end;
+
+(* 逆方向検索 *)
+procedure TMainWnd.FindPrevClick(Sender: TObject);
+begin
+  if TreeView.Focused or FavoriteView.Focused
+    or TreeViewSearchEditBox.Focused then
+    FindInTree(false)
+  else if ListView.Focused
+    or (Config.oprToggleRView and (mdRPane = ptList))
+      or ListViewSearchEditBox.Focused then
+    FindInList(false)
+  else
+    FindInView(false);
+end;
+
+//板ツリー内検索
+procedure TMainWnd.FindInTree(forwardP: boolean);
+var
+  i, j: integer;
+  tree: TTreeView;
+  node: TTreeNode;
+  targetList: TStringList;
+  str: PChar;
+  RegMode: Boolean;
+  MigemoMode: Boolean;
+  RegExp: TRegExp;
+  target: string;
+begin
+  TreeViewSearchEditBox.Color := clWindow;
+  targetList := TStringList.Create;
+
+  if Config.schMultiWord then
+  begin
+    targetList.Delimiter := #$20;
+    targetList.DelimitedText := ReplaceStr(TreeViewSearchEditBox.Text, #$81#$40, #$20);
+  end else
+    targetList.Add(TreeViewSearchEditBox.Text);
+
+  if targetList.Count = 0 then
+  begin
+    targetList.Free;
+    exit;
+  end;
+
+  if (TreeViewSearchEditBox.Tag = 1)
+    and Config.schEnableMigemo and MigemoOBJ.CanUse then
+  begin
+    RegMode := True;
+    MigemoMode := True;
+    for i := 0 to targetList.Count - 1 do
+    begin
+      str := MigemoOBJ.Query(targetList.Strings[i]);
+      targetList.Delete(i);
+      targetList.Insert(i, str);
+      MigemoOBJ.Release(str);
+    end;
+  end else if (TreeViewSearchEditBox.Tag = 2) then
+  begin
+    RegMode := True;
+    MigemoMode := False;
+  end else
+  begin
+    RegMode := False;
+    MigemoMode := False;
+  end;
+
+  if RegMode then
+  begin
+    RegExp := TRegExp.Create(nil);
+    RegExp.IgnoreCase := True;
+  end else
+  begin
+    if Config.schIgnoreFullHalf then
+      targetList.Text := StrUnify(targetList.Text);
+    RegExp := nil;
+  end;
+
+  if TreeTabControl.TabIndex = 1 then
+    tree := FavoriteView
+  else
+    tree := TreeView;
+
+  node := tree.Selected;
+
+  if node = nil then
+  begin
+    if ForwardP then
+      i := 0
+    else
+      i := tree.Items.Count - 1;
+  end else
+  begin
+    if forwardP then
+      i := node.AbsoluteIndex + 1
+    else
+      i := node.AbsoluteIndex - 1;
+  end;
+
+  while (ForwardP and (i < tree.Items.Count)) or (not ForwardP and (i > -1)) do
+  begin
+
+    node := tree.Items[i];
+
+    if Config.schIgnoreFullHalf and (not RegMode or MigemoMode) then
+    begin
+      if MigemoMode then
+        target := StrUnify2(node.Text)
+      else
+        target := StrUnify(node.Text);
+    end else
+      target := node.Text;
+
+    for j := 0 to targetList.Count - 1 do
+    begin
+      if Assigned(RegExp) then
+      begin
+        try
+          RegExp.Pattern := targetList.Strings[j];
+          if RegExp.Test(target) then
+          begin
+            tree.Selected := nil;
+            tree.Selected := tree.Items[i];
+            RegExp.Free;
+            targetList.Free;
+            exit;
+          end;
+        except
+          on E: Exception do
+          begin
+            Log('TMainWnd.FindInTree: ' + e.Message);
+            RegExp.Free;
+            targetList.Free;
+            TreeViewSearchEditBox.Color := $D0FFFF;
+            exit;
+          end;
+        end;
+      end else
+      begin
+        if AnsiContainsText(target, targetList.Strings[j]) then
+        begin
+          tree.Selected := nil;
+          tree.Selected := tree.Items[i];
+          targetList.Free;
+          exit;
+        end;
+      end;
+    end;
+
+    if ForwardP then Inc(i) else Dec(i);
+  end;
+
+  if Assigned(RegExp) then
+    RegExp.Free;
+  targetList.Free;
+  TreeViewSearchEditBox.Color := $CCCCFF;
+end;
+
+//スレ欄内検索
+procedure TMainWnd.FindInList(forwardP: boolean);
+var
+  i, j: integer;
+  item: TListItem;
+  targetList: TStringList;
+  str: PChar;
+  RegMode: Boolean;
+  MigemoMode: Boolean;
+  RegExp: TRegExp;
+  target: string;
+label
+  DONE;
+begin
+  ListViewSearchEditBox.Color := clWindow;
+  item := ListView.ItemFocused;
+
+  targetList := TStringList.Create;
+  if Config.schMultiWord then
+  begin
+    targetList.Delimiter := #$20;
+    targetList.DelimitedText := ReplaceStr(ListViewSearchEditBox.Text, #$81#$40, #$20);
+  end else
+    targetList.Add(ListViewSearchEditBox.Text);
+
+  if targetList.Count = 0 then
+  begin
+    targetList.Free;
+    exit;
+  end;
+
+  if (ListViewSearchEditBox.Tag = 1)
+    and Config.schEnableMigemo and MigemoOBJ.CanUse then
+  begin
+    MigemoMode := True;
+    RegMode := True;
+    for i := 0 to targetList.Count - 1 do
+    begin
+      str := MigemoOBJ.Query(targetList.Strings[i]);
+      targetList.Delete(i);
+      targetList.Insert(i, str);
+      MigemoOBJ.Release(str);
+    end;
+  end else if (ListViewSearchEditBox.Tag = 2) then
+  begin
+    RegMode := True;
+    MigemoMode := False;
+  end else
+  begin
+    if Config.schIgnoreFullHalf then
+      targetList.Text := StrUnify(targetList.Text);
+    MigemoMode := False;
+    RegMode := False;
+  end;
+
+  if RegMode then
+  begin
+    RegExp := TRegExp.Create(nil);
+    RegExp.IgnoreCase := True;
+  end else
+    RegExp := nil;
+
+  if item = nil then
+  begin
+    if ForwardP then
+      i := 0
+    else
+      i := ListView.Items.Count - 1;
+  end else
+  begin
+    if ForwardP then
+      i := item.Index + 1
+    else
+      i := item.Index - 1;
+  end;
+
+  while (ForwardP and (i < ListView.Items.Count)) or (not ForwardP and (i > -1)) do
+  begin
+
+    if Config.schIgnoreFullHalf and (not RegMode or MigemoMode) then
+    begin
+      if MigemoMode then
+        target := StrUnify2(HTML2String(TThreadItem(ListView.List[i]).title))
+      else
+        target := StrUnify(HTML2String(TThreadItem(ListView.List[i]).title));
+    end else
+      target := HTML2String(TThreadItem(ListView.List[i]).title);
+
+    for j := 0 to targetList.Count - 1 do
+    begin
+
+      if Assigned(RegExp) then
+      begin
+        try
+          RegExp.Pattern := targetList.Strings[j];
+          if RegExp.Test(target) then
+          begin
+            ListView.Selected := nil;
+            ListViewSelectIntoView(ListView.Items[i]);
+            RegExp.Free;
+            targetList.Free;
+            exit;
+          end;
+        except
+          on E: Exception do begin
+            Log('TMainWnd.FindInList: ' + e.Message);
+            RegExp.Free;
+            targetList.Free;
+            ListViewSearchEditBox.Color := $D0FFFF;
+            exit;
+          end;
+        end;
+      end else
+      begin
+        if 0 < AnsiPos(targetList.Strings[j], target) then
+        begin
+          ListView.Selected := nil;
+          ListViewSelectIntoView(ListView.Items[i]);
+          targetList.Free;
+          exit;
+        end;
+      end;
+
+    end;
+
+    if ForwardP then Inc(i) else Dec(i);
+  end;
+
+  if Assigned(RegExp) then
+    RegExp.Free;
+  targetList.Free;
+  ListViewSearchEditBox.Color := $CCCCFF;
+end;
+
+//スレ内検索
+procedure TMainWnd.FindInView(forwardP: boolean);
+var
+  viewItem: TViewItem;
+  str: PChar;
+  i, j: integer;
+  targetList: TStringList;
+  hloption: THighLightOption;
+begin
+  ThreSearchTimer.Enabled := False;
+
+  ThreViewSearchEditBox.Color := clWindow;
+
+  viewItem := GetActiveView;
+  if (viewitem = nil) or (viewItem.thread = nil) then
+    exit;
+
+  if (Length(ThreViewSearchEditBox.Text) = 0) then
+  begin
+    viewItem.browser.SearchClear;
+    exit;
+  end;
+
+  SearchTarget := ThreViewSearchEditBox.Text;
+
+  targetList := TStringList.Create;
+
+  if Config.schMultiWord then
+  begin
+    targetList.Delimiter := #$20;
+    targetList.DelimitedText := ReplaceStr(SearchTarget, #$81#$40, #$20);
+  end else
+    targetList.Add(SearchTarget);
+
+  if targetList.Count = 0 then
+  begin
+    targetList.Free;
+    exit;
+  end;
+
+  hloption := hloNormal;
+
+  j := Length(SearchTarget);
+  str := PChar(SearchTarget);
+  if (TreeViewSearchEditBox.Tag = 1)
+    and Config.schEnableMigemo and MigemoOBJ.CanUse and NumAlpha(str, j) then
+  begin
+    hloption := hloReg;
+    for i := 0 to targetList.Count - 1 do
+    begin
+      str := MigemoOBJ.Query(targetList[i]);
+      targetList.Delete(i);
+      targetList.Insert(i, str);
+      MigemoOBJ.Release(str);
+    end;
+  end else if (TreeViewSearchEditBox.Tag = 2) then
+    hloption := hloReg;
+
+  try
+    if ForwardP then
+    begin
+      if not viewItem.browser.SearchForward(targetList, hloption) then
+        ThreViewSearchEditBox.Color := $CCCCFF;
+    end else
+    begin
+      if not viewItem.browser.SearchBackward(targetList, hloption) then
+        ThreViewSearchEditBox.Color := $CCCCFF;
+    end;
+  except
+    on E: Exception do begin
+      Log('TMainWnd.FindInView: ' + E.Message);
+      ThreViewSearchEditBox.Color := $D0FFFF;
+    end;
+  end;
+
+  targetList.Free;
+end;
+
+//▲検索
+
 //▼ スレ絞込み
 
 procedure TMainWnd.InitMigemo;
@@ -17621,13 +17852,13 @@ begin
     if Config.schEnableMigemo and MigemoOBJ.CanUse then
       ListViewSearchToolButton.ImageIndex := 1
     else
-      ListViewSearchToolButton.ImageIndex := 2;
+      ListViewSearchToolButton.ImageIndex := 3;
     ListViewSearchEditBox.OnChange := ListViewSearchEditBoxChange;
     MenuListViewSearchMigemo.Checked := True;
   end;
   2: begin  //正規表現
     ListViewSearchEditBox.OnChange := nil;
-    ListViewSearchToolButton.ImageIndex := 3;
+    ListViewSearchToolButton.ImageIndex := 2;
     MenuListViewSearchRegExp.Checked := True;
   end;
   else
@@ -17702,27 +17933,10 @@ begin
 
   str := PChar(ListViewSearchEditBox.Text);
   j := Length(ListViewSearchEditBox.Text);
-  i := 0;
-  while i < j do
+  if not NumAlpha(str, j) then
   begin
-    case (str + i)^ of
-    '-', 'A'..'Z', 'a'..'z', '0'..'9', ' ':;
-    #$81:
-      begin
-        if not (i < j - 1) or not ((str + i + 1)^ = #$40) then //全角空白でない
-        begin
-          ListViewSearchNormalSearch;
-          exit;
-        end;
-        Inc(i);
-      end;
-    else
-      begin
-        ListViewSearchNormalSearch;
-        exit;
-      end;
-    end; //case
-    Inc(i);
+    ListViewSearchNormalSearch;
+    exit
   end;
 
   RegExp := TRegExp.Create(nil);   //WSH
@@ -18029,6 +18243,8 @@ begin
   2: ListViewSearchEditBox.SelText := ClipBoard.AsText; //貼り付け
   3: ListViewSearchEditBox.SelectAll;                   //すべて選択
   4: ListViewSearchEditBox.Text := '';                  //クリア
+  5: FindInList(True);                                  //前方検索
+  6: FindInList(False);                                 //後方検索
   end;
 end;
 
@@ -18077,32 +18293,17 @@ procedure TMainWnd.ThreViewSearchEditBoxKeyPress(Sender: TObject;
 begin
   if Ord(Key) = VK_RETURN then
   begin
-    Case ThreViewSearchEditBox.Tag of
-    0: begin ThreViewSearchNormalSearch(True); Key := #0; end;
-    1:
-      begin
-        if Config.schEnableMigemo and MigemoOBJ.CanUse then
-          ThreViewSearchMigemoSearch(True)
-        else
-          ThreViewSearchNormalSearch(True);
-        Key := #0;
-      end;
-    2: begin ThreViewSearchRegExpSearch(True); Key := #0; end;
-    end;
+    ThreSearchTimer.Enabled := False;
+    FindInView(True);
+    Key := #0;
   end;
 end;
 
 procedure TMainWnd.ThreViewSearchUpDownClick(Sender: TObject;
   Button: TUDBtnType);
 begin
-  Case ThreViewSearchEditBox.Tag of
-  0: ThreViewSearchNormalSearch(Button = btPrev);
-  1: if Config.schEnableMigemo and MigemoOBJ.CanUse then
-       ThreViewSearchMigemoSearch(Button = btPrev)
-     else
-       ThreViewSearchNormalSearch(Button = btPrev);
-  2: ThreViewSearchRegExpSearch(Button = btPrev);
-  end;
+  ThreSearchTimer.Enabled := False;
+  FindInView(Button = btPrev);
 end;
 
 procedure TMainWnd.ThreViewSearchSetSearch(index: integer);
@@ -18119,14 +18320,14 @@ begin
     if Config.schEnableMigemo and MigemoOBJ.CanUse then begin
       ThreViewSearchToolButton.ImageIndex := 1;
     end else begin
-      ThreViewSearchToolButton.ImageIndex := 2;
+      ThreViewSearchToolButton.ImageIndex := 3;
     end;
       ThreViewSearchEditBox.OnChange := ThreViewSearchEditBoxChange;
     MenuThreViewSearchMigemo.Checked := True;
   end;
   2: begin  //正規表現
     ThreViewSearchEditBox.OnChange := nil;
-    ThreViewSearchToolButton.ImageIndex := 3;
+    ThreViewSearchToolButton.ImageIndex := 2;
     MenuThreViewSearchRegExp.Checked := True;
   end;
   else
@@ -18137,233 +18338,24 @@ procedure TMainWnd.ThreViewSearchEditBoxChange(Sender: TObject);
 begin
   ThreViewSearchUpDown.Position := 0;
   ThreSearchTimer.Enabled := False;
-  if GetActiveView = nil then
-    exit;
-  ThreSearchTimer.Enabled := Config.schIncremental;
+  ThreSearchTimer.Enabled := Config.schIncremental
+    and (ThreViewSearchEditBox.Tag <> 2);
 end;
 
 procedure TMainWnd.ThreSearchTimerTimer(Sender: TObject);
 begin
   ThreSearchTimer.Enabled := False;
-  if GetActiveView = nil then
-    exit;
-  case ThreViewSearchEditBox.Tag of
-  0: ThreViewSearchNormalSearch(True);
-  1:
-    begin
-      if Config.schEnableMigemo and MigemoOBJ.CanUse then
-        ThreViewSearchMigemoSearch(True)
-      else
-        ThreViewSearchNormalSearch(True);
-    end;
-  end;
-end;
-
-//Migemo検索
-procedure TMainWnd.ThreViewSearchMigemoSearch(ForwardP: Boolean);
-var
-  viewItem: TViewItem;
-  str: PChar;
-  i, j: integer;
-  targetList: TStringList;
-begin
-  ThreSearchTimer.Enabled := False;
-
-  ThreViewSearchEditBox.Color := clWindow;
-
-  viewItem := GetActiveView;
-  if (viewitem = nil) or (viewItem.thread = nil) then
-    exit;
-
-  if (Length(ThreViewSearchEditBox.Text) = 0) then
-  begin
-    viewItem.browser.SearchClear;
-    exit;
-  end;
-
-  if not MigemoOBJ.CanUse then
-  begin
-    ThreViewSearchNormalSearch(ForwardP);
-    exit;
-  end;
-
-  SearchTarget := ThreViewSearchEditBox.Text;
-
-  j := Length(SearchTarget);
-  str := PChar(SearchTarget);
-  i := 0;
-  while i < j do
-  begin
-    case (str + i)^ of
-    '-', 'A'..'Z', 'a'..'z', '0'..'9', ' ':;
-    #$81:
-      begin
-        if not (i < j - 1) or not ((str + i + 1)^ = #$40) then //全角空白でない
-        begin
-          ThreViewSearchNormalSearch(ForwardP);
-          exit;
-        end;
-        Inc(i);
-      end;
-    else
-      begin
-        ThreViewSearchNormalSearch(ForwardP);
-        exit;
-      end;
-    end; //case
-    Inc(i);
-  end;
-
-  targetList := TStringList.Create;
-
-  if Config.schMultiWord then
-  begin
-    targetList.Delimiter := #$20;
-    targetList.DelimitedText := ReplaceStr(SearchTarget, #$81#$40, #$20);
-    for i := 0 to targetList.Count - 1 do
-    begin
-      str := MigemoOBJ.Query(targetList[i]);
-      targetList.Delete(i);
-      targetList.Insert(i, str);
-      MigemoOBJ.Release(str);
-    end;
-  end else
-    targetList.Add(SearchTarget);
-
-  if targetList.Count = 0 then
-  begin
-    targetList.Free;
-    exit;
-  end;
-
-  try
-    if ForwardP then
-    begin
-      if not viewItem.browser.SearchForward(targetList, hloReg) then
-        ThreViewSearchEditBox.Color := $CCCCFF;
-    end else
-    begin
-      if not viewItem.browser.SearchBackward(targetList, hloReg) then
-        ThreViewSearchEditBox.Color := $CCCCFF;
-    end;
-  except
-    on E: Exception do begin
-      Log('TMainWnd.ThreViewSearchMigemoSearch: ' + E.Message);
-      ThreViewSearchEditBox.Color := $D0FFFF;
-    end;
-  end;
-
-  targetList.Free;
-end;
-
-//通常検索
-procedure TMainWnd.ThreViewSearchNormalSearch(ForwardP: Boolean);
-var
-  viewItem: TViewItem;
-  targetList: TStringList;
-begin
-  ThreSearchTimer.Enabled := False;
-  ThreViewSearchEditBox.Color := clWindow;
-  viewItem := GetActiveView;
-  if (viewItem = nil) or (viewItem.thread = nil) then
-    exit;
-
-  if (Length(ThreViewSearchEditBox.Text) = 0) then
-  begin
-    viewItem.browser.SearchClear;
-    exit;
-  end;
-
-  SearchTarget := ThreViewSearchEditBox.Text;
-
-  targetList := TStringList.Create;
-  if Config.schMultiWord then
-  begin
-    targetList.Delimiter := #$20;
-    targetList.DelimitedText := ReplaceStr(SearchTarget, #$81#$40, #$20);
-  end else
-    targetList.Add(SearchTarget);
-  if targetList.Count = 0 then
-  begin
-    targetList.Free;
-    exit;
-  end;
-
-  if ForwardP then
-  begin
-    if not viewItem.browser.SearchForward(targetList, hloNormal) then
-      ThreViewSearchEditBox.Color := $CCCCFF;
-  end else
-  begin
-    if not viewItem.browser.SearchBackward(targetList, hloNormal) then
-      ThreViewSearchEditBox.Color := $CCCCFF;
-  end;
-
-  targetList.Free;
-end;
-
-//正規表現検索
-procedure TMainWnd.ThreViewSearchRegExpSearch(ForwardP: Boolean);
-var
-  viewItem: TViewItem;
-  targetList: TStringList;
-begin
-  ThreSearchTimer.Enabled := False;
-  ThreViewSearchEditBox.Color := clWindow;
-  viewItem := GetActiveView;
-  if (viewItem = nil) or (viewItem.thread = nil) then
-    exit;
-
-  if (Length(ThreViewSearchEditBox.Text) = 0) then
-  begin
-    viewItem.browser.SearchClear;
-    exit
-  end;
-
-  SearchTarget := ThreViewSearchEditBox.Text;
-
-  targetList := TStringList.Create;
-  if Config.schMultiWord then
-  begin
-    targetList.Delimiter := #$20;
-    targetList.DelimitedText := ReplaceStr(SearchTarget, #$81#$40, #$20);
-  end else
-    targetList.Add(SearchTarget);
-  if targetList.Count = 0 then
-  begin
-    targetList.Free;
-    exit;
-  end;
-
-  try
-    if ForwardP then
-    begin
-      if not viewItem.browser.SearchForward(TargetList, hloReg) then
-        ThreViewSearchEditBox.Color := $CCCCFF;
-    end else
-    begin
-      if not viewItem.browser.SearchBackward(TargetList, hloReg) then
-        ThreViewSearchEditBox.Color := $CCCCFF;
-    end;
-  except
-    on E: Exception do begin
-      Log('TMainWnd.ThreViewSearchRegExpSearch: ' + E.Message);
-      ThreViewSearchEditBox.Color := $D0FFFF;
-    end;
-  end;
-  targetList.Free;
+  FindInView(True);
 end;
 
 //レス抽出
 procedure TMainWnd.MenuThreViewSearchExtractClick(Sender: TObject);
 var
   viewItem: TViewItem;
-  RegExpMode: Boolean;
+  GrepMode: Byte;
   MigemoMode: Boolean;
   str: PChar;
-  i, j: integer;
-label
-  letsgo;
+  size: integer;
 begin
   viewItem := GetActiveView;
   if (viewItem = nil) or (viewItem.thread = nil) then
@@ -18373,40 +18365,24 @@ begin
   else if Length(SearchTarget) = 0 then
     exit;
   MigemoMode := False;
-  RegExpMode := False;
   case ThreViewSearchEditBox.Tag of
-    0:;
+    0: GrepMode := Byte(Config.schMultiWord) * GREP_OPTION_OR;
     1: begin
-      if not MigemoOBJ.CanUse then
-        goto letsgo;
-      j := Length(SearchTarget);
-      str := PChar(SearchTarget);
-      i := 0;
-      while i < j do
+      GrepMode := Byte(Config.schMultiWord) * GREP_OPTION_OR;
+      if MigemoOBJ.CanUse then
       begin
-        case (str + i)^ of
-          '-', 'A'..'Z', 'a'..'z', '0'..'9', ' ':;
-          #$81:
-            begin
-              if not (i < j - 1) or not ((str + i + 1)^ = #$40) then //全角空白でない
-                goto letsgo;
-              Inc(i);
-            end;
-          else
-            goto letsgo;
-        end; //case
-        Inc(i);
+        size := Length(SearchTarget);
+        str := PChar(SearchTarget);
+        MigemoMode := NumAlpha(str, size);
       end;
-      MigemoMode := True;
     end;
 
-    2: RegExpMode := True;
-
+    2: GrepMode := GREP_OPTION_REGEXP;
+  else
+    GrepMode := GREP_OPTION_NORMAL;
   end;
 
-  letsgo:
-
-  NewView(true).ExtractKeyword(SearchTarget, viewItem.thread, RegExpMode,
+  NewView(true).ExtractKeyword(SearchTarget, viewItem.thread, GrepMode,
     TComponent(Sender).Tag = 1, MigemoMode);
 end;
 
@@ -18486,14 +18462,14 @@ begin
       TreeViewSearchToolButton.ImageIndex := 1;
       TreeViewSearchEditBox.OnChange := TreeViewSearchEditBoxChange;
     end else begin
-      TreeViewSearchToolButton.ImageIndex := 2;
+      TreeViewSearchToolButton.ImageIndex := 3;
       TreeViewSearchEditBox.OnChange := nil;
     end;
     MenuTreeViewSearchMigemo.Checked := True;
   end;
   2: begin  //正規表現
     TreeViewSearchEditBox.OnChange := nil;
-    TreeViewSearchToolButton.ImageIndex := 3;
+    TreeViewSearchToolButton.ImageIndex := 2;
     MenuTreeViewSearchRegExp.Checked := True;
   end;
   else
@@ -18503,327 +18479,24 @@ end;
 procedure TMainWnd.TreeViewSearchEditBoxChange(Sender: TObject);
 begin
   TreeSearchTimer.Enabled := False;
-  TreeSearchTimer.Enabled := Config.schIncremental;
+  TreeSearchTimer.Enabled := Config.schIncremental
+    and (TreeViewSearchEditBox.Tag <> 2);
 end;
 
 procedure TMainWnd.TreeSearchTimerTimer(Sender: TObject);
 begin
-  Case TreeViewSearchEditBox.Tag of
-  0: TreeViewSearchNormalSearch;
-  1:
-    begin
-      if Config.schEnableMigemo and MigemoOBJ.CanUse then
-        TreeViewSearchMigemoSearch
-      else
-        TreeViewSearchNormalSearch;
-    end;
-  end;
+  TreeSearchTimer.Enabled := False;
+  FindInTree(True);
 end;
 
 procedure TMainWnd.TreeViewSearchEditBoxKeyPress(Sender: TObject;
   var Key: Char);
 begin
   if Ord(Key) = VK_RETURN then
-  Case TreeViewSearchEditBox.Tag of
-  0:
-    begin
-      TreeViewSearchNormalSearch;
-      Key := #0;
-    end;
-  1:
-    begin
-      if Config.schEnableMigemo and MigemoOBJ.CanUse then
-        TreeViewSearchMigemoSearch
-      else
-        TreeViewSearchNormalSearch;
-      Key := #0;
-    end;
-  2: begin TreeViewSearchRegExpSearch; Key := #0; end;
-  end;
-end;
-
-//Migemo検索
-procedure TMainWnd.TreeViewSearchMigemoSearch;
-var
-  i, j: integer;
-  tree: TTreeView;
-  node: TTreeNode;
-  target: string;
-  source: string;
-  targetList: TStringList;
-  RegExp: TRegExp;
-  str: PChar;
-begin
-  TreeSearchTimer.Enabled := False;
-  TreeViewSearchEditBox.Color := clWindow;
-
-  str := PChar(TreeViewSearchEditBox.Text);
-  j := Length(TreeViewSearchEditBox.Text);
-  i := 0;
-  while i < j do
   begin
-    case (str + i)^ of
-    '-', 'A'..'Z', 'a'..'z', '0'..'9', ' ':;
-    #$81:
-      begin
-        if not (i < j - 1) or not ((str + i + 1)^ = #$40) then //全角空白でない
-        begin
-          TreeViewSearchNormalSearch;
-          exit;
-        end;
-        Inc(i);
-      end;
-    else
-      begin
-        TreeViewSearchNormalSearch;
-        exit;
-      end;
-    end; //case
-    Inc(i);
+    Key := #0;
+    FindInTree(True);
   end;
-
-  target := TreeViewSearchEditBox.Text;
-  if Length(target) <= 0 then
-    exit;
-  target := Trim(target);
-  if Length(target) <= 0 then
-    exit;
-  if not MigemoOBJ.CanUse then
-  begin
-    TreeViewSearchNormalSearch;
-    exit;
-  end;
-
-  if TreeTabControl.TabIndex = 1 then
-    tree := FavoriteView
-  else
-    tree := TreeView;
-  node := tree.Selected;
-
-  if node = nil then
-    i := 0
-  else
-    i := node.AbsoluteIndex + 1;
-
-  RegExp := TRegExp.Create(nil);  //WSH
-  RegExp.IgnoreCase := True;   //大文字小文字を区別しない
-
-  if Config.schMultiWord then
-  begin
-    targetList := TStringList.Create;
-    targetList.Delimiter := #$20;
-    targetList.DelimitedText := ReplaceStr(target, #$81#$40, #$20);
-    for i := i to tree.Items.Count -1 do
-    begin
-      node := tree.Items[i];
-      if Config.schIgnoreFullHalf then
-        source := StrUnify2(node.Text)
-      else
-        source := node.Text;
-      for j := 0 to targetList.Count - 1 do
-      begin
-        str := MigemoOBJ.Query(targetList.Strings[j]);
-        target := Copy(str, 1, Length(str));
-        MigemoOBJ.Release(str);
-        try
-          RegExp.Pattern := target;
-        except
-          TreeViewSearchEditBox.Color := $D0FFFF;
-          RegExp.Free;
-          targetList.Free;
-          exit;
-        end;
-        if not RegExp.Test(source) then
-          break
-        else
-        begin
-          if j = targetList.Count - 1 then
-          begin
-            tree.Selected := nil;
-            tree.Selected := tree.Items[i];
-            RegExp.Free;
-            targetList.Free;
-            exit;
-          end;
-        end;
-      end;
-    end;
-    targetList.Free;
-  end else
-  begin
-    str := MigemoOBJ.Query(target);
-    target := Copy(str, 1, Length(str));
-    MigemoOBJ.Release(str);
-    try
-      RegExp.Pattern := target;
-    except
-      TreeViewSearchEditBox.Color := $D0FFFF;
-      RegExp.Free;
-      exit;
-    end;
-    for i := i to tree.Items.Count -1 do
-    begin
-      node := tree.Items[i];
-      if Config.schIgnoreFullHalf then
-        source := StrUnify2(node.Text)
-      else
-        source := node.Text;
-      if RegExp.Test(source) then
-      begin
-        tree.Selected := nil;
-        tree.Selected := tree.Items[i];
-        RegExp.Free;
-        exit;
-      end;
-    end;
-  end;
-
-
-  //ヒットしなかった場合はSelectedにnilをいれることで次の検索を一番上からはじめることができる
-  tree.Selected := nil;
-  RegExp.Free;
-  TreeViewSearchEditBox.Color := $CCCCFF;
-end;
-
-//通常検索
-procedure TMainWnd.TreeViewSearchNormalSearch;
-var
-  i, j: integer;
-  tree: TTreeView;
-  node: TTreeNode;
-  target, unifiedtarget: string;
-  source: string;
-  targetList: TStringList;
-begin
-  TreeSearchTimer.Enabled := False;
-  TreeViewSearchEditBox.Color := clWindow;
-
-  target := TreeViewSearchEditBox.Text;
-  if Length(target) <= 0 then
-    exit;
-  target := Trim(target);
-  if Length(target) <= 0 then
-    exit;
-  if Config.schIgnoreFullHalf then
-    unifiedtarget := StrUnify(target);
-
-  if TreeTabControl.TabIndex = 1 then
-    tree := FavoriteView
-  else
-    tree := TreeView;
-  node := tree.Selected;
-
-  if node = nil then
-    i := 0
-  else
-    i := node.AbsoluteIndex + 1;
-  if Config.schMultiWord then
-  begin
-    targetList := TStringList.Create;
-    targetList.Delimiter := #$20;
-  end else
-    targetList := nil;
-
-  for i := i to tree.Items.Count -1 do
-  begin
-    node := tree.Items[i];
-    if Config.schIgnoreFullHalf then
-      source := StrUnify(node.Text)
-    else
-      source := node.Text;
-    if Config.schMultiWord then
-    begin
-      targetList.DelimitedText := ReplaceStr(unifiedtarget, #$81#$40, #$20);
-      for j := 0 to targetList.Count - 1 do
-      begin
-        if 0 = AnsiPos(targetList.Strings[j], source) then
-          break
-        else
-        begin
-          if j = targetList.Count - 1 then
-          begin
-            tree.Selected := nil;
-            tree.Selected := tree.Items[i];
-            targetList.Free;
-            exit;
-          end;
-        end;
-      end;
-    end else
-    begin
-      if 0 < AnsiPos(unifiedtarget, source) then
-      begin
-        tree.Selected := nil;
-        tree.Selected := tree.Items[i];
-        exit;
-      end;
-    end;
-  end;
-
-  //ヒットしなかった場合はSelectedにnilをいれることで次の検索を一番上からはじめることができる
-  if Assigned(targetList) then
-    targetList.Free;
-  tree.Selected := nil;
-  TreeViewSearchEditBox.Color := $CCCCFF;
-end;
-
-//正規表現検索
-procedure TMainWnd.TreeViewSearchRegExpSearch;
-var
-  i: integer;
-  tree: TTreeView;
-  node: TTreeNode;
-  target: string;
-  source: string;
-  RegExp: TRegExp;
-begin
-  TreeSearchTimer.Enabled := False;
-  TreeViewSearchEditBox.Color := clWindow;
-
-  target := TreeViewSearchEditBox.Text;
-  if Length(target) <= 0 then
-    exit;
-  target := Trim(target);
-  if Length(target) <= 0 then
-    exit;
-  RegExp := TRegExp.Create(nil);  //WSH
-  RegExp.IgnoreCase := True;   //大文字小文字を区別しない
-  try
-    RegExp.Pattern := target;
-  except
-    RegExp.Free;
-    TreeViewSearchEditBox.Color := $D0FFFF;
-    exit;
-  end;
-
-  if TreeTabControl.TabIndex = 1 then
-    tree := FavoriteView
-  else
-    tree := TreeView;
-  node := tree.Selected;
-
-  if node = nil then
-    i := 0
-  else
-    i := node.AbsoluteIndex + 1;
-
-  for i := i to tree.Items.Count -1 do
-  begin
-    node := tree.Items[i];
-    source := node.Text;
-    if RegExp.Test(source) then
-    begin
-      tree.Selected := nil;
-      tree.Selected := tree.Items[i];
-      RegExp.Free;
-      exit;
-    end;
-  end;
-
-  //ヒットしなかった場合はSelectedにnilをいれることで次の検索を一番上からはじめることができる
-  tree.Selected := nil;
-  RegExp.Free;
-  TreeViewSearchEditBox.Color := $CCCCFF;
 end;
 
 procedure TMainWnd.TreeViewSearchToolBarResize(Sender: TObject);
@@ -18849,6 +18522,8 @@ begin
   2: TreeViewSearchEditBox.SelText := ClipBoard.AsText; //貼り付け
   3: TreeViewSearchEditBox.SelectAll;                   //すべて選択
   4: TreeViewSearchEditBox.Text := '';                  //クリア
+  5: FindInTree(True);                                  //前方検索
+  6: FindInTree(false);                                 //後方検索
   end;
 end;
 

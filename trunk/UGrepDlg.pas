@@ -6,7 +6,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Controls, Forms,
   Dialogs, ExtCtrls, ComCtrls, Menus, StdCtrls,
-  UIDlg, U2chCatList, UFavorite, U2chBoard, U2chCat;
+  UIDlg, U2chCatList, UFavorite, U2chBoard, U2chCat, JLXPExtCtrls;
 
 type
   TGrepDlg = class(TInputDlg)
@@ -16,8 +16,8 @@ type
     PopupDetailPanel: TPanel;
     PopupMaxSeqEdit: TEdit;
     PopupEachThreMaxEdit: TEdit;
-    RadioGroupSearchRange: TRadioGroup;
-    RadioGroupTarget: TRadioGroup;
+    RadioGroupSearchRange: TJLXPRadioGroup;
+    RadioGroupTarget: TJLXPRadioGroup;
     TargetPanel: TPanel;
     Label3: TLabel;
     Label1: TLabel;
@@ -39,9 +39,9 @@ type
     TreePopupCollapse: TMenuItem;
     ExtractPanel: TPanel;
     CheckBoxIncludeRef: TCheckBox;
-    CheckBoxRegularExpression: TCheckBox;
     CheckBoxShowDirect: TCheckBox;
     CheckBoxSaveHistroy: TCheckBox;
+    ComboBoxOption: TComboBox;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -154,11 +154,9 @@ begin
   {aiai}
   if extractMode then
   begin
-    CheckBoxRegularExpression.Enabled := true;
   end else
   begin
     CheckBoxIncludeRef.Enabled := false;
-    CheckBoxRegularExpression.Enabled := false;;
   end;
 
   CheckBoxSaveHistroy.Checked := Config.grepSaveHistroy;

@@ -3824,6 +3824,7 @@ object UIConfig: TUIConfig
           Height = 17
           Caption = #26908#32034#12496#12540#12434#20351#12358
           TabOrder = 5
+          Visible = False
         end
         object CheckBoxShowListToolbarOnStartup: TCheckBox
           Left = 24
