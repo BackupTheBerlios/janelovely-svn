@@ -43,7 +43,7 @@ uses
 
 const
   VERSION  = '0.1.3.16';      (* Printable ASCIIコード厳守。')'はダメ *)
-  JANE2CH  = 'JaneLovely 0.1.3.16 β';
+  JANE2CH  = 'JaneLovely 0.1.3.16 β3';
   KEYWORD_OF_USER_AGENT = 'JaneLovely';      (*  *)
 
   DISTRIBUTORS_SITE = 'http://www.geocities.jp/openjane4714/';
