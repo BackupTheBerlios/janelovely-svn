@@ -5564,7 +5564,7 @@ begin
     begin
       //”Âî•ñ‚¾‚¯•\¦
       dest.WriteAnchor('', URI, PChar(URI), Length(URI));
-      dest.WriteHTML('<br><br>' + TCategory(board.category).name + ' [' + board.name + ']');
+      dest.WriteHTML('<br>' + TCategory(board.category).name + ' [' + board.name + ']');
     end;
   end else
     MakeThreadInfo(dest);
