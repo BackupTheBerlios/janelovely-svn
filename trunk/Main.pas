@@ -12270,7 +12270,7 @@ begin
       try
         //newView.Lock;
         restrainContext := True;
-        Result := (NewView.ExtractKeyword('extract:' + ref, viewItem.thread , ref, 0, Mouse.CursorPos) > 0);
+        Result := (NewView.ExtractKeyword('extract:' + ref, viewItem.thread , ref, 20, Mouse.CursorPos) > 0);
         if Assigned(viewItem.PossessionView) then
         begin
           viewItem.PossessionView.Enabled := True;
