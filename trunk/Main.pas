@@ -860,6 +860,11 @@ type
     N94: TMenuItem;
     MenuListAlReady: TMenuItem;
     MenuListCanClose: TMenuItem;
+    actUpOpenThread: TAction;
+    actUpImportantThread: TAction;
+    N97: TMenuItem;
+    N106: TMenuItem;
+    N107: TMenuItem;
     {/aiai}
     procedure FormCreate(Sender: TObject);
     procedure MenuToolsOptionsClick(Sender: TObject);
@@ -1350,6 +1355,9 @@ type
     procedure PopupFavRenewCheckClick(Sender: TObject);
     procedure actListCloseThisThreadExecute(Sender: TObject);
     procedure actListCanCloseExecute(Sender: TObject);
+    procedure actUpOpenThreadExecute(Sender: TObject);
+    procedure actUpImportantThreadExecute(Sender: TObject);
+    procedure MenuListSortClick(Sender: TObject);
     {/aiai}
   private
   { Private 宣言 }
@@ -3404,6 +3412,10 @@ begin
   iniFile.WriteBool(INI_SCH_SECT, 'MultiWord', Config.schMultiWord);
   iniFile.WriteBool(INI_SCH_SECT, 'Incremental', Config.schIncremental);
   iniFile.WriteBool(INI_SCH_SECT, 'IgnoreFullHalf', Config.schIgnoreFullHalf);
+
+  (* Sort (aiai) *)
+  iniFile.WriteBool(INI_STL_SECT, 'UpOpenThread', Config.stlUpOpenThread);
+  iniFile.WriteBool(INI_STL_SECT, 'UpImportantThread', Config.stlUpImportantThread);
 
   //LoginはaccAutoAuth,account.cfg管理なのでとりあえずパス
   (*  *)
@@ -6904,6 +6916,10 @@ begin
   end;
 end;}
 
+(* ========================================================================= *)
+
+// ソート
+
 function XVAL(i:integer):integer;
 begin
   if i <= 0 then
@@ -7005,16 +7021,11 @@ begin
     end;
     {/beginner}
   end;
-
-  if result = 0 then
-    result := ListCompareFuncNumber(Item1, Item2);
 end;
 
 function ListCompareFuncTitle(Item1, Item2: Pointer): integer;
 begin
   result := AnsiCompareStr(TThreadItem(Item1).title, TThreadItem(Item2).title);
-  if result = 0 then
-    result := ListCompareFuncNumber(Item1, Item2);
   //▼逆順
   if MainWnd.currentSortColumn = -LVSC_TITLE then
     result := -result;
@@ -7025,13 +7036,9 @@ begin
   if MainWnd.currentSortColumn = -LVSC_ITEMS then
   begin
     result := (TThreadItem(Item2).itemCount) - (TThreadItem(Item1).itemCount);
-    if result = 0 then
-      result := -ListCompareFuncNumber(Item1, Item2);
   end else
   begin
     result := XVAL(TThreadItem(Item1).itemCount) - XVAL(TThreadItem(Item2).itemCount);
-    if result = 0 then
-      result := ListCompareFuncNumber(Item1, Item2);
   end;
 end;
 
@@ -7040,13 +7047,9 @@ begin
   if MainWnd.currentSortColumn = -LVSC_LINES then
   begin
     result := (TThreadItem(Item2).lines) - (TThreadItem(Item1).lines);
-    if result = 0 then
-      result := -ListCompareFuncNumber(Item1, Item2);
   end else
   begin
     result := XVAL(TThreadItem(Item1).lines) - XVAL(TThreadItem(Item2).lines);
-    if result = 0 then
-      result := ListCompareFuncNumber(Item1, Item2);
   end;
 end;
 
@@ -7066,8 +7069,6 @@ begin
     result := XVAL(i1) - XVAL(i2)
   else
     result := i2 - i1;
-  if result = 0 then
-    result := ListCompareFuncNumber(Item1, Item2);
 end;
 
 function ListCompareFuncGot(Item1, Item2: Pointer): integer;//521
@@ -7076,8 +7077,6 @@ begin
     result := XVAL(TThreadItem(Item1).LastGot) - XVAL(TThreadItem(Item2).LastGot)
   else
     result := (TThreadItem(Item2).LastGot) - (TThreadItem(Item1).LastGot);
-  if result = 0 then
-    result := ListCompareFuncNumber(Item1, Item2);
 end;
 
 function ListCompareFuncWrote(Item1, Item2: Pointer): integer;//521
@@ -7086,8 +7085,6 @@ begin
     result := XVAL(TThreadItem(Item1).LastWrote) - XVAL(TThreadItem(Item2).LastWrote)
   else
     result := (TThreadItem(Item2).LastWrote) - (TThreadItem(Item1).LastWrote);
-  if result = 0 then
-    result := ListCompareFuncNumber(Item1, Item2);
 end;
 
 function ListCompareFuncSince(Item1, Item2: Pointer): integer;
@@ -7098,8 +7095,6 @@ begin
   except
     result := 0;
   end;
-  if result = 0 then
-    result := ListCompareFuncNumber(Item1, Item2);
   //▼逆順
   if MainWnd.currentSortColumn = -LVSC_DATE then
     result := -result;
@@ -7114,8 +7109,6 @@ begin
     result := TCategory(TBoard(TThreadItem(Item1).board).category).IndexOf(TThreadItem(Item1).board)
             - TCategory(TBoard(TThreadItem(Item2).board).category).IndexOf(TThreadItem(Item2).board);
 
-  if result = 0 then
-    result := ListCompareFuncNumber(Item1, Item2);
 
   if MainWnd.currentSortColumn = -LVSC_BOARD then
     result := -result;
@@ -7157,13 +7150,9 @@ begin
       result := -1
     else
       result := speed(Item1) - speed(Item2);
-    if result = 0 then
-      result := ListCompareFuncNumber(Item1, Item2);
   end else
   begin
     result := speed(Item2) - speed(Item1);
-    if result = 0 then
-      result := ListCompareFuncNumber(Item1, Item2);
   end;
 end;
 
@@ -7205,34 +7194,113 @@ begin
 
   if MainWnd.currentSortColumn = LVSC_GAIN then
     result := - result;
-
-  if result = 0 then
-    result := ListCompareFuncNumber(Item1, Item2);
 end;
 
-//スレ絞込みでのソート
-function ListCompareFuncSearchState(Item1, Item2: Pointer): integer;
+//開いているスレッドを上げる
+function ListCompareFuncOpenThread(Item1, Item2: Pointer): integer;
+begin
+  Result := Integer(TThreadItem(Item2).Opened) - Integer(TThreadItem(Item1).Opened);
+end;
+
+//重要スレッドを上げる
+function ListCompareFuncImportantThread(Item1, Item2: Pointer): Integer;
+begin
+  Result := (TThreadItem(Item2).ThreAboneType and $04)
+    - (TThreadItem(Item1).ThreAboneType and $04);
+end;
+
+//検索にヒットしたスレッドを上げる
+function ListCompareFuncSearchThread(Item1, Item2: Pointer): Integer;
 begin
   Result := TThreadItem(Item2).liststate - TThreadItem(Item1).liststate;
-  if Result = 0 then
-    {aiai}
-    Case Config.stlDefSortColumn of
-      0          : Result := ListCompareFuncMarker(Item1, Item2);
-      LVSC_NUMBER: Result := ListCompareFuncNumber(Item1, Item2);
-      LVSC_TITLE : Result := ListCompareFuncTitle(Item1, Item2);
-      LVSC_ITEMS : Result := ListCompareFuncItems(Item1, Item2);
-      LVSC_LINES : Result := ListCompareFuncLines(Item1, Item2);
-      LVSC_NEW   : Result := ListCompareFuncNew(Item1, Item2);
-      LVSC_GOT   : Result := ListCompareFuncGot(Item1, Item2);
-      LVSC_WROTE : Result := ListCompareFuncWrote(Item1, Item2);
-      LVSC_DATE  : Result := ListCompareFuncSince(Item1, Item2);
-      LVSC_BOARD : Result := ListCompareFuncBoard(Item1, Item2);
-      LVSC_SPEED : Result := ListCompareFuncSpeed(Item1, Item2);
-      LVSC_GAIN  : Result := ListCompareFuncGain(Item1, Item2);
-    end;
-    {/aiai}
 end;
 
+//通常の板用
+function ListCompareFuncNormal(Item1, Item2: Pointer): Integer;
+begin
+  Result := 0;
+
+  if MainWnd.currentBoard.threadSearched then
+    Result := ListCompareFuncSearchThread(Item1, Item2);
+
+  if Result <> 0 then
+    exit;
+
+  if Config.stlUpOpenThread then
+    Result := ListCompareFuncOpenThread(Item1, Item2);
+
+  if Result <> 0 then
+    exit;
+
+  if Config.stlUpImportantThread then
+    Result := ListCompareFuncImportantThread(Item1, Item2);
+
+  if Result <> 0 then
+    exit;
+
+  case abs(MainWnd.currentSortColumn) of
+  0: Result := ListCompareFuncMarker(Item1, Item2);  //beginner
+  LVSC_TITLE : Result := ListCompareFuncTitle(Item1, Item2);
+  LVSC_ITEMS : Result := ListCompareFuncItems(Item1, Item2);
+  LVSC_LINES : Result := ListCompareFuncLines(Item1, Item2);
+  LVSC_NEW   : Result := ListCompareFuncNew(Item1, Item2); //521
+  LVSC_GOT   : Result := ListCompareFuncGot(Item1, Item2); //521
+  LVSC_WROTE : Result := ListCompareFuncWrote(Item1, Item2); //521
+  LVSC_DATE  : Result := ListCompareFuncSince(Item1, Item2);
+  LVSC_BOARD : Result := ListCompareFuncBoard(Item1, Item2);
+  LVSC_SPEED : Result := ListCompareFuncSpeed(Item1, Item2); //aiai
+  LVSC_GAIN  : Result := ListCompareFuncGain(Item1, Item2);  //aiai
+  end;
+
+  if Result <> 0 then
+    exit;
+
+  Result := ListCompareFuncNumber(Item1, Item2);
+end;
+
+//Functional用
+function ListCompareFuncFunctional(Item1, Item2: Pointer): Integer;
+begin
+  Result := 0;
+
+  if MainWnd.currentBoard.threadSearched then
+    Result := ListCompareFuncSearchThread(Item1, Item2);
+
+  if Result <> 0 then
+    exit;
+
+  if Config.stlUpOpenThread then
+    Result := ListCompareFuncOpenThread(Item1, Item2);
+
+  if Result <> 0 then
+    exit;
+
+  if Config.stlUpImportantThread then
+    Result := ListCompareFuncImportantThread(Item1, Item2);
+
+  if Result <> 0 then
+    exit;
+
+  case abs(MainWnd.currentSortColumn) of
+  0: Result := ListCompareFuncMarker(Item1, Item2);  //beginner
+  LVSC_TITLE : Result := ListCompareFuncTitle(Item1, Item2);
+  LVSC_ITEMS : Result := ListCompareFuncItems(Item1, Item2);
+  LVSC_LINES : Result := ListCompareFuncLines(Item1, Item2);
+  LVSC_NEW   : Result := ListCompareFuncNew(Item1, Item2); //521
+  LVSC_GOT   : Result := ListCompareFuncGot(Item1, Item2); //521
+  LVSC_WROTE : Result := ListCompareFuncWrote(Item1, Item2); //521
+  LVSC_DATE  : Result := ListCompareFuncSince(Item1, Item2);
+  LVSC_BOARD : Result := ListCompareFuncBoard(Item1, Item2);
+  LVSC_SPEED : Result := ListCompareFuncSpeed(Item1, Item2); //aiai
+  LVSC_GAIN  : Result := ListCompareFuncGain(Item1, Item2);  //aiai
+  end;
+
+  if Result <> 0 then
+    exit;
+
+  //numberが使えないのでindexでソート
+  Result := ListCompareFuncIndex(Item1, Item2)
+end;
 
 procedure TMainWnd.ListViewColumnClick(Sender: TObject;
   Column: TListColumn);
@@ -7256,32 +7324,19 @@ begin
   end else
     currentSortColumn := columnIndex;
 
-  case abs(currentSortColumn) of
   {beginner}
-  0          : begin
-                 MakeCheckNewThreadAfter(nil,0,0);
-                 ListView.Sort(@ListCompareFuncMarker);
-               end;
+  if currentSortColumn = 0 then
+    MakeCheckNewThreadAfter(nil, 0, 0);
   {/beginner}
 
-  LVSC_NUMBER:
-    begin
-      if currentBoardIsFunction then //numberが使えないのでindexでソート
-        ListView.Sort(@ListCompareFuncIndex)
-      else
-        ListView.Sort(@ListCompareFuncNumber);
-    end;
-  LVSC_TITLE : ListView.Sort(@ListCompareFuncTitle);
-  LVSC_ITEMS : ListView.Sort(@ListCompareFuncItems);
-  LVSC_LINES : ListView.Sort(@ListCompareFuncLines);
-  LVSC_NEW   : ListView.Sort(@ListCompareFuncNew); //521
-  LVSC_GOT   : ListView.Sort(@ListCompareFuncGot); //521
-  LVSC_WROTE : ListView.Sort(@ListCompareFuncWrote); //521
-  LVSC_DATE  : ListView.Sort(@ListCompareFuncSince);
-  LVSC_BOARD : ListView.Sort(@ListCompareFuncBoard);
-  LVSC_SPEED : ListView.Sort(@ListCompareFuncSpeed); //aiai
-  LVSC_GAIN  : ListView.Sort(@ListCompareFuncGain);  //aiai
-  end;
+
+  {aiai}
+  if currentBoardIsFunction then
+    ListView.Sort(@ListCompareFuncFunctional)
+  else
+    ListView.Sort(@ListCompareFuncNormal);
+  {/aiai}
+
 end;
 
 procedure TMainWnd.ToggleSortColumn;
@@ -7298,6 +7353,28 @@ begin
   else
     ListViewColumnSort(0);
 end;
+
+procedure TMainWnd.actUpOpenThreadExecute(Sender: TObject);
+begin
+  Config.stlUpOpenThread := not Config.stlUpOpenThread;
+  if currentBoard <> nil then
+    ListViewColumnSort(currentBoard.sortColumn);
+end;
+
+procedure TMainWnd.actUpImportantThreadExecute(Sender: TObject);
+begin
+  Config.stlUpImportantThread := not Config.stlUpImportantThread;
+  if currentBoard <> nil then
+    ListViewColumnSort(currentBoard.sortColumn);
+end;
+
+procedure TMainWnd.MenuListSortClick(Sender: TObject);
+begin
+  actUpOpenThread.Checked := Config.stlUpOpenThread;
+  actUpImportantThread.Checked := Config.stlUpImportantThread;
+end;
+
+(* ========================================================================= *)
 
 (* スレッド一覧表示を更新するもの也 *)
 procedure TMainWnd.UpdateListView;
@@ -7329,14 +7406,7 @@ begin
   currentSortColumn := 1;
 
   if currentBoard.sortColumn <> 1 then //ソート状態の設定
-  begin
-    if currentBoard.sortColumn = 100 then
-    begin
-      ListView.Sort(@ListCompareFuncSearchState);
-      currentSortColumn := 100;
-    end else
-      ListViewColumnSort(currentBoard.sortColumn);
-  end;
+    ListViewColumnSort(currentBoard.sortColumn);
 
   //if Config.oprSelPreviousThread then
   if currentBoard.selDatName <> '' then
@@ -17825,7 +17895,10 @@ begin
         TThreadItem(ListView.List[j]).liststate := 0;
 
       if TThreadItem(ListView.List[j]).liststate = 1 then
+      begin
         r := true;
+        currentBoard.threadSearched := true;
+      end;
     end;
 
     if not r then
@@ -17851,23 +17924,18 @@ begin
     ListView.DoubleBuffered := True;
     for i := 0 to ListView.Items.Count - 1 do
       TThreadItem(ListView.List[i]).liststate := 0;
-    ListView.Sort(@ListCompareFuncSearchState);
     ListView.SetTopItem(ListView.Items[0]);
-    currentSortColumn := Config.stlDefSortColumn;
+    currentBoard.threadSearched := false;
     ListView.Repaint;
     ListView.DoubleBuffered := False;
   end else
   begin
     ListView.DoubleBuffered := True;
-    ListView.Sort(@ListCompareFuncSearchState);
+    if currentBoardIsFunction then
+      ListView.Sort(@ListCompareFuncFunctional)
+    else
+      ListView.Sort(@ListCompareFuncNormal);
     ListView.SetTopItem(ListView.Items[0]);
-
-    currentBoard.threadSearched := (TThreadItem(ListView.Items[0].Data).liststate <> 0);
-    if currentBoard.threadSearched then
-      currentSortColumn := 100
-    else begin
-      currentSortColumn := currentBoard.SortColumn;
-    end;
     ListView.Repaint;
     ListView.DoubleBuffered := False;
   end;

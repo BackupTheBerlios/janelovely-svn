@@ -364,8 +364,6 @@ type
     ojvchottoViewerHeight: integer;
     ojvchottoViewerWidth: integer;
 
-    stlDefSortColumn: integer;
-    stlDefFuncSortColumn: integer;
     stlHideHistoricalLog: Boolean;
 
     schDefaultSearch: integer;
@@ -382,7 +380,15 @@ type
     schEnableMigemo: Boolean;
     schEnableMigemoTmp: Boolean;
     schIgnoreFullHalf: Boolean;
-    {/aiai}
+
+    (* SORT OPTION *)
+    stlDefSortColumn: integer;
+    stlDefFuncSortColumn: integer;
+
+    stlUpOpenThread: Boolean;
+    stlUpImportantThread: Boolean;
+
+    {/aiai}
 
     cmdExecuteList: TStringList;
     cmdConfigList:  TStringList;
@@ -871,8 +877,6 @@ begin
   ojvchottoViewerHeight := 300;
   ojvchottoViewerWidth := 400;
 
-  stlDefSortColumn := 1;
-  stlDefFuncSortColumn := 1;
   stlHideHistoricalLog := False;
 
   schDefaultSearch := 1;
@@ -889,6 +893,14 @@ begin
   schEnableMigemo := False;
   schEnableMigemoTmp := False;
   schIgnoreFullHalf := True;
+
+
+  (* SORT OPTION *)
+  stlDefSortColumn := 1;
+  stlDefFuncSortColumn := 1;
+  stlUpOpenThread := true;
+  stlUpImportantThread := true;
+
   {/aiai}
 
   Modified := False;
@@ -1564,8 +1576,6 @@ begin
   ojvchottoViewerHeight := ini.ReadInteger(INI_OJV_SECT, 'ChottoViewerHeight', ojvchottoViewerHeight);
   ojvchottoViewerWidth  := ini.ReadInteger(INI_OJV_SECT, 'ChottoViewerWidth', ojvchottoViewerWidth);
 
-  stlDefSortColumn := ini.ReadInteger(INI_STL_SECT, 'DefSortColumn', stlDefSortColumn);
-  stlDefFuncSortColumn := ini.ReadInteger(INI_STL_SECT, 'DefFuncSortColumn', stlDefFuncSortColumn);
   stlHideHistoricalLog := ini.ReadBool(INI_STL_SECT, 'HideHistoricalLog', stlHideHistoricalLog);
 
   schDefaultSearch := ini.ReadInteger(INI_SCH_SECT, 'DefaultSearch', schDefaultSearch);
@@ -1582,6 +1592,12 @@ begin
   schEnableMigemo := ini.ReadBool(INI_SCH_SECT, 'EnableMigemo', schEnableMigemo);
   schEnableMigemoTmp := schEnableMigemo;
   schIgnoreFullHalf := ini.ReadBool(INI_SCH_SECT, 'IgnoreFullHalf', schIgnoreFullHalf);
+
+  (* SORT OPTION *)
+  stlDefSortColumn := ini.ReadInteger(INI_STL_SECT, 'DefSortColumn', stlDefSortColumn);
+  stlDefFuncSortColumn := ini.ReadInteger(INI_STL_SECT, 'DefFuncSortColumn', stlDefFuncSortColumn);
+  stlUpOpenThread := ini.ReadBool(INI_STL_SECT, 'UpOpenThread', stlUpOpenThread);
+  stlUpImportantThread := ini.ReadBool(INI_STL_SECT, 'UpImportantThread', stlUpImportantThread);
   {/aiai}
 
   setAutoScrollArray(ini);
@@ -2045,8 +2061,6 @@ begin
   ini.WriteInteger(INI_OPR_SECT, 'AutoReloadInterval', oprAutoReloadInterval);
   ini.WriteInteger(INI_OPR_SECT, 'AutoScrollSpeed', oprAutoScrollSpeed);
 
-  ini.WriteInteger(INI_STL_SECT, 'DefSortColumn', stlDefSortColumn);
-  ini.WriteInteger(INI_STL_SECT, 'DefFuncSortColumn', stlDefFuncSortColumn);
   ini.WriteBool(INI_STL_SECT, 'HideHistoricalLog', stlHideHistoricalLog);
 
   ini.WriteInteger(INI_SCH_SECT, 'DefaultSearch', schDefaultSearch);
@@ -2057,6 +2071,10 @@ begin
   ini.WriteBool(INI_SCH_SECT, 'ShowToolbarOnStartup', schShowToolbarOnStartup);
   ini.WriteBool(INI_SCH_SECT, 'ShowTreeToolbarOnStartup', schShowTreeToolbarOnStartup);
   ini.WriteBool(INI_SCH_SECT, 'EnableMigemo', schEnableMigemoTmp);
+
+  (* SORT OPTION *)
+  ini.WriteInteger(INI_STL_SECT, 'DefSortColumn', stlDefSortColumn);
+  ini.WriteInteger(INI_STL_SECT, 'DefFuncSortColumn', stlDefFuncSortColumn);
 
   setScrollSpeedArray(ini);
   {/aiai}
