@@ -37,7 +37,7 @@ object WriteForm: TWriteForm
     OnChange = PageControlChange
     object TabSheetMain: TTabSheet
       Caption = #26360#12365#36796#12415
-      object Memo: TMemo
+      object Memo: TTntMemo
         Left = 0
         Top = 68
         Width = 476

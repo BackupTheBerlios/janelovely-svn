@@ -457,10 +457,8 @@ begin
     else break;
     end;
   end;
-  if temp > High(Integer) then
-    result := Low(Integer) + (temp mod High(Integer)) - 1
-  else
-    result := temp;
+
+  result := Integer(temp);
 end;
 
 function Str2Int(const AString: string): Integer;

@@ -516,7 +516,7 @@ object MainWnd: TMainWnd
                     OnClick = CheckBoxWriteSageClick
                   end
                 end
-                object MemoWriteMain: TMemo
+                object MemoWriteMain: TTntMemo
                   Left = 0
                   Top = 25
                   Width = 533

@@ -38,7 +38,7 @@ uses
   UAutoScrollSettingForm, ULovelyWebForm, UNews, UGetBoardListForm,
   UChottoForm, UImageViewCacheListForm,
   UCheckSeverDown, UMDITextView, UWriteWait, UXPHintWindow,
-  UWritePanelControl, JLToolButton, JLSideBar, JLXPComCtrls;
+  UWritePanelControl, JLToolButton, JLSideBar, JLXPComCtrls, TntStdCtrls;
   {/aiai}
 
 const
@@ -854,7 +854,7 @@ type
     LabelWriteMail: TLabel;
     ComboBoxWriteMail: TComboBox;
     CheckBoxWriteSage: TCheckBox;
-    MemoWriteMain: TMemo;
+    MemoWriteMain: TTntMemo;
     PanelWriteTool: TPanel;
     ToolBarWriteTool: TJLXPToolBar;
     ToolButtonWriteAA: TToolButton;

@@ -43,7 +43,7 @@ uses
   ULocalCopy,
   StrSub,
   UCrypt,
-  jconvert, ToolWin, JLXPComCtrls, WriteSub;
+  jconvert, ToolWin, JLXPComCtrls, WriteSub, TntStdCtrls;
 
 type
   TWriteForm = class(TForm)
@@ -54,7 +54,7 @@ type
     Label1: TLabel;
     Label2: TLabel;
     CheckBoxSage: TCheckBox;
-    Memo: TMemo;
+    Memo: TTntMemo;
     Panel2: TPanel;
     Panel3: TPanel;
     ButtonWrite: TButton;

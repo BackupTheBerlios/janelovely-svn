@@ -7,7 +7,7 @@ uses
   Graphics, DateUtils, StrUtils, Dialogs, IMM,
   JConfig, HogeTextView, jconvert, StrSub, U2chBoard,
   U2chThread, UViewItem, UDat2HTML, UCrypt, UXTime, U2chTicket, UAsync,
-  HTTPSub, IdURI, WriteSub;
+  HTTPSub, IdURI, WriteSub, TntStdCtrls;
 
 const
   MORNINGCOFFEE_NAME = '名無し募集中。。。';
@@ -76,7 +76,7 @@ type
     EditNameBox: TComboBox;
     EditMailBox: TComboBox;
     CheckBoxSage: TCheckBox;
-    Memo: TMemo;
+    Memo: TTntMemo;
     SettingTxt: TMemo;
     Result: TMemo;
     PageControl: TPageControl;

@@ -210,22 +210,25 @@ end;
 procedure TDragScrollPanel.MouseMove(Shift: TShiftState; X, Y: Integer);
 var
   Point:TPoint;
+  ScreenPt: TPoint;
 begin
+  // Mouse.CursorPos‚ðŽg‚í‚È‚¢‚æ‚¤‚É by aiai
+  Point.X := X; Point.Y := Y;
+  ScreenPt := ScrollBox.ClientToScreen(Point);
 
   if ssLeft in Shift then begin
 
-    if (MousePrevious.x<>Mouse.CursorPos.x) or (MousePrevious.y<>Mouse.CursorPos.y) then begin
+    if (MousePrevious.x<>ScreenPt.x) or (MousePrevious.y<>ScreenPt.y) then begin
       if ImageViewConfig.ScrollOpposite then begin
-        ScrollBox.HorzScrollBar.Position:=HBarOrigin + (Mouse.CursorPos.x - MouseOrigine.x)*ScrollBox.HorzScrollBar.Range div ScrollBox.ClientWidth;
-        ScrollBox.VertScrollBar.Position:=VBarOrigin + (Mouse.CursorPos.y - MouseOrigine.y)*ScrollBox.VertScrollBar.Range div ScrollBox.ClientHeight;
+        ScrollBox.HorzScrollBar.Position:=HBarOrigin + (ScreenPt.x - MouseOrigine.x)*ScrollBox.HorzScrollBar.Range div ScrollBox.ClientWidth;
+        ScrollBox.VertScrollBar.Position:=VBarOrigin + (ScreenPt.y - MouseOrigine.y)*ScrollBox.VertScrollBar.Range div ScrollBox.ClientHeight;
       end else begin
-        ScrollBox.HorzScrollBar.Position:=HBarOrigin - (Mouse.CursorPos.x - MouseOrigine.x);
-        ScrollBox.VertScrollBar.Position:=VBarOrigin - (Mouse.CursorPos.y - MouseOrigine.y);
+        ScrollBox.HorzScrollBar.Position:=HBarOrigin - (ScreenPt.x - MouseOrigine.x);
+        ScrollBox.VertScrollBar.Position:=VBarOrigin - (ScreenPt.y - MouseOrigine.y);
       end;
-      MousePrevious:=Mouse.CursorPos;
+      MousePrevious:=ScreenPt;
     end;
   end else begin
-    Point := ScrollBox.ScreenToClient(Mouse.CursorPos);
     if PtInRect(ScrollBox.ClientRect,Point) then
       ScrollBox.enabled:=False
     else if PtInRect(ScrollBox.BoundsRect,Point) then
