@@ -72,6 +72,8 @@ type
     procedure WriteHR(color: Integer; custom: Boolean);  //aiai
     procedure WritePicture(pass: String; overlap: Boolean);  //aiai
     procedure WriteWallPaper(const pass: string);  //aiai
+    procedure WriteThumbnail; //aiai
+    procedure ToDameon;  //aiai
     procedure SetBold(boldP: boolean);
     procedure Flush; override;
     procedure Cancel;
@@ -1122,6 +1124,9 @@ begin
       end else if IsThisTag('body', str + index, 4) then begin
         Inc(index, 4);
         SetBody;
+      end else if IsThisTag('THUMBNAIL/', str + index, 10) then begin
+        Inc(index, 10);
+        WriteThumbnail;
       end;
     end;
     EndOfTag;
@@ -1639,6 +1644,34 @@ begin
   end;
 
   FBrowser.Wallpaper := Image;
+end;
+
+//aiai
+procedure TDat2View.ToDameon;
+begin
+
+end;
+
+procedure TDat2View.WriteThumbnail;
+var
+  item: THogeThumbnailItem;
+  bmp: TBitmap;
+  i: integer;
+begin
+  Flush;
+
+  item := THogeThumbnailItem.Create(FBrowser);
+  item.PictureList := TList.Create;
+  for i:=0 to 9 do
+  begin
+    bmp := TBitmap.Create;
+    item.PictureList.Add(bmp);
+    thumbnail.Bitmapdesu(bmp, item, FBrowser);
+  end;
+  FBrowser.Strings.Add(item);
+
+  FBrowser.Strings.Add(THogeTVItem.Create(FBrowser));
+  FBiteSpaces := False;
 end;
 
 procedure TDat2View.SetBold(boldP: boolean);

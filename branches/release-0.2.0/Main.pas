@@ -32,7 +32,7 @@ uses
   {$ELSE}
   sqlite,
   {$ENDIF}
-  UMigemo, ComObj,
+  UMigemo, ComObj, UThumbnail,
   ApiBmp, PNGImage, GIFImage, ClipBrdSub,
   UAAForm, UAddAAForm, UAutoReSc, UAutoReloadSettingForm,
   UAutoScrollSettingForm, ULovelyWebForm, UNews, UGetBoardListForm,
@@ -1764,6 +1764,7 @@ var
   ExNGList: TExNGList;
   ThreNGList: TNGStringList;
   WritePanelControl: TWritePanelControl;
+  thumbnail: TCreateThumbnailThread;
   {/aiai}
 
 procedure SaveImeMode(wnd: HWND);
@@ -2775,6 +2776,7 @@ begin
   GetTimeZoneInformation(TimeZoneInfo);
   TimeZoneBias := TimeZoneInfo.Bias * 60;
   daemon := TDaemon.Create;
+  thumbnail := TCreateThumbnailThread.Create;
   currentSortColumn := 1;
 
   currentView := nil;
@@ -3225,6 +3227,10 @@ begin
   daemon.Log('');
   daemon.WaitFor;
   daemon.Free;
+
+  thumbnail.Terminate;
+  thumbnail.WaitFor;
+  thumbnail.Free;
 
   viewListLock.Free;
   viewList.Free;

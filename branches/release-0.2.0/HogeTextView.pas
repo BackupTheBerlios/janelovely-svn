@@ -72,8 +72,8 @@ type
     function GetLength: Integer;
     function GetWidthInfo: string;
 
-    function IndexToLogicalPos(index: Integer): TPoint;
-    function LogicalPosToIndex(var point: TPoint): Integer;
+    function IndexToLogicalPos(index: Integer): TPoint; virtual;
+    function LogicalPosToIndex(var point: TPoint): Integer; virtual;
     function StartsWith(const AString: String; Index: Integer;
                         var matchEnd: Integer): Boolean;
 
@@ -829,6 +829,70 @@ begin
     end;
   end;
 end;
+
+{aiai}
+
+ { THogeThumbnailItem }
+
+destructor THogeThumbnailItem.Destroy;
+var
+  i: integer;
+begin
+  if Assigned(PictureList) then
+  begin
+    for i := 0 to PictureList.Count - 1 do
+      TGraphic(PictureList.Items[i]).Free;
+    FreeAndNil(PictureList);
+  end;
+
+  inherited Destroy;
+end;
+
+function THogeThumbnailItem.IndexToLogicalPos(index: integer): TPoint;
+var
+  i: integer;
+  lines: integer;
+  width: integer;
+  maxX: integer;
+begin
+  if Assigned(PictureList) then
+  begin
+    width := 64 + 5;
+    lines := width div FView.BaselineSkip + 1;
+    Result.X := FView.LeftMargin + OffsetLeft;
+    Result.Y := lines;
+    maxX := FView.ClientWidth - FView.RightMargin;
+    for i := 0 to Picturelist.Count - 1 do
+    begin
+      if maxX < Result.X + width then
+      begin
+        Inc(Result.Y, lines);
+        Result.X := FView.LeftMargin + OffsetLeft;
+      end else
+        Inc(Result.X, width);
+    end;
+  end else
+  begin
+    Result.X := 0;
+    Result.Y := 0;
+  end;
+end;
+
+function THogeThumbnailItem.LogicalPosToIndex(var point: TPoint): Integer;
+begin
+  if Assigned(PictureList) then
+  begin
+    Point.X := FView.LeftMargin + PictureList.Count * (64 + 5);
+    Result := Point.X;
+  end else
+  begin
+    Point.X := 0;
+    Point.Y := 0;
+    Result := 0;
+  end;
+end;
+
+{/aiai}
 
 (*=======================================================*)
 constructor THogeTVItems.Create(parent: THogeTextView);
@@ -2377,7 +2441,7 @@ begin
   //{/aiai}
 
   X := FLeftMargin + item.OffsetLeft;
-  if (item.PictLine and (item.PictOverlap = -1)) then
+  if (item.PictLine and (item.PictOverlap = -1)) or (item is THogeThumbnailItem) then
     Y := FTopMargin - FFraction - FTopLineOffset * bs
   else
     Y := FTopMargin - FFraction; //beginner
@@ -2387,6 +2451,40 @@ begin
   while screenLine < vLines do
   begin
     {aiai}
+    if (item is THogeThumbnailItem) and Assigned(THogeThumbnailItem(item).PictureList) then
+    begin
+      pictindex := 0;
+      width := 64 + 5;
+      with THogeThumbnailItem(item) do
+        while pictindex < PictureList.Count do
+        begin
+          if maxX < X + width then
+          begin
+            Inc(screenLine, width div bs + 1);
+            if vLines <= screenLine then
+              goto DONE;
+            X := FLeftMargin + item.OffsetLeft;
+            Inc(Y, (width div bs + 1) * bs);
+          end;
+          FBitmap.Canvas.Draw(X, Y, TGraphic(PictureList.Items[pictindex]));
+          Inc(pictindex);
+          Inc(X, width);
+        end;
+      Inc(screenLine, width div bs + 1);
+      if vLines <= screenLine then
+        break;
+      Inc(physicalLine);
+      if FStrings.Count <= physicalLine then
+        break;
+      Inc(Y, (width div bs + 1) * bs + bs);
+      item := FStrings[physicalLine];
+      X := FLeftMargin + item.OffsetLeft;
+      index := 1;
+      attrib := item.FAttrib;
+      len := length(attrib);
+      cw := item.GetWidthInfo;
+      Continue;
+    end;
     if item.PictLine and (item.PictOverlap = -1) and Assigned(item.Picture) then
     begin
       FBitmap.Canvas.Draw(FLeftMargin + item.OffsetLeft, Y, item.Picture);

@@ -2,6 +2,7 @@ program Jane2ch;
 (* Copyright (c) 2001,2002 Twiddle <hetareprog@hotmail.com> *)
 
 uses
+  MemCheck,
   Windows,
   SysUtils,
   MMSystem,
@@ -86,7 +87,8 @@ uses
   UMDITextView in 'AIAI\UMDITextView.pas',
   UMigemo in 'AIAI\UMigemo.pas',
   UWriteWait in 'AIAI\UWriteWait.pas',
-  WriteSub in 'AIAI\WriteSub.pas';
+  WriteSub in 'AIAI\WriteSub.pas',
+  UThumbnail in 'AIAI\UThumbnail.pas';
 
 {$R *.res}
 
