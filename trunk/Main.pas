@@ -3522,6 +3522,22 @@ begin
   ToggleWritePanelVisible(WritePanel.Visible);
   MenuViewWriteMemoToggleVisible.Checked := WritePanel.Visible;
 
+  (* CoolBar *) //Å¶[457]
+  //CoolBar.Bands.BeginUpdate;
+  for i:=0 to CoolBar.Bands.Count - 1 do
+  begin
+    CoolBar.Bands.FindItemID(iniFile.ReadInteger(INI_WIN_SECT, 'Band' + IntToStr(i) + 'ID', i)).Index := i;
+    CoolBar.Bands[i].Break := iniFile.ReadBool(INI_WIN_SECT, 'Band' + IntToStr(i) + 'Break', CoolBar.Bands[i].Break);
+    CoolBar.Bands[i].Width := iniFile.ReadInteger(INI_WIN_SECT, 'Band' + IntToStr(i) + 'Width', CoolBar.Bands[i].Width);
+  end;
+  {aiai}
+  CoolBar.Visible := Config.stlLinkBarVisible or Config.stlToolBarVisible
+    or Config.stlAddressBarVisible;
+  CoolBar.Height := 0;
+  {/aiai}
+
+  //CoolBar.Bands.EndUpdate;
+
   (* Columns *)
   ListView.Items.BeginUpdate;
   SetupColumns;
@@ -3529,22 +3545,7 @@ begin
     ListView.Column[i].Width := iniFile.ReadInteger(INI_WIN_SECT, 'Column' + IntToStr(ListView.Column[i].Tag), ListView.Column[i].Width);
   ListView.Show;
   ListView.Items.EndUpdate;
-  ListView.Repaint;
-
-  (* CoolBar *) //Å¶[457]
-  //CoolBar.Bands.BeginUpdate;
-   for i:=0 to CoolBar.Bands.Count - 1 do
-   begin
-     CoolBar.Bands.FindItemID(iniFile.ReadInteger(INI_WIN_SECT, 'Band' + IntToStr(i) + 'ID', i)).Index := i;
-     CoolBar.Bands[i].Break := iniFile.ReadBool(INI_WIN_SECT, 'Band' + IntToStr(i) + 'Break', CoolBar.Bands[i].Break);
-     CoolBar.Bands[i].Width := iniFile.ReadInteger(INI_WIN_SECT, 'Band' + IntToStr(i) + 'Width', CoolBar.Bands[i].Width);
-   end;
-   {aiai}
-   CoolBar.Visible := Config.stlLinkBarVisible or Config.stlToolBarVisible
-     or Config.stlAddressBarVisible;
-   {/aiai}
-
-  //CoolBar.Bands.EndUpdate;
+//  ListView.Repaint;
 
   (* Menu *)
   if not iniFile.ReadBool(INI_STL_SECT, 'MenuVisible', true) then
