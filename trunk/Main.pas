@@ -42,8 +42,8 @@ uses
   {/aiai}
 
 const
-  VERSION  = '0.1.3.0';      (* Printable ASCIIコード厳守。')'はダメ *)
-  JANE2CH  = 'JaneLovely 0.1.3.0';
+  VERSION  = '0.1.3.1';      (* Printable ASCIIコード厳守。')'はダメ *)
+  JANE2CH  = 'JaneLovely 0.1.3.1';
   KEYWORD_OF_USER_AGENT = 'JaneLovely';      (*  *)
 
   DISTRIBUTORS_SITE = 'http://www.geocities.jp/openjane4714/';
@@ -1621,7 +1621,7 @@ var
   PictViewList: TPictureViewList;
 
   MigemoOBJ: TMigemo;
-  WSHRegExp: Variant;
+//  WSHRegExp: Variant;
   {/aiai}
 
 procedure SaveImeMode(wnd: HWND);
@@ -3053,8 +3053,8 @@ begin
   if Config.schUseSearchBar then
   begin
     InitMigemo;  //Migemo初期化
-    WSHRegExp := CreateOleObject('VBScript.RegExp');  //WSH
-    WSHRegExp.IgnoreCase := True;   //大文字小文字を区別しない
+//    WSHRegExp := CreateOleObject('VBScript.RegExp');  //WSH
+//    WSHRegExp.IgnoreCase := True;   //大文字小文字を区別しない
   end;
   {/aiai}
 
@@ -3349,7 +3349,7 @@ begin
   if Config.schUseSearchBar then
   begin
     MigemoOBJ.Free;
-    WSHRegExp := Unassigned;
+//    WSHRegExp := Unassigned;
   end;
 end;
 
@@ -17593,6 +17593,7 @@ var
   target: string;
   i: Integer;
   str: PChar;
+  WSHRegExp: Variant;
 begin
   SearchTimer.Enabled := False;
 
@@ -17621,10 +17622,13 @@ begin
   str := MigemoOBJ.Query(ListViewSearchEditBox.Text);
   target := Copy(str, 1, Length(str));
   MigemoOBJ.Release(str);
+  WSHRegExp := CreateOleObject('VBScript.RegExp');  //WSH
+  WSHRegExp.IgnoreCase := True;   //大文字小文字を区別しない
   try
     WSHRegExp.Pattern := target;      //正規表現パターン
   except
     ListViewSearchEditBox.Brush.Color := clYellow;
+    WSHRegExp := Unassigned;
     exit;
   end;
   ListViewSearchEditBox.Brush.Color := clWhite;
@@ -17639,8 +17643,10 @@ begin
             liststate := 0;
         except
           ListViewSearchEditBox.Brush.Color := clYellow;
+          WSHRegExp := Unassigned;
           exit;
         end;
+  WSHRegExp := Unassigned;
   if not assigned(ListView.OnCustomDrawItem) then
     ListView.OnCustomDrawItem := ListViewCustomDrawItem;
   ListView.Sort(@ListCompareFuncSearchState);

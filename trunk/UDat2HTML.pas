@@ -2591,23 +2591,48 @@ var
     msgSize := 0; //beginner
   end;
 
+  {aiai}
+  (* 年は4桁,1月と2月は前の年の13月と14月とする *)
   function CalcDayOfWeek(date: PChar; num:integer): string; (* 曜日だけ返す *)
   var
     intyear, intmon, intday, thedayofweek: Integer;
     p: PChar;
   begin
     case num of
-      2: p := date;
-      4: p := date + 2;
+      2: begin //年が2桁の場合
+        p := date;
+
+        intyear := (Ord(date^) - 48) * 10 + Ord((date+1)^) - 48;
+        intmon  := (Ord((date+3)^) - 48) * 10 + Ord((date+4)^) - 48;
+        intday  := (Ord((date+6)^) - 48) * 10 + Ord((date+7)^) - 48;
+
+        if intyear < 100 then // 90～99年は1990～1999年に、それ以外は2000年以降にする
+          if (intyear >= 90) and (intyear <= 99) then
+            Inc(intyear, 1900)
+          else
+            Inc(intyear, 2000);
+
+      end;
+      4: begin //年が4桁の場合
+        p := date;
+
+        intyear := (Ord(p^) - 48) * 1000 + (Ord((p+1)^) - 48) * 100 + (Ord((p+2)^) - 48) * 10 + Ord((p+3)^) - 48;
+        intmon  := (Ord((p+5)^) - 48) * 10 + Ord((p+6)^) - 48;
+        intday  := (Ord((p+8)^) - 48) * 10 + Ord((p+9)^) - 48;
+
+      end;
     else
      begin
       result := '';
       exit;
      end;
     end;
-    intyear := (Ord(p^) - 48) * 10 + Ord((p+1)^) - 48;
-    intmon  := (Ord((p+3)^) - 48) * 10 + Ord((p+4)^) - 48;
-    intday  := (Ord((p+6)^) - 48) * 10 + Ord((p+7)^) - 48;
+
+    if (intmon = 1) or (intmon = 2) then //1・2月は前年の13・14月
+    begin
+      Dec(intyear);
+      Inc(intmon, 12);
+    end;
 
     thedayofweek := ( intday + (8 + 13 * intmon) div 5 + intyear
                    + intyear div 4 - intyear div 100 + intyear div 400 ) mod 7;
