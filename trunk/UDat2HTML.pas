@@ -114,6 +114,7 @@ type
     procedure ProcHTML; virtual;
     procedure ProcHTMLB; virtual;
     procedure ProcName; virtual;
+    procedure ProcDATE; //aiai
     procedure AppendResNumList(num: Integer); overload; virtual;
     procedure AppendResNumList(num, num2: Integer); overload; virtual;
     function IsThisTag(substr, str: PChar; len: Integer): Boolean; virtual;
@@ -2116,6 +2117,72 @@ begin
     ProcHTML;
 end;
 
+{aiai}
+procedure TConvDatOut.ProcDATE;
+var
+  beid: String;
+
+  function ProcTag: Boolean;
+    procedure GetBeID;
+    var
+      startpos, endpos: integer;
+    begin
+      startpos := Pos('i=', str + index) + index + 2;
+      endpos := Pos('&u=', str + startpos - 1) + startpos - 1;
+      beid := 'BE:' + Copy(str, startpos, endpos - startpos);
+    end;
+
+  begin
+    result := False;
+    if (str + index)^ = '<' then
+    begin
+      Inc(index);
+      if index >= size then exit;
+      if (str + index)^ = '/' then begin
+        Inc(index);
+        if index >= size then exit;
+        if IsThisTag('a', str + index, 1) then begin
+          Inc(index);
+        end;
+      end else begin
+        if IsThisTag('a', str + index, 1) then begin
+          Inc(index);
+          GetBeID;
+        end;
+      end;
+      EndOfTag;
+      Result := True;
+    end;
+  end;
+
+label
+  ProcChar;
+var
+  idx2: Integer;
+begin
+  beid := '';
+  while (index < size) do
+  begin
+    case (str + index)^ of
+      '<':
+        if not ProcTag then
+          goto ProcChar;
+    else
+      ProcChar:
+      idx2 := index + 1;
+      while (idx2 < size) and not ((str + idx2)^ in ['<']) do
+        Inc(idx2);
+      if Length(beid) > 0 then begin
+        WriteAnchor('', beid, str + index, idx2 - index);
+        beid := '';
+      end else
+        WriteText(str + index, idx2 - index);
+      index := idx2;
+    end;
+  end;
+end;
+{/aiai}
+
 procedure TConvDatOut.AppendResNumList(num: Integer);
 begin
 end;
@@ -2132,6 +2199,7 @@ begin
   Case itemType of
     ditNAME: ProcName;
     ditMAILNAME: ProcHTMLB;
+    ditDATE: ProcDATE; //aiai
   else
     ProcHTML;
   end;
@@ -2596,12 +2664,9 @@ var
   function CalcDayOfWeek(date: PChar; num:integer): string; (* 曜日だけ返す *)
   var
     intyear, intmon, intday, thedayofweek: Integer;
-    p: PChar;
   begin
     case num of
       2: begin //年が2桁の場合
-        p := date;
-
         intyear := (Ord(date^) - 48) * 10 + Ord((date+1)^) - 48;
         intmon  := (Ord((date+3)^) - 48) * 10 + Ord((date+4)^) - 48;
         intday  := (Ord((date+6)^) - 48) * 10 + Ord((date+7)^) - 48;
@@ -2614,11 +2679,9 @@ var
 
       end;
       4: begin //年が4桁の場合
-        p := date;
-
-        intyear := (Ord(p^) - 48) * 1000 + (Ord((p+1)^) - 48) * 100 + (Ord((p+2)^) - 48) * 10 + Ord((p+3)^) - 48;
-        intmon  := (Ord((p+5)^) - 48) * 10 + Ord((p+6)^) - 48;
-        intday  := (Ord((p+8)^) - 48) * 10 + Ord((p+9)^) - 48;
+        intyear := (Ord(date^) - 48) * 1000 + (Ord((date+1)^) - 48) * 100 + (Ord((date+2)^) - 48) * 10 + Ord((date+3)^) - 48;
+        intmon  := (Ord((date+5)^) - 48) * 10 + Ord((date+6)^) - 48;
+        intday  := (Ord((date+8)^) - 48) * 10 + Ord((date+9)^) - 48;
 
       end;
     else
@@ -2958,15 +3021,15 @@ begin
                       and ((date + 8)^ = ' ') then begin  //曜日表示機能有効 yearが2桁の場合
             dest.WriteText(date, 8);                      //「04/09/13」
             dest.WriteText(CalcdayOfWeek(date, 2));       //「(月)」
-            dest.WriteText(date + 8, dateSize - 8);       //「 07:25:13 」
+            dest.WriteItem(date + 8, dateSize - 8, ditDATE); //「 07:25:13 」
           end else if Main.Config.ojvShowDayOfWeek and (dateSize > 10)
                 and ((date + 4)^ = '/')
                       and ((date + 10)^ = ' ') then begin //曜日表示機能有効 yearが4桁の場合
             dest.WriteText(date, 10);                     //「2004/09/13」
             dest.WriteText(CalcdayOfWeek(date, 4));       //「(月)」
-            dest.WriteText(date + 10, dateSize - 10);     //「 07:25:13 」
+            dest.WriteItem(date + 10, dateSize - 10, ditDATE);     //「 07:25:13 」
           end else                                        //曜日表示無効 or 日付ではないなど
-            dest.WriteText(date, dateSize);
+            dest.WriteItem(date, dateSize, ditDATE);
 
 
           (* Ex. 「ID:dv4ebI3F」 *)

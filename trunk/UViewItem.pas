@@ -402,7 +402,7 @@ type
     {aiai}
     function ViewMaximize(viewItem: TViewItem): Boolean;
     procedure ViewAllRestore;
-    procedure ViewAllMaximize;
+    procedure ViewAllMaximize(TopWnd: THogeTextView);
     procedure ViewCascade;
     procedure ViewTile(Horize: Boolean);
     {/aiai}
@@ -4602,10 +4602,11 @@ begin
   for i := 0 to Count  - 1 do begin
     browser := TMDITextView(Items[i].browser);
     browser.WndState := MTV_NOR;
+    browser.Visible := True;
   end;
 end;
 
-procedure TViewList.ViewAllMaximize;
+procedure TViewList.ViewAllMaximize(TopWnd: THogeTextView);
 var
   browser: TMDITextView;
   i: Integer;
@@ -4613,6 +4614,10 @@ begin
   for i := 0 to Count  - 1 do begin
     browser := TMDITextView(Items[i].browser);
     browser.WndState := MTV_MAX;
+    if browser = TopWnd then
+      browser.Visible := true
+    else
+      browser.Visible := false;
   end;
 end;
 
@@ -4637,7 +4642,7 @@ begin
     y := (MainWnd.MDIClientPanel.ClientHeight - cy) div (wcnt - 1);
   end;
 
-  for i := 0 to viewList.Count - 1 do begin
+  for i := 0 to wcnt - 1 do begin
     browser := TMDITextView(Items[i].browser);
     With browser do begin
       WndState := MTV_NOR;
@@ -4645,6 +4650,7 @@ begin
       Height := cy;
       Left := x * i;
       Top := y * i;
+      Visible := True;
       BringToFront;
     end;
   end;
@@ -4687,11 +4693,12 @@ begin
   line := 0;
   row := 0;
 
-  for i := 0 to Count - 1 do begin
+  for i := 0 to wcnt - 1 do begin
     browser := TMDITextView(Items[i].browser);
     With browser do begin
       WndState := MTV_NOR;
 
+      Visible := True;
       BoundsRect := Bounds(cx * line, cy * row, cx, cy);
 
       if Horize then begin

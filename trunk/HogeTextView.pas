@@ -3332,7 +3332,7 @@ begin
   if not IDLinkColor then
     exit;
   if Length(FIDListArray) < Line then
-    SetLength(FIDListArray, Line);
+    SetLength(FIDListArray, Line + 50);
   FIDListArray[Line - 1].Position := Position;
   FIDListArray[Line - 1].Item := Item;
   FIDListArray[Line - 1].bool := True;

@@ -5825,8 +5825,10 @@ procedure TMainWnd.UpdateCurrentView(index: integer);
     end;
   end;
 
-//var
-//  i: integer;
+var
+  i: integer;
+  hWindow: HWND;
+  browser: THogeTextView;
 begin
   if (0 <= index) and (index < viewList.Count) then
   begin
@@ -5848,12 +5850,49 @@ begin
     {/aiai}
 
     currentView := viewList.Items[index];
-    {aiai}
-    if not currentView.browser.Visible then
-      currentView.browser.Show;
-    {/aiai}
     currentViewHandle := currentView.browser.Handle;
     currentView.browser.BringToFront;
+
+    {aiai}
+
+    hWindow := currentViewHandle; //Zオーダーが一番上のウィンドウ
+    while hWindow <> 0 do
+    begin
+      browser := nil;
+
+      (* このウィンドウをShow *)
+      for i := 0 to viewList.Count - 1 do
+        if (hWindow = viewList.Items[i].browser.Handle) then
+        begin
+          browser := viewList.Items[i].browser;
+          browser.Visible := True;
+          break;
+        end;
+
+      (* このウィンドウが最大化状態ならこれより下のウィンドウをすべてHide *)
+      if (browser <> nil) and (browser.Align = alClient) then
+      begin
+        hWindow := GetWindow(hWindow, GW_HWNDNEXT);
+
+        while hWindow <> 0 do
+        begin
+          for i := 0 to viewList.Count - 1 do
+            if (hWindow = viewList.Items[i].browser.Handle) then
+            begin
+              viewList.Items[i].browser.Visible := False;
+              break;
+            end;
+          hWindow := GetWindow(hWindow, GW_HWNDNEXT);
+        end;
+
+        break;
+      end;
+
+      hWindow := GetWindow(hWindow, GW_HWNDNEXT);
+    end;
+
+    {/aiai}
+
     if GetFocus() = 0 then
       try
         currentView.browser.SetFocus
@@ -6079,6 +6118,22 @@ var
     end;
   end;
 
+  {aiai}
+  procedure ShowProfile(BEID: String); // ex. BEID = BE:xxxxxxxx
+  var
+    id: string;
+    viewitem: TViewItem;
+  begin
+    viewItem := GetActiveView;
+    if Assigned(viewItem) and Assigned(viewItem.thread) then
+    begin
+      id := Copy(BEID, 4, Length(BEID) - 3);
+      if Length(id) > 0 then
+        OpenByBrowser('http://be.2ch.net/test/p.php?i=' + id + '&u=d:' + viewItem.thread.ToURL(true, true));
+    end;
+  end;
+  {/aiai}
+
 begin
   viewItem := GetViewOf(TComponent(Sender));
   if viewItem = nil then
@@ -6248,6 +6303,7 @@ begin
   if Config.ojvIDPopUp and not Config.ojvIDPopOnMOver
      and  AnsiStartsStr('ID:', URI) then
   begin
+    cancel := true;
     if (viewItem.thread = nil) then
       exit;
     newViewItem := NewPopUpView(viewItem);
@@ -6261,6 +6317,10 @@ begin
       end;
     finally
     end;
+  end else if AnsiStartsStr('BE:', URI) then
+  begin
+    cancel := true;
+    ShowProfile(URI);
   end else
   {/aiai}
   ReleasePopupHint(viewItem, True);
@@ -11783,6 +11843,7 @@ end;
 procedure TMainWnd.TextPopupCopyLinkClick(Sender: TObject);
 var
   viewItem: TBaseViewItem;
+  link: string;  //aiai
 begin
   if PopupTextMenu.PopupComponent is THogeTextView then
     viewItem := GetViewOf(PopupTextMenu.PopupComponent)
@@ -11790,7 +11851,14 @@ begin
     viewItem := GetActiveView;
   if viewItem = nil then
     exit;
-  Clipboard.AsText := viewItem.GetFocusedLink;
+  {aiai}
+  //Clipboard.AsText := viewItem.GetFocusedLink;
+  link := viewItem.GetFocusedLink;
+  if AnsiStartsStr('BE:', link) then
+    Clipboard.AsText := 'http://be.2ch.net/test/p.php?i=' + Copy(link, 4, Length(link) - 3) + '&u=d:' + viewItem.thread.ToURL(true, true)
+  else
+    Clipboard.AsText := link;
+  {/aiai}
 end;
 
 
@@ -17443,10 +17511,16 @@ begin
 end;
 
 procedure TMainWnd.MenuWindowMaximizeAllClick(Sender: TObject);
+var
+  viewItem: TViewItem;
 begin
-  viewList.ViewAllMaximize;
-  actMaxView.ImageIndex := 11;
-  actMaxView.Hint := '元のサイズに戻す';
+  viewItem := currentView;
+  if Assigned(viewItem) and Assigned(viewItem.browser) then
+  begin
+    viewList.ViewAllMaximize(viewItem.browser);
+    actMaxView.ImageIndex := 11;
+    actMaxView.Hint := '元のサイズに戻す';
+  end;
 end;
 
 procedure TMainWnd.BrowserActive(Sender: TObject);
