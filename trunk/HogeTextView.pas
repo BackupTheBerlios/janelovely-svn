@@ -26,7 +26,8 @@ uses
   MMSystem, //beginner
   AppEvnts,
   VBScript_RegExp_55_TLB,
-  Forms;
+  Forms,
+  Math;
 
 type
   (*-------------------------------------------------------*)
@@ -636,10 +637,10 @@ var
   nchars, width, maxWidth: integer;
 begin
   {aiai}
-  if PictLine and (PictOverlap = -1) then
+  if PictLine and Assigned(Picture) and (PictOverlap = -1) then
   begin
-    Result.X := FView.LeftMargin + FOffsetLeft + Picture.Width;
-    Result.Y := Picture.Height div FView.BaselineSkip;
+    Result.X := FView.LeftMargin + FOffsetLeft;
+    Result.Y := Ceil(Picture.Height / FView.BaselineSkip) - 1;
     exit;
   end;
   {/aiai}
@@ -677,9 +678,9 @@ var
   nchars, width, maxWidth: integer;
 begin
   {aiai}
-  if PictLine and (PictOverlap = -1) then
+  if PictLine and Assigned(Picture) and (PictOverlap = -1) then
   begin
-    Point.X := FView.LeftMargin + FOffsetLeft + Picture.Width;
+    Point.X := FView.LeftMargin + FOffsetLeft;
     Result := Point.X;
     exit;
   end;
@@ -2430,13 +2431,13 @@ begin
     begin
       //<IMG>
       FBitmap.Canvas.Draw(FLeftMargin + item.OffsetLeft, Y, item.Picture);
-      Inc(screenLine, item.Picture.Height div bs);
+      Inc(screenLine, Ceil(item.Picture.Height / bs));
       if vLines <= screenLine then
         break;
       Inc(physicalLine);
       if FStrings.Count <= physicalLine then
         break;
-      Inc(Y, item.Picture.Height div bs * bs + bs);
+      Inc(Y, Ceil(item.Picture.Height / bs) * bs);
       item := FStrings[physicalLine];
       X := FLeftMargin + item.OffsetLeft;
       index := 1;

@@ -18369,7 +18369,7 @@ begin
     0: GrepMode := Byte(Config.schMultiWord) * GREP_OPTION_OR;
     1: begin
       GrepMode := Byte(Config.schMultiWord) * GREP_OPTION_OR;
-      if MigemoOBJ.CanUse then
+      if Config.schEnableMigemo and MigemoOBJ.CanUse then
       begin
         size := Length(SearchTarget);
         str := PChar(SearchTarget);
