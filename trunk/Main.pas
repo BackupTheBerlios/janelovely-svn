@@ -41,8 +41,8 @@ uses
   {/aiai}
 
 const
-  VERSION  = '0.1.0.7';      (* Printable ASCIIコード厳守。')'はダメ *)
-  JANE2CH  = 'JaneLovely 0.1.0.7';
+  VERSION  = '0.1.0.8';      (* Printable ASCIIコード厳守。')'はダメ *)
+  JANE2CH  = 'JaneLovely 0.1.0.8';
   KEYWORD_OF_USER_AGENT = 'JaneLovely';      (*  *)
 
   DISTRIBUTORS_SITE = 'http://www.geocities.jp/openjane4714/';
@@ -1246,7 +1246,6 @@ type
     WritePanelOriginalX: Integer;
     WritePanelOriginalY: Integer;
     WritePanelPos: Boolean;
-
 
     //改造▽ 追加 (スレビューに壁紙を設定する。Doe用)
     //改造メモ：メモリ節約対応。壁紙の保持をTHogeTextViewの外で行う
@@ -3086,6 +3085,9 @@ var
 begin
   UILock := True;
 
+  //aiai
+  MyNews.Free;
+
   {beginner}
   if MenuWatchClipboard.Checked then
     MenuWatchClipboardClick(nil);
@@ -3227,6 +3229,7 @@ var
   i: integer;
   Placement: TWindowPlacement;
   R: PRect;
+  wh: TWidthHeight;
 begin
   //※[JS] 通常時のウィンドウ位置とサイズを取得
   Placement.length := SizeOf(Placement);
@@ -3290,6 +3293,11 @@ begin
   iniFile.WriteBool(INI_WIN_SECT, 'WriteMemoVisible', WritePanel.Visible);
   iniFile.WriteBool(INI_WIN_SECT, 'WriteMemoPos', WritePanelPos);
   //iniFile.WriteBool(INI_WIN_SECT, 'WriteMemoCanMove', WritePanelCanMove);
+  wh.Width := 0;
+  wh.Height := 0;
+  wh := SaveAAListBoundsRect(wh);
+  iniFile.WriteInteger(INI_WIN_SECT, 'WriteMemoAAWidth', wh.Width);
+  iniFile.WriteInteger(INI_WIN_SECT, 'WriteMemoAAHeight', wh.Height);
 
 
   (* Columns *)
@@ -3378,6 +3386,7 @@ var
 
 var
   i, h: integer;
+  wh: TWidthHeight;
 begin
   iniFile := TMemIniFile.Create(Config.IniPath);
   (* MainWindow *)
@@ -3427,6 +3436,10 @@ begin
   WritePanel.Width := iniFile.ReadInteger(INI_WIN_SECT, 'WriteMemoWidth', WriteMemo.Width);
   WritePanel.Visible := iniFile.ReadBool(INI_WIN_SECT, 'WriteMemoVisible', True);
   WritePanelPos := iniFile.ReadBool(INI_WIN_SECT, 'WriteMemoPos', True);
+  wh.Width := iniFile.ReadInteger(INI_WIN_SECT, 'WriteMemoAAWidth', 100);
+  wh.Height := iniFile.ReadInteger(INI_WIN_SECT, 'WriteMemoAAHeight', 50);
+  SaveAAListBoundsRect(wh);
+
   //WritePanelCanMove := iniFile.ReadBool(INI_WIN_SECT, 'WriteMemoCanMove', True);
   WritePanelCanMove := False;
   ToggleWritePanelPos(WritePanelPos);
@@ -16854,6 +16867,7 @@ procedure TMainWnd.ToolButtonWriteTitleMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
   try WritePanel.SetFocus; except end;
+  SetFocusToWriteMemo;
 end;
 
 procedure TMainWnd.LabelWriteTitleMouseDown(Sender: TObject;
@@ -16862,6 +16876,7 @@ var
   Point: TPoint;
 begin
   try WritePanel.SetFocus; except end;
+  SetFocusToWriteMemo;
   if (not WritePanelCanMove) or (Button <> mbLeft) then
     exit;
 
@@ -16929,9 +16944,10 @@ end;
 
 procedure TMainWnd.WritePanelEnter(Sender: TObject);
 begin
-  WritePanel.BringToFront;
+  if WritePanelCanMove then
+    WritePanel.BringToFront;
   WritePanelTitle.Color := clActiveCaption;
-  SetFocusToWriteMemo;
+  //SetFocusToWriteMemo;
 end;
 
 procedure TMainWnd.WritePanelExit(Sender: TObject);

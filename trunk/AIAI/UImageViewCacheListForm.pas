@@ -355,32 +355,26 @@ end;
 (* キャッシュ削除 *)
 procedure TImageViewCacheListForm.MenuItemDelCacheClick(Sender: TObject);
 var
-  item: TListItem;
-  NextItem: TListItem;
+  item, DelItem: TListItem;
   S: string;
+  CacheItem: TCacheItem;
 begin
   item := ListViewCache.Selected;
   while (item <> nil) do
   begin
-    S := item.Caption;
+    DelItem := item;
+    item := ListViewCache.GetNextItem(item, sdBelow, [isSelected]);
+    if item = DelItem then item := nil;
+    S := DelItem.Caption;
     if HttpManager.CacheExists(S) then
+    begin
       HttpManager.DeleteCache(S);
-    NextItem := ListViewCache.GetNextItem(item, sdBelow, [isSelected]);
-    if NextItem = item then
-    begin
-      TCacheItem(item.Data).Free;
-      ListViewCache.Items.Delete(item.Index);
-      break;
-    end else
-    begin
-      TCacheItem(item.Data).Free;
-      ListViewCache.Items.Delete(item.Index);
-      item := NextItem;
+      CacheItem := TCacheItem(DelItem.Data);
+      DelItem.Delete;
+      CacheItem.Free;
     end;
   end;
-  ListViewCache.DoubleBuffered := True;
-  ListViewCache.Repaint;
-  ListViewCache.DoubleBuffered := False;
+
   FIndex := -1;
   ImageViewCacheListForm.StatusBar.Panels.Items[0].Text
     := 'ファイル数: '
@@ -391,38 +385,35 @@ end;
 (* ブラクラ登録 *)
 procedure TImageViewCacheListForm.MenuItemBrocraClick(Sender: TObject);
 var
-  item: TListItem;
-  NextItem: TListItem;
+  item, DelItem: TListItem;
   S: String;
+  CacheItem: TCacheItem;
 begin
   item := ListViewCache.Selected;
   while (item <> nil) do
   begin
-    S := item.Caption;
-    if (item.SubItems[2] = 'BROCRA') then begin
+    DelItem := item;
+    item := ListViewCache.GetNextItem(item, sdBelow, [isSelected]);
+    if item = DelItem then item := nil;
+    S := DelItem.Caption;
+    if (DelItem.SubItems[2] = 'BROCRA') then begin
       if HttpManager.CacheExists(S) then
       begin
         HttpManager.DeleteCache(S);
-        TCacheItem(item.Data).Free;
-        ListViewCache.Items.Delete(item.Index);
+        CacheItem := TCacheItem(DelItem.Data);
+        DelItem.Delete;
+        CacheItem.Free;
       end;
     end else
     begin
       HttpManager.RegisterBrowserCrasher(S);
-      item.SubItems[2] := 'BROCRA';
+      DelItem.SubItems[2] := 'BROCRA';
+      TCacheItem(DelItem.Data).Status := 'BROCRA';
+      TCacheItem(DelItem.Data).Size := 0;
     end;
-    NextItem := ListViewCache.GetNextItem(item, sdBelow, [isSelected]);
-    if NextItem = item then
-      break
-    else
-      item := NextItem;
   end;
   PaintBox.Bitmap := nil;
   FIndex := -1;
-  ListViewCache.DoubleBuffered := True;
-  ListViewCache.Repaint;
-  ListViewCache.DoubleBuffered := False;
-  //CreateList;
 end;
 
 (* 選択解除 *)
@@ -546,6 +537,9 @@ begin
 
   ListViewCache.CustomSort(@CustomSortProc, Index);
   AlphaColumnSort[Column.Index]:=not AlphaColumnSort[Column.Index];
+  ListViewCache.DoubleBuffered := True;
+  ListViewCache.Repaint;
+  ListViewCache.DoubleBuffered := False;
 end;
 
 procedure TImageViewCacheListForm.FormResize(Sender: TObject);

@@ -841,6 +841,7 @@ begin
 end;
 
 function TDat2View.ProcTag: boolean;
+
   procedure SetFont;
   var
     name, value: string;
@@ -857,22 +858,74 @@ function TDat2View.ProcTag: boolean;
     end;
   end;
 
+  function GetAttribValue(name: PChar; var value: Integer; len: Integer): Boolean;
+  var
+    i: integer;
+  label GOTVALUE;
+  begin
+    while (index < size -1) and ((str + index)^ <> '>') do
+    begin
+      SkipSpaces;
+      if (index < size -1) then
+      begin
+        if not IsThisTag(name, str + index, len) then
+        begin
+          Result := False;
+          exit;
+        end;
+        Inc(index, len);
+        SkipSpaces;
+        if (index < size -1) and ((str + index)^ = '=') then
+        begin
+          Inc(index);
+          SkipSpaces;
+          value := 0;
+          if (index < size -1) and ((str + index)^ = '"') then
+          begin
+            for i := index + 1 to size -1 do
+            begin
+              case (str + i)^ of
+              '>': begin index := i; goto GOTVALUE; end;
+              '"': begin index := i + 1; goto GOTVALUE; end;
+              else value := value * 10 + Ord((str + i)^) - Ord('0');
+              end;
+            end;
+            index := size -1;
+          end
+          else begin
+            for i := index to size -1 do
+            begin
+              case (str + i)^ of
+              '>', '/', ' ': begin index := i; goto GOTVALUE; end;
+              else value := value * 10 + Ord((str + i)^) - Ord('0');
+              end;
+            end;
+            index := size -1;
+          end;
+          GOTVALUE:
+            result := True;
+            exit;
+        end;
+      end;
+    end;
+    result := False;
+  end;
+
   procedure SetAttrib;
   var
-    name, value: string;
-    att: integer;
+    value: Integer;
+    att: THogeAttribute;
   begin
-    while GetAttribPair(name, value) do
+    if GetAttribValue('i', value, 1) then
     begin
-      if (name = 'i') and (0 < length(value)) then
+      if (0 <= value) then
       begin
-        att := (Str2Int(value) * 2) mod 32;
+        att := (value * 2) mod 32;
         if att <> FAttribute then
         begin
           Flush;
           FAttribute := att;
         end;
-        break;
       end;
     end;
   end;
@@ -950,28 +1003,6 @@ function TDat2View.ProcTag: boolean;
       WritePicture(pass, overlap);
   end;
 
-  //aiai
-  //substr‚Æstr‚Ìæ“ªlenƒoƒCƒg‚ð”äŠr‚·‚é
-  function IsThisTag(substr, str: PChar; len: Integer): Boolean;
-  var
-    i, ord1, ord2: Integer;
-  begin
-    Result := False;
-    for i := 0 to len - 1 do
-    begin
-      ord1 := Ord((substr + i)^);
-      ord2 := Ord((str + i)^);
-      if ord1 = ord2 then
-        Continue
-      else if Abs(ord1 - ord2) = $20 then
-        Continue
-      else
-        exit;
-    end;
-    if (str + len) ^ in ['>', ' ', #1..#$1F, '='] then
-      Result := True;
-  end;
-
 
 begin
   if (str + index)^ = '<' then
@@ -980,18 +1011,21 @@ begin
     {aiai}
     if (str + index)^ = '/' then begin
       Inc(index);
-      if IsThisTag('p', str + index, 1) then begin
+      if IsThisTag('b', str + index, 1) then begin
         Inc(index);
-        WriteBR;
-      end else if IsThisTag('li', str + index, 2) then begin
-        Inc(index, 2);
-        WriteBR;
+        SetBold(False);
       end else if IsThisTag('dd', str + index, 2) then begin
         Inc(index, 2);
         FOffsetLeft := FOffsetBQ;
       end else if IsThisTag('dl', str + index, 2) then begin
         Inc(index, 2);
         FOffsetLeft := FOffsetBQ;
+      end else if IsThisTag('p', str + index, 1) then begin
+        Inc(index);
+        WriteBR;
+      end else if IsThisTag('li', str + index, 2) then begin
+        Inc(index, 2);
+        WriteBR;
       end else if IsThisTag('blockquote', str + index, 10) then begin
         Inc(index);
         Dec(FOffsetBQ, FDDOffsetLeft);
@@ -1000,9 +1034,6 @@ begin
         Dec(FOffsetLeft, FDDOffsetLeft);
         if FOffsetLeft<0 then
           FOffsetBQ := 0;
-      end else if IsThisTag('b', str + index, 1) then begin
-        Inc(index);
-        SetBold(False);
       end else if IsThisTag('a', str + index, 1) then begin
         Inc(index);
         EndAnchor;
@@ -1011,16 +1042,22 @@ begin
       if IsThisTag('br', str + index, 2) then begin
         Inc(index, 2);
         WriteBR;
-      end else if IsThisTag('ul', str + index, 2) then begin
+      end else if IsThisTag('SA', str + index, 2) then begin
         Inc(index, 2);
-        WriteBR;
+        SetAttrib;
+      end else if IsThisTag('b', str + index, 1) then begin
+        Inc(index);
+        SetBold(True);
+      end else if IsThisTag('dt', str + index, 2) then begin
+        Inc(index, 2);
+        FOffsetLeft := FOffsetBQ;
       end else if IsThisTag('dd', str + index, 2) then begin
         Inc(index, 2);
         WriteBR;
         FOffsetLeft := FOffsetBQ + FDDOffsetLeft;
-      end else if IsThisTag('dt', str + index, 2) then begin
+      end else if IsThisTag('ul', str + index, 2) then begin
         Inc(index, 2);
-        FOffsetLeft := FOffsetBQ;
+        WriteBR;
       end else if IsThisTag('blockquote', str + index, 10) then begin
         Inc(index, 10);
         Inc(FOffsetBQ, FDDOffsetLeft);
@@ -1031,15 +1068,9 @@ begin
       end else if IsThisTag('img', str + index, 3) then begin
         Inc(index, 3);
         SetPicture;
-      end else if IsThisTag('b', str + index, 1) then begin
-        Inc(index);
-        SetBold(True);
       end else if IsThisTag('font', str + index, 4) then begin
         Inc(index, 4);
         SetFont;
-      end else if IsThisTag('SA', str + index, 2) then begin
-        Inc(index, 2);
-        SetAttrib;
       end else if IsThisTag('a', str + index, 1) then begin
         Inc(index);
         BeginAnchor;

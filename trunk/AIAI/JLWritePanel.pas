@@ -19,6 +19,12 @@ const
 type
   TPostType = (postNormal, postCheck);
 
+  TWidthHeight = packed record
+    Width: Integer;
+    Height: Integer;
+  end;
+
+
   TJLWritePanel = class(TJLBaseWritePanel)
   protected
     FParent2: TWinControl;
@@ -52,7 +58,6 @@ type
 
     function Res2Dat: String;
     class function Trip(const Key: string): string;
-    procedure PasteAAListItem;
     procedure UnableWrite;
     procedure EnableWrite;
     procedure SetBoard(ABoard: TBoard);
@@ -89,6 +94,7 @@ type
     procedure ChangeMainPageControlActiveTab(newTab: integer); override;
     procedure SetNameMailWarning(ABool: Boolean);
     procedure SetStatusBarVisible(AVisible: Boolean);
+    function SaveAAListBoundsRect(AWidthHeight: TWidthHeight): TWidthHeight;
 
     property board: TBoard read FBoard write SetBoard;
     property Parent2: TWinControl read FParent2;
@@ -117,6 +123,7 @@ procedure SetWriteButtonEnabled(ABool: Boolean);
 procedure ChangeMainPageControlActiveTab(newTab: integer);
 procedure SetNameMailWarning(AValue: Boolean);
 procedure SetStatusBarVisible(AVisible: Boolean);
+function SaveAAListBoundsRect(AWidthHeight: TWidthHeight): TWidthHeight;
 //---------------------------------------------------------------------------//
 
 implementation
@@ -317,21 +324,34 @@ begin
 end;
 
 procedure TJLWritePanel.PasteAA;
+var
+  text: string;
+  index: integer;
 begin
   inherited;
 
-  if AAComboDropdown and (AAComboBox.ItemIndex > -1) then
+  text := AAList.Items[AAList.ItemIndex];
+  if StartWith('*', text, 1) then
   begin
-    PasteAAListItem;
-    AAComboDropDown := False;
-    if MainPageControl.ActivePageIndex = TABSHEET_PREVIEW then
+    index := 0;
+    while (CompareStr('['+ Copy(text, 2, Length(text) - 1) + ']',
+      Config.aaAAList[index]) <> 0) do
     begin
-      CreatePreView;
-      try PreView.SetFocus; except end;
-    end else
-      try Memo.SetFocus; except end;
-  end;
-
+      Inc(index);
+      if Config.aaAAList.Count - 1 <= index then
+        exit;
+    end;
+    Inc(index);
+    while not (StartWith('[', Config.aaAAList[index], 1)) do
+    begin
+      Memo.SelText := Config.aaAAList[index] + #13#10;
+      if index < Config.aaAAList.Count - 1 then
+        Inc(index)
+      else
+        break;
+    end;
+  end else
+    Memo.SelText := text;
 end;
 
 procedure TJLWritePanel.ToolButtonHandle(Sender: TToolButton; tag: integer);
@@ -635,36 +655,6 @@ begin
     Result := ' Ÿ' + Copy(crypt(Key, Salt), 4, 10);
   end;
 end;
-
-procedure TJLWritePanel.PasteAAListItem;
-var
-  text: string;
-  index: integer;
-begin
-  text := AAComboBox.Items[AAComboBox.ItemIndex];
-  if StartWith('*', text, 1) then
-  begin
-    index := 0;
-    while(CompareStr('[' + Copy(text, 2, Length(text) - 1) + ']',
-                                               Config.aaAAList[index]) <> 0) do
-    begin
-      Inc(index);
-      if Config.aaAAList.Count - 1 <= index then
-        exit;
-    end;
-    Inc(index);
-    while not (StartWith('[', Config.aaAAList[index], 1)) do
-    begin
-      Memo.SelText := Config.aaAAList[index] + #13#10;
-      if index < Config.aaAAList.Count - 1 then
-        Inc(index)
-      else
-        break;
-    end;
-  end else
-    Memo.SelText := text;
-end;
-
 
 procedure TJLWritePanel.UnableWrite;
 begin
@@ -1408,11 +1398,10 @@ var
 begin
   index := 0;
 
-  AAComboBox.Items.Clear;
+  AAList.Clear;
 
   if Config.aaAAList.Count <= 0 then
   begin
-    AAComboBox.Enabled := false;
     MainWnd.MenuAA.Enabled := false;
     MainWnd.MenuAA.Visible := false;
     exit;
@@ -1423,7 +1412,6 @@ begin
     Inc(index);
     if Config.aaAAList.Count - 1 <= index then
     begin
-      AAComboBox.Enabled := false;
       MainWnd.MenuAA.Enabled := false;
       MainWnd.MenuAA.Visible := false;
       exit;
@@ -1433,15 +1421,14 @@ begin
   Inc(index);
   while not(StartWith('[', Config.aaAAList.Strings[index], 1)) do
   begin
-    AAComboBox.Items.Add(Config.aaAAList.Strings[index]);
+    AAList.Items.Add(Config.aaAAList.Strings[index]);
     if index < Config.aaAAList.Count - 1 then
       Inc(index)
     else
       break;
   end;
-  if AAComboBox.items.Count > 0 then
+  if AAList.items.Count > 0 then
   begin
-    AAComboBox.Enabled := True;
     MainWnd.MenuAA.Enabled := True;
     MainWnd.MenuAA.Visible := True;
   end;
@@ -1537,6 +1524,15 @@ begin
   WStatusBar.Visible := AVisible;
   if AVisible then
     WStatusBar.Top := Self.ClientHeight;
+end;
+
+function TJLWritePanel.SaveAAListBoundsRect(AWidthHeight: TWidthHeight): TWidthHeight;
+begin
+  Result.Width := AAList.Width;
+  Result.Height := AAList.Height;
+
+  AAList.Height := AWidthHeight.Height;
+  AAList.Width := AWidthHeight.Width;
 end;
 
 (* ----------------------- TJLWritePanel ----------------------------------- *)
@@ -1671,6 +1667,18 @@ begin
   if not Assigned(WriteMemo) then exit;
 
   WriteMemo.SetStatusBarVisible(AVisible);
+end;
+
+function SaveAAListBoundsRect(AWidthHeight: TWidthHeight): TWidthHeight;
+begin
+  if not Assigned(WriteMemo) then
+  begin
+    Result.Width := 0;
+    Result.Height := 0;
+    exit;
+  end;
+
+  Result := WriteMemo.SaveAAListBoundsRect(AWidthHeight);
 end;
 
 end.

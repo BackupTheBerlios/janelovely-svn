@@ -117,6 +117,8 @@ type
     procedure ProcName; virtual;
     procedure AppendResNumList(num: Integer); overload; virtual;
     procedure AppendResNumList(num, num2: Integer); overload; virtual;
+    function IsThisTag(substr, str: PChar; len: Integer): Boolean; virtual;
+
   public
     procedure WriteItem(str: PChar; size: integer;
                          itemType: TDatItemType); override;
@@ -1729,6 +1731,29 @@ begin
   result := LowerCase(tag);
   index := size;
 end;
+
+//aiai
+//substr‚Æstr‚Ìæ“ªlenƒoƒCƒg‚ð”äŠr‚·‚é
+function TConvDatOut.IsThisTag(substr, str: PChar; len: Integer): Boolean;
+var
+  i, ord1, ord2: Integer;
+begin
+  Result := False;
+  for i := 0 to len - 1 do
+  begin
+    ord1 := Ord((substr + i)^);
+    ord2 := Ord((str + i)^);
+    if ord1 = ord2 then
+      Continue
+    else if Abs(ord1 - ord2) = $20 then
+      Continue
+    else
+      exit;
+  end;
+  if (str + len) ^ in ['>', ' ', #1..#$1F, '='] then
+    Result := True;
+end;
+
 
 function TConvDatOut.GetAttribPair(var name, value: string): Boolean;
 var

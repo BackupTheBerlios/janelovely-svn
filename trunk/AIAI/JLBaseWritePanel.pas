@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Controls, ExtCtrls, ComCtrls, StdCtrls,
-  Graphics, Buttons, HogeTextView, UViewItem, JLXPComCtrls;
+  Graphics, Buttons, HogeTextView, UViewItem, JLXPComCtrls, JLXPButtons;
 
 const
   TABSHEET_WRITE      = 0;
@@ -13,14 +13,21 @@ const
   TABSHEET_RESULT     = 3;
 
 type
+  // リサイズ可能なListBox
+  TRSListBox = class(TListBox)
+  protected
+    procedure CreateParams(var Params: TCreateParams); override;
+  end;
+
+
   TJLBaseWritePanel = class(TCustomPanel)
   private
+    KeyCtrl: Boolean;
     procedure CreateMainPageControl;
     procedure CreateBottomPanel;
     procedure CreateStatusBar;
     procedure SageCheckBoxClick(Sender: TObject);
     procedure WriteButtonClick(Sender: TObject);
-    procedure AAComboBoxSelect(Sender: TObject);
     procedure ToolButtonClick(Sender: TObject);
     procedure NameMailComboBoxSelect(Sender: TObject);
     procedure WStatusBarDrawPanel(StatusBar: TStatusBar;
@@ -28,19 +35,24 @@ type
     procedure MemoChange(Sender: TObject);
     procedure NameComboBoxChange(Sender: TObject);
     procedure MailComboboxChange(Sender: TObject);
-    procedure AAComboBoxCloseUp(Sender: TObject);
-    procedure AAComboBoxDropDown(Sender: TObject);
     procedure MemoExit(Sender: TObject);
     procedure MemoEnter(Sender: TObject);
     procedure MemoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure MemoKeyPress(Sender: TObject; var Key: Char);
+    procedure writeActShowAAListExecute(Sender: TObject);
+    procedure AAListMouseUp(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure AAListKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure AAListExit(Sender: TObject);
   protected
     MainPageControl: TPageControl;
     LeftPanel: TPanel;
     RightPanel: TPanel;
     BottomPanel: TPanel;
     WriteButton: TButton;
-    AAComboBox: TComboBox;
-    ToolBar: TToolBar;
+    AAList: TRSListBox;
+    ToolBar: TJLXPToolBar;
     ToolButton: array[0..6] of TToolButton;
     Memo: TMemo;
     NameComboBox: TComboBoxEx;
@@ -73,7 +85,16 @@ implementation
 
 //{$DEFINE WRITEPANEL_FLOAT}
 
-{ TJLBaseWritePanel }
+
+ { TRSListBox }
+procedure TRSListBox.CreateParams(var Params: TCreateParams);
+begin
+  inherited CreateParams(Params);
+  Params.Style := Params.Style or WS_THICKFRAME;
+end;
+
+
+ { TJLBaseWritePanel }
 
 constructor TJLBaseWritePanel.Create(AOwner: TComponent);
 begin
@@ -98,6 +119,18 @@ begin
   CreateMainPageControl;
   CreateStatusBar;
   CreateBottomPanel;
+
+  AAList := TRSListBox.Create(Self);
+  With AAList do begin
+    Parent := Self;
+    Hide;
+    Align := alCustom;
+    Constraints.MinWidth := 50;
+    Constraints.MinHeight := 50;
+    OnMouseUp := AAListMouseUp;
+    OnExit := AAListExit;
+    OnKeyDown := AAListKeyDown;
+  end;
 end;
 
 
@@ -141,11 +174,12 @@ var
       Alignment := taCenter;
       Anchors := [akTop, akLeft];
       AutoSize := False;
-      Caption := '名前:(&N)';
+      Caption := '&Name:';
       FocusControl := NameComboBox;
+      Hint := '名前';
       LayOut := tlCenter;
       Left := 0;
-      Width := 50;
+      Width := 40;
     end;
 
     With NameComboBox do
@@ -153,6 +187,7 @@ var
       Parent := NameMailPanel;
       Align := alClient;
       TabOrder := 0;
+      Hint := '名前';
       OnChange := NameComboBoxChange;
       OnSelect := NameMailComboBoxSelect;
     end;
@@ -165,16 +200,18 @@ var
       Align := alRight;
       Alignment := taCenter;
       AutoSize := False;
-      Caption := 'メール:(&M)';
+      Caption := '&Mail:';
       FocusControl := MailComboBox;
+      Hint := 'メール';
       LayOut := tlCenter;
-      Width := 65;
+      Width := 40;
     end;
 
     With MailComboBox do
     begin
       Parent := NameMailPanel;
       Align := alRight;
+      Hint := 'メール';
       Width := 70;
       TabOrder := 1;
       OnChange := MailComboboxChange;
@@ -187,10 +224,10 @@ var
       Parent := NameMailPanel;
       Align := alRight;
       Alignment := taLeftJustify;
-      Caption := ' sage(&S)';
+      Caption := ' &sage';
       Left := NameMailPanel.ClientWidth - 60;
       TabOrder := 2;
-      Width := 60;
+      Width := 45;
       OnClick := SageCheckBoxClick;
     end;
 
@@ -212,6 +249,7 @@ var
       OnEnter := MemoEnter;
       OnExit := MemoExit;
       OnKeyDown := MemoKeyDown;
+      OnKeyPress := MemoKeyPress;
     end;
   end;
 
@@ -313,7 +351,6 @@ end;
 (* ツールパネルを作る *)
 procedure TJLBaseWritePanel.CreateBottomPanel;
 var
-  SubPanel: TPanel;
   index: integer;
 begin
   BottomPanel := TPanel.Create(Self);
@@ -325,46 +362,25 @@ begin
     BevelOuter := bvNone;
   end;
 
-  With TLabel.Create(Self) do
+  With TJLXPSpeedButton.Create(Self) do
   begin
     Parent := BottomPanel;
     Align := alLeft;
     Alignment := taCenter;
     AutoSize := False;
-    Caption := 'AA:';
-    LayOut := tlCenter;
+    Caption := 'AA';
+    OnClick := writeActShowAAListExecute;
     Width := 30;
   end;
 
-  AAComboBox := TComboBox.Create(Self);
-  With AAComboBox do
-  begin
-    Parent := BottomPanel;
-    Align := alClient;
-    Style := csDropDownList;
-    OnCloseUp := AAComboBoxCloseUp;
-    OnDropDown := AAComboBoxDropDown;
-    OnSelect := AAComboBoxSelect;
-    TabStop := False;
-  end;
-
-  SubPanel := TPanel.Create(Self);
-  With SubPanel do
-  begin
-    Parent := BottomPanel;
-    Align := alRight;
-    BevelOuter := bvNone;
-    Width := 265;
-    TabOrder := 0;
-  end;
-
-  ToolBar := TToolBar.Create(Self);
+  ToolBar := TJLXPToolBar.Create(Self);
   With ToolBar do
   begin
-    Parent := SubPanel;
+    Parent := BottomPanel;
     Align := alClient;
     EdgeBorders := [];
     Flat := True;
+    Wrapable := False;
   end;
 
   for index := 6 downto 0 do
@@ -386,7 +402,7 @@ begin
   WriteButton := TButton.Create(Self);
   With WriteButton do
   begin
-    Parent := SubPanel;
+    Parent := BottomPanel;
     Align := alRight;
     Caption := '書込(Shift+Enter)';
     Enabled := False;
@@ -404,11 +420,65 @@ begin
   ToolButtonHandle(TToolButton(Sender) , TComponent(Sender).Tag);
 end;
 
-procedure TJLBaseWritePanel.AAComboBoxSelect(Sender: TObject);
+(* AA入力支援 *)
+procedure TJLBaseWritePanel.AAListMouseUp(Sender: TObject; Button: TMouseButton;
+                                   Shift: TShiftState; X, Y: Integer);
+begin
+  if Button = mbLeft then
+  begin
+    if  (AAList.ItemIndex > -1) then
+    begin
+      PasteAA;
+    end;
+    AAList.Hide;
+    Memo.SetFocus;
+  end;
+end;
+
+procedure TJLBaseWritePanel.writeActShowAAListExecute(Sender: TObject);
+var
+  point: TPoint;
 begin
   try Memo.SetFocus; except end;
-  PasteAA;
+  if 0 < AAList.Count then
+  begin
+    GetCaretPos(point);
+    AAList.Top  :=  MainPageControl.Pages[0].Top + Memo.Top + point.Y - Memo.Font.Height;
+    if (self.Height < AAList.Top + AAList.Height + 30) and
+       (AAlist.Height < AAList.Top) then
+      AAList.Top  := Self.Top + Memo.Top + point.Y - AAList.Height;
+    AAList.Left := MainPageControl.Pages[0].Left + point.X;
+    //if Memo.Width < point.X + AAList.Width + 30 then
+    //  AAList.Left := AAlist.Left - point.X + Memo.Width - AAList.Width - 30;
+    AAList.ItemIndex := 0;
+    AAList.Show;
+    AAList.SetFocus;
+  end;
 end;
+
+procedure TJLBaseWritePanel.AAListKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  if (Key = VK_ESCAPE) then
+  begin
+    AAList.Hide;
+    Memo.SetFocus;
+  end else
+  if (Key = VK_RETURN) then
+  begin
+    if (AAList.ItemIndex > -2) then
+    begin
+      PasteAA;
+    end;
+    AAList.Hide;
+    Memo.SetFocus;
+  end;
+end;
+
+procedure TJLBaseWritePanel.AAListExit(Sender: TObject);
+begin
+  AAList.Hide;
+end;
+
 
 procedure TJLBaseWritePanel.SageCheckBoxClick(Sender: TObject);
 begin
@@ -477,16 +547,6 @@ begin
   ChangeMailComboBoxColor;
 end;
 
-procedure TJLBaseWritePanel.AAComboBoxCloseUp(Sender: TObject);
-begin
-  try Memo.SetFocus; except end;
-end;
-
-procedure TJLBaseWritePanel.AAComboBoxDropDown(Sender: TObject);
-begin
-  AAComboDropDown := True;
-end;
-
 procedure TJLBaseWritePanel.MemoExit(Sender: TObject);
 begin
   SaveMemoIme;
@@ -510,8 +570,21 @@ begin
   end else
   begin
     Memo.WantReturns := true;
-    if (ssCtrl in Shift) and (Key = Ord('A')) then
-      Memo.SelectAll;
+    if (ssCtrl in Shift) then begin
+      if (Key = Ord('A')) then
+        Memo.SelectAll;
+        KeyCtrl := True;
+        exit;
+      end;
+  end;
+  KeyCtrl := False;
+end;
+
+procedure TJLBaseWritePanel.MemoKeyPress(Sender: TObject; var Key: Char);
+begin
+  if (Key = ' ') and KeyCtrl then begin
+    Key := #0;
+    writeActShowAAListExecute(Self);
   end;
 end;
 
@@ -525,8 +598,11 @@ begin
 
   if newTab = TABSHEET_WRITE then
     try Memo.SetFocus; except end
-  else if newTab = TABSHEET_PREVIEW then
-    CreatePreView;
+  else begin
+    if newTab = TABSHEET_PREVIEW then
+      CreatePreView;
+    try Self.SetFocus; except end;
+  end;
 end;
 
 procedure TJLBaseWritePanel.CreatePreView;
