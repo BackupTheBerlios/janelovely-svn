@@ -5568,10 +5568,6 @@ object MainWnd: TMainWnd
       8007FCFFC00FFFFFFF0FFE7FC01FFFFF00000000000000000000000000000000
       000000000000}
   end
-  object CopyFileList: TCP
-    Left = 144
-    Top = 96
-  end
   object PopupBar: TPopupMenu
     Left = 336
     Top = 16

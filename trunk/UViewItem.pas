@@ -108,6 +108,7 @@ type
     procedure SetBold(boldP: boolean);
     procedure Flush; override;
     procedure Cancel;
+    procedure SetAttrib2(value: Byte); override; //aiai
     property DDOffsetLeft: Integer read FDDOffsetLeft write FDDOffsetLeft;
   end;
 
@@ -1170,6 +1171,15 @@ begin
 
   for i := num to num2 do
     FBrowser.SetResNum(i);
+end;
+
+procedure TDat2View.SetAttrib2(value: Byte);
+begin
+  if value <> FAttribute then
+  begin
+    Flush;
+    FAttribute := value;
+  end;
 end;
 
 procedure TDat2View.WriteText(str: PChar; size: integer);

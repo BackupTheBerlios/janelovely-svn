@@ -86,8 +86,12 @@ uses
   JLBaseWritePanel in 'AIAI\JLBaseWritePanel.pas',
   JLWritePanel in 'AIAI\JLWritePanel.pas',
   UWriteForm in 'UWriteForm.pas' {WriteForm},
+  {$IFDEF SQLITE3}
+  sqlite3 in 'AIAI\sqlite3.pas',
+  {$ELSE}
   sqlite in 'AIAI\sqlite.pas',
-  sqlite3 in 'AIAI\sqlite3.pas';
+  {$ENDIF}
+  ClipBrdSub in 'AIAI\ClipBrdSub.pas';
 
 {$R *.res}
 

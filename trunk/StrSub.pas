@@ -123,8 +123,8 @@ begin
     FTable[i] := Length(FSubject);
   for i := 1 to Length(FSubject) do
     if IgnoreCase then begin
-      FTable[Ord(Upper[i])] := FSubLen - i + 1;
-      FTable[Ord(Lower[i])] := FSubLen - i + 1;
+      FTable[Ord(Upper[i])] := FSubLen + 1 - i;
+      FTable[Ord(Lower[i])] := FSubLen + 1 - i;
     end else begin
       FTable[Ord(FSubject[i])] := FSubLen - i + 1;
     end;
@@ -442,17 +442,22 @@ end;
 function HexToInt(const AString: string): Integer;
 var
   i: integer;
+  temp: int64;
 begin
-  result := 0;
+  temp := 0;
   for i := 1 to length(AString) do
   begin
     case AString[i] of
-    '0'..'9': result := result * 16 + Ord(AString[i]) - Ord('0');
-    'A'..'F': result := result * 16 + Ord(AString[i]) - Ord('A') + 10;
-    'a'..'f': result := result * 16 + Ord(AString[i]) - Ord('a') + 10;
+    '0'..'9': temp := temp * 16 + Ord(AString[i]) - Ord('0');
+    'A'..'F': temp := temp * 16 + Ord(AString[i]) - Ord('A') + 10;
+    'a'..'f': temp := temp * 16 + Ord(AString[i]) - Ord('a') + 10;
     else break;
     end;
   end;
+  if temp > High(Integer) then
+    result := Low(Integer) + (temp mod High(Integer)) - 1
+  else
+    result := temp;
 end;
 
 function Str2Int(const AString: string): Integer;
@@ -570,7 +575,7 @@ var
   count: integer;
 begin
   count := 0;
-  for result := 0 to length(AString) do
+  for result := 1 to length(AString) do
   begin
     if AString[result] = target then
     begin

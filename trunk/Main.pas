@@ -12,54 +12,33 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, Menus, ComCtrls, ExtCtrls, OleCtrls, ToolWin, IdBaseComponent,
-  IdComponent, IdTCPConnection, IdTCPClient, IdHTTP, StdCtrls, StrUtils,
-  IniFiles, IdException, DateUtils, imm, ShellAPI,
+  IdComponent, IdTCPConnection, IdTCPClient, StdCtrls, StrUtils, IniFiles,
+  IdException, DateUtils, imm, Clipbrd, ImgList, ShellAPI, ActiveX, ActnList,
+  Tabs, Buttons, Math, AppEvnts,
+  IdHTTP, gzip,  jconvert, HogeTextView, HogeListView, FileSub, StrSub,
+  HTTPSub, JConfig, UConfig, UTVSub, UPopUpTextView, U2chBoard, UDat2HTML,
+  UAsync, UViewItem, UWriteForm, USynchro, UHeadCache, UDaemon, U2chThread,
+  U2chCat,  U2chCatList, UIDlg, UFavorite, USharedMem, UXTime, U2chTicket,
+  UGrepDlg,
+
   {beginner}
-  UNGWordsAssistant,UQuickAboneRegist,
-  UImageViewer, UImageHint, UImageViewConfig,
+  UNGWordsAssistant,UQuickAboneRegist, UImageViewer, UImageHint,
+  UImageViewConfig,
   {/beginner}
+
   {aiai}
-  UAAForm,
-  UAddAAForm,
-  UAutoReSc,
-  UAutoReloadSettingForm,
-  UAutoScrollSettingForm,
-  CommCtrl,
-  ULovelyWebForm,
-  ULocalCopy,
-  UNews,
-  UGetBoardListForm,
-  CP,
-  UChottoForm,
-  UImageViewCacheListForm,
-  ApiBmp,
-  PNGImage,
-  //GIFImage,
-  UCheckSeverDown,
-  UCrypt,
   {$IFDEF SQLITE3}
   sqlite3,
   {$ELSE}
   sqlite,
   {$ENDIF}
+  ApiBmp, PNGImage, {GIFImage,} ClipBrdSub,
+  UAAForm, UAddAAForm, UAutoReSc, UAutoReloadSettingForm,
+  UAutoScrollSettingForm, ULovelyWebForm, UNews, UGetBoardListForm,
+  UChottoForm, UImageViewCacheListForm,
+  UCheckSeverDown,
+  JLWritePanel, JLRSPanel, JLTab, JLDualStateButton, JLToolButton;
   {/aiai}
-  {$IFDEF IE}
-  SHDocVw_TLB,
-  MSHTML_TLB,
-//  ActiveX,
-  HTMLDocumentEvent,
-  {$ENDIF}
-  ActiveX,
-  HogeTextView,
-  UTVSub,
-  UPopUpTextView,
-  UConfig, Clipbrd, gzip, HogeListView,
-  JConfig, U2chBoard, FileSub, StrSub, UDat2HTML, ImgList, UAsync, UViewItem,
-  UWriteForm, USynchro, UHeadCache, UDaemon, U2chThread, U2chCat, U2chCatList,
-  ActnList,  UIDlg, Tabs, UFavorite, USharedMem, UXTime,
-  U2chTicket, HTTPSub, Buttons,
-  Math, UGrepDlg, jconvert, AppEvnts, JLWritePanel, JLRSPanel,
-  JLTab, JLDualStateButton, JLToolButton;
 
 const
   VERSION  = '0.1.0.1';      (* Printable ASCIIコード厳守。')'はダメ *)
@@ -620,7 +599,6 @@ type
     MenuOptNews: TMenuItem;
     MenuOptUseNews: TMenuItem;
     MenuOptSetNewsInterval: TMenuItem;
-    CopyFileList: TCP;
     actListCopyTITLE: TAction;
     E1: TMenuItem;
     E2: TMenuItem;
@@ -1357,7 +1335,6 @@ type
     {//ayaya}
 
     {aiai}
-    //procedure CopyFile(const FileName, DestName: string);
     procedure StartAutoReSc;
     procedure FavCheckServerDownEnd(Sender: TObject);
     procedure FavBrdOpen;
@@ -1457,7 +1434,6 @@ type
                   PatrolType: TPatrolType; board: TBoard);
     procedure UpdateListViewColumns;
     {/aiai}
-    procedure LoadReconstructionSetting;
   end;
 
 const
@@ -1642,17 +1618,11 @@ const
   WM_MY_TRAYICON = WM_APP + $300;
 
   DEF_HEADER_HTML = '<html><body><font face="ＭＳ Ｐゴシック"><dl>';
-  {$IFDEF IE}
-  DEF_REC_HTML    = '<dt><NUMBER/> 名前：<font color=forestgreen><NAME/></b></font>[<MAIL/>] 投稿日：<DATE/></dt><dd><MESSAGE/><br><br></dd>'#10;
-  DEF_NEWREC_HTML = '<dt><b><NUMBER/></b> 名前：<font color=forestgreen><NAME/></b></font>[<MAIL/>] 投稿日：<DATE/></dt><dd><MESSAGE/><br><br></dd>'#10;
-  DEF_BOOKMARK_HTML = '<center><hr><br>ここまで読んだ<br><hr></center><br>';
-  {$ELSE}
   DEF_REC_HTML    = '<dt><NUMBER/> 名前：<SA i=2><b><NAME/></b></b><SA i=0>[<MAIL/>] 投稿日：<DATE/></dt><dd><MESSAGE/><br><br></dd>'#10;
   DEF_NEWREC_HTML = '<dt><b><NUMBER/></b> 名前：<SA i=2><b><NAME/></b></b><SA i=0>[<MAIL/>] 投稿日：<DATE/></dt><dd><MESSAGE/><br><br></dd>'#10;
   DEF_BOOKMARK_HTML = '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━<br>' +
                       '　　　　　　　　　　　　　　　　　　　ここまで読んだ<br>' +
                       '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━<br><br>';
-  {$ENDIF}
   DEF_NEWMARK_HTML = '';
 
 var
@@ -2233,85 +2203,85 @@ var
     ThreadToolPanel.Height := ThreadToolBar.ButtonHeight;
   end;
 
-      (* タグ名取得(小文字化) *)
-      function GetTagName(var index, size: Integer; str: PChar): string;
-      var
-        i: integer;
-        tag: string;
-      begin
-        for i := index to size - 1 do
+  (* タグ名取得(小文字化) *)
+  function GetTagName(var index, size: Integer; str: PChar): string;
+  var
+    i: integer;
+    tag: string;
+  begin
+    for i := index to size - 1 do
+    begin
+      case (str + i)^ of
+      '>', ' ', #1..#$1F, '=':
         begin
-          case (str + i)^ of
-          '>', ' ', #1..#$1F, '=':
-            begin
-              index := i;
-              result := LowerCase(tag);
-              exit;
-            end;
-          else tag := tag + (str + i)^;
-          end;
+          index := i;
+          result := LowerCase(tag);
+          exit;
         end;
-        result := LowerCase(tag);
-        index := size;
+      else tag := tag + (str + i)^;
       end;
+    end;
+    result := LowerCase(tag);
+    index := size;
+  end;
 
-      procedure SkipSpaces(var index, size: Integer; str: PChar);
-      var
-        i: integer;
-      begin
-        for i := index to size -1 do
+  procedure SkipSpaces(var index, size: Integer; str: PChar);
+  var
+    i: integer;
+  begin
+    for i := index to size -1 do
+    begin
+      case (str + i)^ of
+      #0..#$20:;
+      else
         begin
-          case (str + i)^ of
-          #0..#$20:;
-          else
-            begin
-              index := i;
-              exit;
-            end;
-          end;
+          index := i;
+          exit;
         end;
       end;
+    end;
+  end;
 
-      function GetAttribPair(var index, size: Integer;
-          str: PChar; var name, value: string): Boolean;
-      var
-        i: integer;
-      label GOTVALUE;
+  function GetAttribPair(var index, size: Integer;
+      str: PChar; var name, value: string): Boolean;
+  var
+    i: integer;
+  label GOTVALUE;
+  begin
+    while (index < size -1) and ((str + index)^ <> '>') do
+    begin
+      SkipSpaces(index, size, str);
+      if (index < size -1) then
       begin
-        while (index < size -1) and ((str + index)^ <> '>') do
+        name := GetTagName(index, size, str);
+        SkipSpaces(index, size, str);
+        if (index < size -1) and ((str + index)^ = '=') then
         begin
+          Inc(index);
           SkipSpaces(index, size, str);
-          if (index < size -1) then
+          value := '';
+          if (index < size -1) and ((str + index)^ = '"') then
           begin
-            name := GetTagName(index, size, str);
-            SkipSpaces(index, size, str);
-            if (index < size -1) and ((str + index)^ = '=') then
+            for i := index + 1 to size -1 do
             begin
-              Inc(index);
-              SkipSpaces(index, size, str);
-              value := '';
-              if (index < size -1) and ((str + index)^ = '"') then
-              begin
-                for i := index + 1 to size -1 do
-                begin
-                  case (str + i)^ of
-                  '>': begin index := i; goto GOTVALUE;; end;
-                  '"': begin index := i + 1; goto GOTVALUE; end;
-                  else value := value + (str + i)^;
-                  end;
-                end;
-                index := size -1;
-              end
-              else
-                value := GetTagName(index, size, str);
-              GOTVALUE:
-                result := True;
-                exit;
+              case (str + i)^ of
+              '>': begin index := i; goto GOTVALUE;; end;
+              '"': begin index := i + 1; goto GOTVALUE; end;
+              else value := value + (str + i)^;
+              end;
             end;
-          end;
+            index := size -1;
+          end
+          else
+            value := GetTagName(index, size, str);
+          GOTVALUE:
+            result := True;
+            exit;
         end;
-        result := False;
       end;
+    end;
+    result := False;
+  end;
 
   (* Header.htmlのbodyタグの解釈 (aiai) *)
   procedure ProcTag(header: String);
@@ -2381,6 +2351,66 @@ var
     end;
   end;
 
+  //aiai
+  procedure LoadWallPaper;
+  var
+    ImageConv: TGraphic;
+    FileExt: String;
+  begin
+
+    if not FileExists(BrowserWallpaperName) then
+      exit;
+
+    FileExt := ExtractFileExt(BrowserWallpaperName);
+
+    if SameText(FileExt, '.jpg') or SameText(FileExt, '.jpeg') then
+    begin
+
+      BrowserWallpaper := TBitmap.Create;
+      ImageConv := TApiBitmap.Create;
+      try
+        try
+          ImageConv.LoadFromFile(BrowserWallpaperName);
+          BrowserWallpaper.Assign(ImageConv);
+        finally
+          ImageConv.Free;
+        end;
+      except
+        on E: Exception do begin
+          Log(E.Message);
+          FreeAndNil(BrowserWallpaper);
+        end;
+      end;
+
+    end else if SameText(FileExt, '.png') then
+    begin
+
+      BrowserWallpaper := TPNGObject.Create;
+      try
+        BrowserWallpaper.LoadFromFile(BrowserWallpaperName);
+      except
+        on E: Exception do begin
+          Log(E.Message);
+          FreeAndNil(BrowserWallpaper);
+        end;
+      end;
+
+    end else if SameText(FileExt, '.bmp') then
+    begin
+
+      BrowserWallpaper := TBitmap.Create;
+      try
+        BrowserWallpaper.LoadFromFile(BrowserWallpaperName);
+      except
+        on E: Exception do begin
+          Log(E.Message);
+          FreeAndNil(BrowserWallpaper);
+        end;
+      end;
+
+    end;
+  end;
+
 begin
   HeaderHTML := DEF_HEADER_HTML;
   RecHTML    := DEF_REC_HTML;
@@ -2396,9 +2426,10 @@ begin
   PopupRecHTML := RecHTML;
   LoadString(skinPath + HTML_POPUP_TEMPLATE, PopupRecHTML);
 
+  {aiai}
   ProcTag(HeaderHTML);
-
-  LoadReconstructionSetting;
+  LoadWallPaper;
+  {/aiai}
 
   D2HTML.Free;
   NEWD2HTML.Free;
@@ -2910,68 +2941,6 @@ begin
     viewList.Items[intIndex].browser.IDLinkColorMany := Config.ojvIDLinkColorMany;
     viewList.Items[intIndex].browser.IDLinkThreshold := Config.ojvIDLinkThreshold;
   end;
-end;
-
-procedure TMainWnd.LoadReconstructionSetting;
-var
-  ImageConv: TGraphic;
-  FileExt: String;
-begin
-  {$IFNDEF IE}
-
-  if FileExists(BrowserWallpaperName) then
-  begin
-    FileExt := ExtractFileExt(BrowserWallpaperName);
-
-    if SameText(FileExt, '.jpg') or SameText(FileExt, '.jpeg') then
-    begin
-
-      BrowserWallpaper := TBitmap.Create;
-      ImageConv := TApiBitmap.Create;
-      try
-        try
-          ImageConv.LoadFromFile(BrowserWallpaperName);
-          BrowserWallpaper.Assign(ImageConv);
-        finally
-          ImageConv.Free;
-        end; //try
-      except
-        on E: Exception do begin
-          Log(E.Message);
-          FreeAndNil(BrowserWallpaper);
-        end;
-      end;  //try
-
-    end
-    else if SameText(FileExt, '.png') then begin
-
-     BrowserWallpaper := TPNGObject.Create;
-      try
-        BrowserWallpaper.LoadFromFile(BrowserWallpaperName);
-      except
-        on E: Exception do begin
-          Log(E.Message);
-          FreeAndNil(BrowserWallpaper);
-        end;
-      end;
-
-    end
-    else if SameText(FileExt, '.bmp') then begin
-
-     BrowserWallpaper := TBitmap.Create;
-      try
-        BrowserWallpaper.LoadFromFile(BrowserWallpaperName);
-      except
-        on E: Exception do begin
-          Log(E.Message);
-          FreeAndNil(BrowserWallpaper);
-        end;
-      end;  //try
-
-    end;
-  end;
-
-  {$ENDIF}
 end;
 
 procedure TMainWnd.FormShow(Sender: TObject);
@@ -9927,28 +9896,25 @@ procedure TMainWnd.actListCopyDatExecute(Sender: TObject);
 var
   item: TListItem;
   thread: TThreadItem;
-  datpath: string;
+  fname, s: String;
 begin
   item := ListView.Selected;
   thread := nil;
 
-  CopyFileList.CopyFiles.Clear;
-  CopyFileList.RenderCopy;
-
+  s := '';
   while (item <> nil) and (item.Data <> thread) do
   begin
     thread := TThreadItem(item.Data);
     if thread.lines > 0 then
-    try
-      datpath := thread.GetFileName + '.dat';
-      CopyFileList.CopyFiles.Add(datpath);
-    except
+    begin
+      fname := thread.GetFileName + '.dat';
+      if FileExists(fname) then
+        s := s + fname + #0;
     end;
     item := ListView.GetNextItem(item, sdBelow, [isSelected]);
   end;
-
-  CopyFileList.Copy;
-  CopyFileList.CopyFiles.Clear;
+  if s <> '' then
+    CopyToClipboard(s, DROPEFFECT_COPY);
 end;
 
 //datとidxをクリップボードにコピー   //aiai
@@ -9956,30 +9922,29 @@ procedure TMainWnd.actListCopyDIExecute(Sender: TObject);
 var
   item: TListItem;
   thread: TThreadItem;
-  datpath, idxpath: string;
+  fname, s: string;
 begin
   item := ListView.Selected;
   thread := nil;
-
-  CopyFileList.CopyFiles.Clear;
-  CopyFileList.RenderCopy;
+  s := '';
 
   while (item <> nil) and (item.Data <> thread) do
   begin
     thread := TThreadItem(item.Data);
     if thread.lines > 0 then
-    try
-      datpath := thread.GetFileName + '.dat';
-      CopyFileList.CopyFiles.Add(datpath);
-      idxpath := thread.GetFileName + '.idx';
-      CopyFileList.CopyFiles.Add(idxpath);
-    except
+    begin
+      fname := thread.GetFileName + '.dat';
+      if FileExists(fname) then
+        s := s + fname + #0;
+      fname := thread.GetFileName + '.idx';
+      if FileExists(fname) then
+        s := s + fname + #0;
     end;
     item := ListView.GetNextItem(item, sdBelow, [isSelected]);
   end;
 
-  CopyFileList.Copy;
-  CopyFileList.CopyFiles.Clear;
+  if s <> '' then
+    CopyToClipboard(s, DROPEFFECT_COPY);
 end;
 
 
@@ -15512,7 +15477,7 @@ begin
         exit;
       end;
     end;
-    Windows.CopyFile(PChar(datpath), PChar(SaveDialog.FileName), False);
+    CopyFile(PChar(datpath), PChar(SaveDialog.FileName), False);
   end;
   SaveDialog.Free;
 end;
@@ -15521,71 +15486,39 @@ end;
 procedure TMainWnd.ViewPopupCopyDATClick(Sender: TObject);
 var
   viewItem: TViewItem;
-  datpath: String;
+  fname, s: String;
 begin
   viewItem := viewList.Items[tabRightClickedIndex];
   if (viewItem <> nil) and (viewItem.thread <> nil) then
-  try
-    datpath := viewList.Items[tabRightClickedIndex].thread.GetFileName + '.dat';
-    CopyFileList.CopyFiles.Clear;
-    CopyFileList.RenderCopy;
-    CopyFileList.CopyFiles.Add(datpath);
-    CopyFileList.Copy;
-    CopyFileList.CopyFiles.Clear;
-  except
+  begin
+    fname := viewList.Items[tabRightClickedIndex].thread.GetFileName + '.dat';
+    if FileExists(fname) then
+      s := fname + #0;
   end;
+  if s <> '' then
+    CopyToClipboard(s, DROPEFFECT_COPY);
 end;
 
 //datとidxをクリップボードにコピー
 procedure TMainWnd.ViewPopupCopyDIClick(Sender: TObject);
 var
   viewItem: TViewItem;
-  datpath, idxpath: String;
+  fname, s: String;
 begin
   viewItem := viewList.Items[tabRightClickedIndex];
+  s := '';
   if (viewItem <> nil) and (viewItem.thread <> nil) then
-  try
-    datpath := viewList.Items[tabRightClickedIndex].thread.GetFileName + '.dat';
-    idxpath := viewList.Items[tabRightClickedIndex].thread.GetFileName + '.idx';
-    CopyFileList.CopyFiles.Clear;
-    CopyFileList.RenderCopy;
-    CopyFileList.CopyFiles.Add(datpath);
-    CopyFileList.CopyFiles.Add(idxpath);
-    CopyFileList.Copy;
-    CopyFileList.CopyFiles.Clear;
-  except
+  begin
+    fname := viewList.Items[tabRightClickedIndex].thread.GetFileName + '.dat';
+    if FileExists(fname) then
+      s := s + fname + #0;
+    fname := viewList.Items[tabRightClickedIndex].thread.GetFileName + '.idx';
+    if FileExists(fname) then
+      s := s + fname + #0;
   end;
+  if s <> '' then
+    CopyToClipboard(s, DROPEFFECT_COPY);
 end;
-
-//procedure TMainWnd.CopyFile(const FileName, DestName: string);
-//var
-//  CopyBuffer: Pointer;
-//  BytesCopied: Longint;
-//  Source, Dest: Integer;
-//const
-//  ChunkSize: Longint = 8192;
-//begin
-//GetMem(CopyBuffer, ChunkSize);
-//  try
-//    Source := FileOpen(FileName, fmShareDenyWrite);
-//    try
-//      Dest := FileCreate(DestName);
-//      try
-//        repeat
-//          BytesCopied := FileRead(Source, CopyBuffer^, ChunkSize);
-//          if BytesCopied > 0 then
-//            FileWrite(Dest, CopyBuffer^, BytesCopied);
-//        until BytesCopied < ChunkSize;
-//      finally
-//        FileClose(Dest);
-//      end;
-//    finally
-//      FileClose(Source);
-//    end;
-//  finally
-//    FreeMem(CopyBuffer, ChunkSize);
-//  end;
-//end;
 
 //スレのタイトルをコピー
 procedure TMainWnd.ViewPopupTITLECopyClick(Sender: TObject);
@@ -16968,7 +16901,7 @@ begin
   i := 0;
   while i < flist.Count do
   begin
-    if not Windows.CopyFile(PChar(flist.Strings[i]),
+    if not CopyFile(PChar(flist.Strings[i]),
         PChar(board.GetLogDir + '\' + ExtractFileName(flist.Strings[i])), True) then
     begin
       Log('川；’ー’）＜'+flist.Strings[i] + 'のコピーに失敗しちゃった');
