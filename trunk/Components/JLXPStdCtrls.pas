@@ -99,11 +99,15 @@ begin
     and not (csDesigning in ComponentState)
     and not FDoubleBuffered and (Message.DC <> 0) then
   begin
-    rc := ClientRect;
-    hb := SendMessage(Parent.Handle, WM_CTLCOLORSTATIC, Message.DC, Handle);
-    FillRect(Message.DC, rc, hb);
-    Message.Result := 1;
-    exit;
+    With Message do
+    begin
+      rc := ClientRect;
+      hb := HBRUSH(SendMessage(Parent.Handle, WM_CTLCOLORSTATIC, WParam(DC), LParam(Handle)));
+      if hb <> NULL_BRUSH then
+        FillRect(DC, rc, hb);
+      Result := 1;
+      exit;
+    end;
   end;
 
   inherited;

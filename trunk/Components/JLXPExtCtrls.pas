@@ -12,6 +12,7 @@ type
     FThemeHandle: THandle;
     procedure WMThemeChanged(var Msg: TMessage); message WM_THEMECHANGED;
     procedure WMEraseBkgnd(var Message: TWMEraseBkgnd); message WM_ERASEBKGND;
+    procedure WMCtlColorStatic(var Message: TWMCtlColorStatic); message WM_CTLCOLORSTATIC;
   protected
     procedure CreateParams(var Params: TCreateParams); override;
     procedure CreateWnd; override;
@@ -20,7 +21,6 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure DefaultHandler(var Message); override;
   end;
 
 procedure Register;
@@ -98,11 +98,14 @@ begin
     and not (csDesigning in ComponentState) and not FDoubleBuffered
     and (Message.DC <> 0) then
   begin
-    rc := ClientRect;
-    hb := SendMessage(Parent.Handle, WM_CTLCOLORSTATIC, Message.DC, Handle);
-    FillRect(Message.DC, rc, hb);
-    Message.Result := 1;
-    exit;
+    With Message do
+    begin
+      rc := ClientRect;
+      hb := HBRUSH(SendMessage(Parent.Handle, WM_CTLCOLORSTATIC, WParam(DC), LParam(Handle)));
+      FillRect(DC, rc, hb);
+      Result := 1;
+      exit;
+    end;
   end;
 
   inherited;
@@ -148,30 +151,33 @@ begin
   inherited Paint;
 end;
 
-procedure TJLXPRadioGroup.DefaultHandler(var Message);
-//var
-//  hr: HRESULT
+procedure TJLXPRadioGroup.WMCtlColorStatic(var Message: TWMCtlColorStatic);
+var
+//  hr: HRESULT;
+  Control: TWinControl;
 begin
   if OKLuna and IsThemeActive and IsAppThemed and (FThemeHandle <> 0)
     and not (csDesigning in ComponentState) and HandleAllocated then
-  With TMessage(Message) do
-  begin
-    Case Msg of
-      WM_CTLCOLORBTN, WM_CTLCOLORSTATIC: begin
-        //hr := DrawThemeParentBackGround(lParam, wParam, nil);
-        //if hr = S_OK then
-        //begin
-        //  Result := GetStockObject(NULL_BRUSH);
-        //  exit;
-        //end;
-        {hr = False Ç…Ç»ÇÈÇØÇ«OKÇ¡Ç€Ç¢ÅH}
-        DrawThemeParentBackGround(HWND(lParam), HDC(wParam), nil);
+  With Message do
+    begin
+      Control := FindControl(ChildWnd);
+      if (Control <> nil) and
+        ((Control is TCustomCheckBox) or
+         (Control is TCustomGroupBox)) then
+      begin
+        DrawThemeParentBackGround(ChildWnd, ChildDC, nil);
         Result := GetStockObject(NULL_BRUSH);
         exit;
+//        hr := DrawThemeParentBackGround(ChildWnd, ChildDC, nil);
+//        if hr = S_OK then
+//        begin
+//          Result := GetStockObject(NULL_BRUSH);
+//          exit;
+//        end;
       end;
-    end; //Case
-  end;
-  inherited DefaultHandler(Message);
+    end;
+
+  inherited;
 end;
 
 end.
