@@ -3436,7 +3436,7 @@ var
       i := 0;
     TreeTabControl.TabIndex := i;
     TreePanelVisible := iniFile.ReadBool(INI_STL_SECT, 'TreeVisible', True);  //aiai
-    TreePanelCanMove := iniFile.ReadBool(INI_WIN_SECT, 'TreePanelCanMove', True);
+    TreePanelCanMove := iniFile.ReadBool(INI_WIN_SECT, 'TreePanelCanMove', False);
     TreePanelHoverRect.Left := iniFile.ReadInteger(INI_WIN_SECT, 'TreePanelHoverLeft', 10);
     TreePanelHoverRect.Top := iniFile.ReadInteger(INI_WIN_SECT, 'TreePanelHoverTop', 10);
     TreePanelHoverRect.Right := iniFile.ReadInteger(INI_WIN_SECT, 'TreePanelHoverRight', 150);
@@ -3517,13 +3517,13 @@ begin
   (* Memo (aiai) *)
   WritePanel.Height := iniFile.ReadInteger(INI_WIN_SECT, 'WriteMemoHeight', WritePanel.Height);
   WritePanelFixedHeight := WritePanel.Height;
-  WritePanel.Visible := iniFile.ReadBool(INI_WIN_SECT, 'WriteMemoVisible', True);
+  WritePanel.Visible := iniFile.ReadBool(INI_WIN_SECT, 'WriteMemoVisible', False);
   WritePanelPos := iniFile.ReadBool(INI_WIN_SECT, 'WriteMemoPos', True);
   wh.Width := iniFile.ReadInteger(INI_WIN_SECT, 'WriteMemoAAWidth', 100);
   wh.Height := iniFile.ReadInteger(INI_WIN_SECT, 'WriteMemoAAHeight', 50);
   WritePanelControl.SaveAAListBoundsRect(wh);
   WritePanelTitle.Visible := iniFile.ReadBool(INI_WIN_SECT, 'WriteMemoTopBar', True);
-  WritePanelCanMove := iniFile.ReadBool(INI_WIN_SECT, 'WriteMemoCanMove', True);
+  WritePanelCanMove := iniFile.ReadBool(INI_WIN_SECT, 'WriteMemoCanMove', False);
   WritePanelHoverRect.Left := iniFile.ReadInteger(INI_WIN_SECT, 'WriteMemoHoverLeft', 10);
   WritePanelHoverRect.Top := iniFile.ReadInteger(INI_WIN_SECT, 'WriteMemoHoverTop', 10);
   WritePanelHoverRect.Right := iniFile.ReadInteger(INI_WIN_SECT, 'WriteMemoHoverRight', 200);

@@ -101,7 +101,7 @@ object MainWnd: TMainWnd
           OnResize = WebPanelResize
           object WritePanelSplitter: TSplitter
             Left = 0
-            Top = 163
+            Top = 109
             Width = 601
             Height = 2
             Cursor = crVSplit
@@ -362,9 +362,9 @@ object MainWnd: TMainWnd
           end
           object WritePanel: TPanel
             Left = 0
-            Top = 165
+            Top = 111
             Width = 601
-            Height = 146
+            Height = 200
             Align = alBottom
             Constraints.MinHeight = 25
             Constraints.MinWidth = 25
@@ -448,7 +448,7 @@ object MainWnd: TMainWnd
               Left = 1
               Top = 18
               Width = 599
-              Height = 85
+              Height = 139
               ActivePage = TabSheetWriteMain
               Align = alClient
               TabIndex = 0
@@ -521,7 +521,7 @@ object MainWnd: TMainWnd
                   Left = 0
                   Top = 25
                   Width = 591
-                  Height = 33
+                  Height = 87
                   Align = alClient
                   ScrollBars = ssBoth
                   TabOrder = 1
@@ -570,7 +570,7 @@ object MainWnd: TMainWnd
             end
             object StatusBarWrite: TJLXPStatusBar
               Left = 1
-              Top = 126
+              Top = 180
               Width = 599
               Height = 19
               Panels = <
@@ -587,7 +587,7 @@ object MainWnd: TMainWnd
             end
             object PanelWriteTool: TPanel
               Left = 1
-              Top = 103
+              Top = 157
               Width = 599
               Height = 23
               Align = alBottom
@@ -722,7 +722,7 @@ object MainWnd: TMainWnd
             Left = 0
             Top = 73
             Width = 601
-            Height = 90
+            Height = 36
             Align = alClient
             BevelOuter = bvNone
             TabOrder = 3
@@ -730,7 +730,7 @@ object MainWnd: TMainWnd
               Left = 0
               Top = 0
               Width = 601
-              Height = 90
+              Height = 36
               Align = alClient
               Picture.Data = {
                 07544269746D6170AE080100424DAE0801000000000036000000280000001902
