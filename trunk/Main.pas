@@ -9784,8 +9784,7 @@ begin
     if index <> -1 then
     begin
       thread.canclose := True;
-      tabRightClickedIndex := index;
-      CloseThisTab(False);
+      DeleteView(index);
     end;
     {/aiai}
     thread.CancelAsyncRead;
@@ -9794,6 +9793,10 @@ begin
     //UpdateThreadInfo(thread);
     item := ListView.GetNextItem(item, sdBelow, [isSelected]);
   end;
+
+  index := viewList.FindFirstViewItem;
+  if index >= 0 then
+    SetCurrentView(index);
 
   ListView.DoubleBuffered := True;
   ListView.Repaint;
