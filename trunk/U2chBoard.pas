@@ -32,7 +32,7 @@ type
 
   TBoard = class;
 
-  TBoardSubjectEndNotifyEvent = procedure (Sender: TBoard) of Object;
+  TBoardSubjectEndEvent = procedure (Sender: TBoard; code: Integer) of Object;
   TBoardCheckEndEvent = procedure (Sender: TBoard; Count: Integer;
     PatrolType: TPatrolType) of Object;
 
@@ -75,7 +75,7 @@ type
     FPRocState: TProgState;
     FFavPatrolData: String;
     FFavPatrolType: TPatrolType; 
-    FOnSubjectEnd: TBoardSubjectEndNotifyEvent;
+    FOnSubjectEnd: TBoardSubjectEndEvent;
     FOnCheckEnd: TBoardCheckEndEvent;
 
     function GetItems(index: integer): TThreadItem;
@@ -125,8 +125,8 @@ type
     procedure MergeCacheFrequency(fnamelist: TStringList);
     function StartAsyncRead(OnCheckDone: TBoardCheckEndEvent;
       Data: String; PatrolType: TPatrolType): Boolean;
-    function StartQuery(OnProcDone: TBoardSubjectEndNotifyEvent): Boolean;   (* 非同期通信開始 *)
-    function HomoMovedQuery(OnProcDone: TBoardSubjectEndNotifyEvent): Boolean;
+    function StartQuery(OnProcDone: TBoardSubjectEndEvent): Boolean;   (* 非同期通信開始 *)
+    function HomoMovedQuery(OnProcDone: TBoardSubjectEndEvent): Boolean;
 
     property Category: TObject read Fcategory;         (* 本当はTCategoryだ。環境上、メンドイのでキャストして使う  *)
     property Name: string read FName write SetName;    (* 板名 *)   // ex. '狼','ニュース速報'
@@ -1475,7 +1475,7 @@ end;
 //改造△ 追加 (スレッドあぼ～ん)
 
 (* 非同期通信への窓口 *)
-function TBoard.StartQuery(OnProcDone: TBoardSubjectEndNotifyEvent): Boolean;
+function TBoard.StartQuery(OnProcDone: TBoardSubjectEndEvent): Boolean;
 var
   URI: string;
   threadlist: string;
@@ -1521,7 +1521,7 @@ begin
 end;
 
 (* サーバ移転検出用 *)
-function TBoard.HomoMovedQuery(OnProcDone: TBoardSubjectEndNotifyEvent): Boolean;
+function TBoard.HomoMovedQuery(OnProcDone: TBoardSubjectEndEvent): Boolean;
 begin
   Result := False;
   if not (Self.FProcState in [tpsNone, tpsDone]) then
@@ -1584,7 +1584,7 @@ begin
   FPRocState := tpsChecking;
   FOnCheckEnd := OnCheckDone;
 
-  AddRef;
+  //AddRef;
 
   FProcGetSubject := AsyncManager.Get(URI, OnAsyncDoneProc,
     ticket2ch.On2chPreConnect, FLastModified);
@@ -1608,7 +1608,7 @@ procedure TBoard.OnAsyncDoneProc(Sender: TASyncReq);
     if timeValue <= 0 then
       timeValue := DateTimeToUnix(Str2DateTime(Sender.GetDate));
     if Assigned(FOnSubjectEnd) then
-      FOnSubjectEnd(Self);
+      FOnSubjectEnd(Self, Sender.IdHTTP.ResponseCode);
     UpdateTabColor;
   end;
 
@@ -1669,7 +1669,7 @@ begin
       FLast2Modified := FLastModified;
       if usetrace[17] then Log(traceString[17]) else Log('川 ’ー’川新着ﾅｼ');
       if Assigned(FOnSubjectEnd) then
-        FOnSubjectEnd(Self);
+        FOnSubjectEnd(Self, 304);
     end;
 
   else
@@ -1678,15 +1678,14 @@ begin
 
   end; //Case
 
-  Release;
-
   FOnSubjectEnd := nil;
   if Assigned(FOnCheckEnd) then
   begin
+    Main.Log('(' + FFavPatrolData + ') 【' + FName + '】');
     FOnCheckEnd(Self, -1, FFavPatrolType);
     FOnCheckEnd := nil;
-    Main.Log('(' + FFavPatrolData + ') 【' + FName + '】');
-  end;
+  end else
+    Release;
 end;
 
 procedure TBoard.OnMovedSubject(Sender: TASyncReq);

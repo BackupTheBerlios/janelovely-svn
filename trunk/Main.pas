@@ -1570,7 +1570,7 @@ type
     procedure WriteWaitTimerNotify(Sender: TObject; DomainName: String; Remainder: Integer);
     procedure WriteWaitTimerEnd(Sender: TObject);
     //▲ WriteWaitTimerのイベントハンドラ
-    procedure BoardAsyncProcDone(Sender: TBoard);
+    procedure BoardAsyncProcDone(Sender: TBoard; code: Integer);
     procedure FavoriteRenewCheck;
     {/aiai}
   public
@@ -4372,14 +4372,18 @@ end;
 ////  requestingBoard := nil;
 //end;
 
-procedure TMainWnd.BoardAsyncProcDone(Sender: TBoard);
+procedure TMainWnd.BoardAsyncProcDone(Sender: TBoard; code: Integer);
 begin
   //ListView.Enabled := false;
-  UILock := true;
-  ChangeCurrentBoard(Sender);
-  UpdateListView;
-  //ListView.Enabled := true;
-  UILock := false;
+  if (code = 200) or ((code = 304) and (CurrentBoard <> Sender)) then
+  begin
+    UILock := true;
+    ChangeCurrentBoard(Sender);
+    Sender.ResetListState;
+    UpdateListView;
+    //ListView.Enabled := true;
+    UILock := false;
+  end;
 end;
 
 (* スレ一覧取得結果 *)
@@ -17763,7 +17767,7 @@ begin
     if currentBoard.threadSearched then
       currentSortColumn := 100
     else begin
-      currentSortColumn := 1;
+      currentSortColumn := currentBoard.SortColumn;
     end;
     ListView.Repaint;
     ListView.DoubleBuffered := False;
