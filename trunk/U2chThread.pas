@@ -75,6 +75,7 @@ type
     procedure Activate;                (* 既読データを読む *)
     procedure Deactivate;              (* データを捨てる   *)
     function GetTransferedSize: Cardinal;
+    function GetNeedConvert: Boolean;  //aiai
   public
     board: TObject;     (* これはTBoard型だ。文句はBoarlandに言ってくれ *)
     number: Integer;    (* 現行スレ(>0)か否か *)
@@ -158,6 +159,7 @@ type
     function ToURL(full: Boolean = true; last: Boolean = false; index: string = ''): string;
 
     property TransferedSize: Cardinal read GetTransferedSize;
+    property NeedConvert: Boolean read GetNeedConvert; //aiai
   end;
 
   TRange = record
@@ -1056,10 +1058,25 @@ begin
     result := result + DataString[pos];
     inc(pos);
   end;
+  {aiai}
+  //if result = '' then
+  //  result := title;
+  //if 0 < System.Pos(#0, result) then
+  //  result := ReplaceStr(result, #0, ' ');
   if result = '' then
-    result := title;
-  if 0 < System.Pos(#0, result) then
-    result := ReplaceStr(result, #0, ' ');
+  begin
+    if GetNeedConvert and (InCodeCheck(title) in [EUC_IN, EUCorSJIS_IN]) then
+      result := euc2sjis(title)
+    else
+      result := title;
+  end else
+  begin
+    if 0 < System.Pos(#0, result) then
+      result := ReplaceStr(result, #0, ' ');
+    if GetNeedConvert and (InCodeCheck(result) in [EUC_IN, EUCorSJIS_IN]) then
+      result := euc2sjis(result);
+  end;
+  {/aiai}
 end;
 
 (* 参照カウント増加 *)
@@ -2102,6 +2119,15 @@ begin
     result := 0;
 end;
 
+//aiai
+function TThreadItem.GetNeedConvert: Boolean;
+begin
+  if Assigned(board) then
+    result := TBoard(board).NeedConvert
+  else
+    result := False;
+end;
+
 procedure TThreadItem.ChkConsistency;
 begin
   if Assigned(dat) and (not dat.Consistent) then
@@ -2131,7 +2157,7 @@ begin
   tmpDat := DupData;
   if Assigned(tmpDat) then
   begin
-    result := dat2html.ToString(tmpDat, startLine, lines);
+    result := dat2html.ToString(tmpDat, startLine, lines, GetNeedConvert);
     tmpDat.Free;
   end
   else

@@ -446,6 +446,11 @@ type
     ButtonMigemoPath: TButton;
     ButtonMigemoDic: TButton;
     CheckBoxUseSearchBar: TCheckBox;
+    GroupBoxBeLogin: TJLXPGroupBox;
+    Label72: TLabel;
+    Label73: TLabel;
+    EditMail_BEID_DMDM: TEdit;
+    EditCode_BEID_MDMD: TEdit;
     procedure FormShow(Sender: TObject);
     procedure OkButtonClick(Sender: TObject);
     procedure CancelButtonClick(Sender: TObject);
@@ -949,6 +954,11 @@ begin
   Main.Config.wrtDiscrepancyWarning := self.CheckBoxDiscrepancyWarning.Checked;
   Main.Config.wrtDisableStatusBar   := self.CheckBoxDisableStatusBar.Checked;
 
+  {aiai}
+  Main.Config.wrtBEIDDMDM := self.EditMail_BEID_DMDM.Text;
+  Main.Config.wrtBEIDMDMD := self.EditCode_BEID_MDMD.Text;
+  {/aiai}
+
   {$IFNDEF IE}
   Main.Config.viewVerticalCaretMargin := StrToIntDef(self.EditViewVerticalCaretMargin.Text, Main.Config.viewVerticalCaretMargin);
   Main.Config.viewScrollLines := StrToIntDef(self.EditViewScrollLines.Text, Main.Config.viewScrollLines);
@@ -1339,6 +1349,11 @@ begin
   self.CheckBoxWrtUseDefaultName.Checked := Main.Config.wrtUseDefaultName;
   self.CheckBoxDiscrepancyWarning.Checked := Main.Config.wrtDiscrepancyWarning;
   self.CheckBoxDisableStatusBar.Checked := Main.Config.wrtDisableStatusBar;
+
+  {aiai}
+  self.EditMail_BEID_DMDM.Text := Main.Config.wrtBEIDDMDM;
+  self.EditCode_BEID_MDMD.Text := Main.Config.wrtBEIDMDMD;
+  {/aiai}
 
   {$IFNDEF IE}
   self.EditViewVerticalCaretMargin.Text := IntToStr(Main.Config.viewVerticalCaretMargin);

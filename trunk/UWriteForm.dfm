@@ -263,7 +263,7 @@ object WriteForm: TWriteForm
       end
     end
     object CheckBoxTop: TCheckBox
-      Left = 90
+      Left = 116
       Top = 4
       Width = 75
       Height = 26
@@ -275,7 +275,7 @@ object WriteForm: TWriteForm
     object ToolBar1: TJLXPToolBar
       Left = 8
       Top = 4
-      Width = 69
+      Width = 92
       Height = 22
       Align = alNone
       AutoSize = True
@@ -284,6 +284,8 @@ object WriteForm: TWriteForm
       Flat = True
       Images = MainWnd.MemoImageList
       TabOrder = 2
+      Transparent = True
+      Wrapable = False
       object ToolButtonRecordNameMail: TToolButton
         Left = 0
         Top = 0
@@ -301,6 +303,12 @@ object WriteForm: TWriteForm
         Top = 0
         ImageIndex = 6
         OnClick = ToolButtonNameWarnClick
+      end
+      object ToolButtonBeLogin: TToolButton
+        Left = 69
+        Top = 0
+        ImageIndex = 7
+        OnClick = ToolButtonBeLoginClick
       end
     end
   end

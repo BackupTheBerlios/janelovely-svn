@@ -93,6 +93,7 @@ type
     procedure SetWriteButtonEnabled(ABool: Boolean);
     procedure ChangeMainPageControlActiveTab(newTab: integer); override;
     procedure SetNameMailWarning(ABool: Boolean);
+    procedure SetBeLogin(ABool: Boolean);
     procedure SetStatusBarVisible(AVisible: Boolean);
     function SaveAAListBoundsRect(AWidthHeight: TWidthHeight): TWidthHeight;
 
@@ -122,6 +123,7 @@ procedure SetFocusToWriteMemo;
 procedure SetWriteButtonEnabled(ABool: Boolean);
 procedure ChangeMainPageControlActiveTab(newTab: integer);
 procedure SetNameMailWarning(AValue: Boolean);
+procedure SetBeLogin(AValue: Boolean);
 procedure SetStatusBarVisible(AVisible: Boolean);
 function SaveAAListBoundsRect(AWidthHeight: TWidthHeight): TWidthHeight;
 //---------------------------------------------------------------------------//
@@ -412,6 +414,13 @@ begin
         Sender.Down := Config.wrtNameMailWarning;
         if Assigned(WriteForm) then
           WriteForm.ToolButtonNameWarn.Down := Config.wrtNameMailWarning;
+      end;
+    7: //BeLogin
+      begin
+        Config.wrtBeLogin := not Config.wrtBeLogin;
+        Sender.Down := Config.wrtBeLogin;
+        if Assigned(WriteForm) then
+          WriteForm.ToolButtonBeLogin.Down := Config.wrtBeLogin;
       end;
 
   end; //Case
@@ -982,8 +991,21 @@ begin
   end;
   cookie := 'Cookie: NAME=' + encName + '; MAIL=' + encMail;
   list := TStringList.Create;
-  if (TargetBoard.GetBBSType = bbs2ch) and (0 < length(Config.tstWrtCookie)) then
-    cookie := cookie + '; ' + Config.tstWrtCookie;
+  {aiai}
+  //if (TargetBoard.GetBBSType = bbs2ch) and (0 < length(Config.tstWrtCookie)) then
+  //  cookie := cookie + '; ' + Config.tstWrtCookie;
+  if (TargetBoard.GetBBSType = bbs2ch) then
+  begin
+    if (0 < length(Config.wrtBEIDDMDM)) and (0 < length(Config.wrtBEIDMDMD)) then
+      if Config.wrtBeLogin or AnsiStartsStr('be', TargetBoard.host)
+        or AnsiStartsStr('live14', TargetBoard.host)
+        or (SettingTxt.Lines.Values['BBS_BE_ID'] = '1') then
+        cookie := cookie + '; DMDM=' + Config.wrtBEIDDMDM
+          + '; MDMD=' + Config.wrtBEIDMDMD;
+    if (0 < length(Config.tstWrtCookie)) then
+      cookie := cookie + '; ' + Config.tstWrtCookie;
+  end;
+  {/aiai}
   list.Add(cookie);
   procPost := Main.AsyncManager.Post(URI, postDat, referer, list,
                                      OnWritten, OnNotify);
@@ -1085,7 +1107,10 @@ begin
   else
     Inc(TargetBoard.timeValue); //古いbbs.cgiで2重カキコループにならないように
 
-  responseHTML := sender.GetString;
+  if TargetBoard.NeedConvert then
+    responseHTML := euc2sjis(sender.GetString)
+  else
+    responseHTML := sender.GetString;
   responseText := HTML2String(responseHTML);
 
   ChangeMainPageControlActiveTab(TABSHEET_RESULT);
@@ -1302,6 +1327,7 @@ begin
   ToolButton[4].Down := Config.wrtTrimRight;
   ToolButton[5].Down := Config.wrtUseWriteWait;
   ToolButton[6].Down := Config.wrtNameMailWarning;
+  ToolButton[7].Down := Config.wrtBeLogin;
 
   ChangeWriteMemoColor;
   ChangeWriteMemoFont;
@@ -1528,6 +1554,11 @@ begin
   ToolButton[6].Down := ABool;
 end;
 
+procedure TJLWritePanel.SetBeLogin(ABool: Boolean);
+begin
+  ToolButton[7].Down := ABool;
+end;
+
 procedure TJLWritePanel.SetStatusBarVisible(AVisible: Boolean);
 begin
   WStatusBar.Visible := AVisible;
@@ -1669,6 +1700,13 @@ begin
   if not Assigned(WriteMemo) then exit;
 
   WriteMemo.SetNameMailWarning(AValue);
+end;
+
+procedure SetBeLogin(AValue: Boolean);
+begin
+  if not Assigned(WriteMemo) then exit;
+
+  WriteMemo.SetBeLogin(AValue);
 end;
 
 procedure SetStatusBarVisible(AVisible: Boolean);

@@ -183,10 +183,12 @@ type
     procedure Build(thread: TThreadItem; Start: Integer);
     function TreeDatOut(Dest: TDatOut;
                         Index: Integer = -1;
-                        AboneArray: TAboneArray = nil): Integer;
+                        AboneArray: TAboneArray = nil;
+                        NeedConvert: Boolean = False): Integer;
     function OutLine(Dest: TDatOut;
                      Index: Integer = -1;
-                     AboneArray: TAboneArray = nil): Integer;
+                     AboneArray: TAboneArray = nil;
+                     NeedConvert: Boolean = False): Integer;
   end;
 
   TStrDatOutForHeadline = class(TStrDatOut)
@@ -523,6 +525,7 @@ implementation
 
 uses
   Main,
+  jconvert,      //aiai
   UMDITextView;  //aiai
 
 type
@@ -831,7 +834,11 @@ begin
       break;
     end;
   end;
-  if AnsiStartsStr('mailto:', FHref) then
+  if AnsiStartsStr('mailto:', FHref) or AnsiStartsStr('/test/p.php?', FHref) then
+  begin
+    Flush;
+    FUser := htvUSER or ATTRIB_LINK;
+  end else if AnsiStartsStr('javascript:', FHref) then
   begin
     Flush;
     FUser := htvUSER or ATTRIB_LINK;
@@ -839,11 +846,50 @@ begin
 end;
 
 procedure TDat2View.EndAnchor;
+  function GetBeID(const Source: String): String;
+  var
+    startpos, endpos, ssize: integer;
+    p: PChar;
+    c: Char;
+  begin
+    result := '';
+    p := PChar(Source);
+    ssize := Length(Source);
+    startpos := Pos('i=', Source);
+    if startpos = 0 then
+      exit;
+    Inc(startpos);
+    endpos := startpos;
+    while endpos < ssize do
+    begin
+      c := (p + endpos)^;
+      if c in [#$30..#$39] then
+        Inc(endpos)
+      else
+        break;
+    end;
+    if (endpos = startpos) or (endpos = ssize) then
+      exit;
+    SetString(Result, p + startpos, endpos - startpos);
+  end;
+
+
 begin
   if AnsiStartsStr('mailto:', FHref) then
   begin
     Flush;
     FBrowser.Append(FHref, ATTRIB_ANCHOR_HREF or htvHIDDEN);
+    FUser := 0;
+  end else if AnsiStartsStr('/test/p.php?', FHref) then
+  begin
+    Flush;
+    //もうない形式なのでbe.2ch.net固定でいいと思う
+    FBrowser.Append('http://be.2ch.net' + FHref, ATTRIB_ANCHOR_HREF or htvHIDDEN);
+    FUser := 0;
+  end else if AnsiStartsStr('javascript:', FHref) then
+  begin
+    Flush;
+    FBrowser.Append('BE:' + GetBeID(FHref), ATTRIB_ANCHOR_HREF or htvHIDDEN);
     FUser := 0;
   end;
 end;
@@ -1725,7 +1771,7 @@ begin
   FtmpDat.Free;
   FtmpDat := thread.DupData;
 
-  D2HTML.ToDatOut(Self, FtmpDat ,Pos, thread.lines - Pos + 1, FThread.ABoneArray);
+  D2HTML.ToDatOut(Self, FtmpDat ,Pos, thread.lines - Pos + 1, FThread.ABoneArray, FThread.NeedConvert);
 end;
 
 
@@ -1814,7 +1860,8 @@ end;
 //ツリーをレス形式で出力
 function TIndexTree.TreeDatOut(Dest: TDatOut;
                                Index: Integer = -1;
-                               AboneArray: TAboneArray = nil): Integer;
+                               AboneArray: TAboneArray = nil;
+                               NeedConvert: Boolean = False): Integer;
 var
   D2HTMLForTree: TDat2HTML;
 
@@ -1826,7 +1873,7 @@ var
   begin
 
     if (Level > 0) or ShowRoot then
-      Inc(Result, D2HTMLForTree.ToDatOut(Dest, FtmpDat, Index, 1, AboneArray));
+      Inc(Result, D2HTMLForTree.ToDatOut(Dest, FtmpDat, Index, 1, AboneArray, NeedConvert));
 
     if Assigned(Mask) then
       Mask[Index] := True;
@@ -1880,7 +1927,8 @@ end;
 //アウトライン＋ポップアップ形式で出力
 function TIndexTree.OutLine(Dest: TDatOut;
                             Index: Integer = -1;
-                            AboneArray: TAboneArray = nil): Integer;
+                            AboneArray: TAboneArray = nil;
+                            NeedConvert: Boolean = False): Integer;
 var
   IndexList: TCardinalList;
   LevelList: TCardinalList;
@@ -1995,8 +2043,14 @@ begin
     l := HeadLineLength - Length(Indent[IndexList.Count - i - 1]);
     if l<0 then
       l := 0;
-    Dest.WriteText('　　　　' +
-                   CutAnsi(StringReplace(StrDatOut.Text, #13#10, '', [rfReplaceAll, rfIgnoreCase]), l));
+    {aiai}
+    //Dest.WriteText('　　　　' +
+    //               CutAnsi(StringReplace(StrDatOut.Text, #13#10, '', [rfReplaceAll, rfIgnoreCase]), l));
+    s := CutAnsi(StringReplace(StrDatOut.Text, #13#10, '', [rfReplaceAll, rfIgnoreCase]), l);
+    if NeedConvert then
+      s := euc2sjis(s);
+    Dest.WriteText('　　　　' + s);
+    {/aiai}
     StrDatOut.Free;
     Dest.WriteHTML('<br>');
   end;
@@ -2172,7 +2226,7 @@ begin
     if result < Max then Max := result;
     for i := result - Max to result - 1 do
     begin
-      POPUPD2HTML.ToDatOut(dest, dup, list[i], 1, thread.ABoneArray);
+      POPUPD2HTML.ToDatOut(dest, dup, list[i], 1, thread.ABoneArray, thread.NeedConvert);
     end;
   finally
     dup.Free;
@@ -2244,7 +2298,7 @@ begin
           end
           else
           begin
-            D2HTML.ToDatOut(dest, dup, i, 1, thread.ABoneArray);
+            D2HTML.ToDatOut(dest, dup, i, 1, thread.ABoneArray, thread.NeedConvert);
             inc(Result);
           end;
         end;
@@ -2264,7 +2318,7 @@ begin
           end
           else
           begin
-            D2HTML.ToDatOut(dest, dup, i, 1, thread.ABoneArray);
+            D2HTML.ToDatOut(dest, dup, i, 1, thread.ABoneArray, thread.NeedConvert);
             inc(Result);
            end;
         end;
@@ -2998,18 +3052,18 @@ begin
       //NEWD2HTML.thread :=  FThread;
       if (0 < FThread.readPos) and (currentStartLine <= FThread.readPos) then
       begin
-        lines := NEWD2HTML.ToDatOut(FStream, FThread.dat, currentStartLine, FThread.readPos - currentStartLine + 1, FThread.AboneArray);
+        lines := NEWD2HTML.ToDatOut(FStream, FThread.dat, currentStartLine, FThread.readPos - currentStartLine + 1, FThread.AboneArray, FThread.NeedConvert);
         Inc(currentStartLine, lines);
         if currentStartLine - 1 = FThread.readPos then
         begin
           WriteSkin(PChar(BookMarkHTML),length(BookMarkHTML)); // ここまで読んだ
-          lines := NEWD2HTML.ToDatOut(FStream, FThread.dat, FThread.readPos + 1, High(integer), FThread.AboneArray);
+          lines := NEWD2HTML.ToDatOut(FStream, FThread.dat, FThread.readPos + 1, High(integer), FThread.AboneArray, FThread.NeedConvert);
         end;
         if 0 < lines then
           Inc(currentStartLine, lines);
       end
       else begin
-        lines := NEWD2HTML.ToDatOut(FStream, FThread.dat, currentStartLine, High(integer), FThread.AboneArray);
+        lines := NEWD2HTML.ToDatOut(FStream, FThread.dat, currentStartLine, High(integer), FThread.AboneArray, FThread.NeedConvert);
         if 0 < lines then
           Inc(currentStartLine, lines);
       end;
@@ -3077,7 +3131,7 @@ procedure TViewItem.DoWorking;
       {//ayaya}
       if currentStartLine = 1 then
       begin
-        D2HTML.ToDatOut(FStream, FThread.dat, 1, 1, FThread.AboneArray);
+        D2HTML.ToDatOut(FStream, FThread.dat, 1, 1, FThread.AboneArray, FThread.NeedConvert);
         if FThread.readPos = 1 then
           FStream.WriteHTML(PChar(BookMarkHTML),length(BookMarkHTML));
         Inc(currentStartLine);
@@ -3088,13 +3142,13 @@ procedure TViewItem.DoWorking;
       if (0 < FThread.readPos) and (currentStartLine <= FThread.readPos) and (FThread.readPos <= Fthread.oldLines) then
       begin
         D2HTML.ToDatOut(FStream, FThread.dat,
-                        currentStartLine, FThread.readPos - currentStartLine + 1, FThread.AboneArray);
+                        currentStartLine, FThread.readPos - currentStartLine + 1, FThread.AboneArray, FThread.NeedConvert);
         WriteSkin(PChar(BookMarkHTML),length(BookMarkHTML)); // ここまで読んだ
         D2HTML.ToDatOut(FStream, FThread.dat,
-                        FThread.readPos + 1, FThread.oldLines - FThread.readPos, FThread.AboneArray);
+                        FThread.readPos + 1, FThread.oldLines - FThread.readPos, FThread.AboneArray, FThread.NeedConvert);
       end else
         D2HTML.ToDatOut(FStream, FThread.dat,
-                        currentStartLine, FThread.oldLines - currentStartLine + 1, FThread.AboneArray{※[457]}); (* 再入する *)
+                        currentStartLine, FThread.oldLines - currentStartLine + 1, FThread.AboneArray{※[457]}, FThread.NeedConvert); (* 再入する *)
       FThread.ChkConsistency;
       currentStartLine := FThread.oldLines + 1;
       FStream.Flush;
@@ -3614,8 +3668,15 @@ begin
   if ExThread = nil then
     exit;
 
-  MainWnd.TabControl.Tabs.Strings[viewList.IndexOf(self)] := 'ツリー';
-  SetWindowText(FBrowser.Handle, 'ツリー');  //aiai
+  if OutLine then
+  begin
+    MainWnd.TabControl.Tabs.Strings[viewList.IndexOf(self)] := 'アウトライン';
+    SetWindowText(FBrowser.Handle, 'アウトライン');  //aiai
+  end else
+  begin
+    MainWnd.TabControl.Tabs.Strings[viewList.IndexOf(self)] := 'ツリー';
+    SetWindowText(FBrowser.Handle, 'ツリー');  //aiai
+  end;
   ExThread.AddRef;
 
   {$IFDEF IE}
@@ -3676,9 +3737,9 @@ begin
   Tree.Build(ExThread, 1);
 
   if OutLine then
-    count := Tree.OutLine(ExtStream, Index, ExThread.ABoneArray)
+    count := Tree.OutLine(ExtStream, Index, ExThread.ABoneArray, ExThread.NeedConvert)
   else
-    count := Tree.TreeDatOut(ExtStream, Index, ExThread.ABoneArray);
+    count := Tree.TreeDatOut(ExtStream, Index, ExThread.ABoneArray, ExThread.NeedConvert);
 
   Mask.Free;
   Tree.Free;
@@ -5059,7 +5120,7 @@ begin
       FStream.DDOffsetLeft := DD_OFFSET_LEFT div 4;
       if OutLine then
       begin
-        Count := IndexTree.OutLine(FStream, Index);
+        Count := IndexTree.OutLine(FStream, Index, nil, AnsiStartsStr('be', AThread.GetHost));
       end
       else
       begin
@@ -5412,7 +5473,7 @@ begin
     if index < Max then Max := index;
     for i := index - Max to index - 1 do
     begin
-      POPUPD2HTML.ToDatOut(dest, dup, list[i], 1, thread.ABoneArray);
+      POPUPD2HTML.ToDatOut(dest, dup, list[i], 1, thread.ABoneArray, thread.NeedConvert);
     end;
   finally
     dup.Free;

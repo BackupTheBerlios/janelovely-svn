@@ -92,6 +92,7 @@ type
     ToolButtonRecordNameMail: TToolButton;
     ToolButtonTrim: TToolButton;
     ToolButtonNameWarn: TToolButton;  //rika
+    ToolButtonBeLogin: TToolButton;
 
     procedure PageControlChange(Sender: TObject);
     procedure CheckBoxSageClick(Sender: TObject);
@@ -125,6 +126,7 @@ type
     procedure ToolButtonRecordNameMailClick(Sender: TObject);
     procedure ToolButtonTrimClick(Sender: TObject);
     procedure ToolButtonNameWarnClick(Sender: TObject);
+    procedure ToolButtonBeLoginClick(Sender: TObject);
   private
     { Private êÈåæ }
     savedTop : integer;
@@ -1495,6 +1497,11 @@ begin
     200: (* OK *)
       begin
         storedRule.Clear;
+        {aiai}
+        if board.NeedConvert then
+          storedRule.WriteString(euc2sjis(sender.Content))
+        else
+        {/aiai}
         storedRule.WriteString(sender.Content);
         storedRule.Info.Add('');
         storedRule.Info.Add(sender.GetLastModified);
@@ -1572,6 +1579,11 @@ begin
       200: (* OK *)
         begin
           storedSettingTxt.Clear;
+          {aiai}
+          if board.NeedConvert then
+            storedSettingTxt.WriteString(StringReplace(euc2sjis(sender.Content), #10, #13#10, [rfReplaceAll]))
+          else
+          {/aiai}
           storedSettingTxt.WriteString(StringReplace(sender.Content, #10, #13#10, [rfReplaceAll]));
           storedSettingTxt.Info.Add(board.GetURIBase + '/SETTING.TXT');
           storedSettingTxt.Info.Add(sender.GetLastModified);
@@ -2234,6 +2246,13 @@ begin
   Config.wrtNameMailWarning := not Config.wrtNameMailWarning;
   ToolButtonNameWarn.Down := Config.wrtNameMailWarning;
   JLWritePanel.SetNameMailWarning(Config.wrtNameMailWarning);
+end;
+
+procedure TWriteForm.ToolButtonBeLoginClick(Sender: TObject);
+begin
+  Config.wrtBeLogin := not Config.wrtBeLogin;
+  ToolButtonBeLogin.Down := Config.wrtBeLogin;
+  JLWritePanel.SetBeLogin(Config.wrtBeLogin);
 end;
 
 end.

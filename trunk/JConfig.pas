@@ -264,6 +264,9 @@ type
     wrtUseWriteWait: Boolean; //aiai
     wrtNameMailWarning: Boolean; //aiai
     wrtWritePanelColor: TColor; //aiai
+    wrtBeLogin: Boolean; //aiai
+    wrtBEIDDMDM: String; //aiai
+    wrtBEIDMDMD: String; //aiai
 
     grepPopup: boolean;
     grepShowDirect: Boolean; //beginner
@@ -781,6 +784,9 @@ begin
   wrtTrimRight := false;
   wrtUseWriteWait := True;
   wrtNameMailWarning := False;
+  wrtBeLogin := False;  //aiai
+  wrtBEIDDMDM := '';  //aiai
+  wrtBEIDMDMD := '';  //aiai
 
   grepPopup := true;
   grepShowDirect := False; //beginner
@@ -1460,6 +1466,9 @@ begin
   wrtTrimRight := ini.ReadBool(INI_WRT_SECT, 'TrimRight', wrtTrimRight); //aiai
   wrtUseWriteWait := ini.ReadBool(INI_WRT_SECT, 'UseWriteWait', wrtUseWriteWait); //aiai
   wrtNameMailWarning := ini.ReadBool(INI_WRT_SECT, 'NameMailWarning', wrtNameMailWarning); //aiai
+  wrtBeLogin := ini.ReadBool(INI_WRT_SECT, 'BeLogin', wrtBeLogin);  //aiai
+  wrtBEIDDMDM := ini.ReadString(INI_WRT_SECT, 'BEID_DMDM', wrtBEIDDMDM); //aiai
+  wrtBEIDMDMD := ini.ReadString(INI_WRT_SECT, 'BEID_MDMD', wrtBEIDMDMD); //aiai
 
   grepPopup := ini.ReadBool(INI_GREP_SECT, 'Popup', grepPopup);
   grepShowDirect := ini.ReadBool(INI_GREP_SECT, 'ShowDirect', grepShowDirect); //beginner
@@ -1972,6 +1981,8 @@ begin
   ini.WriteBool(INI_WRT_SECT, 'UseDefaultName', wrtUseDefaultName);
   ini.WriteBool(INI_WRT_SECT, 'DiscrepancyWarning', wrtDiscrepancyWarning);
   ini.WriteBool(INI_WRT_SECT, 'DisableStatusBar', wrtDisableStatusBar);
+  ini.WriteString(INI_WRT_SECT, 'BEID_DMDM', wrtBEIDDMDM); //aiai
+  ini.WriteString(INI_WRT_SECT, 'BEID_MDMD', wrtBEIDMDMD); //aiai
 
   ini.WriteBool(INI_MSE_SECT, 'WheelTabChange', mseUseWheelTabChange);
   ini.WriteInteger(INI_MSE_SECT, 'GestureMargin', mseGestureMargin);

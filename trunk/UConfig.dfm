@@ -1129,7 +1129,7 @@ object UIConfig: TUIConfig
       TabVisible = False
       object GroupBoxUser: TJLXPGroupBox
         Left = 32
-        Top = 24
+        Top = 6
         Width = 321
         Height = 105
         Caption = #65298#12385#12419#12435#12397#12427
@@ -1200,7 +1200,7 @@ object UIConfig: TUIConfig
       end
       object GroupBoxRem: TJLXPGroupBox
         Left = 32
-        Top = 144
+        Top = 119
         Width = 321
         Height = 97
         Caption = 'Password'#12364#22793#12395#12394#12387#12383#26178#12395#25147#12379#12427#12424#12358#12395#12539#12539#12539
@@ -1248,6 +1248,48 @@ object UIConfig: TUIConfig
           Caption = #12371#12428#12391#35226#12360#12427
           Enabled = False
           TabOrder = 3
+        end
+      end
+      object GroupBoxBeLogin: TJLXPGroupBox
+        Left = 32
+        Top = 224
+        Width = 321
+        Height = 78
+        Caption = 'BE@2ch'#25522#31034#26495
+        TabOrder = 2
+        object Label72: TLabel
+          Left = 8
+          Top = 16
+          Width = 81
+          Height = 24
+          Alignment = taRightJustify
+          AutoSize = False
+          Caption = #12513#12540#12523#12450#12489#12524#12473':'
+          Layout = tlCenter
+        end
+        object Label73: TLabel
+          Left = 8
+          Top = 44
+          Width = 80
+          Height = 21
+          Alignment = taRightJustify
+          AutoSize = False
+          Caption = #35469#35388#12467#12540#12489':'
+          Layout = tlCenter
+        end
+        object EditMail_BEID_DMDM: TEdit
+          Left = 99
+          Top = 16
+          Width = 207
+          Height = 20
+          TabOrder = 0
+        end
+        object EditCode_BEID_MDMD: TEdit
+          Left = 99
+          Top = 43
+          Width = 207
+          Height = 20
+          TabOrder = 1
         end
       end
     end
@@ -1846,7 +1888,7 @@ object UIConfig: TUIConfig
           Height = 20
           Style = csDropDownList
           DropDownCount = 12
-          ItemHeight = 12
+          ItemHeight = 0
           TabOrder = 1
         end
         object ComboBoxMseGestures: TComboBox
@@ -1950,7 +1992,7 @@ object UIConfig: TUIConfig
           Height = 20
           Style = csDropDownList
           DropDownCount = 12
-          ItemHeight = 12
+          ItemHeight = 0
           TabOrder = 2
           OnDropDown = ComboBoxMseSubMenusDropDown
         end
@@ -3610,7 +3652,8 @@ object UIConfig: TUIConfig
           TabOrder = 0
           Items.Strings = (
             #36890#24120#26908#32034
-            'Migemo'#26908#32034)
+            'Migemo'#26908#32034
+            #27491#35215#26908#32034)
         end
         object EditMigemoPath: TEdit
           Left = 56

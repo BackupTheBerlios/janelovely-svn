@@ -206,7 +206,8 @@ type
                        line: integer;
                        datType: TDatType;
                        EnableNGToAbone: Boolean;       //beginner
-                       AboneArray: TAboneArray = nil
+                       AboneArray: TAboneArray = nil;
+                       NeedConvert: Boolean = False //aiai
                        ): Boolean;
   public
     NGItems: Array[TNGItemIdent] of TNGStringList; //beginner
@@ -229,11 +230,13 @@ type
     constructor Create(body: string);
     destructor Destroy; override;
     function ToDatOut(dest: TDatOut; dat: TThreadData;
-                      startLine: Integer; lines: Integer; AboneArray: TAboneArray = nil
+                      startLine: Integer; lines: Integer;
+                      AboneArray: TAboneArray = nil;
+                      NeedConvert: Boolean = False //aiai
                       ): Integer;
     function PickUpRes(dest: TDatOut; dat: TThreadData; abonearray: TAboneArray;
                               startLine, endLine: integer): Integer;
-    function ToString(dat: TThreadData; startLine, lines: Integer): String;
+    function ToString(dat: TThreadData; startLine, lines: Integer; NeedConvert: Boolean = False): String;
   end;
 
   (*-------------------------------------------------------*)
@@ -284,7 +287,7 @@ implementation
 (*=======================================================*)
 
 uses
-  U2chThread, Main;
+  U2chThread, Main, jconvert; //aiai
 
 procedure THogeMemoryStream.WriteString(const str: string);
 begin
@@ -1648,7 +1651,20 @@ begin
           index := size -1;
         end
         else
-          value := GetTagName;
+        {aiai}
+          //value := GetTagName;
+        begin
+          for i := index to size -1 do
+          begin
+            case (str + i)^ of
+            '>': begin index := i; goto GOTVALUE;; end;
+            ' ': begin index := i + 1; goto GOTVALUE; end;
+            else value := value + (str + i)^;
+            end;
+          end;
+          index := size -1;
+        end;
+        {/aiai}
         GOTVALUE:
           result := True;
           exit;
@@ -1977,8 +1993,6 @@ end;
 
 {aiai}
 procedure TConvDatOut.ProcDATE;
-var
-  beid: String;
 
   (* 年は4桁,1月と2月は前の年の13月と14月とする *)
   function CalcDayOfWeek(date: PChar; num:integer): string; (* 曜日だけ返す *)
@@ -2052,39 +2066,6 @@ var
     end;
   end;
 
-  function ProcTag: Boolean;
-    procedure GetBeID;
-    var
-      startpos, endpos: integer;
-    begin
-      startpos := Pos('i=', str + index) + index + 2;
-      endpos := Pos('&u=', str + startpos - 1) + startpos - 1;
-      beid := 'BE:' + Copy(str, startpos, endpos - startpos);
-    end;
-
-  begin
-    result := False;
-    if (str + index)^ = '<' then
-    begin
-      Inc(index);
-      if index >= size then exit;
-      if (str + index)^ = '/' then begin
-        Inc(index);
-        if index >= size then exit;
-        if IsThisTag('a', str + index, 1) then begin
-          Inc(index);
-        end;
-      end else begin
-        if IsThisTag('a', str + index, 1) then begin
-          Inc(index);
-          GetBeID;
-        end;
-      end;
-      EndOfTag;
-      Result := True;
-    end;
-  end;
-
 label
   ProcChar;
 var
@@ -2092,7 +2073,6 @@ var
   i: integer;
   alreadydayofweek: Boolean;
 begin
-  beid := '';
 
   (* 曜日付きがどうか調べる *)
   alreadydayofweek := false;
@@ -2132,11 +2112,7 @@ begin
       idx2 := index + 1;
       while (idx2 < size) and not ((str + idx2)^ in ['<', 'I']) do
         Inc(idx2);
-      if Length(beid) > 0 then begin
-        WriteAnchor('', beid, str + index, idx2 - index);
-        beid := '';
-      end else
-        WriteText(str + index, idx2 - index);
+      WriteText(str + index, idx2 - index);
       index := idx2;
     end;
   end;
@@ -2549,7 +2525,8 @@ function TDat2HTML._ToDatOut(dest: TDatOut;
                              line: integer;
                              datType: TDatType;
                              EnableNGToAbone: Boolean;
-                             AboneArray: TAboneArray = nil
+                             AboneArray: TAboneArray = nil;
+                             NeedConvert: Boolean = False //aiai
                              ): Boolean;
 var
   {連鎖あぼーん}
@@ -2572,6 +2549,9 @@ var
   AboneType:Integer;
   ResItems: TArrayOfNGItemPChar;
   {/beginner}
+  {aiai}
+  convname, convmail, convmsg: string;
+  {/aiai}
 
   {beginner}
   function Arrest(AAboneType: Integer; NGItem: TBaseNGItem): Integer;
@@ -2677,6 +2657,35 @@ begin
     msg  := @dataString[msgStart];
   end;
 
+  {aiai}
+  if NeedConvert then
+  begin
+    SetString(convname, name, nameSize);
+    if InCodeCheck(convname) in [EUC_IN, EUCorSJIS_IN] then
+    begin
+      convname := euc2sjis(convname);
+      name := PChar(convname);
+      nameSize := Length(convname);
+    end;
+
+    SetString(convmail, mail, mailSize);
+    if InCodeCheck(convmail) in [EUC_IN, EUCorSJIS_IN] then
+    begin
+      convmail := euc2sjis(convmail);
+      mail := PChar(convmail);
+      mailSize := Length(mail);
+    end;
+
+    SetString(convmsg, msg, msgSize);
+    if InCodeCheck(convmsg) in [EUC_IN, EUCorSJIS_IN] then
+    begin
+      convmsg := euc2sjis(convmsg);
+      msg := PChar(convmsg);
+      msgSize := Length(msg);
+    end;
+  end;
+  {/aiai}
+
   if dateSize <= 0 then
   begin
     name := msgBrokenRecord;
@@ -2689,9 +2698,9 @@ begin
   end
   else begin
     {beginner}
-    ResItems[NG_ITEM_NAME].pStart := PChar(DataString) + nameStart - 1;
-    ResItems[NG_ITEM_MAIL].pStart := PChar(DataString) + mailStart - 1;
-    ResItems[NG_ITEM_MSG ].pStart := PChar(DataString) + msgStart  - 1;
+    ResItems[NG_ITEM_NAME].pStart := name;//PChar(DataString) + nameStart - 1;
+    ResItems[NG_ITEM_MAIL].pStart := mail;//PChar(DataString) + mailStart - 1;
+    ResItems[NG_ITEM_MSG ].pStart := msg;//PChar(DataString) + msgStart  - 1;
     ResItems[NG_ITEM_ID  ].pStart := PChar(DataString) + dateStart - 1;
 
     ResItems[NG_ITEM_NAME].Size := nameSize;
@@ -2929,7 +2938,8 @@ function TDat2HTML.ToDatOut(dest: TDatOut;
                             dat: TThreadData;
                             startLine: Integer; // 1 origin.
                             lines: Integer;
-                            AboneArray: TAboneArray = nil
+                            AboneArray: TAboneArray = nil;
+                            NeedConvert: Boolean = False //aiai
                             ): Integer;
 var
   datType: TDatType;
@@ -2947,7 +2957,9 @@ begin
     with dat.FCacheInfo do
     begin
       dat.Consistent := _ToDatOut(dest, dat.Strings[FBlockIndex],
-                                  FIndex, FLineNumber, datType, dat.Consistent, AboneArray
+                                  FIndex, FLineNumber, datType, dat.Consistent,
+                                  AboneArray,
+                                  NeedConvert  //aiai
                                   )
                         and dat.Consistent;
       Dat2chNextLine(dat);
@@ -2997,12 +3009,12 @@ end;
 
 
 
-function TDat2HTML.ToString(dat: TThreadData; startLine, lines: Integer): String;
+function TDat2HTML.ToString(dat: TThreadData; startLine, lines: Integer; NeedConvert: Boolean = False): String;
 var
   strOut: TStrDatOut;
 begin
   strOut := TStrDatOut.Create;
-  ToDatOut(strOut, dat, startLine, lines);
+  ToDatOut(strOut, dat, startLine, lines, nil, NeedConvert);
   result := strOut.Text;
   strOut.Free;
 end;

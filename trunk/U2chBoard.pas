@@ -48,6 +48,7 @@ type
     datList: THashedStringList; //aiai subject.txtにあるスレのdatのリスト
                                 //     TBoard.FindFirstでTThreadの検索に使う
     //ngthreadlist: TStringList;  //aiai NGThread
+    FNeedConvert: Boolean;  //aiai
     function GetItems(index: integer): TThreadItem;
     procedure SetItems(index: integer; value: TThreadItem);
     procedure MergeCache;
@@ -128,6 +129,7 @@ type
     property uma: boolean read FUma write SetUma;
     property host: string read FHost write SetHost;
     property settingText: TStringList read settingTXT;
+    property NeedConvert: Boolean read FNeedConvert; //aiai
   end;
 
   (*-------------------------------------------------------*)
@@ -1337,6 +1339,10 @@ begin
   if newHost = FHost then
     exit;
   FHost := newHost;
+  {aiai}
+  if FHost = 'be.2ch.net' then
+    FNeedConvert := True;
+  {/aiai}
   if Count > 0 then
     moved := true;  //AnalyzeからChangeThreadItemURIを呼び出す
 end;
@@ -1498,7 +1504,10 @@ begin
       bbsJBBSShitaraba, bbsShitaraba:
         content := euc2sjis(sender.Content);
       else
-        content := sender.Content;
+        if FNeedConvert then
+          content := euc2sjis(sender.Content)
+        else
+          content := sender.Content;
       end;
       if AnsiStartsStr('+', content) or
          AnsiStartsStr('-', content) then
@@ -1683,7 +1692,10 @@ begin
       200: (* OK *)
         begin
           storedSettingTxt.Clear;
-          storedSettingTxt.WriteString(StringReplace(sender.Content, #10, #13#10, [rfReplaceAll]));
+          if FNeedConvert then
+            storedSettingTxt.WriteString(StringReplace(euc2sjis(sender.Content), #10, #13#10, [rfReplaceAll]))
+          else
+            storedSettingTxt.WriteString(StringReplace(sender.Content, #10, #13#10, [rfReplaceAll]));
           storedSettingTxt.Info.Add(GetURIBase + '/SETTING.TXT');
           storedSettingTxt.Info.Add(sender.GetLastModified);
           storedSettingTxt.Save;

@@ -53,7 +53,7 @@ type
     WriteButton: TButton;
     AAList: TRSListBox;
     ToolBar: TJLXPToolBar;
-    ToolButton: array[0..6] of TToolButton;
+    ToolButton: array[0..7] of TToolButton;
     Memo: TMemo;
     NameComboBox: TComboBoxEx;
     MailComboBox: TComboBoxEx;
@@ -383,7 +383,7 @@ begin
     Wrapable := False;
   end;
 
-  for index := 6 downto 0 do
+  for index := 7 downto 0 do
   begin
     ToolButton[index] := TToolButton.Create(Self);
     ToolButton[index].Parent := ToolBar;
@@ -398,6 +398,7 @@ begin
   ToolButton[4].Hint := '末尾整形';
   ToolButton[5].Hint := 'WriteWait有効';
   ToolButton[6].Hint := 'コテハン警告';
+  ToolButton[7].Hint := 'BeLogin';
 
   WriteButton := TButton.Create(Self);
   With WriteButton do

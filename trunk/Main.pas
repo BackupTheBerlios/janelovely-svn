@@ -42,8 +42,8 @@ uses
   {/aiai}
 
 const
-  VERSION  = '0.1.3.1';      (* Printable ASCIIコード厳守。')'はダメ *)
-  JANE2CH  = 'JaneLovely 0.1.3.1';
+  VERSION  = '0.1.3.2';      (* Printable ASCIIコード厳守。')'はダメ *)
+  JANE2CH  = 'JaneLovely 0.1.3.2';
   KEYWORD_OF_USER_AGENT = 'JaneLovely';      (*  *)
 
   DISTRIBUTORS_SITE = 'http://www.geocities.jp/openjane4714/';
@@ -756,6 +756,9 @@ type
     MenuListViewSearchNormal: TMenuItem;
     MenuListViewSearchMigemo: TMenuItem;
     ListViewSearchEditBox: TComboBoxEx;
+    MenuListViewSearchRegExp: TMenuItem;
+    N88: TMenuItem;
+    N89: TMenuItem;
     {/aiai}
     procedure FormCreate(Sender: TObject);
     procedure MenuToolsOptionsClick(Sender: TObject);
@@ -1225,6 +1228,8 @@ type
       Shift: TShiftState);
     procedure ListViewSearchEditBoxKeyDownNormal(Sender: TObject; var Key: Word;
       Shift: TShiftState);
+    procedure ListViewSearchEditBoxKeyDownRegExp(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
     {/aiai}
   private
   { Private 宣言 }
@@ -1475,6 +1480,7 @@ type
     procedure ListViewSearchSetSearch(index: integer);
     procedure ListViewSearchMigemoSearch(Sender: TObject);
     procedure ListViewSearchNormalSearch(Sender: TObject; target: String);
+    procedure ListViewSearchRegExpSearch(Sender: TObject; target: String);
     {/aiai}
   public
     { Public 宣言 }
@@ -3121,6 +3127,13 @@ begin
     end;
     MenuListViewSearchMigemo.Checked := True;
   end;
+  2: begin  //正規表現
+    ListViewSearchEditBox.OnChange := nil;
+    ListViewSearchEditBox.OnKeyDown := ListViewSearchEditBoxKeyDownRegExp;
+    SearchTimer.Enabled := False;
+    ListViewSearchToolButton.ImageIndex := 3;
+    MenuListViewSearchRegExp.Checked := True;
+  end;
   else
   end;
 end;
@@ -3514,6 +3527,7 @@ begin
   iniFile.WriteBool(INI_WRT_SECT, 'UseWriteWait', Config.wrtUseWriteWait); //aiai
   iniFile.WriteBool(INI_WRT_SECT, 'NameMailWarning', Config.wrtNameMailWarning); //aiai
   iniFile.WriteBool(INI_WRT_SECT, 'MemoImeMode', Config.optWriteMemoImeMode); //aiai
+  iniFile.WriteBool(INI_WRT_SECT, 'BeLogin', Config.wrtBeLogin); //aiai
   (* Menu *)
   iniFile.WriteBool(INI_NET_SECT, 'Online', Config.netOnline);
   //LoginはaccAutoAuth,account.cfg管理なのでとりあえずパス
@@ -4675,6 +4689,11 @@ begin
       bbsJBBSShitaraba, bbsShitaraba:
         content := euc2sjis(sender.Content);
       else
+        {aiai}
+        if requestingBoard.NeedConvert then
+          content := euc2sjis(sender.Content)
+        else
+        {/aiai}
         content := sender.Content;
       end;
       if AnsiStartsStr('+', content) or
@@ -17661,6 +17680,17 @@ begin
   end;
 end;
 
+procedure TMainWnd.ListViewSearchEditBoxKeyDownRegExp(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if Key = VK_RETURN then begin
+    if currentBoard = nil then
+      exit;
+    searchTarget := Trim(ListViewSearchEditBox.Text);
+    ListViewSearchRegExpSearch(MenuFindThreadNew, searchTarget);
+  end;
+end;
+
 procedure TMainWnd.ListViewSearchCloseButtonClick(Sender: TObject);
 begin
   ListViewSearchToolBar.Hide;
@@ -17678,7 +17708,7 @@ begin
   if currentBoard = nil then
     exit;
 
-  if Length(ListViewSearchEditBox.Text) = 0 then
+  if (Length(ListViewSearchEditBox.Text) = 0) or not MigemoOBJ.CanUse then
   begin
     ListView.DoubleBuffered := True;
     for i := 0 to ListView.Items.Count - 1 do
@@ -17694,8 +17724,6 @@ begin
     ListView.DoubleBuffered := False;
     exit;
   end;
-
-  if not MigemoOBJ.CanUse then exit;
 
   str := MigemoOBJ.Query(ListViewSearchEditBox.Text);
   target := Copy(str, 1, Length(str));
@@ -17788,9 +17816,75 @@ begin
   end;
 end;
 
+procedure TMainWnd.ListViewSearchRegExpSearch(Sender: TObject; target: String);
+var
+  i: Integer;
+  WSHRegExp: Variant;
+begin
+  if Length(target) = 0 then
+  begin
+    ListView.DoubleBuffered := True;
+    for i := 0 to ListView.Items.Count - 1 do
+      TThreadItem(ListView.List[i]).liststate := 0;
+    if not assigned(ListView.OnCustomDrawItem) then
+      ListView.OnCustomDrawItem := ListViewCustomDrawItem;
+    ListView.Sort(@ListCompareFuncSearchState);
+    ListView.SetTopItem(ListView.Items[0]);
+    if config.stlListViewUseExtraBackColor = false then
+      ListView.OnCustomDrawItem := nil;
+    currentSortColumn := Config.stlDefSortColumn;
+    ListView.Repaint;
+    ListView.DoubleBuffered := False;
+    exit;
+  end;
+
+  WSHRegExp := CreateOleObject('VBScript.RegExp');  //WSH
+  WSHRegExp.IgnoreCase := True;   //大文字小文字を区別しない
+  try
+    WSHRegExp.Pattern := target;      //正規表現パターン
+  except
+    ListViewSearchEditBox.Brush.Color := clYellow;
+    WSHRegExp := Unassigned;
+    exit;
+  end;
+
+  ListViewSearchEditBox.Brush.Color := clWhite;
+  ListView.DoubleBuffered := True;
+  if target <> '' then
+    for i := 0 to ListView.Items.Count -1 do
+      with TThreadItem(LIstView.List[i]) do
+        try
+          if WSHRegExp.Test(HTML2String(title)) then
+            liststate := 1
+          else
+            liststate := 0;
+        except
+          ListViewSearchEditBox.Brush.Color := clYellow;
+          WSHRegExp := Unassigned;
+          exit;
+        end;
+  WSHRegExp := Unassigned;
+  if not assigned(ListView.OnCustomDrawItem) then
+    ListView.OnCustomDrawItem := ListViewCustomDrawItem;
+  ListView.Sort(@ListCompareFuncSearchState);
+  ListView.SetTopItem(ListView.Items[0]);
+  //ListView.Refresh;
+
+  currentBoard.threadSearched := (TThreadItem(ListView.Items[0].Data).liststate <> 0);
+  if currentBoard.threadSearched then
+    currentSortColumn := 100
+  else begin
+    if config.stlListViewUseExtraBackColor = false then
+      ListView.OnCustomDrawItem := nil;
+    currentSortColumn := Config.stlDefSortColumn;
+  end;
+  ListView.Repaint;
+  ListView.DoubleBuffered := False;
+end;
+
 procedure TMainWnd.MenuListViewSearchNormalClick(Sender: TObject);
 begin
-  TMenuItem(Sender).Checked := True;
+  //TMenuItem(Sender).Checked := True;
   ListViewSearchSetSearch(TComponent(Sender).Tag);
 end;
 
