@@ -1627,6 +1627,7 @@ type
     procedure OpenByBrowser(const URI: string);
     procedure UpdateTabTexts(refresh: boolean = false);//▼
     procedure UpdateIndicator;
+    procedure UpdateIndicatorEx(index: integer);
     procedure ThreadClosing(const thread: TThreadItem);
     procedure PopupAddFavClick(Sender: TObject);
     //※[457]
@@ -7311,9 +7312,13 @@ begin
     else if (TThreadItem(Item2).itemCount = 0) then
       result := -1
     else}
+    result := TThreadItem(Item1).number - TThreadItem(Item2).number;
+    if result <> 0 then
+    begin
       result := itemcountgain(Item2) - itemcountgain(Item1);
-    if result = 0 then
-      result := ListCompareFuncNumber(Item1, Item2);
+      if result = 0 then
+        result := ListCompareFuncNumber(Item1, Item2);
+    end;
   end;
 end;
 //スレ絞込みでのソート
@@ -10164,7 +10169,12 @@ end;
 procedure TMainWnd.UpdateIndicator;
 begin
   StatusBar.Panels[0].Text := loginIndicator + IntToStr(AsyncManager.Count);
-  //StatusBar2.Text[0] := loginIndicator + IntToStr(AsyncManager.Count);    //aiai
+end;
+
+procedure TMainWnd.UpdateIndicatorEx(index: integer);
+begin
+  StatusBar.Panels[0].Text := loginIndicator
+    + IntToStr(index) + '/' + IntToStr(AsyncManager.Count);
 end;
 
 procedure TMainWnd.ON_WM_USER(var msg: TMessage);
@@ -15066,7 +15076,7 @@ begin
   begin
     cbSize := SizeOf(TNotifyIconData);
     Wnd    := hWndTrayIcon;
-    uID    := hWndTrayIcon;  //HWNDと同じにしておく
+    uID    := Cardinal(hWndTrayIcon);  //HWNDと同じにしておく
     uFlags := NIF_MESSAGE or NIF_ICON or NIF_TIP;
     StrPCopy(szTip, Application.Title);
     hIcon  := smallIco;
@@ -15079,11 +15089,12 @@ procedure TMainWnd.DeleteTaskBarIcon;
 var
   NotifyData: TNotifyIconData;
 begin
+  zeromemory(@NotifyData, sizeof(TNotifyIconData));
   with NotifyData do
   begin
     cbSize := SizeOf(TNotifyIconData);
     Wnd    := hWndTrayIcon;
-    uID    := 0;
+    uID    := Cardinal(hWndTrayIcon);  //HWNDと同じにしておく;
   end;
   Shell_NotifyIcon(NIM_DELETE, @NotifyData);
 end;

@@ -2804,13 +2804,7 @@ begin
   RegExp := nil;
   editpoint := FEditPoint;
   line := editpoint.Y;
-  selall := False;
-  for i := 0 to AString.Count - 1 do
-    if (-1 = FHighlightTargetList.IndexOf(AString[i])) then
-    begin
-      selall := True;
-      break;
-    end;
+  selall := FHighlightTargetList.Text <> AString.Text;
   if not selall and (FHighlightOption = Option) then
   begin
     col := editpoint.X + 1;

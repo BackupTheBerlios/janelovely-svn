@@ -2098,10 +2098,10 @@ begin
   if assigned(asyncObj) and assigned(asyncObj.proc) then
   begin
     asyncObj.proc.Cancel;
-    asyncObj.synchro.Wait;
-    asyncObj.OnNotify := nil;
-    asyncObj.canceled := True;
-    asyncObj.synchro.Release;
+//    asyncObj.synchro.Wait;
+//    asyncObj.OnNotify := nil;
+//    asyncObj.canceled := True;
+//    asyncObj.synchro.Release;
     {Log('Åi•ÅÕ•Åj¡≠∞º!!');}
     Log2(31, '');  //ayaya
   end;

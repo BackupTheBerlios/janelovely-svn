@@ -78,6 +78,7 @@ type
   TAsyncManager = class(TObject)
   private
     procList: TList;
+    procCount: ShortInt;
     procedure OnAsyncTerminateProc(Sender: TObject);
     function GetObjectCount: Integer;
   public
@@ -486,6 +487,10 @@ begin
   begin
     canceled := true;
     OnNotify := nil;
+    try
+      IdHTTP.Disconnect;
+    except
+    end;
   end;
   synchro.Release;
 end;
@@ -503,6 +508,7 @@ end;
 constructor TAsyncManager.Create;
 begin
   procList := TList.Create;
+  procCount := 0;
 end;
 
 destructor TAsyncManager.Destroy;
@@ -549,9 +555,12 @@ begin
   proc.reqType := reqType;
   procList.Add(proc);
   if procList.Count <= ProcListMaximum then
+  begin
     proc.Resume;
+    Inc(procCount);
+  end;
   result := proc;
-  MainWnd.UpdateIndicator;
+  MainWnd.UpdateIndicatorEx(procCount);
 end;
 
 function TAsyncManager.Post(const URI: string;
@@ -596,9 +605,12 @@ begin
   end;
   procList.Add(proc);
   if procList.Count <= ProcListMaximum + 1 then
+  begin
     proc.Resume;
+    Inc(procCount);
+  end;
   result := proc;
-  MainWnd.UpdateIndicator;
+  MainWnd.UpdateIndicatorEx(procCount);
 end;
 
 
@@ -612,6 +624,7 @@ begin
     if TObject(procList.Items[i]) = Sender then
     begin
       procList.Delete(i);
+      Dec(procCount);
       proc := (Sender as TAsyncReq);
       (* “Œvî•ñ *)
       Config.AddSample(proc.compressedSize, proc.uncompressedSize);
@@ -621,13 +634,14 @@ begin
         if TAsyncReq(procList.Items[j]).Suspended then
         begin
           TAsyncReq(procList.Items[j]).Resume;
+          Inc(procCount);
           break;
         end;
-      MainWnd.UpdateIndicator;
+      MainWnd.UpdateIndicatorEx(procCount);
       exit;
     end;
   end;
-  MainWnd.UpdateIndicator;
+  MainWnd.UpdateIndicatorEx(procCount);
 end;
 
 procedure Sleep(ms: cardinal); stdcall; external 'kernel32.dll';

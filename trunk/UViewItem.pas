@@ -851,6 +851,48 @@ end;
 
 function TDat2View.ProcTag: boolean;
 
+  //RGB-string to TColor
+  function GetColor(const value: string; var color: TColor): Boolean;
+
+    function ReturnValue(i: Integer; const value: string;
+      var color: TColor): Boolean;
+    begin
+      Result := False;
+      case value[i] of
+        '0'..'9': color := color * 16 + Ord(value[i]) - Ord('0');
+        'A'..'F': color := color * 16 + Ord(value[i]) - Ord('A') + 10;
+        'a'..'f': color := color * 16 + Ord(value[i]) - Ord('a') + 10;
+      else
+        exit;
+      end;  //Case
+      Result := True;
+    end;
+
+  var
+    len: integer;
+  begin
+    Result := False;
+    color := 0;
+    len := Length(value);
+    if len = 6 then
+    begin
+      Result := ReturnValue(5, value, color);  //Blue
+      if Result then Result := ReturnValue(6, value, color);  //Blue
+      if Result then Result := ReturnValue(3, value, color);  //Green
+      if Result then Result := ReturnValue(4, value, color);  //Green
+      if Result then Result := ReturnValue(1, value, color);  //Red
+      if Result then Result := ReturnValue(2, value, color);  //Red
+    end else if (len = 7) and (value[1] = '#') then
+    begin
+      Result := ReturnValue(6, value, color);  //Blue
+      if Result then Result := ReturnValue(7, value, color);  //Blue
+      if Result then Result := ReturnValue(4, value, color);  //Green
+      if Result then Result := ReturnValue(5, value, color);  //Green
+      if Result then Result := ReturnValue(2, value, color);  //Red
+      if Result then Result := ReturnValue(3, value, color);  //Red
+    end;
+  end;
+
   procedure EndFont;
   begin
     if FColorName.startp > 0 then
@@ -864,61 +906,20 @@ function TDat2View.ProcTag: boolean;
   procedure SetFont;
   var
     name, value: string;
-    color, len: Integer;
-    failure: Boolean;
-
-    procedure ReturnValue(i: Integer);
-    begin
-      if failure then exit;
-      case value[i] of
-      '0'..'9': color := color * 16 + Ord(value[i]) - Ord('0');
-      'A'..'F': color := color * 16 + Ord(value[i]) - Ord('A') + 10;
-      'a'..'f': color := color * 16 + Ord(value[i]) - Ord('a') + 10;
-      else
-        begin
-          failure := True;
-          exit;
-        end;
-      end;  //Case
-    end;
-
+    color: TColor;
   begin
-//    if not EnableFontTag then
-//      exit;
     while GetAttribPair(name, value) do
     begin
       if EnableFontTag and (name = 'face') and (0 < length(value)) then
       begin
         FBrowser.SetFont(value, ZoomToPoint(Config.viewZoomSize));
         break;
-      end else if (name = 'color') and (0 < length(value)) then
+      end else if (name = 'color') and (length(value) in [6,7])
+        and GetColor(value, color) then
       begin
-        len := Length(value);
-        color := 0;
-        failure := False;
-        if (name = 'color') then
-        begin
-          if len = 6 then
-          begin
-            ReturnValue(5);  //Blue
-            ReturnValue(6);  //Blue
-            ReturnValue(3);  //Green
-            ReturnValue(4);  //Green
-            ReturnValue(1);  //Red
-            ReturnValue(2);  //Red
-          end else if (len = 7) and (value[1] = '#') then
-          begin
-            ReturnValue(6);  //Blue
-            ReturnValue(7);  //Blue
-            ReturnValue(4);  //Green
-            ReturnValue(5);  //Green
-            ReturnValue(2);  //Red
-            ReturnValue(3);  //Red
-          end;
-          Flush;
-          FColorName.color := color;
-          FColorName.startp := FBrowser.Strings[FBrowser.Strings.Count - 1].GetLength + 1;
-        end;
+        Flush;
+        FColorName.color := color;
+        FColorName.startp := FBrowser.Strings[FBrowser.Strings.Count - 1].GetLength + 1;
       end;
     end;
   end;
@@ -1044,50 +1045,15 @@ function TDat2View.ProcTag: boolean;
   procedure SetBorder;
   var
     name, value: String;
-    color, len: Integer;
-    failure: Boolean;
-
-    procedure ReturnValue(i: Integer);
-    begin
-      if failure then exit;
-      case value[i] of
-      '0'..'9': color := color * 16 + Ord(value[i]) - Ord('0');
-      'A'..'F': color := color * 16 + Ord(value[i]) - Ord('A') + 10;
-      'a'..'f': color := color * 16 + Ord(value[i]) - Ord('a') + 10;
-      else
-        begin
-          failure := True;
-          exit;
-        end;
-      end;  //Case
-    end;
-
+    len: Integer;
+    color: TColor;
   begin
     GetAttribPair(name, value);
     len := Length(value);
     color := 0;
-    failure := False;
-    if (name = 'color') then
-    begin
-      if len = 6 then
-      begin
-        ReturnValue(5);  //Blue
-        ReturnValue(6);  //Blue
-        ReturnValue(3);  //Green
-        ReturnValue(4);  //Green
-        ReturnValue(1);  //Red
-        ReturnValue(2);  //Red
-      end else if (len = 7) and (value[1] = '#') then
-      begin
-        ReturnValue(6);  //Blue
-        ReturnValue(7);  //Blue
-        ReturnValue(4);  //Green
-        ReturnValue(5);  //Green
-        ReturnValue(2);  //Red
-        ReturnValue(3);  //Red
-      end;
-      WriteHR(color, not failure);
-    end else
+    if (name = 'color') and (len in [6,7]) and GetColor(value, color) then
+      WriteHR(color, True)
+    else
       WriteHR(0, False);
   end;
 
