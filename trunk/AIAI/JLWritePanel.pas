@@ -688,7 +688,7 @@ var
   i: Integer;
   tkBoard, tkName: string;
 begin
-  NameComboBox.ItemsEx.Clear;
+  NameComboBox.Items.Clear;
   for i := 0 to Config.wrtNameList.Count - 1 do
   begin
     if (Config.wrtNameList[i] <> '') and (Config.wrtNameList[i][1] = '<')
@@ -727,6 +727,8 @@ begin
     NameComboBox.Text := '名無し募集中。。。'
   else
     NameComboBox.Text := SettingTxt.Lines.Values['BBS_NONAME_NAME'];
+
+  NameComboBox.SelStart := 0;
 
   //メール
   SageCheckBoxCheck := SageCheckBox.OnClick;

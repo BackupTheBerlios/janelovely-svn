@@ -1,6 +1,6 @@
 object QuickAboneRegist: TQuickAboneRegist
-  Left = 294
-  Top = 200
+  Left = 285
+  Top = 220
   Width = 500
   Height = 302
   BorderIcons = [biSystemMenu, biMaximize]
@@ -14,6 +14,7 @@ object QuickAboneRegist: TQuickAboneRegist
   Font.Style = []
   OldCreateOrder = False
   Position = poOwnerFormCenter
+  OnCreate = FormCreate
   PixelsPerInch = 96
   TextHeight = 12
   object Panel1: TPanel
@@ -99,18 +100,20 @@ object QuickAboneRegist: TQuickAboneRegist
       TabOrder = 5
     end
   end
-  object ItemView: TMemo
-    Left = 0
-    Top = 0
-    Width = 492
-    Height = 242
-    Align = alClient
-    HideSelection = False
-    ReadOnly = True
-    ScrollBars = ssVertical
-    TabOrder = 1
-    OnKeyDown = ItemViewKeyDown
-    OnKeyUp = ItemViewKeyDown
-    OnMouseUp = ItemViewMouseUp
+  object PopupMenu: TPopupMenu
+    OnPopup = PopupMenuPopup
+    Left = 416
+    Top = 168
+    object PopupCopy: TMenuItem
+      Caption = #12467#12500#12540'(&C)'
+      OnClick = PopupCopyClick
+    end
+    object N1: TMenuItem
+      Caption = '-'
+    end
+    object PopupSelectAll: TMenuItem
+      Caption = #12377#12409#12390#36984#25246'(&A)'
+      OnClick = PopupSelectAllClick
+    end
   end
 end

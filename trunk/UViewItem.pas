@@ -504,6 +504,7 @@ implementation
 (*=======================================================*)
 
 uses
+  Dialogs,
   Main,
   jconvert,      //aiai
   UMDITextView;  //aiai
@@ -2481,23 +2482,27 @@ var
   i: Integer;
   list: array of integer;
   dup: TThreadData;
-  s: string;
-  SEARCHD2HTML: TDat2HTML;
+  //s: string;
+  p: PChar;
+  size: integer;
+  //SEARCHD2HTML: TDat2HTML;
   POPUPD2HTML: TDat2HTML;
 begin
   Result := 0;
   if (Length(target) <= 0) or (thread = nil) or (thread.dat = nil) then
     exit;
+  //Bench(0);
   dup := thread.DupData;
   SetLength(list, GetThreadMaxNum);
-  SEARCHD2HTML := SetUpDat2HTML('<DATE/>', dhtSearchRes);
+  //SEARCHD2HTML := SetUpDat2HTML('<DATE/>', dhtSearchRes);
   POPUPD2HTML := SetUpDat2HTML(TSkinCollection(SkinCollectionList.Items[TBoard(FThread.board).CustomSkinIndex]).PopupRecHTML, dhtPopupRes);
   try
     Result := 0;
     for i := 1 to thread.lines do
     begin
-      s := SEARCHD2HTML.ToID(dup, i);
-      if StrComp(PChar(s), PChar(target)) = 0 then
+      //s := SEARCHD2HTML.ToID(dup, i);
+      if dup.FetchIDP(i, p, size) and (StrLComp(p, PChar(target), size) = 0) then
+      //if StrComp(PChar(s), PChar(target)) = 0 then
       begin
         list[result] := i;
         Inc(result);
@@ -2511,9 +2516,10 @@ begin
     end;
   finally
     dup.Free;
-    SEARCHD2HTML.Free;
+    //SEARCHD2HTML.Free;
     POPUPD2HTML.Free;
     SetLength(list, 0);
+    //Bench(1);
   end;
 end;
 {/aiai}
@@ -3792,6 +3798,12 @@ procedure TViewItem.Grep(const target: string; targetBoardList: TList; RegExpMod
 var
   thread: TThreadItem;
   tvc: TSimpleDat2View;
+  SEARCHD2HTML: TDat2HTML;
+  POPUPD2HTML: TDat2HTML;
+  RegExp: TRegExpr;
+  ExtStream :TDat2ViewForExtraction;
+  TickCount: Cardinal;
+  totalCount: integer;
 
   procedure ShowEntry(const additional: string = ''; first: boolean = false);
   var
@@ -3827,6 +3839,32 @@ var
                + numberstr + '</a> '
               );
   end;
+
+  procedure Ending;
+  var
+    index: integer;
+  begin
+    SEARCHD2HTML.Free;
+    POPUPD2HTML.Free;
+    if not canceled then  //canceled = trueのときも問題ないと思うけどけど。。。
+      tvc.WriteHTML(
+            '</ul><br><p>【' + IntToStr(totalCount) + ' 件見つかりました】(検索時間:' + IntToStr((GetTickCount - TickCount) div 1000) + '秒)</p>');
+    tvc.Free;
+    {beginner}
+    ExtStream.Free;
+    RegExp.Free;
+    {/beginner}
+
+    index := viewList.IndexOf(self);
+    if 0 <= index then begin
+      MainWnd.TabControl.Tabs.Strings[index] := '検索結果';
+      SetWindowText(FBrowser.Handle, '検索結果');  //aiai
+    end;
+    FProgress := tpsNone;
+    Log('検索終了');
+    MainWnd.WriteStatus('検索終了');
+  end;
+
 var
   index: integer;
   i, k, l: integer;
@@ -3835,7 +3873,6 @@ var
   tgt: string;
   hasTarget: boolean;
   countInBoard: integer;
-  totalCount: integer;
   //※[457]
   s: string;
   popupstartline: Integer;
@@ -3844,17 +3881,14 @@ var
   tmpDat: TThreadData;
   {beginner}
   EntryFlag: Boolean;
-  ExtStream :TDat2ViewForExtraction;
-  RegExp: TRegExpr;
-  TickCount: Cardinal;
   {/beginner}
-  SEARCHD2HTML: TDat2HTML;
-  POPUPD2HTML: TDat2HTML;
   HeaderHTML: PChar;
+  rc: Boolean;
 
 begin
   TickCount := GetTickCount;
   hasTarget := (0 < length(target));
+  rc := False;
   if hasTarget then
   begin
     {beginner}
@@ -3915,7 +3949,17 @@ begin
     category := TCategory(board.category);
     log('  ' + board.name);
     MainWnd.WriteStatus(board.name);
-    if hasTarget and ((Assigned(RegExp) and RegExp.Exec(board.name)) or (0 < FindPosIC(tgt, board.name, 1))) then //beginner
+    try
+      rc := hasTarget and (Assigned(RegExp) and RegExp.Exec(board.name));
+    except
+      On E: Exception do
+      begin
+        Windows.MessageBox(MainWnd.Handle, PChar(E.Message), '正規表現のエラーらしい', MB_ICONERROR or MB_OK);
+        board.Release;
+        break;
+      end;
+    end;
+    if hasTarget and (rc or (0 < FindPosIC(tgt, board.name, 1))) then //beginner
     begin
       if ShowDirect then
         tvc.WriteHTML('<b>');
@@ -3936,7 +3980,18 @@ begin
       thread := board.Items[k];
       if hasTarget then
       begin
-        if (Assigned(RegExp) and RegExp.Exec(thread.title)) or (0 < FindPosIC(tgt, thread.title, 1)) then //beginner
+        try
+          rc := (Assigned(RegExp) and RegExp.Exec(thread.title));
+        except
+          On E: Exception do
+          begin
+            Windows.MessageBox(MainWnd.Handle, PChar(E.Message), '正規表現のエラーらしい', MB_ICONERROR or MB_OK);
+            board.Release;
+            Ending;
+            exit;
+          end;
+        end;
+        if rc or (0 < FindPosIC(tgt, thread.title, 1)) then //beginner
         begin
           if thread.lines <= 0 then
             ShowEntry('(未取得)')
@@ -3980,7 +4035,19 @@ begin
                   end else begin
                     s := SEARCHD2HTML.ToString(tmpDat, l, 1, board.NeedConvert);
                   end;
-                  if ((RegExp = nil) and AnsiContainsText(s, target)) or (Assigned(RegExp) and RegExp.Exec(s)) then
+                  try
+                    rc := ((RegExp = nil) and AnsiContainsText(s, target)) or (Assigned(RegExp) and RegExp.Exec(s));
+                  except
+                    On E: Exception do
+                    begin
+                      Windows.MessageBox(MainWnd.Handle, PChar(E.Message), '正規表現のエラーらしい', MB_ICONERROR or MB_OK);
+                      board.Release;
+                      thread.Release;
+                      Ending;
+                      exit;
+                    end;
+                  end;
+                  if rc then
                   {/beginner}
                   begin
                     {beginner}
@@ -4054,25 +4121,8 @@ begin
     end;
     board.Release;
   end;
-  SEARCHD2HTML.Free;
-  POPUPD2HTML.Free;
-  if not canceled then  //canceled = trueのときも問題ないと思うけどけど。。。
-    tvc.WriteHTML(
-          '</ul><br><p>【' + IntToStr(totalCount) + ' 件見つかりました】(検索時間:' + IntToStr((GetTickCount - TickCount) div 1000) + '秒)</p>');
-  tvc.Free;
-  {beginner}
-  ExtStream.Free;
-  RegExp.Free;
-  {/beginner}
 
-  index := viewList.IndexOf(self);
-  if 0 <= index then begin
-    MainWnd.TabControl.Tabs.Strings[index] := '検索結果';
-    SetWindowText(FBrowser.Handle, '検索結果');  //aiai
-  end;
-  FProgress := tpsNone;
-  Log('検索終了');
-  MainWnd.WriteStatus('検索終了');
+  Ending;
 end;
 
 procedure TViewItem.Reload;
@@ -4095,9 +4145,9 @@ var
   thread: TThreadItem;
 begin
   //
-  // PumpPreChuck中の場合はスキップ by aiai
+  // DoWorking中の場合はスキップ by aiai
   //
-  if (FThread = nil) or (FPreStat = tpsWorking) then
+  if (FThread = nil) or (re_entrant > 0) then
     exit;
 
   if drawline > 0 then

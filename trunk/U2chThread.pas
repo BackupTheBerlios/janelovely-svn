@@ -1596,6 +1596,8 @@ begin
     begin
       OnSynchroNotifyProc;
       rc := AsyncResult;
+      if rc then
+        self.datbreak := false;
       queryState := tsCurrency;
       if assigned(asyncObj.OnDone) then
         asyncObj.OnDone(self);

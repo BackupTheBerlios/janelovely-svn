@@ -334,6 +334,7 @@ type
     function  SearchForward (const AString: String): Boolean;
     function  SearchBackward(const AString: String): Boolean;
     procedure SetMarkCommand;
+    procedure SelectAll;
 
     function  Insert(point: TPoint;
                      const AString: string;
@@ -545,8 +546,11 @@ begin
     Move(FText[index], FText[index + insLen], orgLen - index +1);
     Move(FAttrib[index], FAttrib[index + insLen], orgLen - index +1);
   end;
-  Move(str^, FText[index], insLen);
-  FillChar(FAttrib[index], insLen, attrib);
+  if insLen > 0 then
+  begin
+    Move(str^, FText[index], insLen);
+    FillChar(FAttrib[index], insLen, attrib);
+  end;
 end;
 
 procedure THogeTVItem.Add(str: PChar;
@@ -1778,7 +1782,7 @@ begin
     false: PageUp;
   end else
   begin
-    ScrollLine(-FVScrollLines * SmallInt(HIWORD(msg.wParam)) div WHEEL_DELTA);
+    ScrollLine(-FVScrollLines * SmallInt(msg.WParamHi) div WHEEL_DELTA);
     if (msg.wParam < 0) then
       AnalyzeScrollInfo;
   end;
@@ -2756,6 +2760,14 @@ begin
   FSelStart := FEditPoint;
 end;
 
+procedure THogeTextView.SelectAll;
+begin
+  BeginningOfBuffer;
+  SetMarkCommand;
+  EndOfBuffer;
+  Selecting := True;
+end;
+
 function THogeTextView.NormalizeMinMax(point1, point2: TPoint): TRect;
 var
   tmp: integer;
@@ -2877,7 +2889,7 @@ function THogeTextView.Insert(point: TPoint;
                               const AString: string;
                               attrib: Integer = 0): TPoint;
 begin
-  result := nInsert(point, @AString[1], length(AString), attrib);
+  result := nInsert(point, PChar(AString), length(AString), attrib);
 end;
 
 function THogeTextView.nAppend(pstr: PChar;
@@ -2895,7 +2907,7 @@ end;
 function THogeTextView.Append(const AString: string;
                               attrib: Integer = 0): TPoint;
 begin
-  result := nAppend(@AString[1], length(AString), attrib);
+  result := nAppend(PChar(AString), length(AString), attrib);
 end;
 
 {aiai}

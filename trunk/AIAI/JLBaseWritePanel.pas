@@ -55,8 +55,8 @@ type
     ToolBar: TJLXPToolBar;
     ToolButton: array[0..7] of TToolButton;
     Memo: TMemo;
-    NameComboBox: TComboBoxEx;
-    MailComboBox: TComboBoxEx;
+    NameComboBox: TComboBox;
+    MailComboBox: TComboBox;
     SageCheckBox: TCheckBox;
     PreView: THogeTextView;
     PreViewItem: TFlexViewItem;
@@ -165,7 +165,7 @@ var
       Height := 22;
     end;
 
-    NameComboBox := TComboBoxEx.Create(Self);
+    NameComboBox := TComboBox.Create(Self);
 
     With TLabel.Create(Self) do
     begin
@@ -184,6 +184,7 @@ var
 
     With NameComboBox do
     begin
+      AutoComplete := False;
       Parent := NameMailPanel;
       Align := alClient;
       TabOrder := 0;
@@ -192,7 +193,7 @@ var
       OnSelect := NameMailComboBoxSelect;
     end;
 
-    MailComboBox := TComboBoxEx.Create(Self);
+    MailComboBox := TComboBox.Create(Self);
 
     With TLabel.Create(Self) do
     begin
@@ -210,6 +211,7 @@ var
     With MailComboBox do
     begin
       Parent := NameMailPanel;
+      AutoComplete := False;
       Align := alRight;
       Hint := 'ÉÅÅ[Éã';
       Width := 70;
@@ -499,6 +501,7 @@ end;
 procedure TJLBaseWritePanel.NameMailComboBoxSelect(Sender: TObject);
 begin
   try Memo.SetFocus; except end;
+  NameComboBox.SelStart := 0;
 end;
 
 procedure TJLBaseWritePanel.WStatusBarDrawPanel(StatusBar: TStatusBar;

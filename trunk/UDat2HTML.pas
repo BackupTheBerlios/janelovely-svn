@@ -45,7 +45,7 @@ type
     function CalcLines: Integer;
     function GetSize: Cardinal;
     function GetPosition: Cardinal;
-    function GetDatItem(line: Integer; DatItem: TDatItem):string;
+    function GetDatItem(line: Integer; DatItem: TDatItem; var str: PChar; var size: Integer): Boolean;
   public
     constructor Create;
     destructor Destroy; override;
@@ -62,6 +62,10 @@ type
     function FetchID(line: Integer):string;
     function FetchMessage(line: Integer):string;
     {/nono}
+    function FetchNameP(line: Integer; var str: PChar; var size: Integer): Boolean;
+    function FetchMailP(line: Integer; var str: PChar; var size: Integer): Boolean;
+    function FetchMessageP(line: Integer; var str: PChar; var size: Integer): Boolean;
+    function FetchIDP(line: Integer; var str: PChar; var size: Integer): Boolean;
     property Lines: Integer read CalcLines;
     property Size: Cardinal read GetSize;
     property Position: Cardinal read GetPosition;
@@ -1008,7 +1012,7 @@ begin
 end;
 
 {nono}
-function TThreadData.GetDatItem(line: Integer; DatItem: TDatItem):string;
+function TThreadData.GetDatItem(line: Integer; DatItem: TDatItem; var str: PChar; var size: Integer): Boolean;
 var
   datType: TDatType;
   dataString: string;
@@ -1018,18 +1022,16 @@ var
   dateStart, dateSize: integer;
   msgStart,  msgSize : integer;
   strName, strMail, strDate, strMsg: string;
+  name, mail, date, msg: PChar;
 begin
+  Result := False;
+  str := nil;
+  size := 0;
   datType := GetDatType(Self);
   if not FindLine(line) then
-  begin
-    Result := '';
     exit;
-  end;
   if Count <= FCacheInfo.FBlockIndex then
-  begin
-    Result := '';
     exit;
-  end;
 
   dataString := Strings[FCacheInfo.FBlockIndex];
   startPos := FCacheInfo.FIndex;
@@ -1045,31 +1047,35 @@ begin
     if 0 < FindPos('—M', dataString, nameStart, nameStart + nameSize -1) then
     begin
       strName := AnsiReplaceStr(Copy(dataString, nameStart, nameSize), '—M', ',');
+      name := PChar(strName);
       nameSize := length(strName);
     end
     else
-      strName := Copy(dataString, nameStart, nameSize);
+      name := PChar(dataString) + nameStart - 1;
     if 0 < FindPos('—M', dataString, mailStart, mailStart + mailSize -1) then
     begin
       strMail := AnsiReplaceStr(Copy(dataString, mailStart, mailSize), '—M', ',');
+      mail := PChar(strMail);
       mailSize := length(strMail);
     end
     else
-      strMail := Copy(dataString, mailStart, mailSize);
+      mail := PChar(dataString) + mailStart - 1;
     if 0 < FindPos('—M', dataString, dateStart, dateStart + dateSize -1) then
     begin
       strDate := AnsiReplaceStr(Copy(dataString, dateStart, dateSize), '—M', ',');
+      date := PChar(strDate);
       dateSize := length(strDate);
     end
     else
-      strDate := Copy(dataString, dateStart, dateSize);
+      date := PChar(dataString) + dateStart - 1;
     if 0 < FindPos('—M', dataString, msgStart, msgStart + msgSize -1) then
     begin
       strMsg := AnsiReplaceStr(Copy(dataString, msgStart, msgSize), '—M', ',');
+      msg := PChar(strMsg);
       msgSize := length(strMsg);
     end
     else
-      strMsg := Copy(dataString, msgStart, msgSize);
+      msg := PChar(dataString) + msgSize - 1;
   end
   else begin
     Dat2ChFetchLine(PChar(dataString), Length(dataString), startPos,
@@ -1077,72 +1083,144 @@ begin
                     mailStart, mailSize,
                     dateStart, dateSize,
                     msgStart, msgSize);
-    //strName := Copy(dataString, nameStart, nameSize);
-    //strMail := Copy(dataString, mailStart, mailSize);
-    //strDate := Copy(dataString, dateStart, dateSize);
-    //strMsg := Copy(dataString, msgStart, msgSize);
-    SetString(strName, PChar(dataString) + nameStart - 1, nameSize);
-    SetString(strMail, PChar(dataString) + mailStart - 1, mailSize);
-    SetString(strDate, PChar(dataString) + dateStart - 1, dateSize);
-    SetString(strMsg, PChar(dataString) + msgStart - 1, msgSize);
+    name := PChar(dataString) + nameStart - 1;
+    mail := PChar(dataString) + mailStart - 1;
+    date := PChar(dataString) + dateStart - 1;
+    msg := PChar(dataString) + msgStart - 1;
   end;
   if dateSize <= 0 then
-  begin
-    strName := '';
-    strMail := '';
-    strDate := '';
-    strMsg := '';
-  end;
+    exit;
+
+  Result := True;
 
   case DatItem of
-    diName: Result := strName;
-    diMail: Result := strMail;
-    diDate: Result := strDate;
-    diMsg: Result := strMsg;
-    else
-      Result := '';
+
+    diName: begin
+      str := name;
+      size := nameSize;
+    end;
+
+    diMail: begin
+      str := mail;
+      size := mailSize;
+    end;
+
+    diDate: begin
+      str := date;
+      size := dateSize;
+    end;
+
+    diMsg: begin
+      str := msg;
+      size := msgSize;
+    end;
+
+  else
+    Result := False;
   end;
+  Dat2ChNextLine(Self);
 end;
 
 function TThreadData.FetchName(line: Integer):string;
+var
+  str: PChar;
+  size: Integer;
 begin
-  Result := GetDatItem(line, diName);
+  if GetDatItem(line, diName, str, size) then
+    Result := Copy(str, 1, size)
+  else
+    Result := '';
 end;
 
 function TThreadData.FetchMail(line: Integer):string;
+var
+  str: PChar;
+  size: Integer;
 begin
-  Result := GetDatItem(line, diMail);
+  if GetDatItem(line, diMail, str, size) then
+    Result := Copy(str, 1, size)
+  else
+    Result := '';
 end;
 
 function TThreadData.FetchID(line: Integer):string;
 var
-  source: String;
-  p: PChar;
+  str: PChar;
+  size: Integer;
   i, startPos, endPos: integer;
 begin
-  source := GetDatItem(line, diDate);
-  startPos := AnsiPos('ID:', source);
+  Result := '';
+  if not GetDatItem(line, diDate, str, size) then
+    exit;
+
+  startPos := FindPosP('ID:', str, size);
   if startPos > 0 then
   begin
-    p := @source[startPos + 3];
-    endPos := length(source);
-    Result := '';
-    for i := startPos + 3 to endPos do
+    endPos := size;
+    if (startPos + 2 < endPos) and ((str + startPos + 2)^ = '?') then
+      exit;
+    for i := startPos + 2 to endPos - 1 do
     begin
-      if p^ = ' ' then
+      if (str + i)^ = ' ' then
         break;
-      Result := Result + p^;
-      Inc(p);
+      Result := Result + (str + i)^;
     end;
-  end else
-    Result := '';
+  end;
 end;
 
 function TThreadData.FetchMessage(line: Integer):string;
+var
+  str: PChar;
+  size: Integer;
 begin
-  Result := GetDatItem(line, diMsg);
+  if GetDatItem(line, diMsg, str, size) then
+    Result := Copy(str, 1, size)
+  else
+    Result := '';
 end;
 {/nono}
+
+function TThreadData.FetchNameP(line: Integer; var str: PChar; var size: Integer): Boolean;
+begin
+  Result := GetDatItem(line, diName, str, size);
+end;
+
+function TThreadData.FetchMailP(line: Integer; var str: PChar; var size: integer): Boolean;
+begin
+  Result := GetDatItem(line, diMail, str, size);
+end;
+
+function TThreadData.FetchMessageP(line: Integer; var str: PChar; var size: integer): Boolean;
+begin
+  Result := GetDatItem(line, diMsg, str, size);
+end;
+
+function TThreadData.FetchIDP(line: Integer; var str: PChar; var size: integer): Boolean;
+var
+  i, startPos, endPos: integer;
+begin
+  Result := False;
+  if not GetDatItem(line, diDate, str, size) then
+    exit;
+
+  startPos := FindPosP('ID:', str, size);
+  if startPos > 0 then
+  begin
+    endPos := size;
+    if (startPos + 2 < endPos) and ((str + startPos + 2)^ = '?') then
+      exit;
+    i := startPos + 2;
+    while i < endPos do
+    begin
+      if (str + i)^ = ' ' then
+        break;
+      Inc(i);
+    end;
+    Inc(str, startPos + 2);
+    size := i - startPos - 2;
+    Result := True;
+  end;
+end;
 
 (*=======================================================*)
 constructor TDatOut.Create;

@@ -80,8 +80,8 @@ type
     TabSheetSettingTxt: TTabSheet;
     SettingTxt: TMemo;
     WStatusBar: TJLXPStatusBar;
-    EditNameBox: TComboBoxEx;
-    EditMailBox: TComboBoxEx;
+    EditNameBox: TComboBox;
+    EditMailBox: TComboBox;
     ToolBar1: TJLXPToolBar;
     ToolButtonRecordNameMail: TToolButton;
     ToolButtonTrim: TToolButton;
@@ -123,6 +123,7 @@ type
     procedure ToolButtonNameWarnClick(Sender: TObject);
     procedure ToolButtonBeLoginClick(Sender: TObject);
     procedure ToolButtonWriteWaitClick(Sender: TObject);
+    procedure EditNameBoxCloseUp(Sender: TObject);
   private
     { Private êÈåæ }
     savedTop : integer;
@@ -165,7 +166,7 @@ type
     procedure MakePreview;
     procedure RequestToGetLocalRule;
     procedure PasteAAListItem;
-    procedure SetNameBox(NameCombo: TComboboxEx; NameList: TStringList; const Board: string);  //beginner(by nono)
+    procedure SetNameBox(NameCombo: TCombobox; NameList: TStringList; const Board: string);  //beginner(by nono)
     {aiai}
     procedure WaitTimerStart;
     procedure WaitTimerStop;
@@ -565,6 +566,7 @@ begin
     EditNameBox.Text := EditNameBox.Items[0]
   else
     EditNameBox.Text := '';
+  EditNameBox.SelStart := 0;
   //ÉÅÅ[Éã
   if thread.UsedWriteMail <> '' then
     EditMailBox.Text := thread.UsedWriteMail
@@ -622,12 +624,12 @@ begin
   inherited Show;
 end;
 
-procedure TWriteForm.SetNameBox(NameCombo: TComboboxEx; NameList: TStringList; const Board: string);
+procedure TWriteForm.SetNameBox(NameCombo: TCombobox; NameList: TStringList; const Board: string);
 var
   i: Integer;
   tkBoard, tkName: string;
 begin
-  NameCombo.ItemsEx.Clear;
+  NameCombo.Items.Clear;
   for i := 0 to NameList.Count - 1 do
   begin
     if (NameList[i] <> '') and (NameList[i][1] = '<') and (AnsiPos('>', NameList[i]) <> 0) then
@@ -2365,6 +2367,12 @@ begin
   ButtonWrite.Enabled := not writing;
   ButtonWrite.Caption := BUTTON_WRITE_CAPTION;
 end;
+
+procedure TWriteForm.EditNameBoxCloseUp(Sender: TObject);
+begin
+  EditNameBox.SelStart := 0;
+end;
+
 {/aiai}
 
 

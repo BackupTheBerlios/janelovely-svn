@@ -3,12 +3,12 @@ unit UQuickAboneRegist;
 interface
 
 uses
-  Windows, Messages, Classes, Controls, Forms, StdCtrls, ExtCtrls, JLXPSpin;
+  Windows, Messages, Classes, Controls, Forms, StdCtrls, ExtCtrls, JLXPSpin,
+  HogeTextView, Menus;
 
 type
   TQuickAboneRegist = class(TForm)
     Panel1: TPanel;
-    ItemView: TMemo;
     btnRegister: TButton;
     btnCancel: TButton;
     btnSelectAll: TButton;
@@ -16,21 +16,41 @@ type
     seLifeSpan: TJLXPSpinEdit;
     Label1: TLabel;
     btnQuickAbone: TButton;
+    PopupMenu: TPopupMenu;
+    PopupCopy: TMenuItem;
+    PopupSelectAll: TMenuItem;
+    N1: TMenuItem;
     procedure btnSelectAllClick(Sender: TObject);
     procedure ItemViewKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure ItemViewMouseUp(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
+    procedure FormCreate(Sender: TObject);
+    procedure PopupCopyClick(Sender: TObject);
+    procedure PopupSelectAllClick(Sender: TObject);
+    procedure PopupMenuPopup(Sender: TObject);
   private
     { Private éŒ¾ }
     procedure CheckItemView;
   public
     { Public éŒ¾ }
+    ItemView: THogeTextView;
   end;
 
 implementation
 
 {$R *.dfm}
+
+procedure TQuickAboneRegist.FormCreate(Sender: TObject);
+begin
+  ItemView := THogeTextView.Create(Self);
+  ItemView.Parent := Self;
+  ItemView.OnKeyDown := ItemViewKeyDown;
+  ItemView.OnMouseUp := ItemViewMouseUp;
+  ItemView.PopupMenu := PopupMenu;
+  ItemView.ConfCaretVisible := True;
+  ItemView.Align := alClient;
+end;
 
 procedure TQuickAboneRegist.btnSelectAllClick(Sender: TObject);
 begin
@@ -52,7 +72,7 @@ end;
 
 procedure TQuickAboneRegist.CheckItemView;
 begin
-  if ItemView.SelLength>0 then begin
+  if ItemView.GetSelection <> '' then begin
     btnQuickAbone.Enabled := True;
     btnRegister.Enabled := True;
   end else begin
@@ -61,5 +81,19 @@ begin
   end;
 end;
 
+procedure TQuickAboneRegist.PopupCopyClick(Sender: TObject);
+begin
+  ItemView.CopySelection;
+end;
+
+procedure TQuickAboneRegist.PopupSelectAllClick(Sender: TObject);
+begin
+  ItemView.SelectAll;
+end;
+
+procedure TQuickAboneRegist.PopupMenuPopup(Sender: TObject);
+begin
+  PopupCopy.Enabled := ItemView.GetSelection <> '';
+end;
 
 end.

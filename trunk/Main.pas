@@ -42,8 +42,8 @@ uses
   {/aiai}
 
 const
-  VERSION  = '0.1.3.14';      (* Printable ASCIIコード厳守。')'はダメ *)
-  JANE2CH  = 'JaneLovely 0.1.3.14';
+  VERSION  = '0.1.3.15';      (* Printable ASCIIコード厳守。')'はダメ *)
+  JANE2CH  = 'JaneLovely 0.1.3.15';
   KEYWORD_OF_USER_AGENT = 'JaneLovely';      (*  *)
 
   DISTRIBUTORS_SITE = 'http://www.geocities.jp/openjane4714/';
@@ -7524,7 +7524,7 @@ begin
     viewItem := GetViewOf(PopupTextMenu.PopupComponent)
   else
     viewItem := GetActiveView;
-  if (viewItem = nil) then
+  if (viewItem = nil) or (viewItem.thread = nil) then
     exit;
   tmp := viewItem.LinkText;
   if not AnsiStartsStr('ID:', tmp) then
@@ -10654,7 +10654,7 @@ begin
   if not assigned(viewItem.thread.dat) then
     exit;
   strList := TStringList.Create;
-  strList.Text := viewItem.thread.ToString('<MESSAGE/><br>', TMenuItem(Sender).Tag, 1);
+  strList.Text := StripBlankLinesForHint(viewItem.thread.ToString('<MESSAGE/><br>', TMenuItem(Sender).Tag, 1), High(Integer));
   s := Config.wrtReplyMark + IntToStr(TMenuItem(Sender).Tag) + #13#10;
   for i := 0 to strList.Count - 1 do
     s := s + '> ' + strList.Strings[i] + #13#10;
@@ -11418,7 +11418,8 @@ var
 begin
   //スレビューを取得
   viewItem  := GetActiveView;
-  //if viewItem.thread = nil then exit; //aiai コメントアウト
+  if viewItem = nil then
+    exit;
 
   //キーワード選択をしたスレビューorポップアップを取得
   if PopupTextMenu.PopupComponent is THogeTextView then
@@ -11475,7 +11476,7 @@ begin
   dlg := TAddAAForm.Create(self);
   dlg.Text := s;
   dlg.ShowModal;
-  dlg.Free;
+  dlg.Release;
 end;
 
 
@@ -13491,8 +13492,7 @@ begin
       list := list + #13#10;
   end;
   if res then
-    list := list + StripBlankLinesForHint(viewItem.thread.ToString(DEF_REC_HTML,
-      num, 1), High(Integer));
+    list := list + viewItem.thread.ToString(DEF_REC_HTML, num, 1);
   ClipBoard.AsText := list;
 end;
 
@@ -13931,6 +13931,7 @@ end;
 {beginner} //スレ欄からのNGワードの追加
 procedure TMainWnd.PopupViewAddNgClick(Sender: TObject);
 var
+  baseViewItem: TBaseViewItem;
   viewItem: TViewItem;
   dat:TThreadData;
   Item:string;
@@ -13941,45 +13942,58 @@ var
   AboneType:Integer;
   LifeSpan:Integer;
   MResult: Integer;
+  p: PChar;
+  size: integer;
+  rc: Boolean;
 begin
-  if (PopupTextMenu.PopupComponent is THogeTextView) then
-    viewItem := TViewItem(GetViewOf(PopupTextMenu.PopupComponent))
+  if (PopupViewMenu.PopupComponent is THogeTextView) then
+    baseViewItem := GetViewOf(PopupViewMenu.PopupComponent)
   else
-    viewItem := GetActiveView;
+    baseViewItem := GetActiveView;
 
-  if (viewItem.thread = nil) or (viewItem.thread.dat = nil) then
+  if (baseViewItem.thread = nil) or (baseViewItem.thread.dat = nil) then
+    exit;
+
+  //viewItemがTPopupViewItemの可能性があるのでviewListからTViewItemを探す
+  // by aiai
+  //
+  viewItem := viewList.FindViewItem(baseViewItem.thread);
+
+  if viewItem = nil then
     exit;
 
   dat := viewItem.thread.DupData;
 
   if sender = PopupViewAddNgName then begin
-    Item := dat.FetchName(TMenuItem(Sender).Tag);
+    rc := dat.FetchNameP(TMenuItem(Sender).Tag, p, size);
     NgList := NG_ITEM_NAME;
   end else if sender = PopupViewAddNgAddr then begin
-    Item := dat.FetchMail(TMenuItem(Sender).Tag);
+    rc := dat.FetchMailP(TMenuItem(Sender).Tag, p, size);
     NgList := NG_ITEM_MAIL;
   end else if sender=PopupViewAddNgWord then begin
-    Item := dat.FetchMessage(TMenuItem(Sender).Tag);
+    rc := dat.FetchMessageP(TMenuItem(Sender).Tag, p, size);
     NgList := NG_ITEM_MSG;
   end else if sender=PopupViewAddNgId then begin
-    Item := dat.FetchID(TMenuItem(Sender).Tag);
+    rc := dat.FetchIDP(TMenuItem(Sender).Tag, p, size);
     NgList := NG_ITEM_ID;
   end else begin
     dat.Free;
     Exit;
   end;
 
-  if Item = '' then begin
+  if not rc or (p = nil) or (size = 0) then begin
     dat.Free;
     Exit;
   end;
+
+  SetString(Item, p, size);
 
   tmp := TMenuItem(Sender).Caption;
 
   QuickAboneRegist := TQuickAboneRegist.Create(Self);
   QuickAboneRegist.Font := Self.Font;
   QuickAboneRegist.Caption := tmp;
-  QuickAboneRegist.ItemView.Text := StringReplace(Item, ' <br> ', #13#10, [rfReplaceAll]);
+  QuickAboneRegist.ItemView.Append(StringReplace(Item, ' <br> ', #13#10, [rfReplaceAll]));
   QuickAboneRegist.ItemView.SelectAll;
 
   Repeat
@@ -13987,6 +14001,8 @@ begin
     if MResult = mrCancel then
     begin
       dat.Free;
+      QuickAboneRegist.Release;
+      QuickAboneRegist := nil;
       Exit;
     end;
     //if MResult = mrCancel then
@@ -13995,9 +14011,9 @@ begin
 //http://jane.cun.jp/test/read.cgi/win/1064951726/217
 //2-293氏
 
-  until QuickAboneRegist.ItemView.SelText <> '';
+  until QuickAboneRegist.ItemView.GetSelection <> '';
 
-  Item := StringReplace(QuickAboneRegist.ItemView.SelText,#13#10,' <br> ',[rfReplaceAll]);
+  Item := StringReplace(QuickAboneRegist.ItemView.GetSelection,#13#10,' <br> ',[rfReplaceAll]);
 
   case QuickAboneRegist.cmbAboneType.ItemIndex of
     1: AboneType := 2;
@@ -14031,10 +14047,10 @@ begin
     end;
     mrYes: begin //直接あぼーんする
       for i := 1 to viewItem.thread.lines do begin
-        if (((sender = PopupViewAddNgName) and AnsiContainsText(dat.FetchName(i), Item)) or
-            ((sender = PopupViewAddNgAddr) and AnsiContainsText(dat.FetchMail(i), Item)) or
-            ((sender = PopupViewAddNgWord) and AnsiContainsText(dat.FetchMessage(i), Item)) or
-            (((sender = PopupViewAddNgId)  and AnsiContainsStr(dat.FetchID(i), Item))
+        if (((sender = PopupViewAddNgName) and dat.FetchNameP(i, p, size) and (SearchBuf(p, size, 0, 0, Item, [soDown]) <> nil)) or
+            ((sender = PopupViewAddNgAddr) and dat.FetchMailP(i, p, size) and (SearchBuf(p, size, 0, 0, Item, [soDown]) <> nil)) or
+            ((sender = PopupViewAddNgWord) and dat.FetchMessageP(i, p, size) and (SearchBuf(p, size, 0, 0, Item, [soDown]) <> nil)) or
+            ((sender = PopupViewAddNgId)  and dat.FetchIDP(i, p, size) and (SearchBuf(p, size, 0, 0, Item, [soDown]) <> nil)
            ) and (AboneType >= viewItem.thread.ABoneArray[i])) then begin
            if AboneType = 0 then
              viewItem.thread.ABoneArray[i] := 1
@@ -14053,123 +14069,81 @@ end;
 
 
 //aiai
+//TextPopupNGWordClickとほとんど同じ
 procedure TMainWnd.TextPopupAddNGIDClick(Sender: TObject);
 var
+  baseViewItem: TBaseViewItem;
   viewItem: TViewItem;
-  dat: TThreadData;
   Item: string;
   i: Integer;
   tmp: string;
-  NgList: TNGItemIdent;
   NGItemData: TNGItemData;
-  AboneType: Integer;
-  LifeSpan: Integer;
-  MResult: Integer;
 begin
-  if PopupTextMenu.PopupComponent is THogeTextView then
-    viewItem := TViewItem(GetViewOf(PopupTextMenu.PopupComponent))
-  else
-    viewItem := GetActiveView;
+  //スレビューを取得
+  viewItem  := GetActiveView;
   if viewItem = nil then
     exit;
-  tmp := viewItem.LinkText;
+
+  //IDを取得したスレビューorポップアップを取得
+  if PopupTextMenu.PopupComponent is THogeTextView then
+    baseViewItem := GetViewOf(PopupTextMenu.PopupComponent)
+  else
+    baseViewItem := GetActiveView;
+
+  if baseViewItem = nil then
+    exit;
+
+  tmp := baseViewItem.LinkText;
   if not AnsiStartsStr('ID:', tmp) then
     exit;
   SetString(Item, PChar(tmp) + 3, Length(tmp) - 3);
   if Length(Item) <= 0 then
     exit;
 
-  NgList := NG_ITEM_ID;
-
-  tmp := TMenuItem(Sender).Caption;
-
-  QuickAboneRegist := TQuickAboneRegist.Create(Self);
-  QuickAboneRegist.Font := Self.Font;
-  QuickAboneRegist.Caption := tmp;
-  QuickAboneRegist.ItemView.Text := StringReplace(Item, ' <br> ', #13#10, [rfReplaceAll]);
-  QuickAboneRegist.ItemView.SelectAll;
-
-  Repeat
-    MResult := QuickAboneRegist.ShowModal;
-    if MResult = mrCancel then
+  i := NgItems[NG_ITEM_ID].IndexOf(item);
+  if i < 0 then begin
+    if MessageDlg('ID:”' + Item + '” をNGIDに追加します', mtInformation, [mbOk, mbCancel], 0) <> mrOk then
       Exit;
-  until QuickAboneRegist.ItemView.SelText <> '';
+    tmp := '';
+    NGItemData := TNGItemData.Create('', tmp);
+    NGItemData.BMSearch := TBMSearch.Create;
+    NGItemData.BMSearch.IgnoreCase := False;
+    NGItemData.BMSearch.Subject := Item;
 
-  Item := StringReplace(QuickAboneRegist.ItemView.SelText,#13#10,' <br> ',[rfReplaceAll]);
+    NGItems[NG_ITEM_ID].AddObject(item, NGItemData);
+    NGItems[NG_ITEM_ID].SaveToFile(config.basepath + NG_FILE[NG_ITEM_ID]);
 
-  case QuickAboneRegist.cmbAboneType.ItemIndex of
-    1: AboneType := 2;
-    2: AboneType := 4;
-    else
-      AboneType := 0;
+    if viewItem.thread <> nil then
+      viewItem.LocalReload(viewItem.GetTopRes);
+  end else begin
+    MessageDlg('キーワード"'+Item+'"は登録済み',mtWarning,[mbOk],0);
   end;
-
-  LifeSpan := QuickAboneRegist.seLifeSpan.Value;
-  QuickAboneRegist.Release;
-  QuickAboneRegist := nil;
-
-  case MResult of
-    mrOk: begin //NGに登録する
-      i := NgItems[NGList].IndexOf(item);
-      if i < 0 then begin
-        tmp := '';
-        NGItemData := TNGItemData.Create('', tmp);
-        NGItemData.AboneType := AboneType;
-        NGItemData.LifeSpan := LifeSpan;
-        NGItemData.BMSearch := TBMSearch.Create;
-        NGItemData.BMSearch.IgnoreCase := not(Sender = PopupViewAddNgId);
-        NGItemData.BMSearch.Subject := Item;
-
-        NGItems[NgList].AddObject(item, NGItemData);
-        NGItems[NgList].SaveToFile(config.basepath + NG_FILE[NgList]);
-        viewItem.LocalReload(viewItem.GetTopRes);
-      end else begin
-        MessageDlg('キーワード"'+Item+'"は登録済み',mtWarning,[mbOk],0);
-      end;
-    end;
-    mrYes: begin //直接あぼーんする
-      if Assigned(viewItem.thread) and Assigned(viewItem.thread.dat) then
-      begin
-        dat := viewItem.thread.DupData;
-        for i := 1 to viewItem.thread.lines do begin
-          if AnsiContainsStr(dat.FetchID(i), Item)
-               and (AboneType >= viewItem.thread.ABoneArray[i]) then
-          begin
-            if AboneType = 0 then
-              viewItem.thread.ABoneArray[i] := 1
-            else
-              viewItem.thread.ABoneArray[i] := AboneType;
-          end;
-        end;
-        dat.Free;
-        viewItem.LocalReload(viewItem.GetTopRes);
-      end;
-    end;
-  end;
-
 end;
 
 //このIDをあぼーん・このIDを透明あぼーん
 procedure TMainWnd.TextPopupIDAboneClick(Sender: TObject);
 var
+  baseViewItem: TBaseViewItem;
   viewItem: TViewItem;
   Item, tmp: String;
   i: Integer;
   dat: TThreadData;
   AboneType: Integer;
+  p: PChar;
+  size: integer;
 begin
   if PopupTextMenu.PopupComponent is THogeTextView then
-    viewItem := TViewItem(GetViewOf(PopupTextMenu.PopupComponent))
+    baseViewItem := GetViewOf(PopupTextMenu.PopupComponent)
   else
-    viewItem := GetActiveView;
-  if (viewItem = nil) then
+    baseViewItem := GetActiveView;
+  if (baseViewItem = nil) or (baseViewItem.thread = nil)
+    or (baseViewItem.thread.dat = nil) then
     exit;
-  tmp := viewItem.LinkText;
+  tmp := baseViewItem.LinkText;
+  viewItem := viewList.FindViewItem(baseViewItem.thread);
+  if viewItem = nil then
+    exit;
   if not AnsiStartsStr('ID:', tmp) then
-    exit;
-  viewItem := GetActiveView;
-  if (viewItem = nil) or (viewItem.thread = nil)
-    or (viewItem.thread.dat = nil) then
     exit;
   SetString(Item, PChar(tmp) + 3, Length(tmp) - 3);
   if Length(Item) <= 0 then
@@ -14178,8 +14152,7 @@ begin
   AboneType := TMenuItem(Sender).Tag;
   dat := viewItem.thread.DupData;
   for i := 1 to viewItem.thread.lines do begin
-    //if AnsiContainsStr(dat.FetchID(i), Item)
-    if AnsiContainsStr(Item, dat.FetchID(i))
+    if dat.FetchIDP(i, p, size) and (SearchBuf(p, size, 0, 0, item, [soDown]) <> nil)
           and (AboneType >= viewItem.thread.ABoneArray[i]) then
     begin
       viewItem.thread.ABoneArray[i] := AboneType;
@@ -14220,7 +14193,7 @@ begin
   dlg.Text := strList.Text;
   strList.Free;
   dlg.ShowModal;
-  dlg.Free;
+  dlg.Release;
 
 end;
 

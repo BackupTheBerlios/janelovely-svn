@@ -159,34 +159,27 @@ object WriteForm: TWriteForm
           TabOrder = 2
           OnClick = CheckBoxSageClick
         end
-        object EditNameBox: TComboBoxEx
+        object EditNameBox: TComboBox
           Left = 56
           Top = 3
           Width = 193
-          Height = 21
-          ItemsEx.CaseSensitive = False
-          ItemsEx.SortType = stNone
-          ItemsEx = <>
-          StyleEx = []
+          Height = 20
+          AutoComplete = False
           Anchors = [akLeft, akTop, akRight]
-          ItemHeight = 16
+          ItemHeight = 12
           TabOrder = 0
-          DropDownCount = 8
+          OnCloseUp = EditNameBoxCloseUp
         end
-        object EditMailBox: TComboBoxEx
+        object EditMailBox: TComboBox
           Left = 315
           Top = 3
           Width = 85
-          Height = 21
-          ItemsEx.CaseSensitive = False
-          ItemsEx.SortType = stNone
-          ItemsEx = <>
-          StyleEx = []
+          Height = 20
+          AutoComplete = False
           Anchors = [akTop, akRight]
-          ItemHeight = 16
+          ItemHeight = 12
           TabOrder = 1
           Text = 'sage'
-          DropDownCount = 8
         end
       end
     end
