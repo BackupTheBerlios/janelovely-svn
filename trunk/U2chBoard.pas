@@ -1486,7 +1486,10 @@ var
 begin
   Result := False;
   if not (FProcState in [tpsNone, tpsDone]) then
+  begin
+    Main.Log(FName + ': ìúVvúV˜¸Ó³Á®¯Ä‘ÒÁÅ»²Ö');
     exit;
+  end;
 
   if Now <= IncSecond(FLastAccess, Config.oprListReloadInterval) then
   begin
@@ -1495,6 +1498,7 @@ begin
     theTime := IncSecond(Now, Config.oprListReloadInterval);
     if theTime < FLastAccess then
       FLastAccess := theTime;
+    Main.Log(FName + ': ìúVvúV˜¸Ó³Á®¯Ä‘ÒÁÅ»²Ö');
     exit;
   end;
 
@@ -1527,7 +1531,10 @@ function TBoard.HomoMovedQuery(OnProcDone: TBoardSubjectEndEvent): Boolean;
 begin
   Result := False;
   if not (Self.FProcState in [tpsNone, tpsDone]) then
+  begin
+    Main.Log(FName + ': ìúVvúV˜¸Ó³Á®¯Ä‘ÒÁÅ»²Ö');
     exit;
+  end;
 
   if usetrace[16] then Log(traceString[16]) else Log('ì*fÍfj²ÃİÂ²Ë');
 
@@ -1553,7 +1560,8 @@ begin
   Result := False;
   if not (FProcState in [tpsNone, tpsDone]) then
   begin
-    FOnCheckEnd(Self, -1, PatrolType);
+    Main.Log('(' + FFavPatrolData + ') y' + FName + 'z - ìúVvúV˜¸Ó³Á®¯Ä‘ÒÁÅ»²Ö');
+    OnCheckDone(Self, -1, PatrolType);
     exit;
   end;
 
@@ -1564,7 +1572,8 @@ begin
     theTime := IncSecond(Now, Config.oprListReloadInterval);
     if theTime < FLastAccess then
       FLastAccess := theTime;
-    FOnCheckEnd(Self, -1, PatrolType);
+    Main.Log('(' + FFavPatrolData + ') y' + FName + 'z - ìúVvúV˜¸Ó³Á®¯Ä‘ÒÁÅ»²Ö');
+    OnCheckDone(Self, -1, PatrolType);
     exit;
   end;
 
