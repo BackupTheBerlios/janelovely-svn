@@ -86,7 +86,8 @@ uses
   UMDITextView in 'AIAI\UMDITextView.pas',
   UMigemo in 'AIAI\UMigemo.pas',
   UWriteWait in 'AIAI\UWriteWait.pas',
-  WriteSub in 'AIAI\WriteSub.pas';
+  WriteSub in 'AIAI\WriteSub.pas',
+  VBScript_RegExp_55_TLB in 'C:\Program Files\Borland\Delphi6\Imports\VBScript_RegExp_55_TLB.pas';
 
 {$R *.res}
 

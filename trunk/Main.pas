@@ -32,7 +32,7 @@ uses
   {$ELSE}
   sqlite,
   {$ENDIF}
-  UMigemo, ComObj,
+  UMigemo, VBScript_RegExp_55_TLB,
   ApiBmp, PNGImage, GIFImage, ClipBrdSub,
   UAAForm, UAddAAForm, UAutoReSc, UAutoReloadSettingForm,
   UAutoScrollSettingForm, ULovelyWebForm, UNews, UGetBoardListForm,
@@ -758,7 +758,6 @@ type
     ThreViewSearchCloseButton: TToolButton;
     ListViewSearchSep: TToolButton;
     ThreViewSearchSep1: TToolButton;
-    ThreViewSearchUpDown: TUpDown;
     ThreViewSearchSep2: TToolButton;
     ThreViewSearchResFindButton: TToolButton;
     ThreViewSearchSep3: TToolButton;
@@ -873,6 +872,19 @@ type
     TreeTabControl: TTabControl;
     N98: TMenuItem;
     MenuStatusReset: TMenuItem;
+    MenuThreViewSearchCopy: TMenuItem;
+    MenuThreViewSearchCut: TMenuItem;
+    MenuThreViewSearchPaste: TMenuItem;
+    MenuThreViewSearchSelectAll: TMenuItem;
+    MenuThreViewSearchClear: TMenuItem;
+    N106: TMenuItem;
+    ThreViewSearchUpDown: TUpDown;
+    MenuThreViewSearchNext: TMenuItem;
+    MenuThreViewSearchPrev: TMenuItem;
+    N107: TMenuItem;
+    MenuThreViewSearchExtract: TMenuItem;
+    MenuThreViewSearchExtractTree: TMenuItem;
+    N108: TMenuItem;
     {/aiai}
     procedure FormCreate(Sender: TObject);
     procedure MenuToolsOptionsClick(Sender: TObject);
@@ -1374,6 +1386,10 @@ type
     procedure MemoWriteMainKeyPress(Sender: TObject; var Key: Char);
     procedure CheckBoxWriteSageClick(Sender: TObject);
     procedure MenuStatusResetClick(Sender: TObject);
+    procedure MenuThreViewSearchCopyClick(Sender: TObject);
+    procedure ThreViewSearchUpDownClick(Sender: TObject;
+      Button: TUDBtnType);
+    procedure MenuThreViewSearchExtractClick(Sender: TObject);
     {/aiai}
   private
   { Private 宣言 }
@@ -1612,9 +1628,9 @@ type
     //▲ スレ絞込み
     //▼ スレ内検索
     procedure ThreViewSearchSetSearch(index: integer);
-    procedure ThreViewSearchMigemoSearch;
-    procedure ThreViewSearchNormalSearch;
-    procedure ThreViewSearchRegExpSearch;
+    procedure ThreViewSearchMigemoSearch(ForwardP: Boolean);
+    procedure ThreViewSearchNormalSearch(ForwardP: Boolean);
+    procedure ThreViewSearchRegExpSearch(ForwardP: Boolean);
     //▲ スレ内検索
     //▼ 板ツリー検索
     procedure TreeViewSearchSetSearch(index: integer);
@@ -3052,16 +3068,15 @@ begin
   if Config.schEnableMigemo then
   begin
     InitMigemo;  //Migemo初期化
-//    WSHRegExp := CreateOleObject('VBScript.RegExp');  //WSH
-//    WSHRegExp.IgnoreCase := True;   //大文字小文字を区別しない
   end;
   ListViewSearchSetSearch(Config.schDefaultSearch);
-  //ThreViewSearchSetSearch(Config.schDefaultSearch);
+  ThreViewSearchSetSearch(Config.schDefaultSearch);
   TreeViewSearchSetSearch(Config.schDefaultSearch);
   ListViewSearchToolBar.Visible := Config.schUseSearchBar and Config.schShowListToolbarOnStartup;
-  //ThreViewSearchToolBar.Visible := Config.schUseSearchBar and Config.schShowToolbarOnStartup;
+  ThreViewSearchToolBar.Visible := Config.schUseSearchBar and Config.schShowToolbarOnStartup;
   TreeViewSearchToolBar.Visible := Config.schUseSearchBar and Config.schShowTreeToolbarOnStartup;
   ListViewSearchEditBox.Items := Config.grepSearchList;
+  ThreViewSearchEditBox.Items := Config.grepSearchList;
   TreeViewSearchEditBox.Items := Config.grepSearchList;
 
   (* WriteWaitTimer *)
@@ -5623,7 +5638,11 @@ begin
   Browser.OnEndContext := BrowserEndContext;
   Browser.PopupMenu := PopupTextMenu;
   Browser.HoverTime := Config.hintHintHoverTime;
-  Browser.CaretScrollSync := Config.viewCaretScrollSync; //aiai
+  {aiai}
+  Browser.CaretScrollSync := Config.viewCaretScrollSync;
+  Browser.KeywordBrushColor := Config.viewKeywordBrushColor;
+  {/aiai}
+
   Browser.SetPhysicalCaret(0, 0);
 
   Result := TPopupViewItem.Create(Browser, OwnerView);
@@ -7677,11 +7696,11 @@ begin
       exit;
     end else
     begin
-    {  ThreViewSearchToolBar.Visible := true;
+      ThreViewSearchToolBar.Visible := true;
       try
         ThreViewSearchEditBox.SetFocus;
       except end;
-      exit;}
+      exit;
     end;
 
   viewItem := GetActiveView;
@@ -7841,11 +7860,12 @@ begin
     exit;
   if length(searchTarget) <= 0 then
     exit;
+  {aiai}
   if forwardP then
-    viewItem.browser.SearchForward(searchTarget)
+    ThreViewSearchUpDownClick(Self, btPrev)
   else
-    viewItem.browser.SearchBackward(searchTarget);
-  viewitem.browser.Invalidate;  //aiai
+    ThreViewSearchUpDownClick(Self, btNext);
+  {/aiai}
 end;
 
 procedure TMainWnd.FindNavigateClick(Sender: TObject);
@@ -17664,8 +17684,8 @@ var
   target: string;
   i, j: Integer;
   str: PChar;
-  WSHRegExp: Variant;
   targetList: TStringList;
+  RegExp: TRegExp;
 begin
   SearchTimer.Enabled := False;
 
@@ -17705,8 +17725,8 @@ begin
     Inc(i);
   end;
 
-  WSHRegExp := CreateOleObject('VBScript.RegExp');  //WSH
-  WSHRegExp.IgnoreCase := True;   //大文字小文字を区別しない
+  RegExp := TRegExp.Create(nil);   //WSH
+  RegExp.IgnoreCase := True;       //大文字小文字を区別しない
 
   if Config.schMultiWord then
   begin
@@ -17717,17 +17737,17 @@ begin
     begin
       targetList.Free;
       ListviewSearchEnd(True);
-      WSHRegExp := Unassigned;
+      RegExp.Free;
       exit;
     end;
     str := MigemoOBJ.Query(targetList.Strings[0]);
     target := Copy(str, 1, Length(str));
     MigemoOBJ.Release(str);
     try
-      WSHRegExp.Pattern := target;      //正規表現パターン
+      RegExp.Pattern := WideString(target); //正規表現パターン
     except
       ListViewSearchEditBox.Color := $D0FFFF;
-      WSHRegExp := Unassigned;
+      RegExp.Free;
       targetList.Free;
       exit;
     end;
@@ -17736,16 +17756,16 @@ begin
         with TThreadItem(LIstView.List[i]) do
           try
             if Config.schIgnoreFullHalf then
-              if WSHRegExp.Test(StrUnify2(HTML2String(title))) then
+              if RegExp.Test(StrUnify2(HTML2String(title))) then
                 liststate := 1
               else liststate := 0
             else
-              if WSHRegExp.Test(HTML2String(title)) then
+              if RegExp.Test(HTML2String(title)) then
                 liststate := 1
               else liststate := 0
           except
             ListViewSearchEditBox.Color := $D0FFFF;
-            WSHRegExp := Unassigned;
+            RegExp.Free;
             targetList.Free;
             exit;
           end;
@@ -17756,10 +17776,10 @@ begin
       target := Copy(str, 1, Length(str));
       MigemoOBJ.Release(str);
       try
-        WSHRegExp.Pattern := target;      //正規表現パターン
+        RegExp.Pattern := WideString(target);       //正規表現パターン
       except
         ListViewSearchEditBox.Color := $D0FFFF;
-        WSHRegExp := Unassigned;
+        RegExp.Free;
         targetList.Free;
         exit;
       end;
@@ -17770,16 +17790,15 @@ begin
               try
                 if Config.schIgnoreFullHalf then
                 begin
-                  if not WSHRegExp.Test(StrUnify2(HTML2String(title))) then
+                  if not RegExp.Test(StrUnify2(HTML2String(title))) then
                     liststate := 0;
                 end else
                 begin
-                  if not WSHRegExp.Test(HTML2String(title)) then
+                if not RegExp.Test(HTML2String(title)) then
                     liststate := 0;
                 end;
               except
                 ListViewSearchEditBox.Color := $D0FFFF;
-                WSHRegExp := Unassigned;
                 targetList.Free;
                 exit;
               end;
@@ -17791,10 +17810,10 @@ begin
     target := Copy(str, 1, Length(str));
     MigemoOBJ.Release(str);
     try
-      WSHRegExp.Pattern := target;      //正規表現パターン
+      RegExp.Pattern := target;   //正規表現パターン
     except
       ListViewSearchEditBox.Color := $D0FFFF;
-      WSHRegExp := Unassigned;
+      RegExp.Free;
       exit;
     end;
     if target <> '' then
@@ -17802,24 +17821,24 @@ begin
         with TThreadItem(LIstView.List[i]) do
           try
             if Config.schIgnoreFullHalf then
-              if WSHRegExp.Test(StrUnify2(HTML2String(title))) then
+              if RegExp.Test(StrUnify2(HTML2String(title))) then
                 liststate := 1
               else
                liststate := 0
             else
-              if WSHRegExp.Test(HTML2String(title)) then
+              if RegExp.Test(HTML2String(title)) then
                 liststate := 1
               else
                liststate := 0
           except
             ListViewSearchEditBox.Color := $D0FFFF;
-            WSHRegExp := Unassigned;
+            RegExp.Free;
             exit;
           end;
 
   end;
 
-  WSHRegExp := Unassigned;
+  RegExp.Free;
   ListviewSearchEnd(False);
 end;
 
@@ -17907,7 +17926,7 @@ end;
 procedure TMainWnd.ListViewSearchRegExpSearch;
 var
   i: Integer;
-  WSHRegExp: Variant;
+  RegExp: TRegExp;
   target: String;
 begin
   SearchTimer.Enabled := False;
@@ -17925,13 +17944,13 @@ begin
     exit;
   end;
 
-  WSHRegExp := CreateOleObject('VBScript.RegExp');  //WSH
-  WSHRegExp.IgnoreCase := True;   //大文字小文字を区別しない
+  RegExp := TRegExp.Create(nil);  //WSH
+  RegExp.IgnoreCase := True;   //大文字小文字を区別しない
   try
-    WSHRegExp.Pattern := target;      //正規表現パターン
+    RegExp.Pattern := target;      //正規表現パターン
   except
     ListViewSearchEditBox.Color := $D0FFFF;
-    WSHRegExp := Unassigned;
+    RegExp.Free;
     exit;
   end;
 
@@ -17939,14 +17958,14 @@ begin
     for i := 0 to ListView.Items.Count -1 do
       with TThreadItem(LIstView.List[i]) do
         try
-          if WSHRegExp.Test(HTML2String(title)) then liststate := 1
+          if RegExp.Test(HTML2String(title)) then liststate := 1
           else liststate := 0;
         except
           ListViewSearchEditBox.Color := $D0FFFF;
-          WSHRegExp := Unassigned;
+          RegExp.Free;
           exit;
         end;
-  WSHRegExp := Unassigned;
+  RegExp.Free;
   ListviewSearchEnd(False);
 end;
 
@@ -18059,17 +18078,30 @@ begin
   if Ord(Key) = VK_RETURN then
   begin
     Case ThreViewSearchEditBox.Tag of
-    0: begin ThreViewSearchNormalSearch; Key := #0; end;
+    0: begin ThreViewSearchNormalSearch(True); Key := #0; end;
     1:
       begin
         if Config.schEnableMigemo and MigemoOBJ.CanUse then
-          ThreViewSearchMigemoSearch
+          ThreViewSearchMigemoSearch(True)
         else
-          ThreViewSearchNormalSearch;
+          ThreViewSearchNormalSearch(True);
         Key := #0;
       end;
-    2: begin ThreViewSearchRegExpSearch; Key := #0; end;
+    2: begin ThreViewSearchRegExpSearch(True); Key := #0; end;
     end;
+  end;
+end;
+
+procedure TMainWnd.ThreViewSearchUpDownClick(Sender: TObject;
+  Button: TUDBtnType);
+begin
+  Case ThreViewSearchEditBox.Tag of
+  0: ThreViewSearchNormalSearch(Button = btPrev);
+  1: if Config.schEnableMigemo and MigemoOBJ.CanUse then
+       ThreViewSearchMigemoSearch(Button = btPrev)
+     else
+       ThreViewSearchNormalSearch(Button = btPrev);
+  2: ThreViewSearchRegExpSearch(Button = btPrev);
   end;
 end;
 
@@ -18103,6 +18135,7 @@ end;
 
 procedure TMainWnd.ThreViewSearchEditBoxChange(Sender: TObject);
 begin
+  ThreViewSearchUpDown.Position := 0;
   ThreSearchTimer.Enabled := False;
   if GetActiveView = nil then
     exit;
@@ -18115,33 +18148,283 @@ begin
   if GetActiveView = nil then
     exit;
   case ThreViewSearchEditBox.Tag of
-  0: ThreViewSearchNormalSearch;
+  0: ThreViewSearchNormalSearch(True);
   1:
     begin
       if Config.schEnableMigemo and MigemoOBJ.CanUse then
-        ThreViewSearchMigemoSearch
+        ThreViewSearchMigemoSearch(True)
       else
-        ThreViewSearchNormalSearch;
+        ThreViewSearchNormalSearch(True);
     end;
   end;
 end;
 
 //Migemo検索
-procedure TMainWnd.ThreViewSearchMigemoSearch;
+procedure TMainWnd.ThreViewSearchMigemoSearch(ForwardP: Boolean);
+var
+  viewItem: TViewItem;
+  str: PChar;
+  i, j: integer;
+  targetList: TStringList;
 begin
   ThreSearchTimer.Enabled := False;
+
+  ThreViewSearchEditBox.Color := clWindow;
+
+  viewItem := GetActiveView;
+  if (viewitem = nil) or (viewItem.thread = nil) then
+    exit;
+
+  if (Length(ThreViewSearchEditBox.Text) = 0) then
+  begin
+    viewItem.browser.SearchClear;
+    exit;
+  end;
+
+  if not MigemoOBJ.CanUse then
+  begin
+    ThreViewSearchNormalSearch(ForwardP);
+    exit;
+  end;
+
+  SearchTarget := ThreViewSearchEditBox.Text;
+
+  j := Length(SearchTarget);
+  str := PChar(SearchTarget);
+  i := 0;
+  while i < j do
+  begin
+    case (str + i)^ of
+    '-', 'A'..'Z', 'a'..'z', '0'..'9', ' ':;
+    #$81:
+      begin
+        if not (i < j - 1) or not ((str + i + 1)^ = #$40) then //全角空白でない
+        begin
+          ThreViewSearchNormalSearch(ForwardP);
+          exit;
+        end;
+        Inc(i);
+      end;
+    else
+      begin
+        ThreViewSearchNormalSearch(ForwardP);
+        exit;
+      end;
+    end; //case
+    Inc(i);
+  end;
+
+  targetList := TStringList.Create;
+
+  if Config.schMultiWord then
+  begin
+    targetList.Delimiter := #$20;
+    targetList.DelimitedText := ReplaceStr(SearchTarget, #$81#$40, #$20);
+    for i := 0 to targetList.Count - 1 do
+    begin
+      str := MigemoOBJ.Query(targetList[i]);
+      targetList.Delete(i);
+      targetList.Insert(i, str);
+      MigemoOBJ.Release(str);
+    end;
+  end else
+    targetList.Add(SearchTarget);
+
+  if targetList.Count = 0 then
+  begin
+    targetList.Free;
+    exit;
+  end;
+
+  try
+    if ForwardP then
+    begin
+      if not viewItem.browser.SearchForward(targetList, hloReg) then
+        ThreViewSearchEditBox.Color := $CCCCFF;
+    end else
+    begin
+      if not viewItem.browser.SearchBackward(targetList, hloReg) then
+        ThreViewSearchEditBox.Color := $CCCCFF;
+    end;
+  except
+    on E: Exception do begin
+      Log('TMainWnd.ThreViewSearchMigemoSearch: ' + E.Message);
+      ThreViewSearchEditBox.Color := $D0FFFF;
+    end;
+  end;
+
+  targetList.Free;
 end;
 
 //通常検索
-procedure TMainWnd.ThreViewSearchNormalSearch;
+procedure TMainWnd.ThreViewSearchNormalSearch(ForwardP: Boolean);
+var
+  viewItem: TViewItem;
+  targetList: TStringList;
 begin
   ThreSearchTimer.Enabled := False;
+  ThreViewSearchEditBox.Color := clWindow;
+  viewItem := GetActiveView;
+  if (viewItem = nil) or (viewItem.thread = nil) then
+    exit;
+
+  if (Length(ThreViewSearchEditBox.Text) = 0) then
+  begin
+    viewItem.browser.SearchClear;
+    exit;
+  end;
+
+  SearchTarget := ThreViewSearchEditBox.Text;
+
+  targetList := TStringList.Create;
+  if Config.schMultiWord then
+  begin
+    targetList.Delimiter := #$20;
+    targetList.DelimitedText := ReplaceStr(SearchTarget, #$81#$40, #$20);
+  end else
+    targetList.Add(SearchTarget);
+  if targetList.Count = 0 then
+  begin
+    targetList.Free;
+    exit;
+  end;
+
+  if ForwardP then
+  begin
+    if not viewItem.browser.SearchForward(targetList, hloNormal) then
+      ThreViewSearchEditBox.Color := $CCCCFF;
+  end else
+  begin
+    if not viewItem.browser.SearchBackward(targetList, hloNormal) then
+      ThreViewSearchEditBox.Color := $CCCCFF;
+  end;
+
+  targetList.Free;
 end;
 
 //正規表現検索
-procedure TMainWnd.ThreViewSearchRegExpSearch;
+procedure TMainWnd.ThreViewSearchRegExpSearch(ForwardP: Boolean);
+var
+  viewItem: TViewItem;
+  targetList: TStringList;
 begin
   ThreSearchTimer.Enabled := False;
+  ThreViewSearchEditBox.Color := clWindow;
+  viewItem := GetActiveView;
+  if (viewItem = nil) or (viewItem.thread = nil) then
+    exit;
+
+  if (Length(ThreViewSearchEditBox.Text) = 0) then
+  begin
+    viewItem.browser.SearchClear;
+    exit
+  end;
+
+  SearchTarget := ThreViewSearchEditBox.Text;
+
+  targetList := TStringList.Create;
+  if Config.schMultiWord then
+  begin
+    targetList.Delimiter := #$20;
+    targetList.DelimitedText := ReplaceStr(SearchTarget, #$81#$40, #$20);
+  end else
+    targetList.Add(SearchTarget);
+  if targetList.Count = 0 then
+  begin
+    targetList.Free;
+    exit;
+  end;
+
+  try
+    if ForwardP then
+    begin
+      if not viewItem.browser.SearchForward(TargetList, hloReg) then
+        ThreViewSearchEditBox.Color := $CCCCFF;
+    end else
+    begin
+      if not viewItem.browser.SearchBackward(TargetList, hloReg) then
+        ThreViewSearchEditBox.Color := $CCCCFF;
+    end;
+  except
+    on E: Exception do begin
+      Log('TMainWnd.ThreViewSearchRegExpSearch: ' + E.Message);
+      ThreViewSearchEditBox.Color := $D0FFFF;
+    end;
+  end;
+  targetList.Free;
+end;
+
+//レス抽出
+procedure TMainWnd.MenuThreViewSearchExtractClick(Sender: TObject);
+var
+  viewItem: TViewItem;
+  RegExpMode: Boolean;
+  MigemoMode: Boolean;
+  str: PChar;
+  i, j: integer;
+label
+  letsgo;
+begin
+  viewItem := GetActiveView;
+  if (viewItem = nil) or (viewItem.thread = nil) then
+    exit;
+  if Length(ThreViewSearchEditBox.Text) > 0 then
+    SearchTarget := ThreViewSearchEditBox.Text
+  else if Length(SearchTarget) = 0 then
+    exit;
+  MigemoMode := False;
+  RegExpMode := False;
+  case ThreViewSearchEditBox.Tag of
+    0:;
+    1: begin
+      if not MigemoOBJ.CanUse then
+        goto letsgo;
+      j := Length(SearchTarget);
+      str := PChar(SearchTarget);
+      i := 0;
+      while i < j do
+      begin
+        case (str + i)^ of
+          '-', 'A'..'Z', 'a'..'z', '0'..'9', ' ':;
+          #$81:
+            begin
+              if not (i < j - 1) or not ((str + i + 1)^ = #$40) then //全角空白でない
+                goto letsgo;
+              Inc(i);
+            end;
+          else
+            goto letsgo;
+        end; //case
+        Inc(i);
+      end;
+      MigemoMode := True;
+    end;
+
+    2: RegExpMode := True;
+
+  end;
+
+  letsgo:
+
+  NewView(true).ExtractKeyword(SearchTarget, viewItem.thread, RegExpMode,
+    TComponent(Sender).Tag = 1, MigemoMode);
+end;
+
+procedure TMainWnd.MenuThreViewSearchCopyClick(Sender: TObject);
+begin
+  Case TComponent(Sender).Tag of
+  0: ClipBoard.AsText := ThreViewSearchEditBox.SelText; //コピー
+  1:                                                    //切り取り
+    begin
+      ClipBoard.AsText := ThreViewSearchEditBox.SelText;
+      ListViewSearchEditBox.SelText := '';
+    end;
+  2: ThreViewSearchEditBox.SelText := ClipBoard.AsText; //貼り付け
+  3: ThreViewSearchEditBox.SelectAll;                   //すべて選択
+  4: ThreViewSearchEditBox.Text := '';                  //クリア
+  5: FindInView(True);  //前方検索
+  6: FindInView(False);  //後方検索
+  end;
 end;
 
 procedure TMainWnd.MenuThreViewSearchNormalClick(Sender: TObject);
@@ -18174,6 +18457,11 @@ end;
 
 procedure TMainWnd.PopupThreViewSearchPopup(Sender: TObject);
 begin
+  MenuThreViewSearchCopy.Enabled := Length(ThreViewSearchEditBox.SelText) > 0;
+  MenuThreViewSearchCut.Enabled := MenuThreViewSearchCopy.Enabled;
+  MenuThreViewSearchPaste.Enabled := ClipBoard.HasFormat(CF_TEXT);
+  MenuThreViewSearchSelectAll.Enabled := Length(ThreViewSearchEditBox.Text) > 0;
+  MenuThreViewSearchClear.Enabled := MenuThreViewSearchSelectAll.Enabled;
   MenuThreViewSearchMultiWord.Checked := Config.schMultiWord;
   MenuThreViewSearchIncremental.Checked := Config.schIncremental;
   MenuThreViewSearchIgnoreFullHalf.Checked := Config.schIgnoreFullHalf;
@@ -18263,7 +18551,7 @@ var
   target: string;
   source: string;
   targetList: TStringList;
-  WSHRegExp: Variant;
+  RegExp: TRegExp;
   str: PChar;
 begin
   TreeSearchTimer.Enabled := False;
@@ -18317,8 +18605,8 @@ begin
   else
     i := node.AbsoluteIndex + 1;
 
-  WSHRegExp := CreateOleObject('VBScript.RegExp');  //WSH
-  WSHRegExp.IgnoreCase := True;   //大文字小文字を区別しない
+  RegExp := TRegExp.Create(nil);  //WSH
+  RegExp.IgnoreCase := True;   //大文字小文字を区別しない
 
   if Config.schMultiWord then
   begin
@@ -18338,14 +18626,14 @@ begin
         target := Copy(str, 1, Length(str));
         MigemoOBJ.Release(str);
         try
-          WSHRegExp.Pattern := target;
+          RegExp.Pattern := target;
         except
           TreeViewSearchEditBox.Color := $D0FFFF;
-          WSHRegExp := Unassigned;
+          RegExp.Free;
           targetList.Free;
           exit;
         end;
-        if not WSHRegExp.Test(source) then
+        if not RegExp.Test(source) then
           break
         else
         begin
@@ -18353,7 +18641,7 @@ begin
           begin
             tree.Selected := nil;
             tree.Selected := tree.Items[i];
-            WSHRegExp := Unassigned;
+            RegExp.Free;
             targetList.Free;
             exit;
           end;
@@ -18367,10 +18655,10 @@ begin
     target := Copy(str, 1, Length(str));
     MigemoOBJ.Release(str);
     try
-      WSHRegExp.Pattern := target;
+      RegExp.Pattern := target;
     except
       TreeViewSearchEditBox.Color := $D0FFFF;
-      WSHRegExp := Unassigned;
+      RegExp.Free;
       exit;
     end;
     for i := i to tree.Items.Count -1 do
@@ -18380,11 +18668,11 @@ begin
         source := StrUnify2(node.Text)
       else
         source := node.Text;
-      if WSHRegExp.Test(source) then
+      if RegExp.Test(source) then
       begin
         tree.Selected := nil;
         tree.Selected := tree.Items[i];
-        WSHRegExp := Unassigned;
+        RegExp.Free;
         exit;
       end;
     end;
@@ -18393,7 +18681,7 @@ begin
 
   //ヒットしなかった場合はSelectedにnilをいれることで次の検索を一番上からはじめることができる
   tree.Selected := nil;
-  WSHRegExp := Unassigned;
+  RegExp.Free;
   TreeViewSearchEditBox.Color := $CCCCFF;
 end;
 
@@ -18487,7 +18775,7 @@ var
   node: TTreeNode;
   target: string;
   source: string;
-  WSHRegExp: Variant;
+  RegExp: TRegExp;
 begin
   TreeSearchTimer.Enabled := False;
   TreeViewSearchEditBox.Color := clWindow;
@@ -18498,12 +18786,12 @@ begin
   target := Trim(target);
   if Length(target) <= 0 then
     exit;
-  WSHRegExp := CreateOleObject('VBScript.RegExp');  //WSH
-  WSHRegExp.IgnoreCase := True;   //大文字小文字を区別しない
+  RegExp := TRegExp.Create(nil);  //WSH
+  RegExp.IgnoreCase := True;   //大文字小文字を区別しない
   try
-    WSHRegExp.Pattern := target;
+    RegExp.Pattern := target;
   except
-    WSHRegExp := Unassigned;
+    RegExp.Free;
     TreeViewSearchEditBox.Color := $D0FFFF;
     exit;
   end;
@@ -18523,18 +18811,18 @@ begin
   begin
     node := tree.Items[i];
     source := node.Text;
-    if WSHRegExp.Test(source) then
+    if RegExp.Test(source) then
     begin
       tree.Selected := nil;
       tree.Selected := tree.Items[i];
-      WSHRegExp := Unassigned;
+      RegExp.Free;
       exit;
     end;
   end;
 
   //ヒットしなかった場合はSelectedにnilをいれることで次の検索を一番上からはじめることができる
   tree.Selected := nil;
-  WSHRegExp := Unassigned;
+  RegExp.Free;
   TreeViewSearchEditBox.Color := $CCCCFF;
 end;
 

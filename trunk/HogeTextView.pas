@@ -24,7 +24,9 @@ uses
   Clipbrd,
   ExtCtrls,
   MMSystem, //beginner
-  AppEvnts;
+  AppEvnts,
+  VBScript_RegExp_55_TLB,
+  Forms;
 
 type
   (*-------------------------------------------------------*)
@@ -42,6 +44,15 @@ type
   end;
 
   (*-------------------------------------------------------*)
+  //aiai 検索ハイライト用のrecord startp,endpともに0からでなく1から
+  THogeHighLightRecord = record   //1ベースインデックス
+    startp: Integer;
+    endp: Integer;
+  end;
+
+  THogeHighLight = array of THogeHighLightRecord;
+
+  THighLightOption = (hloNone, hloNormal, hloReg);
   (*-------------------------------------------------------*)
 
   THogeTVItem = class(TObject)
@@ -50,6 +61,9 @@ type
     FView: THogeTextView;
     FCharWidth: AnsiString;
     FLogicalLines: Integer;
+    FHighLight: THogeHighLight; //aiai
+    FHighlightTargetList: TStringList;  //aiai
+    FHighLightOption: THighLightOption; //aiai
 
     procedure CalcCharWidth;
     function GetCharWidth(index: Integer): Integer;
@@ -216,8 +230,12 @@ type
     FIDLinkColorMany: TColor;
     FIDLinkThreshold: Integer;
 
-    FHighlightTarget: String;
+    FHighlightTargetList: TStringList;
+    FHighlightOption: THighLightOption;
     FKeywordBrushColor: TColor;
+
+    re_enter: integer;
+    Canceled: boolean;
     {/aiai}
 
     function CharWidth(p: PChar; attrib: Integer): Integer;
@@ -331,8 +349,9 @@ type
     procedure ScrollPixel(advance: integer; movecaret: Boolean = False); //beginner
     procedure CopySelection;
     function  GetSelection: String;
-    function  SearchForward (const AString: String): Boolean;
-    function  SearchBackward(const AString: String): Boolean;
+    function  SearchForward (const AString: TStrings; Option: THighlightOption; JumpAfter: Boolean = True): Boolean;
+    function  SearchBackward(const AString: TStrings; Option: THighlightOption): Boolean;
+    function  SearchClear: Boolean;
     procedure SetMarkCommand;
     procedure SelectAll;
 
@@ -374,7 +393,7 @@ type
     property HoverTime: Cardinal read GetHoverTime write SetHoverTime;
     property Fraction: Integer read FFraction; //beginner
     property ResNumArray: THogeResNumArray read FResNumArray write FResNumArray;
-    property HighlightTarget: String read FHighlightTarget write FHighlightTarget;  //aiai
+    property HighlightOption: THighlightOption read FHighlightOption write FHighlightOption;  //aiai
   published
     { Published 宣言 }
     property LeftMargin: Integer read FLeftMargin write FLeftMargin;
@@ -495,6 +514,8 @@ begin
   FView := view;
   BorderLine := False;  //aiai
   PictLine := False;  //aiai
+  SetLength(FHighLight, 0);  //aiai
+  FHighLightOption := hloNone;  //aiai
 end;
 
 destructor THogeTVItem.Destroy;
@@ -502,6 +523,7 @@ begin
   SetLength(FText, 0);
   SetLength(FAttrib, 0);
   SetLength(FCharWidth, 0);
+  SetLength(FHighLight, 0);  //aiai
   inherited;
 end;
 
@@ -955,7 +977,10 @@ begin
   FKeywordBrushColor := clYellow;
 
   //FMaxWidth := 0;
-  FHighlightTarget := '';
+  FHighlightTargetList := TStringList.Create;
+  FHighlightOption := hloNormal;
+  re_enter := 0;
+  Canceled := False;
   {/aiai}
 
   CalcWidthModifier;
@@ -988,6 +1013,7 @@ begin
   FStrings.Free;
   FBitmap.Free;
   FIDList.Free;
+  FHighlightTargetList.Free; //aiai
   inherited;
 end;
 
@@ -2199,15 +2225,10 @@ end;
 
 procedure THogeTextView.PaintWindow(DC: HDC);
 {aiai}
-type
-  trange = record   //1ベースインデックス
-    startp: Integer;
-    endp: Integer;
-  end;
 var
   len: integer;
   HighlightP: Boolean;
-  hlightl: array of trange;
+  hlightl: THogeHighLight;
 
   procedure SetNumberColor(item: THogeTVItem; startPos: integer);
   var
@@ -2256,29 +2277,58 @@ var
   end;
 
   //HogeTVItemごとにハイライトすべき文字列のstartindexとendindexの配列をつくる
-  procedure CreateHLightList(const str: String);
-  var
-    sp, tlen, lsize: Integer;
-  begin
-    SetLength(hlightl, 0);
-    lsize := 0;
-    tlen := Length(FHighlightTarget);
-    if tlen = 0 then exit;
-    sp := 0;
-    while sp <= len - tlen do
-    begin
-      if 0 <> StrLIComp(PChar(FHighlightTarget), PChar(str) + sp, tlen) then
-      begin
-        Inc(sp);
-        Continue;
-      end;
-      Inc(lsize);
-      SetLength(hlightl, lsize);
-      hlightl[lsize - 1].startp := sp + 1;
-      Inc(sp, tlen);
-      hlightl[lsize - 1].endp := sp;
-    end;
-  end;
+//  procedure CreateHLightList(const str: String; option: THighlightOption);
+//  var
+//    sp, tlen, lsize, i: Integer;
+//    RegExp: TRegExp;
+//    Matches: MatchCollection;
+//    Mat: Match;
+//  begin
+//    SetLength(hlightl, 0);
+//    lsize := 0;
+//    tlen := Length(FHighlightTarget);
+//    if tlen = 0 then exit;
+//
+//    if Option = hloReg then
+//    begin
+//      RegExp := TRegExp.Create(nil);
+//      RegExp.IgnoreCase := True;
+//      RegExp.Global := True;
+//      try
+//        RegExp.Pattern := FHighlightTarget;
+//        Matches := RegExp.Execute(str);
+//      except
+//        RegExp.Free;
+//        exit;
+//      end;
+//      SetLength(hlightl, Matches.Count);
+//      sp := 0;
+//      for i := 0 to Matches.Count - 1 do
+//      begin
+//        Mat := Match(Matches.Item[i]);
+//        sp := AnsiPos(AnsiString(Mat.Value), PChar(str) + sp);
+//        hlightl[i].startp := sp;
+//        hlightl[i].endp := sp - 1 + Length(AnsiString(Mat.Value));
+//      end;
+//      RegExp.Free;
+//    end else
+//    begin
+//      sp := 0;
+//      while sp <= len - tlen do
+//      begin
+//        if 0 <> StrLIComp(PChar(FHighlightTarget), PChar(str) + sp, tlen) then
+//        begin
+//          Inc(sp);
+//          Continue;
+//        end;
+//        Inc(lsize);
+//        SetLength(hlightl, lsize);
+//        hlightl[lsize - 1].startp := sp + 1;
+//        Inc(sp, tlen);
+//        hlightl[lsize - 1].endp := sp;
+//      end;
+//    end;
+//  end;
 
   //indexがstartindexとendindexの間にあればハイライト
   function InHighlight(index: integer): Boolean;
@@ -2316,7 +2366,6 @@ var
   Triangle: array[0..2] of TPoint;
   position: integer;
   WalX, WalY: Integer;
-  pictindex: integer;
 label
   DONE;
 begin
@@ -2402,7 +2451,19 @@ begin
       FBitmap.Canvas.Draw(point.X, point.Y + Y, item.Picture);
     end;
     //検索ハイライト
-    CreateHLightList(item.FText);
+    if FHighLightOption <> hloNone then
+    begin
+//      if (item.FHighLightTarget = FHighLightTarget)
+//        and (item.FHighLightOption = FHighLightOption) then
+        hlightl := item.FHighLight
+//      else
+//      begin
+//        CreateHLightList(item.FText, FHighLightOption);
+//        item.FHighLight := hlightl;
+//        item.FHighLightTarget := PChar(FHighLightTarget);
+//        item.FHighLightOption := FHighLightOption;
+//      end;
+    end;
     {/aiai}
 
     while index <= len do
@@ -2712,17 +2773,32 @@ begin
   result := RegionToText(FSelStart, FEditPoint);
 end;
 
-
-function THogeTextView.SearchForward (const AString: String): Boolean;
+// SearchForward, SearchBackward
+// Option: 通常検索、正規表現
+// by aiai
+function THogeTextView.SearchForward (const AString: TStrings; Option: THighlightOption; JumpAfter: Boolean = True): Boolean;
 var
-  s: String;
   col, line: integer;
-  len, endPos: integer;
+  len, endPos, count, i, j, k: integer;
+  sp, sp2: integer;
   item: THogeTVItem;
   cw: AnsiString;
-  target: string;
   rect: TRect;
+  editpoint: TPoint;
+  selandjump: Boolean;
+  hlight: THogeHighLight;
+  RegExp: TRegExp;
+  Matches: MatchCollection;
+  Mat: Match;
+  matchcount: integer;
+  selall: boolean;
+Label
+  loop;
 begin
+  Result := True;
+  if re_enter > 0 then
+    exit;
+  Canceled := False;
   if FSelecting then
   begin
     rect := NormalizeMinMax(FEditPoint, FSelStart);
@@ -2730,49 +2806,193 @@ begin
     FEditPoint := rect.BottomRight;
   end;
   result := False;
-  len := length(AString);
-  if len <= 0 then
+  if not Assigned(AString) then
     exit;
-  FHighlightTarget := AString;
-  target := AnsiUpperCase(AString);
-  col := FEditPoint.X + 1;
-  for line := FEditPoint.Y to FStrings.Count -1 do
-  begin
-    item := FStrings[line];
-    s := AnsiUpperCase(item.FText);
-    endPos := item.GetLength - Length(target) + 1;
-    cw := item.GetWidthInfo;
-    if col <= 0 then
-      col := 1;
-    while col <= endPos do
+  RegExp := nil;
+  editpoint := FEditPoint;
+  line := editpoint.Y;
+  selall := False;
+  for i := 0 to AString.Count - 1 do
+    if (-1 = FHighlightTargetList.IndexOf(AString[i])) then
     begin
-      if (cw[col] <> #0) and
-         (Ord(item.FAttrib[col]) and htvVMASK = htvVISIBLE) and
-         (StrLComp(PChar(@s[col]), PChar(target), Length(target)) = 0) then
-      begin
-        FSelStart.X := col -1;
-        FSelStart.Y := line;
-        SetPhysicalCaret(col + Length(target) - 1, line, hscSCROLLCENTER);
-        SetSelecting(True);
-        result := True;
-        exit;
-      end;
-      Inc(col);
+      selall := True;
+      break;
     end;
-    col := 0;
+  if not selall and (FHighlightOption = Option) then
+  begin
+    col := editpoint.X + 1;
+    for line := line to FStrings.Count - 1 do
+    begin
+      item := FStrings[line];
+      if col <= 0 then
+        col := 1;
+      count := Length(item.FHighLight);
+      for i := 0 to count - 1 do
+      begin
+        if item.FHighLight[i].startp >= col then
+        begin
+          FSelStart.X := item.FHighLight[i].startp - 1;
+          FSelStart.Y := line;
+          SetPhysicalCaret(item.FHighLight[i].endp, line, hscSCROLLCENTER);
+          SetSelecting(True);
+          Result := True;
+          exit;
+        end;
+      end;
+      col := 1;
+    end;
+  end else
+  begin
+    FHighlightTargetList.Assign(AString);
+    FHighlightOption := Option;
+    selandjump := not JumpAfter;
+    if Option = hloReg then
+    begin
+      RegExp := TRegExp.Create(nil);
+      RegExp.IgnoreCase := True;
+      RegExp.Global := True;
+    end;
+    repeat
+      item := FStrings[line];
+      endPos := item.GetLength - 1;
+      cw := item.GetWidthInfo;
+      SetLength(hlight, 0);
+      if Option = hloNormal then
+      begin
+        col := 1;
+        while col <= endPos do
+        begin
+          if (cw[col] <> #0) and
+             (Ord(item.FAttrib[col]) and htvVMASK = htvVISIBLE) then
+          begin
+            for i := 0 to FHighlightTargetList.Count - 1 do
+            begin
+              len := Length(FHighlightTargetList[i]);
+              if (StrLIComp(PChar(item.FText) + col - 1, PChar(FHighlightTargetList[i]), len) = 0) then
+              begin
+                if not selandjump and ((line > editpoint.Y) or ((line = editpoint.Y) and (col > editpoint.X))) then
+                begin
+                  FSelStart.X := col - 1;
+                  FSelStart.Y := line;
+                  SetPhysicalCaret(col + len - 1, line, hscSCROLLCENTER);
+                  SetSelecting(True);
+                  selandjump := true;
+                end;
+                SetLength(hlight, Length(hlight) + 1);
+                hlight[Length(hlight) - 1].startp := col;
+                hlight[Length(hlight) - 1].endp := col + len - 1;
+                result := True;
+                Inc(col, len - 1);
+                break;
+              end;
+            end;
+          end;
+          Inc(col);
+        end;
+      end else
+      begin
+        for j := 0 to FHighLightTargetList.Count - 1 do
+        begin
+          try
+            RegExp.Pattern := FHighLightTargetList[j];
+            Matches := RegExp.Execute(item.FText);
+          except
+            RegExp.Free;
+            FHighLightTargetList.Clear;
+            FhighlightOption := hloNone;
+            raise;
+          end;
+          matchcount := Matches.Count;
+          sp := 0;
+          i := 0;
+          while i < matchcount do
+          begin
+            loop:
+            SetLength(hlight, Length(hlight) + 1);
+            Mat := Match(Matches.Item[i]);
+            sp2 := AnsiPos(AnsiString(Mat.Value), PChar(item.FText) + sp);
+            hlight[Length(hlight) - 1].startp := sp + sp2;
+            sp := hlight[Length(hlight) - 1].startp;
+            hlight[Length(hlight) - 1].endp := sp - 1 + Length(AnsiString(Mat.Value));
+            if (sp2 <= 0) or ((cw[sp] = #0) and
+               (Ord(item.FAttrib[sp]) and htvVMASK <> htvVISIBLE)) then
+            begin
+              Dec(matchcount);
+              SetLength(hlight, Length(hlight) - 1);
+              Continue;
+            end;
+            for k := 0 to Length(hlight) - 2 do
+            begin
+              if (hlight[k].startp <= hlight[Length(hlight) - 1].startp)
+                and (hlight[k].endp >= hlight[Length(hlight) - 1].endp) then
+              begin
+                Dec(matchcount);
+                SetLength(hlight, Length(hlight) - 1);
+                goto loop;
+              end;
+            end;
+            if not selandjump and ((line > editpoint.Y) or ((line = editpoint.Y) and (sp > editpoint.X))) then
+            begin
+              FSelStart.X := hlight[Length(hlight) - 1].startp - 1;
+              FSelStart.Y := line;
+              SetPhysicalCaret(hlight[Length(hlight) - 1].endp, line, hscSCROLLCENTER);
+              SetSelecting(True);
+              selandjump := true;
+            end;
+            Inc(i);
+            result := True;
+          end;
+        end;
+      end;
+      item.FHighLight := hlight;
+      item.FHighLightTargetList := FHighlightTargetList;
+      item.FHighLightOption := Option;
+      Inc(line);
+      if line mod 50 = 0 then
+      begin
+        Inc(re_enter);
+        Application.ProcessMessages;
+        Dec(re_enter);
+        if Canceled then
+        begin
+          Result := False;
+          break;
+        end;
+      end;
+      if line = FStrings.Count then
+        line := 0;
+    until line = editpoint.Y;
   end;
+  if Assigned(RegExp) then
+    RegExp.Free;
+  if Result then
+    Invalidate;
 end;
 
-function THogeTextView.SearchBackward(const AString: String): Boolean;
+function THogeTextView.SearchBackward(const AString: TStrings; Option: THighlightOption): Boolean;
 var
-  s: String;
   col, line: integer;
-  len: integer;
+  len, i, j, k: integer;
+  sp, sp2: integer;
+  count: integer;
   item: THogeTVItem;
   cw: AnsiString;
-  target: String;
   rect: TRect;
+  editpoint: TPoint;
+  selandjump: Boolean;
+  hlight: THogeHighLight;
+  RegExp: TRegExp;
+  Matches: MatchCollection;
+  Mat: Match;
+  matchcount: integer;
+  selall: Boolean;
+label
+  loop;
 begin
+  Result := True;
+  if re_enter > 0 then
+    exit;
+  Canceled := False;
   if FSelecting then
   begin
     rect := NormalizeMinMax(FEditPoint, FSelStart);
@@ -2780,40 +3000,186 @@ begin
     FSelStart := rect.BottomRight;
   end;
   result := False;
-  len := length(AString);
-  if len <= 0 then
+  if not Assigned(AString) then
     exit;
-  FHighlightTarget := AString;
-  target := AnsiUpperCase(AString);
-  col := FEditPoint.X;
-  if col <= 0 then
-    line := FEditPoint.Y -1
+  RegExp := nil;
+  editpoint := FEditPoint;
+  if editpoint.X <= 0 then
+    line := editpoint.Y - 1
   else
-    line := FEditPoint.Y;
-  for line := line downto 0 do
-  begin
-    item := FStrings[line];
-    s := AnsiUpperCase(item.FText);
-    cw := item.GetWidthInfo;
-    if col <= 0 then
-      col := length(cw);
-    while 0 < col do
+    line := editpoint.Y;
+  selall := False;
+  for i := 0 to AString.Count - 1 do
+    if (-1 = FHighlightTargetList.IndexOf(AString[i])) then
     begin
-      if (cw[col] <> #0) and
-         (Ord(item.FAttrib[col]) and htvVMASK = htvVISIBLE) and
-         (StrLComp(PChar(@s[col]), PChar(target), Length(target)) = 0) then
-      begin
-        FSelStart.X := col + Length(target) - 1;
-        FSelStart.Y := line;
-        SetPhysicalCaret(col - 1, line, hscSCROLLCENTER);
-        SetSelecting(True);
-        result := True;
-        exit;
-      end;
-      Dec(col);
+      selall := True;
+      break;
     end;
-    col := 0;
+  if not selall and (FHighlightOption = Option) then
+  begin
+    col := editpoint.X - 1;
+    for line := line downto 0 do
+    begin
+      item := FStrings[line];
+      cw := item.GetWidthInfo;
+      if col <= 0 then
+        col := length(cw);
+      count := Length(item.FHighLight);
+      for i := count - 1 downto 0 do
+      begin
+        if item.FHighLight[i].endp <= col then
+        begin
+          FSelStart.X := item.FHighLight[i].endp;
+          FSelStart.Y := line;
+          SetPhysicalCaret(item.FHighLight[i].startp - 1, line, hscSCROLLCENTER);
+          SetSelecting(True);
+          Result := True;
+          exit;
+        end;
+      end;
+      col := 0;
+    end;
+  end else
+  begin
+    FHighLightTargetList.Assign(AString);
+    FhighlightOption := Option;
+    selandjump := false;
+    if Option = hloReg then
+    begin
+      RegExp := TRegExp.Create(nil);
+      RegExp.IgnoreCase := True;
+      RegExp.Global := True;
+    end;
+    repeat
+      item := FStrings[line];
+      cw := item.GetWidthInfo;
+      SetLength(hlight, 0);
+      if Option = hloNormal then
+      begin
+        col := length(cw) + 1;
+        while 0 < col do
+        begin
+          if (cw[col] <> #0) and
+             (Ord(item.FAttrib[col]) and htvVMASK = htvVISIBLE) then
+          begin
+            for i := 0 to FHighlightTargetList.Count - 1 do
+            begin
+              len := Length(FHighlightTargetList[i]);
+              if (StrLIComp(PChar(item.FText) + col - 1, PChar(FHighlightTargetList[i]), len) = 0) then
+              begin
+                if not selandjump and ((line < editpoint.Y) or ((line = editpoint.Y) and (col < editpoint.X))) then
+                begin
+                  FSelStart.X := col + len - 1;
+                  FSelStart.Y := line;
+                  SetPhysicalCaret(col - 1, line, hscSCROLLCENTER);
+                  SetSelecting(True);
+                  selandjump := True;
+                end;
+                SetLength(hlight, Length(hlight) + 1);
+                hlight[Length(hlight) - 1].startp := col;
+                hlight[Length(hlight) - 1].endp := col + len - 1;
+                result := True;
+                Dec(col, len - 1);
+              end;
+            end;
+          end;
+          Dec(col);
+        end;
+      end else
+      begin
+        for j := 0 to FHighLightTargetList.Count - 1 do
+        begin
+          try
+            RegExp.Pattern := FHighLightTargetList[j];
+            Matches := RegExp.Execute(item.FText);
+          except
+            RegExp.Free;
+            FHighLightTargetList.Clear;
+            FhighlightOption := hloNone;
+            raise;
+          end;
+          matchcount := Matches.Count;
+          sp := 0;
+          i := 0;
+          while i < matchcount do
+          begin
+            loop:
+            SetLength(hlight, Length(hlight) + 1);
+            Mat := Match(Matches.Item[i]);
+            sp2 := AnsiPos(AnsiString(Mat.Value), PChar(item.FText) + sp);
+            hlight[Length(hlight) - 1].startp := sp + sp2;
+            sp := hlight[Length(hlight) - 1].startp;
+            hlight[Length(hlight) - 1].endp := sp - 1 + Length(AnsiString(Mat.Value));
+            if (sp2 <= 0) or ((cw[sp] = #0) and
+             (Ord(item.FAttrib[sp]) and htvVMASK <> htvVISIBLE)) then
+            begin
+              Dec(matchcount);
+              SetLength(hlight, Length(hlight) - 1);
+              Continue;
+            end;
+            for k := 0 to Length(hlight) - 1 do
+            begin
+              if (hlight[k].startp <= hlight[Length(hlight) - 1].startp)
+                and (hlight[k].endp >= hlight[Length(hlight) - 1].endp) then
+              begin
+                Dec(matchcount);
+                SetLength(hlight, Length(hlight) - 1);
+                goto loop;
+              end;
+            end;
+            if not selandjump and ((line < editpoint.Y) or ((line = editpoint.Y) and (sp < editpoint.X))) then
+            begin
+              FSelStart.X := hlight[Length(hlight) - 1].endp;
+              FSelStart.Y := line;
+              SetPhysicalCaret(hlight[Length(hlight) - 1].startp - 1, line, hscSCROLLCENTER);
+              SetSelecting(True);
+              selandjump := true;
+            end;
+            Inc(i);
+            result := True;
+          end;
+        end;
+      end;
+      SetLength(item.FHighLight, Length(hlight));
+      if Option = hloNormal then
+        item.FHighLight := hlight
+      else
+        for i := 0 to Length(hlight) - 1 do
+          item.FHighLight[i] := hlight[Length(hlight) - 1 - i];
+      item.FHighLightTargetList := FHighlightTargetList;
+      item.FHighLightOption := Option;
+      Dec(line);
+      if line mod 50 = 0 then
+      begin
+        Inc(re_enter);
+        Application.ProcessMessages;
+        Dec(re_enter);
+        if Canceled then
+        begin
+          Result := False;
+          break;
+        end;
+      end;
+      if line = -1 then
+        line := FStrings.Count - 1;
+    until line = editpoint.Y;
   end;
+  if Assigned(RegExp) then
+    RegExp.Free;
+  if Result then
+    Invalidate;
+end;
+
+//検索結果のクリア aiai
+function THogeTextView.SearchClear: Boolean;
+var
+  i: integer;
+begin
+  Canceled := True;
+  for i := 0 to FStrings.Count - 1 do
+    SetLength(FStrings.Items[i].FHighLight, 0);
+  Invalidate;
+  Result := True;
 end;
 
 procedure THogeTextView.SetMarkCommand;
@@ -3075,9 +3441,13 @@ begin
   AutoScroll := False;
   FFraction := 0;
   {/beginner}
-  SetLength(FResNumArray, 0); //aiai
-  FHighlightTarget := '';
+  {aiai}
+  SetLength(FResNumArray, 0);
+  FHighlightOption := hloNone;
   FIDList.Clear;
+  FHighlightTargetList.Clear;
+  Canceled := True;
+  {/aiai}
 end;
 
 function THogeTextView.CharWidth(p: PChar; attrib: Integer): Integer;

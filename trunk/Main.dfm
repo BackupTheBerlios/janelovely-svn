@@ -212,7 +212,7 @@ object MainWnd: TMainWnd
                 OnMouseMove = ThreadTitleLabelMouseMove
               end
               object ThreadToolBar: TJLXPToolBar
-                Left = 215
+                Left = 237
                 Top = 0
                 Width = 326
                 Height = 22
@@ -2877,11 +2877,12 @@ object MainWnd: TMainWnd
             end
             object ThreViewSearchEditBox: TComboBox
               Left = 38
-              Top = 0
+              Top = 1
               Width = 145
               Height = 20
               AutoComplete = False
               ItemHeight = 12
+              PopupMenu = PopupThreViewSearch
               TabOrder = 0
               OnChange = ThreViewSearchEditBoxChange
               OnKeyPress = ThreViewSearchEditBoxKeyPress
@@ -2899,10 +2900,12 @@ object MainWnd: TMainWnd
               Top = 0
               Width = 15
               Height = 22
-              Min = 0
+              Min = -32768
+              Max = 32767
               Position = 0
               TabOrder = 1
               Wrap = False
+              OnClick = ThreViewSearchUpDownClick
             end
             object ThreViewSearchSep2: TToolButton
               Left = 206
@@ -2917,6 +2920,7 @@ object MainWnd: TMainWnd
               Top = 0
               Caption = 'ThreViewSearchResFindButton'
               ImageIndex = 5
+              OnClick = MenuThreViewSearchExtractClick
             end
             object ThreViewSearchSep3: TToolButton
               Left = 241
@@ -3104,7 +3108,7 @@ object MainWnd: TMainWnd
             end
             object ListViewSearchEditBox: TComboBox
               Left = 38
-              Top = 0
+              Top = 1
               Width = 145
               Height = 20
               AutoComplete = False
@@ -3314,7 +3318,7 @@ object MainWnd: TMainWnd
             end
             object TreeViewSearchEditBox: TComboBox
               Left = 38
-              Top = 0
+              Top = 1
               Width = 80
               Height = 20
               AutoComplete = False
@@ -9053,6 +9057,78 @@ object MainWnd: TMainWnd
     OnPopup = PopupThreViewSearchPopup
     Left = 144
     Top = 248
+    object MenuThreViewSearchExtract: TMenuItem
+      Caption = #12524#12473#25277#20986'(&E)'
+      GroupIndex = 1
+      ShortCut = 16397
+      OnClick = MenuThreViewSearchExtractClick
+    end
+    object MenuThreViewSearchExtractTree: TMenuItem
+      Tag = 1
+      Caption = #12524#12473#25277#20986'+'#12484#12522#12540'(&T)'
+      GroupIndex = 1
+      ShortCut = 24589
+    end
+    object N108: TMenuItem
+      Caption = '-'
+      GroupIndex = 1
+    end
+    object MenuThreViewSearchNext: TMenuItem
+      Tag = 5
+      Caption = #8595#26908#32034'(&N)'
+      GroupIndex = 1
+      ShortCut = 114
+      OnClick = MenuThreViewSearchCopyClick
+    end
+    object MenuThreViewSearchPrev: TMenuItem
+      Tag = 6
+      Caption = #8593#26908#32034'(&P)'
+      GroupIndex = 1
+      ShortCut = 8306
+      OnClick = MenuThreViewSearchCopyClick
+    end
+    object N107: TMenuItem
+      Caption = '-'
+      GroupIndex = 1
+    end
+    object MenuThreViewSearchCopy: TMenuItem
+      Caption = #12467#12500#12540'(&C)'
+      GroupIndex = 1
+      ShortCut = 16451
+      OnClick = MenuThreViewSearchCopyClick
+    end
+    object MenuThreViewSearchCut: TMenuItem
+      Tag = 1
+      Caption = #20999#12426#21462#12426'(&T)'
+      GroupIndex = 1
+      ShortCut = 16472
+      OnClick = MenuThreViewSearchCopyClick
+    end
+    object MenuThreViewSearchPaste: TMenuItem
+      Tag = 2
+      Caption = #36028#12426#20184#12369'(&P)'
+      GroupIndex = 1
+      ShortCut = 16470
+      OnClick = MenuThreViewSearchCopyClick
+    end
+    object MenuThreViewSearchSelectAll: TMenuItem
+      Tag = 3
+      Caption = #12377#12409#12390#36984#25246'(&A)'
+      GroupIndex = 1
+      ShortCut = 16449
+      OnClick = MenuThreViewSearchCopyClick
+    end
+    object MenuThreViewSearchClear: TMenuItem
+      Tag = 4
+      Caption = #12463#12522#12450'(&E)'
+      GroupIndex = 1
+      ShortCut = 16453
+      OnClick = MenuThreViewSearchCopyClick
+    end
+    object N106: TMenuItem
+      Caption = '-'
+      GroupIndex = 1
+    end
     object MenuThreViewSearchNormal: TMenuItem
       Caption = #36890#24120#26908#32034'(&N)'
       GroupIndex = 1

@@ -52,7 +52,7 @@ object UIConfig: TUIConfig
     Top = 8
     Width = 393
     Height = 345
-    ActivePage = SheetColors
+    ActivePage = SheetFavPatrol
     Style = tsFlatButtons
     TabOrder = 1
     TabStop = False
@@ -3840,7 +3840,6 @@ object UIConfig: TUIConfig
           Height = 17
           Caption = #12473#12524#26908#32034#12496#12540#34920#31034
           TabOrder = 7
-          Visible = False
         end
         object CheckBoxShowTreeToolbarOnStartup: TCheckBox
           Left = 24

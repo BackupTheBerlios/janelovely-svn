@@ -325,7 +325,8 @@ type
     procedure GoForword;
     function CanGoForword: boolean;
     function MessageLoop: boolean;
-    procedure ExtractKeyword(const target:string; ExThread:TThreadItem; RegExpMode: Boolean; IncludeRef: Boolean);
+    procedure ExtractKeyword(const target:string; ExThread:TThreadItem;
+      RegExpMode: Boolean; IncludeRef: Boolean; MigemoMode: Boolean = False);
     procedure Grep(const target: string; targetBoardList: TList; RegExpMode: Boolean;  //beginner
                threadtitleonly: boolean = false; writepopup: boolean = false;
                ShowDirect: boolean = false; IncludeRef: Boolean = False;  //beginner
@@ -3539,7 +3540,8 @@ begin
 end;
 
 {beginner} //スレッドのキーワード抽出
-procedure TViewItem.ExtractKeyword(const target:string; ExThread:TThreadItem; RegExpMode: Boolean; IncludeRef: Boolean);
+procedure TViewItem.ExtractKeyword(const target:string; ExThread:TThreadItem;
+  RegExpMode: Boolean; IncludeRef: Boolean; MigemoMode: Boolean = False);
 var
   count: Integer;
   ExtStream :TDat2ViewForExtraction;
@@ -3547,10 +3549,14 @@ var
   baseViewItem: TViewItem;
   baseBrowser: THogeTextView;
   HeaderHTML: PChar;
+  targetList: TStringList;
+  str: PChar;
+  search: string;
 begin
   if ExThread = nil then
     exit;
 
+  search := target;
   MainWnd.TabControl.Tabs.Strings[viewList.IndexOf(self)] := '抽出';
   SetWindowText(FBrowser.Handle, '抽出');  //aiai
   ExThread.AddRef;
@@ -3604,26 +3610,33 @@ begin
 
   ExtStream.WriteHTML('【レス抽出】<br>対象スレ： ');
   ExtStream.WriteAnchor('',ExtStream.Base,pchar(ExThread.title), length(ExThread.title));
-  ExtStream.WriteHTML('<br>キーワード： ' + target + '<br><br><br>');
+  ExtStream.WriteHTML('<br>キーワード： ' + search + '<br><br><br>');
   ExtStream.Flush;
 
+  MigemoMode := MigemoOBJ.CanUse;
+  if MigemoMode then
+  begin
+    str := MigemoOBJ.Query(search);
+    search := Copy(str, 1, Length(str));
+    MigemoOBJ.Release(str);
+  end;
+
   RegExp := nil;
-  if RegExpMode then begin
+  if RegExpMode or MigemoMode then begin
     RegExp := TRegExpr.Create;
     try
       RegExp.ModifierI := True;
       RegExp.ModifierM := True;
-      RegExp.Expression := target;
+      RegExp.Expression := search;
     except
       FreeAndNil(RegExp);
       ExtStream.WriteHTML('キーワードは有効な正規表現ではありません');
       ExtStream.Flush;
     end;
-  end else
-    FBrowser.HighlightTarget := target;
+  end;
 
   if not(RegExpMode) or Assigned(RegExp) then
-    Count := _ExtractKeyWord(ExThread, ExtStream, target, 0, RegExp,IncludeRef, False)
+    Count := _ExtractKeyWord(ExThread, ExtStream, search, 0, RegExp,IncludeRef, False)
   else
     Count := 0;
 
@@ -3642,6 +3655,16 @@ begin
   FStream := nil;
   FBrowser.SetTop(0);
   FBrowser.SetPhysicalCaret(0,0);
+
+  {aiai}
+  targetList := TStringList.Create;
+  targetList.Add(search);
+  if RegExpMode or MigemoMode then
+    FBrowser.SearchForward(targetList, hloReg, False)
+  else
+    FBrowser.SearchForward(targetList, hloNormal, False);
+  targetList.Free;
+  {/aiai}
 
   FProgress := tpsNone;
 end;
@@ -4980,12 +5003,13 @@ end;
 
 function TPopupViewItem.ExtractKeyword(AIdStr: String; AThread: TThreadItem;
   Target: String; Max: Integer;Point: TPoint): Integer;
+var
+  targetList: TStringList;
 begin
   try
     Lock;
     FIdStr := AIdStr;
     SetThread(AThread);
-    FBrowser.HighlightTarget := Target;
     FStream := TDat2PopupView.Create(FBrowser);
     Result := 0;
 
@@ -5004,6 +5028,12 @@ begin
     finally
       FreeAndNil(FStream);
     end;
+    {aiai}
+    targetList := TStringList.Create;
+    targetList.Add(target);
+    FBrowser.SearchForward(targetList, hloNormal, False);
+    targetList.Free;
+    {/aiai}
   finally
     UnLock;
   end;
