@@ -16345,7 +16345,7 @@ end;
 
 procedure TMainWnd.MainWndRestore;
 begin
-  TrayIcon.Hide;
+  //TrayIcon.Hide;
   ShowWindow(Application.Handle,SW_SHOW);
   Show;
   Application.Restore;
