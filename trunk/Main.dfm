@@ -3714,6 +3714,10 @@ object MainWnd: TMainWnd
         Caption = #12508#12540#12489#12487#12540#12479#12398#20877#27083#25104
         OnClick = MenuListRefreshIdxListClick
       end
+      object MenuListHideHistoricalLog: TMenuItem
+        Caption = #36942#21435#12525#12464#38750#34920#31034
+        OnClick = MenuListHideHistoricalLogClick
+      end
     end
     object MenuThre: TMenuItem
       Caption = #65405#65434'(&T)'
@@ -5126,6 +5130,10 @@ object MainWnd: TMainWnd
       ImageIndex = 11
       OnExecute = actMaxViewExecute
     end
+    object actHideHistoricalLog: TAction
+      Caption = #36942#21435#12525#12464#38750#34920#31034
+      OnExecute = actHideHistoricalLogExecute
+    end
   end
   object PopupFavorites: TPopupMenu
     OnPopup = PopupFavoritesPopup
@@ -5311,6 +5319,9 @@ object MainWnd: TMainWnd
     end
     object PopupTreeRefreshIdxList: TMenuItem
       Action = actRefreshIdxList
+    end
+    object PopupTreeHideHistoricalLog: TMenuItem
+      Action = actHideHistoricalLog
     end
   end
   object PopupViewMenu: TPopupMenu

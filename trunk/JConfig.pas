@@ -368,6 +368,7 @@ type
 
     stlDefSortColumn: integer;
     stlDefFuncSortColumn: integer;
+    stlHideHistoricalLog: Boolean;
 
     schDefaultSearch: integer;
     schMigemoPath: String;
@@ -889,6 +890,7 @@ begin
 
   stlDefSortColumn := 1;
   stlDefFuncSortColumn := 1;
+  stlHideHistoricalLog := False;
 
   schDefaultSearch := 1;
   schMigemoPath := '';
@@ -1581,6 +1583,7 @@ begin
 
   stlDefSortColumn := ini.ReadInteger(INI_STL_SECT, 'DefSortColumn', stlDefSortColumn);
   stlDefFuncSortColumn := ini.ReadInteger(INI_STL_SECT, 'DefFuncSortColumn', stlDefFuncSortColumn);
+  stlHideHistoricalLog := ini.ReadBool(INI_STL_SECT, 'HideHistoricalLog', stlHideHistoricalLog);
 
   schDefaultSearch := ini.ReadInteger(INI_SCH_SECT, 'DefaultSearch', schDefaultSearch);
   schMigemoPath := ini.ReadString(INI_SCH_SECT, 'MigemoPath', schMigemoPath);
@@ -2071,6 +2074,7 @@ begin
 
   ini.WriteInteger(INI_STL_SECT, 'DefSortColumn', stlDefSortColumn);
   ini.WriteInteger(INI_STL_SECT, 'DefFuncSortColumn', stlDefFuncSortColumn);
+  ini.WriteBool(INI_STL_SECT, 'HideHistoricalLog', stlHideHistoricalLog);
 
   ini.WriteInteger(INI_SCH_SECT, 'DefaultSearch', schDefaultSearch);
   ini.WriteString(INI_SCH_SECT, 'MigemoPath', schMigemoPathTmp);

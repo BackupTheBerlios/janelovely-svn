@@ -461,6 +461,7 @@ type
     CheckBoxShowToolbarOnStartup: TCheckBox;
     CheckBoxShowTreeToolbarOnStartup: TCheckBox;
     CheckBoxCaretScrollSync: TCheckBox;
+    CheckBoxHideHistoricalLog: TCheckBox;
     procedure FormShow(Sender: TObject);
     procedure OkButtonClick(Sender: TObject);
     procedure CancelButtonClick(Sender: TObject);
@@ -928,6 +929,7 @@ begin
 
   Main.Config.stlDefSortColumn := self.ComboBoxDefSortColumn.ItemIndex;
   Main.Config.stlDefFuncSortColumn := self.ComboBoxDefFuncSortColumn.ItemIndex;
+  Main.Config.stlHideHistoricalLog := self.CheckBoxHideHistoricalLog.Checked;
   {/aiai}
 
   Main.Config.stlTabMaltiline := self.CheckBoxStlTabMultiline.Checked;
@@ -1328,6 +1330,7 @@ begin
 
   self.ComboBoxDefSortColumn.ItemIndex := Config.stlDefSortColumn;
   self.ComboBoxDefFuncSortColumn.ItemIndex := Config.stlDefFuncSortColumn;
+  self.CheckBoxHideHistoricalLog.Checked := Config.stlHideHistoricalLog;
 
   self.LabelKeywordBrushColor.Color := Config.viewKeywordBrushColor;
   {/aiai}

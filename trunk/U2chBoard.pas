@@ -49,6 +49,7 @@ type
                                 //     TBoard.FindFirstÇ≈TThreadÇÃåüçıÇ…égÇ§
     //ngthreadlist: TStringList;  //aiai NGThread
     FNeedConvert: Boolean;  //aiai
+    FHideHistoricalLog: Boolean;  //aiai
     function GetItems(index: integer): TThreadItem;
     procedure SetItems(index: integer; value: TThreadItem);
     procedure MergeCache;
@@ -130,6 +131,7 @@ type
     property host: string read FHost write SetHost;
     property settingText: TStringList read settingTXT write settingTXT;
     property NeedConvert: Boolean read FNeedConvert; //aiai
+    property HideHistoricalLog: Boolean read FHideHistoricalLog write FHideHistoricalLog;  //aiai
   end;
 
   (*-------------------------------------------------------*)
@@ -282,7 +284,7 @@ begin
   if Config.ojvQuickMerge then
     IdxDataBase := TSQLite.Create;
   (* //DataBase *)
-  SettingTxtLoaded := False;
+  SettingTxtLoaded := Config.stlHideHistoricalLog;
 end;
 
 (* îjä¸ *)

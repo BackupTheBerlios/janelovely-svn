@@ -2976,21 +2976,21 @@ object UIConfig: TUIConfig
       end
       object LabelCheckNewThreadInHour: TLabel
         Left = 68
-        Top = 228
+        Top = 215
         Width = 234
         Height = 12
         Caption = #26178#38291#20197#20869#12395#31435#12387#12383#12473#12524#12434#65281#12391#12481#12455#12483#12463'(0'#12391#28961#21177')'
       end
       object Label69: TLabel
         Left = 11
-        Top = 255
+        Top = 237
         Width = 54
         Height = 12
         Caption = #26495#12398#12477#12540#12488
       end
       object Label70: TLabel
         Left = 168
-        Top = 255
+        Top = 237
         Width = 150
         Height = 12
         Caption = #12525#12464#19968#35239#12289#12362#27671#12395#20837#12426#12398#12477#12540#12488
@@ -3068,7 +3068,7 @@ object UIConfig: TUIConfig
       end
       object seCheckNewThreadInHour: TJLXPSpinEdit
         Left = 6
-        Top = 223
+        Top = 210
         Width = 57
         Height = 21
         MaxValue = 96
@@ -3078,7 +3078,7 @@ object UIConfig: TUIConfig
       end
       object CheckBoxCheckThreadMadeAfterLstMdfy2: TCheckBox
         Left = 8
-        Top = 196
+        Top = 186
         Width = 185
         Height = 17
         Caption = #26032#35215#12395#31435#12387#12383#12473#12524#12434#65281#12391#12481#12455#12483#12463
@@ -3086,7 +3086,7 @@ object UIConfig: TUIConfig
       end
       object ComboBoxDefSortColumn: TComboBox
         Left = 8
-        Top = 272
+        Top = 254
         Width = 121
         Height = 20
         Style = csDropDownList
@@ -3110,7 +3110,7 @@ object UIConfig: TUIConfig
       end
       object ComboBoxDefFuncSortColumn: TComboBox
         Left = 165
-        Top = 272
+        Top = 254
         Width = 145
         Height = 20
         Style = csDropDownList
@@ -3131,6 +3131,14 @@ object UIConfig: TUIConfig
           #26495
           #21218#12356
           #22679#12524#12473)
+      end
+      object CheckBoxHideHistoricalLog: TCheckBox
+        Left = 8
+        Top = 288
+        Width = 113
+        Height = 17
+        Caption = #36942#21435#12525#12464#38750#34920#31034
+        TabOrder = 10
       end
     end
     object SheetForView: TTabSheet

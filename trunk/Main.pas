@@ -823,6 +823,9 @@ type
     N95: TMenuItem;
     ViewPopupCmdSep: TMenuItem;
     MenuStatusCmdSep: TMenuItem;
+    MenuListHideHistoricalLog: TMenuItem;
+    PopupTreeHideHistoricalLog: TMenuItem;
+    actHideHistoricalLog: TAction;
     {/aiai}
     procedure FormCreate(Sender: TObject);
     procedure MenuToolsOptionsClick(Sender: TObject);
@@ -1187,7 +1190,6 @@ type
     procedure actTabPtrlExecute(Sender: TObject);
     procedure MenuThreCloseAndAlreadyClick(Sender: TObject);
     procedure actListAlreadyExecute(Sender: TObject);
-    procedure MenuListHideOldClick(Sender: TObject);
     procedure MenuFindeThreadTitleClick(Sender: TObject);
     procedure MenuOptUseNewsClick(Sender: TObject);
     procedure MenuOptSetNewsIntervalClick(Sender: TObject);
@@ -1322,6 +1324,8 @@ type
       var Key: Char);
     procedure ThreViewSearchEditBoxKeyPress(Sender: TObject;
       var Key: Char);
+    procedure MenuListHideHistoricalLogClick(Sender: TObject);
+    procedure actHideHistoricalLogExecute(Sender: TObject);
     {/aiai}
   private
   { Private 宣言 }
@@ -7648,6 +7652,21 @@ begin
   else
     ListView.OnCustomDrawItem := nil;
   ListView.List := currentBoard;
+
+  {aiai} //過去ログ非表示
+  if not (currentBoard is TFunctionalBoard)
+    and currentBoard.HideHistoricalLog then
+  begin
+    index := 0;
+    while index < ListView.List.Count do
+      if TThreadItem(ListView.List.Items[index]).number <= 0 then
+        ListView.List.Delete(index)
+      else
+        Inc(index);
+    ListView.Items.Count := ListView.List.Count;
+  end;
+  {/aiai}
+
   currentSortColumn := 1;
 
   if currentBoard.sortColumn <> 1 then //ソート状態の設定
@@ -9492,7 +9511,9 @@ begin
     PopupTreeOpenCurrent.Enabled := true;
     PopupTreeOpenByBrowser.Enabled := b;
     {aiai}
-    actRefreshIdxList.Visible := b;
+    actRefreshIdxList.Enabled := b;
+    actHideHistoricalLog.Enabled := b;
+    actHideHistoricalLog.Checked := b and board.HideHistoricalLog;
     {/aiai}
     PopupTreeDelBoard.Enabled := not (board is TFunctionalBoard) and not board.Refered;
     with board do
@@ -9519,6 +9540,8 @@ begin
     PopupTreeOpenByBrowser.Enabled := false;
     PopupTreeDelBoard.Enabled := false;
     actRefreshIdxList.Enabled := false;  //aiai
+    actHideHistoricalLog.Enabled := false;  //aiai
+    actHideHistoricalLog.Checked := false;  //aiai
   end;
 end;
 
@@ -11287,6 +11310,8 @@ begin
     self.MenuListSort.Enabled := true;
     self.MenuListCopys.Enabled := true;
     self.MenuListRefreshAll.Enabled := true;
+    self.MenuListHideHistoricalLog.Enabled := true;
+    self.MenuListHideHistoricalLog.Checked := CurrentBoard.HideHistoricalLog;
   end else begin
     self.MenuListOpenAll.Enabled := false;
     self.MenuListCloseBoards.Enabled := false;
@@ -11297,6 +11322,8 @@ begin
     self.MenuListSort.Enabled := false;
     self.MenuListCopys.Enabled := false;
     self.MenuListRefreshAll.Enabled := false;
+    self.MenuListHideHistoricalLog.Enabled := false;
+    self.MenuListHideHistoricalLog.Checked := false;
   end;
   {/aiai}
 
@@ -13479,8 +13506,11 @@ begin
   actRefreshIdxListExecute(sender);
 end;
 
-procedure TMainWnd.MenuListHideOldClick(Sender: TObject);
+//過去ログ非表示のメニューハンドラ
+procedure TMainWnd.MenuListHideHistoricalLogClick(Sender: TObject);
 begin
+  tabRightClickedIndex := ListTabControl.TabIndex;
+  actHideHistoricalLogExecute(sender);
 end;
 
 //スレとスレ覧でアクティブな方を閉じる
@@ -15438,6 +15468,39 @@ begin
   UpdateTabTexts;
 
   UILock := False;
+end;
+
+(* 過去ログ非表示 *) //aiai
+procedure TMainWnd.actHideHistoricalLogExecute(Sender: TObject);
+var
+  board: TBoard;
+  node: TTreeNode;
+  msg: PChar;
+begin
+  if PopupTreeClose.Visible or (Sender = MenuListHideHistoricalLog) then
+    board := TBoard(ListTabControl.Tabs.Objects[tabRightClickedIndex])
+  else begin
+    node := TreeView.Selected;
+    if node = nil then
+      exit;
+    if TObject(node.Data) is TBoard then
+      board := TBoard(node.Data)
+    else
+      board := nil;
+  end;
+
+  if (board = nil) or (board is TFunctionalBoard) then
+    exit;
+
+  board.HideHistoricalLog := not board.HideHistoricalLog;
+
+  if (currentBoard <> nil) and (board = currentBoard) then
+  begin
+    UILock := true;
+    UpdateListView;
+    UpdateTabTexts;
+    UILock := false;
+  end;
 end;
 
 procedure TMainWnd.PopupTreeCategoryPopup(Sender: TObject);
