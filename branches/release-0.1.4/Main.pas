@@ -38,8 +38,8 @@ uses
   {/aiai}
 
 const
-  VERSION  = '0.1.4.2';      (* Printable ASCIIコード厳守。')'はダメ *)
-  JANE2CH  = 'JaneLovely 0.1.4.2';
+  VERSION  = '0.1.4.3';      (* Printable ASCIIコード厳守。')'はダメ *)
+  JANE2CH  = 'JaneLovely 0.1.4.3';
   KEYWORD_OF_USER_AGENT = 'JaneLovely';      (*  *)
 
   DISTRIBUTORS_SITE = 'http://www.geocities.jp/openjane4714/';
@@ -1426,6 +1426,7 @@ type
     procedure OnSubject(sender: TAsyncReq);
     procedure OnMovedSubject(sender: TAsyncReq);
     procedure UpdateListView;
+    procedure ThreadAboneFilter;
     function NewView(relative: boolean = false; background: boolean = false;
       Left: integer = 0; Top: integer = 0;
       Right: integer = 0; Bottom: integer = 0;
@@ -3506,6 +3507,7 @@ begin
     ListView.Column[i].Width := iniFile.ReadInteger(INI_WIN_SECT, 'Column' + IntToStr(ListView.Column[i].Tag), ListView.Column[i].Width);
   ListView.Show;
   ListView.Items.EndUpdate;
+  ListView.Repaint;
 
   (* CoolBar *) //※[457]
   //CoolBar.Bands.BeginUpdate;
@@ -7338,6 +7340,38 @@ begin
   end;
 
   //あぼ～ん非表示
+  ThreadAboneFilter;
+
+  currentSortColumn := 1;
+
+  if currentBoard.sortColumn <> 1 then //ソート状態の設定
+  begin
+    if currentBoard.sortColumn = 100 then
+    begin
+      ListView.Sort(@ListCompareFuncSearchState);
+      currentSortColumn := 100;
+    end else
+      ListViewColumnSort(currentBoard.sortColumn);
+  end;
+
+  //if Config.oprSelPreviousThread then
+  if currentBoard.selDatName <> '' then
+  begin
+    thread := currentBoard.Find(currentBoard.selDatName);
+    if thread <> nil then
+    begin
+      index := ListView.List.IndexOf(thread);
+      if 0 <= index then
+        ListView.SelectIntoView(ListView.Items[index]);
+    end;
+  end;
+  UpdateListTab;
+end;
+
+procedure TMainWnd.ThreadAboneFilter;
+var
+  index: Integer;
+begin
   index := 0;
   case ThreAboneLevel of
    -1: begin //透明
@@ -7377,32 +7411,6 @@ begin
     end;
 
   end;
-  {/aiai}
-
-  currentSortColumn := 1;
-
-  if currentBoard.sortColumn <> 1 then //ソート状態の設定
-  begin
-    if currentBoard.sortColumn = 100 then
-    begin
-      ListView.Sort(@ListCompareFuncSearchState);
-      currentSortColumn := 100;
-    end else
-      ListViewColumnSort(currentBoard.sortColumn);
-  end;
-
-  //if Config.oprSelPreviousThread then
-  if currentBoard.selDatName <> '' then
-  begin
-    thread := currentBoard.Find(currentBoard.selDatName);
-    if thread <> nil then
-    begin
-      index := ListView.List.IndexOf(thread);
-      if 0 <= index then
-        ListView.SelectIntoView(ListView.Items[index]);
-    end;
-  end;
-  UpdateListTab;
 end;
 
 procedure TMainWnd.ViewPopupResClick(Sender: TObject);
@@ -9788,6 +9796,7 @@ begin
     index := viewList.FindViewItemIndex(thread);
     if index <> -1 then
     begin
+      thread.canclose := True;
       tabRightClickedIndex := index;
       CloseThisTab(False);
     end;
@@ -16259,7 +16268,12 @@ begin
   CurrentBoard.ThreadAbone(deleteList, TAction(Sender).Tag);
   deleteList.Free;
 
-  UpdateListView;
+  ListView.DoubleBuffered := True;
+
+  ThreadAboneFilter;
+
+  ListView.Repaint;
+  ListView.DoubleBuffered := False;
   UpdateTabTexts;
 
   UILock := False;
@@ -16296,10 +16310,8 @@ begin
     begin
       index := threadABoneList.IndexOfName(thread.datName);
       if index >= 0 then
-      begin
         threadABoneList.Delete(index);
-        thread.ThreAboneType := 0;
-      end;
+      thread.ThreAboneType := 0;
     end;
     listItem := ListView.GetNextItem(listItem, sdBelow, [isSelected]);
   end;
@@ -16310,7 +16322,12 @@ begin
     SysUtils.DeleteFile(CurrentBoard.LogDir + '\subject.abn');
   threadABoneList.Free;
 
-  UpdateListView;
+  ListView.DoubleBuffered := True;
+
+  ThreadAboneFilter;
+
+  ListView.Repaint;
+  ListView.DoubleBuffered := False;
   UpdateTabTexts;
 
   UILock := False;
@@ -17358,7 +17375,8 @@ begin
       end;
     end else
     begin
-      if 0 < AnsiPos(KeywordList.Strings[i], TargetText) then
+//      if 0 < AnsiPos(KeywordList.Strings[i], TargetText) then
+      if AnsiContainsText(TargetText, KeywordList.Strings[i]) then
       begin
         Result := SEARCH_OK;
         exit;
@@ -17726,7 +17744,8 @@ begin
             exit;
           end;
         end
-      else if (AnsiPos(keywordList.Strings[i], target) > 0) then
+//      else if (AnsiPos(keywordList.Strings[i], target) > 0) then
+      else if AnsiContainsText(target, keywordList.Strings[i]) then
         TThreadItem(ListView.List[j]).liststate := 1
       else
         TThreadItem(ListView.List[j]).liststate := 0;

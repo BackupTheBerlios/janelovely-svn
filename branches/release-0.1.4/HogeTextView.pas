@@ -248,6 +248,7 @@ type
 
     re_enter: integer;
     Canceled: boolean;
+    scroll_fastshow: boolean;
     {/aiai}
 
     function CharWidth(p: PChar; attrib: Integer): Integer;
@@ -1590,14 +1591,16 @@ begin
   si.nMin   := 0;
   si.nMax   := FStrings.GetLogicalLines - 1;
   si.nPage  := VisibleLines - 1;
-  SetScrollInfo(Handle, SB_VERT, si, false);
+  SetScrollInfo(Handle, SB_VERT, si, scroll_fastshow);
   SetScrollPos(Handle, SB_VERT, FLogicalTopLine, redraw);
+  scroll_fastshow := False;
 end;
 
 procedure THogeTextView.CreateWnd;
 begin
   inherited;
   FTrackMouseEvent.hwndTrack := Handle;
+  scroll_fastshow := True;
 end;
 
 procedure THogeTextView.ON_WM_CREATE(var msg: TMsg);

@@ -5533,7 +5533,7 @@ procedure Make2chInfo(dest: TDatOut; URI: string; basethread: TThreadItem;
     begin
       ThreadURL := thread.ToURL;
       dest.WriteAnchor('', ThreadURL, PChar(ThreadURL), Length(ThreadURL));
-      dest.WriteText('<br>' +
+      dest.WriteHTML('<br>' +
            TCategory(TBoard(thread.board).category).name + ' ['
          + TBoard(thread.board).name + ']Å@Åg'
          + HTML2String(thread.title) + 'Åh' + '<br><br>');
@@ -5564,7 +5564,7 @@ begin
     begin
       //î¬èÓïÒÇæÇØï\é¶
       dest.WriteAnchor('', URI, PChar(URI), Length(URI));
-      dest.WriteText('<br><br>' + TCategory(board.category).name + ' [' + board.name + ']');
+      dest.WriteHTML('<br>' + TCategory(board.category).name + ' [' + board.name + ']');
     end;
   end else
     MakeThreadInfo(dest);

@@ -965,7 +965,8 @@ begin
     if not (((errMsg <> '') and ((errMsg = 'true') or (errMsg = 'false'))) or
             ((errMsg =  '') and (list.Count > 0) and
                                  (AnsiContainsStr(list[0], '‘‚«‚±‚İ‚Ü‚µ‚½') or
-                                  AnsiContainsStr(list[0], '‘‚«‚İ‚Ü‚µ‚½'))))then
+                                  AnsiContainsStr(list[0], '‘‚«‚İ‚Ü‚µ‚½') or
+                                  AnsiContainsStr(list[0], '‘‚«‚İI—¹'))))then
     begin
       list.Free;
       {aiai}
