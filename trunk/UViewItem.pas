@@ -55,6 +55,7 @@ type
     EnableBodyTag: boolean;
     FDDOffsetLeft: Integer;
     FIgnoreBR: Boolean;
+    FColorName: THogeColorHandleNameRecord;
     function GetRange(var ANK: string): Boolean; override;
     function ProcTag: boolean; override;
     function ProcEntity: boolean; override;
@@ -688,6 +689,7 @@ begin
   FUser := 0;
   EnableFontTag := false;
   FDDOffsetLeft := DD_OFFSET_LEFT;
+  zeromemory(@FColorName, sizeof(THogeColorHandleNameRecord));
 end;
 
 destructor TDat2View.Destroy;
@@ -849,18 +851,74 @@ end;
 
 function TDat2View.ProcTag: boolean;
 
+  procedure EndFont;
+  begin
+    if FColorName.startp > 0 then
+    begin
+      Flush;
+      Fbrowser.SetColorName(FColorName);
+      zeromemory(@FColorName, sizeof(THogeColorHandleNameRecord));
+    end;
+  end;
+
   procedure SetFont;
   var
     name, value: string;
+    color, len: Integer;
+    failure: Boolean;
+
+    procedure ReturnValue(i: Integer);
+    begin
+      if failure then exit;
+      case value[i] of
+      '0'..'9': color := color * 16 + Ord(value[i]) - Ord('0');
+      'A'..'F': color := color * 16 + Ord(value[i]) - Ord('A') + 10;
+      'a'..'f': color := color * 16 + Ord(value[i]) - Ord('a') + 10;
+      else
+        begin
+          failure := True;
+          exit;
+        end;
+      end;  //Case
+    end;
+
   begin
-    if not EnableFontTag then
-      exit;
+//    if not EnableFontTag then
+//      exit;
     while GetAttribPair(name, value) do
     begin
-      if (name = 'face') and (0 < length(value)) then
+      if EnableFontTag and (name = 'face') and (0 < length(value)) then
       begin
         FBrowser.SetFont(value, ZoomToPoint(Config.viewZoomSize));
         break;
+      end else if (name = 'color') and (0 < length(value)) then
+      begin
+        len := Length(value);
+        color := 0;
+        failure := False;
+        if (name = 'color') then
+        begin
+          if len = 6 then
+          begin
+            ReturnValue(5);  //Blue
+            ReturnValue(6);  //Blue
+            ReturnValue(3);  //Green
+            ReturnValue(4);  //Green
+            ReturnValue(1);  //Red
+            ReturnValue(2);  //Red
+          end else if (len = 7) and (value[1] = '#') then
+          begin
+            ReturnValue(6);  //Blue
+            ReturnValue(7);  //Blue
+            ReturnValue(4);  //Green
+            ReturnValue(5);  //Green
+            ReturnValue(2);  //Red
+            ReturnValue(3);  //Red
+          end;
+          Flush;
+          FColorName.color := color;
+          FColorName.startp := FBrowser.Strings[FBrowser.Strings.Count - 1].GetLength + 1;
+        end;
       end;
     end;
   end;
@@ -1092,6 +1150,9 @@ begin
       end else if IsThisTag('a', str + index, 1) then begin
         Inc(index);
         EndAnchor;
+      end else if IsThisTag('font', str + index, 4) then begin
+        Inc(index, 4);
+        EndFont;
       end;
     end else begin
       if IsThisTag('br', str + index, 2) then begin

@@ -51,7 +51,15 @@ type
     endp: Integer;
   end;
 
+  //aiai 色コテ用のrecord startp,endpともに0からでなく1から
+  THogeColorHandleNameRecord = record
+    startp: integer;
+    endp: integer;
+    color: TColor;
+  end;
+
   THogeHighLight = array of THogeHighLightRecord;
+  THogeColorName = array of THogeColorHandleNameRecord;
 
   THighLightOption = (hloNone, hloNormal, hloReg);
   (*-------------------------------------------------------*)
@@ -65,6 +73,7 @@ type
     FHighLight: THogeHighLight; //aiai
     FHighlightTargetList: TStringList;  //aiai
     FHighLightOption: THighLightOption; //aiai
+    FColorName: THogeColorName;  //aiai
 
     procedure CalcCharWidth;
     function GetCharWidth(index: Integer): Integer;
@@ -371,6 +380,7 @@ type
     {aiai}
     function AppendPicture(Image: TGraphic; overlap: Boolean; offsetleft: integer): Boolean;
     procedure AppendHR(Color: TColor; Custom: Boolean; OffsetLeft: Integer);
+    procedure SetColorName(ColorNameRecord: THogeColorHandleNameRecord);
     {/aiai}
     procedure SetFont(FaceName: String; Size: Integer);
     procedure SelectWord(physicalPos: TPoint);
@@ -517,6 +527,7 @@ begin
   PictLine := False;  //aiai
   SetLength(FHighLight, 0);  //aiai
   FHighLightOption := hloNone;  //aiai
+  SetLength(FColorName, 0);  //aiai
 end;
 
 destructor THogeTVItem.Destroy;
@@ -525,6 +536,7 @@ begin
   SetLength(FAttrib, 0);
   SetLength(FCharWidth, 0);
   SetLength(FHighLight, 0);  //aiai
+  SetLength(FColorName, 0);  //aiai
   inherited;
 end;
 
@@ -2304,6 +2316,24 @@ var
       end;
     end;
   end;
+
+  //indexがstartindexとendindexの間にあれば色コテ
+  function InColorName(item: THogeTVItem; index: integer; var color: TColor): Boolean;
+  var
+    p, lsize: integer;
+  begin
+    Result := False;
+    lsize := Length(item.FColorName);
+    for p := 0 to lsize - 1 do
+    begin
+      if (item.FColorName[p].startp <= index) and (index <= item.FColorName[p].endp) then
+      begin
+        color := item.FColorName[p].color;
+        Result := True;
+        break;
+      end;
+    end;
+  end;
 {/aiai}
 
 var
@@ -2324,6 +2354,8 @@ var
   Triangle: array[0..2] of TPoint;
   position: integer;
   WalX, WalY: Integer;
+  customcolor: TColor;
+  ColorNameP: Boolean;
 label
   DONE;
 begin
@@ -2443,6 +2475,7 @@ begin
         {aiai}
         //検索文字列ハイライト
         HighlightP := InHighlight(index);
+        ColorNameP := InColorName(item, index, customcolor);
         {/aiai}
         next := index + 1;
         while next <= len do
@@ -2456,6 +2489,8 @@ begin
             {aiai}
             //検索文字列ハイライト
             if InHighlight(next) <> HighlightP then
+              break;
+            if InColorName(item, next, customcolor) <> ColorNameP then
               break;
             {/aiai}
             if (maxX < (X + width + Ord(cw[next]))) then
@@ -2488,8 +2523,17 @@ begin
           end
           {/aiai}
           else begin
-            if FBitmap.Canvas.Font.Color <> color then
-              FBitmap.Canvas.Font.Color := color;
+            {aiai}
+            if ColorNameP then
+            begin
+              if FBitmap.Canvas.Font.Color <> customcolor then
+                FBitmap.Canvas.Font.Color := customcolor;
+            end else
+            {/aiai}
+            begin
+              if FBitmap.Canvas.Font.Color <> color then
+                FBitmap.Canvas.Font.Color := color;
+            end;
             {aiai}
             //文字の背景を透明に
             if FBitmap.Canvas.Brush.Style <> bsClear then
@@ -3379,6 +3423,16 @@ begin
     item.BorderCustom := False;
   item := THogeTVItem.Create(Self);
   FStrings.Add(item);
+end;
+
+procedure THogeTextView.SetColorName(ColorNameRecord: THogeColorHandleNameRecord);
+var
+  item: THogeTVItem;
+begin
+  item := FStrings[FStrings.Count - 1];
+  ColorNameRecord.endp := item.GetLength;
+  SetLength(item.FColorName, Length(item.FColorName) + 1);
+  item.FColorName[Length(item.FColorName) - 1] := ColorNameRecord;
 end;
 
 {/aiai}
