@@ -55,7 +55,6 @@ type
     AAList: TRSListBox;
     PanelColor: array[0..2] of TColor;  //ƒpƒlƒ‹‚Ì”‚¾‚¯Šm•Û
     procedure PasteAA;
-    procedure ChangeStatusBar;
 
     procedure UnableWrite;
     procedure EnableWrite;
@@ -85,6 +84,7 @@ type
     ButtonWrite: TButton;
     constructor Create;
     destructor Destroy; override;
+    procedure ChangeStatusBar;
     procedure writeActShowAAListExecute(Sender: TObject);
     procedure ChangeMemoIme;
     procedure SaveMemoIme;
@@ -777,6 +777,7 @@ begin
     WriteForm.ButtonWrite.Enabled := not MainWnd.WriteWaitTimer.IsThisHost(WriteForm.board.host);
   TargetThread := nil;
   TargetBoard := nil;
+  try Memo.SetFocus; except end;
 end;
 
 

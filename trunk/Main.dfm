@@ -522,8 +522,11 @@ object MainWnd: TMainWnd
                   ScrollBars = ssBoth
                   TabOrder = 1
                   WordWrap = False
+                  OnChange = MemoWriteMainChange
                   OnEnter = MemoWriteMainEnter
                   OnExit = MemoWriteMainExit
+                  OnKeyDown = MemoWriteMainKeyDown
+                  OnKeyPress = MemoWriteMainKeyPress
                 end
               end
               object TabSheetWritePreview: TTabSheet

@@ -42,8 +42,8 @@ uses
   {/aiai}
 
 const
-  VERSION  = '0.1.3.15';      (* Printable ASCIIコード厳守。')'はダメ *)
-  JANE2CH  = 'JaneLovely 0.1.3.15';
+  VERSION  = '0.1.3.16';      (* Printable ASCIIコード厳守。')'はダメ *)
+  JANE2CH  = 'JaneLovely 0.1.3.16 β';
   KEYWORD_OF_USER_AGENT = 'JaneLovely';      (*  *)
 
   DISTRIBUTORS_SITE = 'http://www.geocities.jp/openjane4714/';
@@ -1366,6 +1366,10 @@ type
     procedure MemoWriteMainEnter(Sender: TObject);
     procedure MemoWriteMainExit(Sender: TObject);
     procedure ToolButtonWriteAAClick(Sender: TObject);
+    procedure MemoWriteMainChange(Sender: TObject);
+    procedure MemoWriteMainKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure MemoWriteMainKeyPress(Sender: TObject; var Key: Char);
     {/aiai}
   private
   { Private 宣言 }
@@ -18768,6 +18772,40 @@ end;
 procedure TMainWnd.ToolButtonWriteAAClick(Sender: TObject);
 begin
   WritePanelControl.writeActShowAAListExecute(Sender);
+end;
+
+procedure TMainWnd.MemoWriteMainChange(Sender: TObject);
+begin
+  WritePanelControl.ChangeStatusBar;
+end;
+
+procedure TMainWnd.MemoWriteMainKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if (ssShift in Shift) and (Key = VK_RETURN) then
+  begin
+    MemoWriteMain.WantReturns := false;
+    if ButtonWriteWrite.Enabled then
+      ButtonWriteWriteClick(nil)
+    else
+      MessageBeep($FFFFFFFF);
+  end else
+  begin
+    MemoWriteMain.WantReturns := true;
+    if (ssCtrl in Shift) then begin
+      if (Key = Ord('A')) then
+        MemoWriteMain.SelectAll;
+        exit;
+      end;
+  end;
+end;
+
+procedure TMainWnd.MemoWriteMainKeyPress(Sender: TObject; var Key: Char);
+begin
+  if (Key = ' ') and (GetKeyState(VK_CONTROL) < 0) then begin
+    Key := #0;
+    WritePanelControl.writeActShowAAListExecute(Self);
+  end;
 end;
 
 initialization
