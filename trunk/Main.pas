@@ -42,7 +42,7 @@ const
   JANE2CH  = 'JaneLovely 0.1.5 pre1';
   KEYWORD_OF_USER_AGENT = 'JaneLovely';      (*  *)
 
-  DISTRIBUTORS_SITE = 'http://www.geocities.jp/openjane4714/';
+  DISTRIBUTORS_SITE = 'http://janelovely.berlios.de/';
 
   Copyrights: array[0..20] of string
     = ('Copyright (c) 2002 Project Open Jane - <a href="http://sakots.pekori.jp/OpenJane/">http://sakots.pekori.jp/OpenJane/</a> (<a href="https://sourceforge.jp/projects/jane/">SourceForge.jp</a>)',
@@ -12268,12 +12268,16 @@ begin
     begin
       newView := NewPopUpView(viewItem);
       try
-        newView.Lock;
-        Result := (NewView.ExtractKeyword('extract:' + ref, viewItem.thread , ref, 20, Mouse.CursorPos) > 0);
+        //newView.Lock;
+        restrainContext := True;
+        Result := (NewView.ExtractKeyword('extract:' + ref, viewItem.thread , ref, 0, Mouse.CursorPos) > 0);
         if Assigned(viewItem.PossessionView) then
+        begin
           viewItem.PossessionView.Enabled := True;
+          viewItem.PossessionView.OwnerCofirmation := True;
+        end;
       finally
-        newView.UnLock;
+        //newView.UnLock;
       end;
     end else
     begin
