@@ -174,6 +174,7 @@ type
     FCaretSavedX: Integer; (* client X-coordinate *)
     FCaretVisible: Boolean;
     FConfCaretVisible: Boolean; //521
+    FCaretScrollSync: Boolean; //aiai
 
     FSelecting: Boolean;
     FDragging: Boolean;
@@ -423,6 +424,7 @@ type
     property Selecting: Boolean read FSelecting write SetSelecting stored False;
     property WheelPageScroll: boolean read FWheelPageScroll write FWheelPageScroll;
     property ConfCaretVisible: boolean read FConfCaretVisible write SetConfCaretVisible;
+    property CaretScrollSync: Boolean read FCaretScrollSync write FCaretScrollSync; //aiai
 
     //改造▽ 追加 (スレビューに壁紙を設定する。Doe用)
     property Wallpaper: TGraphic read FWallpaper write FWallpaper;
@@ -1289,7 +1291,7 @@ begin
   begin
     FLogicalTopLine := FLogicalCaret.Y - (vLines div 2);
   end;
-  
+
   if (0 < vLines) and (FLogicalTopLine + vLines - margin -1 <= FLogicalCaret.Y) then
     FLogicalTopLine := FLogicalCaret.Y + margin - vLines + 1
   else if FLogicalCaret.Y < FLogicalTopLine + margin then
@@ -1493,7 +1495,12 @@ begin
       ScrollPixel(Delta + ModDelta)
     else
       ScrollPixel(Delta);
-    SetLogicalCaret(FLogicalCaret);
+    {aiai}
+    if FCaretScrollSync then
+      SetLogicalCaret(FLogicalCaret, hscDONTSCROLL)
+    else
+    {/aiai}
+      SetLogicalCaret(FLogicalCaret);
     if i < tFrames then
       Update;
 
@@ -1525,11 +1532,13 @@ begin
 
   FLogicalTopLine := TopPixel div bs;
   FFraction := TopPixel mod bs;
-  FLogicalCaret.Y := FLogicalTopLine + ScreenCurretLine;
+  if FCaretScrollSync then  //aiai
+    FLogicalCaret.Y := FLogicalTopLine + ScreenCurretLine;
 
   ModifyLogicalLine(FLogicalTopLine, FTopLine, FTopLineOffset);
   UpdateBottomLine;
-  FLogicalCaret.X := FCaretSavedX;
+  if FCaretScrollSync then //aiai
+    FLogicalCaret.X := FCaretSavedX;
   SetLogicalCaret(FLogicalCaret, hscDONTSCROLL);
   Invalidate;
 end;
@@ -1786,8 +1795,14 @@ procedure THogeTextView.ON_WM_MOUSEWHEEL(var msg: TMessage);
 begin
   AutoScroll := False; //beginner
   {beginner} //後ろから移動
-  SetSelecting(False);
-  CaretVisible(False);
+  {aiai}
+  if FCaretScrollSync then
+  begin
+    SetSelecting(False);
+    CaretVisible(False);
+  end else
+    CaretVisible(True);
+  {/aiai}
   {/beginner}
   if FWheelPageScroll then
   case (msg.WParam < 0) of
@@ -1951,7 +1966,8 @@ begin
   if Speed = 0 then begin
     Exit;
   end else begin
-    FSelecting := False;
+    if FCaretScrollSync then //aiai
+      FSelecting := False;
     if Abs(Speed) <= IntervalParam then begin
       Pitch := IntervalParam div Speed;
       if ASCounter >= Abs(Pitch) then begin
@@ -1994,11 +2010,70 @@ begin
 end;
 
 procedure THogeTextView.ON_WM_VSCROLL(var msg: TMessage);
+  procedure ScrollLine2(advance: Integer);
+  var
+    i :Integer;
+    Delta: Integer;
+    Pixel: Integer;
+    PixelMod: Integer;
+    ModDelta: Integer;
+    tFrames: Integer;
+
+    bs: Integer;
+
+    Wait: Cardinal;
+    DoWait: Boolean;
+  begin
+    tFrames := 1;
+
+    bs := BaselineSkip;
+    Pixel := advance * bs - FFraction;
+
+    Delta := Pixel div tFrames;
+    PixelMod := Abs(Pixel mod tFrames);
+
+    if advance >= 0 then
+      ModDelta := 1
+    else
+      ModDelta := -1;
+
+    if Delta = 0 then begin
+      tFrames := PixelMod;
+      Delta := ModDelta;
+      PixelMod := 0;
+    end;
+
+    for i := 1 to tFrames do begin
+
+      Wait := timeGetTime;
+      DoWait := ((High(Cardinal) - FWaitTime * 10) > Wait) and (tFrames > 1);
+
+      if i <= PixelMod then
+        ScrollPixel(Delta + ModDelta)
+      else
+        ScrollPixel(Delta);
+      SetLogicalCaret(FLogicalCaret, hscDONTSCROLL);
+      if i < tFrames then
+        Update;
+
+      if DoWait then begin
+        Wait := Wait + FWaitTime;
+        while Wait > timeGetTime + SleepMinimumResolution do
+          Sleep(1);
+        while Wait > timeGetTime do;
+      end;
+    end;
+  end;
+
 var
   si: SCROLLINFO;
 begin
-  if not FDragging then
+  {aiai}
+  //if not FDragging then
+  //  SetSelecting(False);
+  if not FDragging and FCaretScrollSync then
     SetSelecting(False);
+  {/aiai}
   case msg.WParamLo of
   SB_TOP:      BeginningOfBuffer;
   SB_BOTTOM:   EndOfBuffer;
@@ -2017,14 +2092,22 @@ begin
       si.cbSize := sizeof(si);
       si.fMask  := SIF_TRACKPOS;
       GetScrollInfo(Handle, SB_VERT, si);
-      SetTop(si.nTrackPos);
+      {aiai}
+      if not FCaretScrollSync then
+        ScrollLine2(si.nTrackPos - FLogicalTopLine)
+      else
+      {/aiai}
+        SetTop(si.nTrackPos);
       {/beginner}
       AnalyzeScrollInfo;
     end;
   //SB_ENDSCROLL:
   end;
   msg.Result := 1;
-  CaretVisible(False);
+  {aiai}
+  //CaretVisible(False);
+  CaretVisible(not FCaretScrollSync);
+  {/aiai}
 end;
 
 procedure THogeTextView.ON_WM_PAINT(var msg: TWMPaint);

@@ -52,7 +52,7 @@ object UIConfig: TUIConfig
     Top = 8
     Width = 393
     Height = 321
-    ActivePage = SheetFavPatrol
+    ActivePage = SheetNet
     Style = tsFlatButtons
     TabOrder = 1
     TabStop = False
@@ -318,7 +318,7 @@ object UIConfig: TUIConfig
         Top = 191
         Width = 289
         Height = 20
-        ItemHeight = 12
+        ItemHeight = 0
         TabOrder = 5
       end
     end
@@ -1923,7 +1923,7 @@ object UIConfig: TUIConfig
           Height = 20
           Style = csDropDownList
           DropDownCount = 12
-          ItemHeight = 12
+          ItemHeight = 0
           TabOrder = 1
         end
         object ComboBoxMseGestures: TComboBox
@@ -2027,7 +2027,7 @@ object UIConfig: TUIConfig
           Height = 20
           Style = csDropDownList
           DropDownCount = 12
-          ItemHeight = 12
+          ItemHeight = 0
           TabOrder = 2
           OnDropDown = ComboBoxMseSubMenusDropDown
         end
@@ -2946,6 +2946,14 @@ object UIConfig: TUIConfig
         Caption = '...'
         TabOrder = 8
         OnClick = ButtonKeywordBrushColorClick
+      end
+      object CheckBoxCaretScrollSync: TCheckBox
+        Left = 184
+        Top = 216
+        Width = 153
+        Height = 17
+        Caption = #12473#12463#12525#12540#12523#12395#21516#26399#12377#12427
+        TabOrder = 9
       end
     end
     object SheetColumn: TTabSheet

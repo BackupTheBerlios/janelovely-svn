@@ -5818,6 +5818,7 @@ begin
   //result.browser.Visible := true;
   //result.browser.BringToFront;
   result.browser.ConfCaretVisible := Config.viewCaretVisible;
+  result.browser.CaretScrollSync := Config.viewCaretScrollSync; //aiai
   result.Browser.HoverTime := Config.hintHoverTime;
   Result.PopUpViewList := popupviewList;
 
@@ -5885,6 +5886,7 @@ begin
   Browser.OnEndContext := BrowserEndContext;
   Browser.PopupMenu := PopupTextMenu;
   Browser.HoverTime := Config.hintHintHoverTime;
+  Browser.CaretScrollSync := Config.viewCaretScrollSync; //aiai
   Browser.SetPhysicalCaret(0, 0);
 
   Result := TPopupViewItem.Create(Browser, OwnerView);

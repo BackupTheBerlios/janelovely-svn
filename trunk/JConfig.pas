@@ -204,6 +204,9 @@ type
     {/beginner}
     viewTextAttrib: array[THogeAttribute] of THogeTextAttrib;
     viewCaretVisible : boolean;
+    {aiai}
+    viewCaretScrollSync: Boolean;
+    {/aiai}
     {$ENDIF}
     viewZoomPointArray: array[0..5] of integer;
     viewKeywordBrushColor: TColor;  //aiai
@@ -714,6 +717,9 @@ begin
   viewScrollFrameRate := 60;
   {/beginner}
   viewCaretVisible := true;
+  {aiai}
+  viewCaretScrollSync := false;
+  {/aiai}
 
   //改造▽ 追加 (スレビューに壁紙を設定する。Doe用)
   //viewBrowserWallpaperEnabled := false;
@@ -1419,6 +1425,9 @@ begin
   viewScrollFrameRate  := ini.ReadInteger(INI_VIEW_SECT, 'ScrollFrameRate', viewScrollFrameRate);
   {/beginner}
   viewCaretVisible := ini.ReadBool(INI_VIEW_SECT, 'CaretVisible', viewCaretVisible);
+  {aiai}
+  viewCaretScrollSync := ini.ReadBool(INI_VIEW_SECT, 'ScrollLinkedCaret', viewCaretScrollSync);
+  {/aiai}
 
   viewKeywordBrushColor := ini.ReadInteger(INI_VIEW_SECT, 'KeywordBrushColor', clYellow);  //aiai
 
@@ -1952,6 +1961,9 @@ begin
   ini.WriteInteger(INI_VIEW_SECT, 'ScrollFrameRate', viewScrollFrameRate);
   {/beginner}
   ini.WriteBool(INI_VIEW_SECT, 'CaretVisible', viewCaretVisible);
+  {aiai}
+  ini.WriteBool(INI_VIEW_SECT, 'ScrollLinkedCaret', viewCaretScrollSync);
+  {/aiai}
 
   ini.WriteInteger(INI_VIEW_SECT, 'KeywordBrushColor', viewKeywordBrushColor);
 

@@ -460,6 +460,7 @@ type
     CheckBoxEnableMigemo: TCheckBox;
     CheckBoxShowToolbarOnStartup: TCheckBox;
     CheckBoxShowTreeToolbarOnStartup: TCheckBox;
+    CheckBoxCaretScrollSync: TCheckBox;
     procedure FormShow(Sender: TObject);
     procedure OkButtonClick(Sender: TObject);
     procedure CancelButtonClick(Sender: TObject);
@@ -998,6 +999,12 @@ begin
       Main.viewList.Items[i].browser.ConfCaretVisible := self.CheckboxCaretVisible.Checked;
   end;
   {aiai}
+  if Main.Config.viewCaretScrollSync <> self.CheckBoxCaretScrollSync.Checked then
+  begin
+    Main.Config.viewCaretScrollSync := self.CheckBoxCaretScrollSync.Checked;
+    for i := 0 to Main.viewList.Count -1 do
+      Main.viewList.Items[i].browser.CaretScrollSync := self.CheckBoxCaretScrollSync.Checked;
+  end;
   if Main.Config.viewKeywordBrushColor <> self.LabelKeywordBrushColor.Color then
   begin
     Main.Config.viewKeywordBrushColor := self.LabelKeywordBrushColor.Color;
@@ -1381,6 +1388,7 @@ begin
   self.SpinEditViewScrollFrameRate.Value := Main.Config.viewScrollFrameRate;
   {/beginner}
   self.CheckBoxCaretVisible.Checked := Main.Config.viewCaretVisible;
+  self.CheckBoxCaretScrollSync.Checked := Main.Config.viewCaretScrollSync; //aiai
 
   self.EditZoomPoint0.Text := IntToStr(Main.Config.viewZoomPointArray[0]);
   self.EditZoomPoint1.Text := IntToStr(Main.Config.viewZoomPointArray[1]);
