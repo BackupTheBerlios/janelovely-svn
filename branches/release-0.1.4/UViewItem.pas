@@ -17,7 +17,7 @@ uses
    UPopupTextView,
    UCardinalList,  //beginner
    StrUtils,
-   Forms,
+   Forms, MMSystem,
    IdGlobal, Types, Windows, VBScript_RegExp_55_TLB,
    U2chThread, U2chBoard, U2chCat, U2chCatList, UAsync, JConfig, UDat2HTML,
    USynchro, StrSub, StdCtrls, ApiBmp, PNGImage, GifImage, Graphics, IniFiles;
@@ -3305,7 +3305,7 @@ procedure TViewItem.DoWorking;
   procedure PumpPreContents;
   var
     {$IFDEF BENCH}
-    index: integer;
+    index: Cardinal;
     {$ENDIF}
     D2HTML: TDat2HTML;
     BookMarkHTML: PChar;
@@ -3315,7 +3315,7 @@ procedure TViewItem.DoWorking;
        assigned(FThread.dat) and (0 < FThread.dat.Size) then
     begin
       {$IFDEF BENCH}
-      Bench2(0);
+      index := timeGetTime;
       {$ENDIF}
 
       {Log(Format('É”Åi•ÅÕ•Åjä˘ì«ï™ïœä∑(%d ﬁ≤ƒ)', [FThread.dat.Size]));}
@@ -3353,7 +3353,7 @@ procedure TViewItem.DoWorking;
       FStream.Flush;
       FWantTraceLogDone := True;
       {$IFDEF BENCH}
-      index := Bench2(1);
+      index := timeGetTime - index;
       if index >= 100 then
         Log('ÅiÅGÅOÅ§ÅOÅj… ' +  FormatFloat('#,##0',index) + '–ÿïb')
       else
@@ -3386,7 +3386,6 @@ procedure TViewItem.DoWorking;
     Dec(re_entrant);
     FAsyncStat := tpsDone;
     LogDone(FWantTraceLogDone);
-    UpdateThreadInfo(FThread);
   end;
 
   procedure Complete;
@@ -3398,7 +3397,7 @@ procedure TViewItem.DoWorking;
        Assigned(FThread) and (FThread.oldLines <= FThread.viewPos) then
       SetViewPos;
 
-    FBrowser.Invalidate;
+    FBrowser.Repaint;
     FProgress := tpsNone;
     FNaviStat:= tpsNone;
     FPreStat := tpsNone;
@@ -3409,6 +3408,8 @@ procedure TViewItem.DoWorking;
       FreeThread
     else
       MainWnd.UpdateTabTexts;
+    if Assigned(FThread) and ((FThread.board = MainWnd.currentBoard) or (MainWnd.currentBoard is TFunctionalBoard)) then
+      daemon.Post(MainWnd.ListViewRepaint);
   end;
 
   procedure sub;
@@ -5532,10 +5533,10 @@ procedure Make2chInfo(dest: TDatOut; URI: string; basethread: TThreadItem;
     begin
       ThreadURL := thread.ToURL;
       dest.WriteAnchor('', ThreadURL, PChar(ThreadURL), Length(ThreadURL));
-      dest.WriteText(#13#10 +
+      dest.WriteText('<br>' +
            TCategory(TBoard(thread.board).category).name + ' ['
          + TBoard(thread.board).name + ']Å@Åg'
-         + HTML2String(thread.title) + 'Åh' + #13#10#13#10);
+         + HTML2String(thread.title) + 'Åh' + '<br><br>');
     end;
     if Config.hintForOtherThread or (thread = BaseThread) then
     begin
@@ -5563,7 +5564,7 @@ begin
     begin
       //î¬èÓïÒÇæÇØï\é¶
       dest.WriteAnchor('', URI, PChar(URI), Length(URI));
-      dest.WriteText(#13#10 + TCategory(board.category).name + ' [' + board.name + ']');
+      dest.WriteText('<br><br>' + TCategory(board.category).name + ' [' + board.name + ']');
     end;
   end else
     MakeThreadInfo(dest);

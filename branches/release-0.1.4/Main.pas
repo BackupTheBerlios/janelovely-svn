@@ -38,8 +38,8 @@ uses
   {/aiai}
 
 const
-  VERSION  = '0.1.4.1';      (* Printable ASCIIコード厳守。')'はダメ *)
-  JANE2CH  = 'JaneLovely 0.1.4.1';
+  VERSION  = '0.1.4.2';      (* Printable ASCIIコード厳守。')'はダメ *)
+  JANE2CH  = 'JaneLovely 0.1.4.2';
   KEYWORD_OF_USER_AGENT = 'JaneLovely';      (*  *)
 
   DISTRIBUTORS_SITE = 'http://www.geocities.jp/openjane4714/';
@@ -1633,6 +1633,7 @@ type
     procedure FavPtrlManager(Count: Integer;
                   PatrolType: TPatrolType; board: TBoard);
     procedure UpdateListViewColumns;
+    procedure ListViewRepaint;
     {/aiai}
   end;
 
@@ -8856,6 +8857,7 @@ begin
     viewItem.thread.RemoveLog;
     UnRegisterFavorite(viewItem.thread);
     UpdateThreadInfo(viewItem.thread);
+    viewItem.thread.canclose := True;
     actCloseThisTabExecute(Sender);
   end;
 end;
@@ -18287,6 +18289,13 @@ begin
   else
     ComboBoxWriteMail.Text := 'sage';
   try MemoWriteMain.SetFocus; except end;
+end;
+
+procedure TMainWnd.ListViewRepaint;
+begin
+  ListView.DoubleBuffered := True;
+  ListView.Repaint;
+  ListView.DoubleBuffered := False;
 end;
 
 initialization
