@@ -72,7 +72,6 @@ uses
   UImageViewCacheListForm in 'AIAI\UImageViewCacheListForm.pas' {ImageViewCacheListForm},
   UFormSplash in 'AIAI\UFormSplash.pas' {FormSplash},
   UTTSearch in 'AIAI\UTTSearch.pas',
-  UCheckSeverDown in 'AIAI\UCheckSeverDown.pas',
   HogeTextView in 'HogeTextView.pas',
   UWritePanelControl in 'AIAI\UWritePanelControl.pas',
   UWriteForm in 'UWriteForm.pas' {WriteForm},

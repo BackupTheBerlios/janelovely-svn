@@ -299,7 +299,6 @@ type
     optShowOrHideOld: Boolean;
     optHideInTaskTray: Boolean;
 
-    optFavPatrolCheckServerDown: Boolean;
     optFavPatrolOpenNewResThread: Boolean;
     optFavPatrolOpenBack: Boolean;
     optFavPatrolMessageBox: Boolean;
@@ -827,7 +826,6 @@ begin
   optShowOrHideOld := true;
   optHideInTaskTray := false;
 
-  optFavPatrolCheckServerDown := false;
   optFavPatrolOpenNewResThread := false;
   optFavPatrolOpenBack := false;
   optFavPatrolMessageBox := false;
@@ -1525,7 +1523,6 @@ begin
   optPopupSizeContrainX := ini.ReadInteger(INI_OPT_SECT, 'PopupSizeContrainX', optPopupSizeContrainX);
   optPopupSizeContrainY := ini.ReadInteger(INI_OPT_SECT, 'PopupSizeContrainY', optPopupSizeContrainY);
 
-  optFavPatrolCheckServerDown := ini.ReadBool(INI_OPT_SECT, 'FavPatrolCheckServerDown', optFavPatrolCheckServerDown);
   optFavPatrolOpenNewResThread := ini.ReadBool(INI_OPT_SECT, 'FavPatrolOpenNewResThread', optFavPatrolOpenNewResThread);
   optFavPatrolOpenBack := ini.ReadBool(INI_OPT_SECT, 'FavPatrolOpenBack', optFavPatrolOpenBack);
   optFavPatrolMessageBox := ini.ReadBool(INI_OPT_SECT, 'FavPatrolMessageBox', optFavPatrolMessageBox);
@@ -2044,7 +2041,6 @@ begin
   ini.WriteInteger(INI_OPT_SECT, 'PopupSizeContrainX', optPopupSizeContrainX);
   ini.WriteInteger(INI_OPT_SECT, 'PopupSizeContrainY', optPopupSizeContrainY);
 
-  ini.WriteBool(INI_OPT_SECT, 'FavPatrolCheckServerDown', optFavPatrolCheckServerDown);
   ini.WriteBool(INI_OPT_SECT, 'FavPatrolOpenNewResThread', optFavPatrolOpenNewResThread);
   ini.WriteBool(INI_OPT_SECT, 'FavPatrolOpenBack', optFavPatrolOpenBack);
   ini.WriteBool(INI_OPT_SECT, 'FavPatrolMessageBox', optFavPatrolMessageBox);

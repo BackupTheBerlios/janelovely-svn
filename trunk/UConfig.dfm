@@ -2553,42 +2553,34 @@ object UIConfig: TUIConfig
       TabVisible = False
       object GroupBoxCheck: TJLXPGroupBox
         Left = 15
-        Top = 208
+        Top = 223
         Width = 360
-        Height = 124
+        Height = 100
         Caption = #26356#26032#12481#12455#12483#12463
         TabOrder = 0
-        object CheckBoxFavPatrolCheckServerDown: TCheckBox
-          Left = 25
-          Top = 20
-          Width = 288
-          Height = 18
-          Caption = #26356#26032#65409#65386#65391#65400#21069#12395#12469#12540#12496#12540#12364#33853#12385#12390#12394#12356#12363#12481#12455#12483#12463#12377#12427
-          TabOrder = 0
-        end
         object CheckBoxFavPatrolOpenNewResThread: TCheckBox
           Left = 25
-          Top = 45
+          Top = 20
           Width = 257
           Height = 18
           Caption = #26356#26032#65409#65386#65391#65400#24460#12395#26356#26032#12398#12354#12427#12473#12524#12483#12489#12434#12377#12409#12390#38283#12367
-          TabOrder = 1
+          TabOrder = 0
         end
         object CheckBoxFavPatrolOpenBack: TCheckBox
           Left = 25
-          Top = 70
+          Top = 45
           Width = 201
           Height = 18
           Caption = #26356#26032#65409#65386#65391#65400#12434#12496#12483#12463#12464#12521#12454#12531#12489#12391#34892#12358
-          TabOrder = 2
+          TabOrder = 1
         end
         object CheckBoxFavPatrolMessageBox: TCheckBox
           Left = 25
-          Top = 95
+          Top = 70
           Width = 249
           Height = 18
           Caption = #26356#26032#65409#65386#65391#65400#23436#20102#12398#30906#35469#12480#12452#12450#12525#12464#12434#34920#31034#12377#12427
-          TabOrder = 3
+          TabOrder = 2
         end
       end
       object GroupBoxSearch: TJLXPGroupBox

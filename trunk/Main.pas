@@ -32,7 +32,7 @@ uses
   UAAForm, UAddAAForm, UAutoReSc, UAutoReloadSettingForm,
   UAutoScrollSettingForm, ULovelyWebForm, UNews, UGetBoardListForm,
   UChottoForm, UImageViewCacheListForm,
-  UCheckSeverDown, UMDITextView, UWriteWait, UXPHintWindow,
+  UMDITextView, UWriteWait, UXPHintWindow,
   UWritePanelControl, JLToolButton, JLSideBar, JLXPComCtrls, TntStdCtrls,
   JLTrayIcon;
   {/aiai}
@@ -1556,7 +1556,6 @@ type
 
     {aiai}
     procedure StartAutoReSc;
-    procedure FavCheckServerDownEnd(Sender: TObject);
     procedure FavBrdOpen;
     procedure FavPatrol(PatrolType: TPatrolType);
     procedure TabPtrlStart;
@@ -15703,38 +15702,6 @@ end;
 
 //Å´çXêVÉ`ÉFÉbÉN
 //ÇQÇøÇ·ÇÒÇÀÇÈÉuÉâÉEÉUÅuOpenJaneÅvâ¸ë¢ëççáÉXÉå10
-//http://pc5.2ch.net/test/read.cgi/win/1069005879/949-952
-procedure TMainWnd.FavCheckServerDownEnd(Sender: TObject);
-var
-  index: integer;
-  board: TBoard;
-begin
-  index := 0;
-  while index < FavBrdList.Count do
-  begin
-    board := TBoard(FavBrdList.Items[index]);
-    if (board.BBSType = bbs2ch) and
-            not CheckServerDownInst.CheckDown(board.host) then
-    begin
-      Log('Åy' + board.name + 'ÅzÅF'+board.host+'/'+board.bbs+'ÅFServer Down');
-      FavBrdList.Delete(index);
-    end else
-      Inc(index);
-  end;
-  FreeAndNil(CheckServerDownInst);
-  Log('êÏ ÅfÅ[ÅfêÏ éIóé¡¡™Ø∏µ‹ÿ');
-
-  if FavBrdList.Count = 0 then begin
-    FavBrdList.Free;
-    Log('êÏÅGÅfÅ[ÅfêÏ≈∆”ΩŸ∫ƒ∂ﬁ≈≤');
-  end else begin
-    //FavBrdOpen;
-    if usetrace[49] then Log(traceString[49])
-    else Log('êÏ ÅfÅ[ÅfêÏçXêV¡™Ø∏ΩŸ›‘÷');
-    FavPtrlManager(nil, FavBrdList.Count, patFavorite);
-    FavPatrol(patFavorite);
-  end;
-end;
 
 procedure TMainWnd.FavoriteRenewCheck;
 //Å¶[457]
@@ -15777,19 +15744,6 @@ begin
     exit;
   FavBrdList := TList.Create;
   FavPtrlBrdCreate(FavPtrlFavs);
-
-  if Config.optFavPatrolCheckServerDown then
-  begin
-    CheckServerDownInst := TCheckServerDown.Create;
-    CheckServerDownInst.OnResponse := FavCheckServerDownEnd;
-    Log('êÏ ÅfÅ[ÅfêÏ éIóé¡¡™∞Ø∏');
-    if CheckServerDownInst.InitInfo then
-      exit
-    else begin
-      FreeAndNil(CheckServerDownInst);
-      Log('êÏ ÅfÅ[ÅfêÏ éIóé¡¡™Ø∏√ﬁ∑›∂Ø¿');
-    end;
-  end;
 
   if FavBrdList.Count = 0 then begin
     FavBrdList.Free;

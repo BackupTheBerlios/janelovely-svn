@@ -413,7 +413,6 @@ type
     LabelKeywordBrushColor: TLabel;
     ButtonKeywordBrushColor: TButton;
     GroupBoxCheck: TJLXPGroupBox;
-    CheckBoxFavPatrolCheckServerDown: TCheckBox;
     CheckBoxFavPatrolOpenNewResThread: TCheckBox;
     CheckBoxFavPatrolOpenBack: TCheckBox;
     CheckBoxFavPatrolMessageBox: TCheckBox;
@@ -920,7 +919,6 @@ begin
   Main.Config.optOldOnCheckNew := self.CheckBoxOldOnCheckNew.Checked;
   Main.Config.viewReadIfScrollBottom := self.CheckBoxReadIfScrollBottom.Checked;
 
-  Main.Config.optFavPatrolCheckServerDown := self.CheckBoxFavPatrolCheckServerDown.Checked;  
   Main.Config.optFavPatrolOpenNewResThread := self.CheckBoxFavPatrolOpenNewResThread.Checked;
   Main.Config.optFavPatrolOpenBack := self.CheckBoxFavPatrolOpenBack.Checked;
   Main.Config.optFavPatrolMessageBox := Self.CheckBoxFavPatrolMessageBox.Checked;
@@ -1283,7 +1281,6 @@ begin
   self.CheckBoxOldOnCheckNew.Checked := Main.Config.optOldOnCheckNew;
   self.CheckBoxReadIfScrollBottom.Checked := Main.Config.viewReadIfScrollBottom;
 
-  self.CheckBoxFavPatrolCheckServerDown.Checked := Main.Config.optFavPatrolCheckServerDown;
   self.CheckBoxFavPatrolOpenNewResThread.Checked := Main.Config.optFavPatrolOpenNewResThread;
   self.CheckBoxFavPatrolOpenBack.Checked := Main.Config.optFavPatrolOpenBack;
   self.CheckBoxFavPatrolMessageBox.Checked := Main.Config.optFavPatrolMessageBox;
