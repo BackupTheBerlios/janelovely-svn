@@ -5,7 +5,7 @@ unit UNGWordsAssistant;
 interface
 
 uses
-  Classes, JConfig, IniFiles, Variants, StrSub, RegExpr;
+  Classes, JConfig, IniFiles, Variants, StrSub, VBScript_RegExp_55_TLB;
 
 type
 
@@ -253,10 +253,10 @@ begin
         end;
         2,3:;       //àÍív/ïsàÍív
         4, 5: begin //ê≥ãKåüçı Hit/HitÇ»Çµ
-          SearchObj[i] := TRegExpr.Create;
-          with TRegExpr(SearchObj[i]) do begin
-            ModifierI := (i <> NGEx_ITEM_ID);
-            Expression := SearchStr[i];
+          SearchObj[i] := TRegExp.Create(nil);
+          with TRegExp(SearchObj[i]) do begin
+            IgnoreCase := (i <> NGEx_ITEM_ID);
+            Pattern := SearchStr[i];
           end;
         end;
       end;
@@ -292,9 +292,9 @@ begin
     end;
     4, 5: begin //ê≥ãKï\åª
       wide := WideString(URL);
-      tmpResult := TRegExpr(SearchObj[High(TNGExItemIdent)]).Exec(wide);
+      tmpResult := TRegExp(SearchObj[High(TNGExItemIdent)]).Test(wide);
       wide := WideString(Title);
-      tmpResult := tmpResult or TRegExpr(SearchObj[High(TNGExItemIdent)]).Exec(wide);
+      tmpResult := tmpResult or TRegExp(SearchObj[High(TNGExItemIdent)]).Test(wide);
     end;
   end;
   if (SearchOpt[High(TNGExItemIdent)] >=0) then begin
@@ -321,7 +321,7 @@ begin
           SetString(NGItem[i].WideStr, NGItem[i].pStart, NGItem[i].Size);
           NGItem[i].NotMakeWideStr := False;
         end;
-        tmpResult := TRegExpr(SearchObj[TNGExItemIdent(i)]).Exec(NGItem[i].WideStr);
+        tmpResult := TRegExp(SearchObj[TNGExItemIdent(i)]).Test(NGItem[i].WideStr);
       end;
     end;
     if (SearchOpt[TNGExItemIdent(i)] >=0) then begin

@@ -1,10 +1,10 @@
 object MainWnd: TMainWnd
-  Left = 262
-  Top = 139
+  Left = 147
+  Top = 82
   AutoScroll = False
   Caption = 'Jane2ch'
-  ClientHeight = 519
-  ClientWidth = 671
+  ClientHeight = 552
+  ClientWidth = 729
   Color = clBtnFace
   Font.Charset = SHIFTJIS_CHARSET
   Font.Color = clWindowText
@@ -27,15 +27,15 @@ object MainWnd: TMainWnd
   object Panel0: TPanel
     Left = 0
     Top = 0
-    Width = 671
-    Height = 500
+    Width = 729
+    Height = 533
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 0
     object LogSplitter: TSplitter
       Left = 0
-      Top = 478
-      Width = 671
+      Top = 511
+      Width = 729
       Height = 2
       Cursor = crVSplit
       Align = alBottom
@@ -46,8 +46,8 @@ object MainWnd: TMainWnd
     object Panel1: TPanel
       Left = 4
       Top = 51
-      Width = 667
-      Height = 427
+      Width = 725
+      Height = 460
       Align = alClient
       BevelOuter = bvNone
       ParentShowHint = False
@@ -58,23 +58,24 @@ object MainWnd: TMainWnd
         Left = 120
         Top = 0
         Width = 4
-        Height = 427
+        Height = 460
         Cursor = crHSplit
         AutoSnap = False
         MinSize = 4
+        Visible = False
       end
       object Panel2: TPanel
         Left = 124
         Top = 0
-        Width = 543
-        Height = 427
+        Width = 601
+        Height = 460
         Align = alClient
         BevelOuter = bvNone
         TabOrder = 1
         object ThreadSplitter: TSplitter
           Left = 0
           Top = 145
-          Width = 543
+          Width = 601
           Height = 4
           Cursor = crVSplit
           Align = alTop
@@ -84,8 +85,8 @@ object MainWnd: TMainWnd
         object WebPanel: TPanel
           Left = 0
           Top = 149
-          Width = 543
-          Height = 278
+          Width = 601
+          Height = 311
           Align = alClient
           BevelOuter = bvNone
           Color = clWindow
@@ -100,8 +101,8 @@ object MainWnd: TMainWnd
           OnResize = WebPanelResize
           object WritePanelSplitter: TSplitter
             Left = 0
-            Top = 130
-            Width = 543
+            Top = 163
+            Width = 601
             Height = 2
             Cursor = crVSplit
             Align = alBottom
@@ -111,7 +112,7 @@ object MainWnd: TMainWnd
           object Panel10: TPanel
             Left = 0
             Top = 0
-            Width = 543
+            Width = 601
             Height = 1
             Align = alTop
             BevelOuter = bvNone
@@ -120,7 +121,7 @@ object MainWnd: TMainWnd
           object Panel3: TPanel
             Left = 0
             Top = 1
-            Width = 543
+            Width = 601
             Height = 48
             Align = alTop
             Alignment = taLeftJustify
@@ -130,7 +131,7 @@ object MainWnd: TMainWnd
             object TabBarPanel: TPanel
               Left = 1
               Top = 1
-              Width = 541
+              Width = 599
               Height = 24
               Align = alTop
               BevelOuter = bvNone
@@ -138,7 +139,7 @@ object MainWnd: TMainWnd
               object TabPanel: TPanel
                 Left = 0
                 Top = 0
-                Width = 541
+                Width = 599
                 Height = 24
                 Align = alClient
                 ParentShowHint = False
@@ -150,7 +151,7 @@ object MainWnd: TMainWnd
                 object TabControl: TTabControl
                   Left = 1
                   Top = 1
-                  Width = 539
+                  Width = 597
                   Height = 22
                   Align = alClient
                   Images = ListImages
@@ -173,7 +174,7 @@ object MainWnd: TMainWnd
             object ThreadToolPanel: TPanel
               Left = 1
               Top = 25
-              Width = 541
+              Width = 599
               Height = 22
               Align = alTop
               Alignment = taLeftJustify
@@ -186,12 +187,12 @@ object MainWnd: TMainWnd
               ParentFont = False
               TabOrder = 0
               DesignSize = (
-                541
+                599
                 22)
               object ThreadTitleLabel: TLabel
                 Left = 8
                 Top = 0
-                Width = 698
+                Width = 756
                 Height = 22
                 Anchors = [akLeft, akTop, akRight, akBottom]
                 AutoSize = False
@@ -212,7 +213,7 @@ object MainWnd: TMainWnd
                 OnMouseMove = ThreadTitleLabelMouseMove
               end
               object ThreadToolBar: TJLXPToolBar
-                Left = 237
+                Left = 273
                 Top = 0
                 Width = 326
                 Height = 22
@@ -361,8 +362,8 @@ object MainWnd: TMainWnd
           end
           object WritePanel: TPanel
             Left = 0
-            Top = 132
-            Width = 543
+            Top = 165
+            Width = 601
             Height = 146
             Align = alBottom
             Constraints.MinHeight = 25
@@ -374,7 +375,7 @@ object MainWnd: TMainWnd
             object WritePanelTitle: TPanel
               Left = 1
               Top = 1
-              Width = 541
+              Width = 599
               Height = 17
               Align = alTop
               BevelOuter = bvNone
@@ -383,7 +384,7 @@ object MainWnd: TMainWnd
               object LabelWriteTitle: TLabel
                 Left = 0
                 Top = 0
-                Width = 490
+                Width = 548
                 Height = 17
                 Align = alClient
                 AutoSize = False
@@ -400,7 +401,7 @@ object MainWnd: TMainWnd
                 OnMouseUp = LabelWriteTitleMouseUp
               end
               object ToolBarWriteTitle: TJLXPToolBar
-                Left = 490
+                Left = 548
                 Top = 0
                 Width = 51
                 Height = 17
@@ -446,7 +447,7 @@ object MainWnd: TMainWnd
             object PageControlWrite: TPageControl
               Left = 1
               Top = 18
-              Width = 541
+              Width = 599
               Height = 85
               ActivePage = TabSheetWriteMain
               Align = alClient
@@ -459,13 +460,13 @@ object MainWnd: TMainWnd
                 object PanelWriteNameMail: TPanel
                   Left = 0
                   Top = 0
-                  Width = 533
+                  Width = 591
                   Height = 25
                   Align = alTop
                   BevelOuter = bvNone
                   TabOrder = 0
                   DesignSize = (
-                    533
+                    591
                     25)
                   object LabelWriteName: TLabel
                     Left = 6
@@ -475,7 +476,7 @@ object MainWnd: TMainWnd
                     Caption = 'Name:'
                   end
                   object LabelWriteMail: TLabel
-                    Left = 373
+                    Left = 431
                     Top = 6
                     Width = 23
                     Height = 12
@@ -485,7 +486,7 @@ object MainWnd: TMainWnd
                   object ComboBoxWriteName: TComboBox
                     Left = 43
                     Top = 2
-                    Width = 318
+                    Width = 376
                     Height = 20
                     Hint = #21517#21069
                     AutoComplete = False
@@ -494,7 +495,7 @@ object MainWnd: TMainWnd
                     TabOrder = 0
                   end
                   object ComboBoxWriteMail: TComboBox
-                    Left = 404
+                    Left = 462
                     Top = 2
                     Width = 66
                     Height = 20
@@ -505,7 +506,7 @@ object MainWnd: TMainWnd
                     TabOrder = 1
                   end
                   object CheckBoxWriteSage: TCheckBox
-                    Left = 476
+                    Left = 534
                     Top = 4
                     Width = 46
                     Height = 17
@@ -519,7 +520,7 @@ object MainWnd: TMainWnd
                 object MemoWriteMain: TTntMemo
                   Left = 0
                   Top = 25
-                  Width = 533
+                  Width = 591
                   Height = 33
                   Align = alClient
                   ScrollBars = ssBoth
@@ -570,7 +571,7 @@ object MainWnd: TMainWnd
             object StatusBarWrite: TJLXPStatusBar
               Left = 1
               Top = 126
-              Width = 541
+              Width = 599
               Height = 19
               Panels = <
                 item
@@ -587,13 +588,13 @@ object MainWnd: TMainWnd
             object PanelWriteTool: TPanel
               Left = 1
               Top = 103
-              Width = 541
+              Width = 599
               Height = 23
               Align = alBottom
               BevelOuter = bvNone
               TabOrder = 3
               DesignSize = (
-                541
+                599
                 23)
               object ToolBarWriteTool: TJLXPToolBar
                 Left = 0
@@ -696,7 +697,7 @@ object MainWnd: TMainWnd
                 end
               end
               object ButtonWriteWrite: TButton
-                Left = 392
+                Left = 450
                 Top = 0
                 Width = 99
                 Height = 23
@@ -706,7 +707,7 @@ object MainWnd: TMainWnd
                 OnClick = ButtonWriteWriteClick
               end
               object Button2: TButton
-                Left = 496
+                Left = 554
                 Top = 0
                 Width = 43
                 Height = 23
@@ -720,16 +721,16 @@ object MainWnd: TMainWnd
           object MDIClientPanel: TPanel
             Left = 0
             Top = 73
-            Width = 543
-            Height = 57
+            Width = 601
+            Height = 90
             Align = alClient
             BevelOuter = bvNone
             TabOrder = 3
             object Image1: TImage
               Left = 0
               Top = 0
-              Width = 543
-              Height = 57
+              Width = 601
+              Height = 90
               Align = alClient
               Picture.Data = {
                 07544269746D6170AE080100424DAE0801000000000036000000280000001902
@@ -2856,7 +2857,7 @@ object MainWnd: TMainWnd
           object ThreViewSearchToolBar: TJLXPToolBar
             Left = 0
             Top = 49
-            Width = 543
+            Width = 601
             Height = 24
             ButtonWidth = 27
             Color = clBtnFace
@@ -2870,22 +2871,21 @@ object MainWnd: TMainWnd
             object ThreViewSearchToolButton: TToolButton
               Left = 0
               Top = 0
-              DropdownMenu = PopupThreViewSearch
+              DropdownMenu = PopupSearch
               ImageIndex = 0
               Style = tbsDropDown
               OnClick = ThreViewSearchToolButtonClick
             end
             object ThreViewSearchEditBox: TComboBox
               Left = 38
-              Top = 1
+              Top = 0
               Width = 145
               Height = 20
               AutoComplete = False
               ItemHeight = 12
-              PopupMenu = PopupThreViewSearch
+              PopupMenu = PopupSearch
               TabOrder = 0
-              OnChange = ThreViewSearchEditBoxChange
-              OnKeyPress = ThreViewSearchEditBoxKeyPress
+              OnKeyPress = SearchEditBoxKeyPress
             end
             object ThreViewSearchSep1: TToolButton
               Left = 183
@@ -2898,17 +2898,17 @@ object MainWnd: TMainWnd
             object ThreViewSearchUpDown: TUpDown
               Left = 191
               Top = 0
-              Width = 15
+              Width = 17
               Height = 22
               Min = -32768
               Max = 32767
               Position = 0
               TabOrder = 1
-              Wrap = False
+              Wrap = True
               OnClick = ThreViewSearchUpDownClick
             end
             object ThreViewSearchSep2: TToolButton
-              Left = 206
+              Left = 208
               Top = 0
               Width = 8
               Caption = 'ThreViewSearchSep2'
@@ -2916,14 +2916,13 @@ object MainWnd: TMainWnd
               Style = tbsSeparator
             end
             object ThreViewSearchResFindButton: TToolButton
-              Left = 214
+              Left = 216
               Top = 0
               Caption = 'ThreViewSearchResFindButton'
               ImageIndex = 4
-              OnClick = MenuThreViewSearchExtractClick
             end
             object ThreViewSearchSep3: TToolButton
-              Left = 241
+              Left = 243
               Top = 0
               Width = 8
               Caption = 'ThreViewSearchSep3'
@@ -2931,18 +2930,18 @@ object MainWnd: TMainWnd
               Style = tbsSeparator
             end
             object ThreViewSearchCloseButton: TToolButton
-              Left = 249
+              Left = 251
               Top = 0
               Caption = #26908#32034#12496#12540#12434#38560#12377
               ImageIndex = 5
-              OnClick = MenuThreViewSearchCloseClick
+              OnClick = ThreViewSearchCloseButtonClick
             end
           end
         end
         object ListViewPanel: TPanel
           Left = 0
           Top = 0
-          Width = 543
+          Width = 601
           Height = 145
           Align = alTop
           BevelOuter = bvNone
@@ -2952,7 +2951,7 @@ object MainWnd: TMainWnd
           object ListView: THogeListView
             Left = 0
             Top = 47
-            Width = 543
+            Width = 601
             Height = 98
             Align = alClient
             BevelInner = bvLowered
@@ -3033,6 +3032,7 @@ object MainWnd: TMainWnd
             TabOrder = 0
             TabStop = False
             ViewStyle = vsReport
+            Visible = False
             OnClick = ListViewClick
             OnColumnClick = ListViewColumnClick
             OnCustomDrawItem = ListViewCustomDrawItem
@@ -3048,7 +3048,7 @@ object MainWnd: TMainWnd
           object Panel7: TPanel
             Left = 0
             Top = 0
-            Width = 543
+            Width = 601
             Height = 1
             Align = alTop
             BevelOuter = bvNone
@@ -3057,7 +3057,7 @@ object MainWnd: TMainWnd
           object ListTabPanel: TPanel
             Left = 0
             Top = 1
-            Width = 543
+            Width = 601
             Height = 22
             Align = alTop
             BevelInner = bvRaised
@@ -3069,7 +3069,7 @@ object MainWnd: TMainWnd
             object ListTabControl: TTabControl
               Left = 2
               Top = 2
-              Width = 539
+              Width = 597
               Height = 18
               Align = alClient
               Images = ListImages
@@ -3089,7 +3089,7 @@ object MainWnd: TMainWnd
           object ListViewSearchToolBar: TJLXPToolBar
             Left = 0
             Top = 23
-            Width = 543
+            Width = 601
             Height = 24
             ButtonWidth = 27
             Flat = True
@@ -3101,22 +3101,21 @@ object MainWnd: TMainWnd
             object ListViewSearchToolButton: TToolButton
               Left = 0
               Top = 0
-              DropdownMenu = PopupListViewSearch
+              DropdownMenu = PopupSearch
               ImageIndex = 0
               Style = tbsDropDown
               OnClick = ListViewSearchToolButtonClick
             end
             object ListViewSearchEditBox: TComboBox
               Left = 38
-              Top = 1
+              Top = 0
               Width = 145
               Height = 20
               AutoComplete = False
               ItemHeight = 12
-              PopupMenu = PopupListViewSearch
+              PopupMenu = PopupSearch
               TabOrder = 0
-              OnChange = ListViewSearchEditBoxChange
-              OnKeyPress = ListViewSearchEditBoxKeyPress
+              OnKeyPress = SearchEditBoxKeyPress
             end
             object ListViewSearchSep: TToolButton
               Left = 183
@@ -3130,7 +3129,7 @@ object MainWnd: TMainWnd
               Top = 0
               Caption = #26908#32034#12496#12540#12434#38560#12377
               ImageIndex = 5
-              OnClick = MenuListViewSearchCloseClick
+              OnClick = ListViewSearchCloseButtonClick
             end
           end
         end
@@ -3139,12 +3138,13 @@ object MainWnd: TMainWnd
         Left = 0
         Top = 0
         Width = 120
-        Height = 427
+        Height = 460
         Align = alLeft
         BevelOuter = bvNone
         Constraints.MinHeight = 25
         Constraints.MinWidth = 25
         TabOrder = 0
+        Visible = False
         OnEnter = TreePanelEnter
         OnExit = TreePanelExit
         OnResize = TreePanelResize
@@ -3161,7 +3161,7 @@ object MainWnd: TMainWnd
           Left = 0
           Top = 1
           Width = 120
-          Height = 426
+          Height = 459
           Align = alClient
           BevelOuter = bvLowered
           TabOrder = 0
@@ -3169,7 +3169,7 @@ object MainWnd: TMainWnd
             Left = 1
             Top = 63
             Width = 118
-            Height = 362
+            Height = 395
             Align = alClient
             BevelInner = bvNone
             BevelOuter = bvNone
@@ -3202,7 +3202,7 @@ object MainWnd: TMainWnd
             Left = 1
             Top = 63
             Width = 118
-            Height = 362
+            Height = 395
             Align = alClient
             BevelInner = bvNone
             BevelOuter = bvRaised
@@ -3311,22 +3311,22 @@ object MainWnd: TMainWnd
             object TreeViewSearchToolButton: TToolButton
               Left = 0
               Top = 0
-              DropdownMenu = PopupTreeViewSearch
+              DropdownMenu = PopupSearch
               ImageIndex = 0
+              PopupMenu = PopupSearch
               Style = tbsDropDown
               OnClick = TreeViewSearchToolButtonClick
             end
             object TreeViewSearchEditBox: TComboBox
               Left = 38
-              Top = 1
+              Top = 0
               Width = 80
               Height = 20
               AutoComplete = False
               ItemHeight = 12
-              PopupMenu = PopupTreeViewSearch
+              PopupMenu = PopupSearch
               TabOrder = 0
-              OnChange = TreeViewSearchEditBoxChange
-              OnKeyPress = TreeViewSearchEditBoxKeyPress
+              OnKeyPress = SearchEditBoxKeyPress
             end
           end
           object TreeTabControl: TTabControl
@@ -3348,8 +3348,8 @@ object MainWnd: TMainWnd
     end
     object LogPanel: TPanel
       Left = 0
-      Top = 480
-      Width = 671
+      Top = 513
+      Width = 729
       Height = 20
       Align = alBottom
       BevelOuter = bvNone
@@ -3357,7 +3357,7 @@ object MainWnd: TMainWnd
       object Memo: TMemo
         Left = 0
         Top = 1
-        Width = 671
+        Width = 729
         Height = 19
         TabStop = False
         Align = alClient
@@ -3379,7 +3379,7 @@ object MainWnd: TMainWnd
       object Panel4: TPanel
         Left = 0
         Top = 0
-        Width = 671
+        Width = 729
         Height = 1
         Align = alTop
         TabOrder = 1
@@ -3388,7 +3388,7 @@ object MainWnd: TMainWnd
     object CoolBar: TCoolBar
       Left = 0
       Top = 0
-      Width = 671
+      Width = 729
       Height = 51
       AutoSize = True
       BandMaximize = bmDblClick
@@ -3404,16 +3404,17 @@ object MainWnd: TMainWnd
           Control = LinkBar
           ImageIndex = -1
           MinHeight = 22
-          Width = 334
+          Width = 392
         end
         item
           Control = ToolBarUrlEdit
           ImageIndex = -1
           MinHeight = 22
-          Width = 667
+          Width = 725
         end>
       ParentShowHint = False
       ShowHint = True
+      Visible = False
       object ToolBarMain: TJLXPToolBar
         Left = 9
         Top = 0
@@ -3558,7 +3559,7 @@ object MainWnd: TMainWnd
       object ToolBarUrlEdit: TJLXPToolBar
         Left = 9
         Top = 25
-        Width = 654
+        Width = 712
         Height = 22
         ButtonHeight = 20
         EdgeInner = esNone
@@ -3585,7 +3586,7 @@ object MainWnd: TMainWnd
       object LinkBar: TJLXPToolBar
         Left = 342
         Top = 0
-        Width = 321
+        Width = 379
         Height = 22
         AutoSize = True
         ButtonWidth = 45
@@ -3607,7 +3608,7 @@ object MainWnd: TMainWnd
       Left = 0
       Top = 51
       Width = 4
-      Height = 427
+      Height = 460
       Checked = True
       FocusColor = clSkyBlue
       Align = alLeft
@@ -3617,8 +3618,8 @@ object MainWnd: TMainWnd
   end
   object StatusBar: TJLXPStatusBar
     Left = 0
-    Top = 500
-    Width = 671
+    Top = 533
+    Width = 729
     Height = 19
     Panels = <
       item
@@ -8955,384 +8956,144 @@ object MainWnd: TMainWnd
       8FF38FE3C03F8FE3FFFFFFFFFFFFFFFF00000000000000000000000000000000
       000000000000}
   end
-  object PopupListViewSearch: TPopupMenu
-    OnPopup = PopupListViewSearchPopup
+  object PopupSearch: TPopupMenu
+    OnPopup = PopupSearchPopup
     Left = 136
     Top = 88
-    object MenuListViewSearchNext: TMenuItem
-      Tag = 5
+    object MenuSearchExtract: TMenuItem
+      Caption = #12524#12473#25277#20986'(&E)'
+      GroupIndex = 1
+      ShortCut = 16397
+      OnClick = MenuSearchItemClick
+    end
+    object MenuSearchExtractTree: TMenuItem
+      Tag = 1
+      Caption = #12524#12473#25277#20986'+'#12484#12522#12540'(&T)'
+      GroupIndex = 1
+      ShortCut = 24589
+      OnClick = MenuSearchItemClick
+    end
+    object N109: TMenuItem
+      Caption = '-'
+      GroupIndex = 1
+    end
+    object MenuSearchNext: TMenuItem
+      Tag = 2
       Caption = #8595#26908#32034'(&N)'
       GroupIndex = 1
       ShortCut = 114
-      OnClick = MenuListViewSearchCopyClick
+      OnClick = MenuSearchItemClick
     end
-    object MenuListViewSearchPrev: TMenuItem
-      Tag = 6
+    object MenuSearchPrev: TMenuItem
+      Tag = 3
       Caption = #8593#26908#32034'(&P)'
       GroupIndex = 1
       ShortCut = 8306
-      OnClick = MenuListViewSearchCopyClick
+      OnClick = MenuSearchItemClick
     end
     object N111: TMenuItem
       Caption = '-'
       GroupIndex = 1
     end
-    object MenuListViewSearchCopy: TMenuItem
+    object MenuSearchCopy: TMenuItem
+      Tag = 4
       Caption = #12467#12500#12540'(&C)'
       GroupIndex = 1
       ShortCut = 16451
-      OnClick = MenuListViewSearchCopyClick
+      OnClick = MenuSearchItemClick
     end
-    object MenuListViewSearchCut: TMenuItem
-      Tag = 1
+    object MenuSearchCut: TMenuItem
+      Tag = 5
       Caption = #20999#12426#21462#12426'(&T)'
       GroupIndex = 1
       ShortCut = 16472
-      OnClick = MenuListViewSearchCopyClick
+      OnClick = MenuSearchItemClick
     end
-    object MenuListViewSearchPaste: TMenuItem
-      Tag = 2
+    object MenuSearchPaste: TMenuItem
+      Tag = 6
       Caption = #36028#12426#20184#12369'(&P)'
       GroupIndex = 1
       ShortCut = 16470
-      OnClick = MenuListViewSearchCopyClick
+      OnClick = MenuSearchItemClick
     end
-    object MenuListViewSearchSelectAll: TMenuItem
-      Tag = 3
+    object MenuSearchSelectAll: TMenuItem
+      Tag = 7
       Caption = #12377#12409#12390#36984#25246'(&A)'
       GroupIndex = 1
       ShortCut = 16449
-      OnClick = MenuListViewSearchCopyClick
+      OnClick = MenuSearchItemClick
     end
-    object MenuListViewSearchClear: TMenuItem
-      Tag = 4
+    object MenuSearchClear: TMenuItem
+      Tag = 8
       Caption = #12463#12522#12450'(&E)'
       GroupIndex = 1
       ShortCut = 16453
-      OnClick = MenuListViewSearchCopyClick
+      OnClick = MenuSearchItemClick
     end
     object N92: TMenuItem
       Caption = '-'
       GroupIndex = 1
     end
-    object MenuListViewSearchNormal: TMenuItem
+    object MenuSearchNormal: TMenuItem
+      Tag = 9
       Caption = #36890#24120#26908#32034'(&N)'
       GroupIndex = 1
       RadioItem = True
       ShortCut = 16462
-      OnClick = MenuListViewSearchNormalClick
+      OnClick = MenuSearchItemClick
     end
-    object MenuListViewSearchMigemo: TMenuItem
-      Tag = 1
+    object MenuSearchMigemo: TMenuItem
+      Tag = 10
       Caption = 'Migemo'#26908#32034'(&M)'
       GroupIndex = 1
       RadioItem = True
       ShortCut = 16461
-      OnClick = MenuListViewSearchNormalClick
+      OnClick = MenuSearchItemClick
     end
-    object MenuListViewSearchRegExp: TMenuItem
-      Tag = 2
+    object MenuSearchRegExp: TMenuItem
+      Tag = 11
       Caption = #27491#35215#26908#32034'(&R)'
       GroupIndex = 1
       RadioItem = True
       ShortCut = 16466
-      OnClick = MenuListViewSearchNormalClick
+      OnClick = MenuSearchItemClick
     end
     object N88: TMenuItem
       Caption = '-'
       GroupIndex = 1
     end
-    object MenuListViewSearchIncremental: TMenuItem
+    object MenuSearchIncremental: TMenuItem
+      Tag = 12
       Caption = #12452#12531#12463#12522#12513#12531#12479#12523'(&I)'
       GroupIndex = 1
       ShortCut = 16457
-      OnClick = MenuListViewSearchIncrementalClick
+      OnClick = MenuSearchItemClick
     end
-    object MenuListViewSearchMultiWord: TMenuItem
+    object MenuSearchMultiWord: TMenuItem
+      Tag = 13
       Caption = #12510#12523#12481#12527#12540#12489'(&W)'
       GroupIndex = 1
       ShortCut = 16471
-      OnClick = MenuListViewSearchMultiWordClick
+      OnClick = MenuSearchItemClick
     end
-    object MenuListViewSearchIgnoreFullHalf: TMenuItem
+    object MenuSearchIgnoreFullHalf: TMenuItem
+      Tag = 14
       Caption = #20840#21322#35282#19968#33268'(&F)'
       GroupIndex = 1
       ShortCut = 16454
-      OnClick = MenuListViewSearchIgnoreFullHalfClick
+      OnClick = MenuSearchItemClick
     end
     object N90: TMenuItem
       Caption = '-'
       GroupIndex = 1
     end
-    object MenuListViewSearchClose: TMenuItem
+    object MenuSearchClose: TMenuItem
+      Tag = 15
       Caption = #38281#12376#12427'(&Q)'
       GroupIndex = 1
       ShortCut = 27
-      OnClick = MenuListViewSearchCloseClick
+      OnClick = MenuSearchItemClick
     end
-  end
-  object PopupThreViewSearch: TPopupMenu
-    OnPopup = PopupThreViewSearchPopup
-    Left = 144
-    Top = 248
-    object MenuThreViewSearchExtract: TMenuItem
-      Caption = #12524#12473#25277#20986'(&E)'
-      GroupIndex = 1
-      ShortCut = 16397
-      OnClick = MenuThreViewSearchExtractClick
-    end
-    object MenuThreViewSearchExtractTree: TMenuItem
-      Tag = 1
-      Caption = #12524#12473#25277#20986'+'#12484#12522#12540'(&T)'
-      GroupIndex = 1
-      ShortCut = 24589
-      OnClick = MenuThreViewSearchExtractClick
-    end
-    object N108: TMenuItem
-      Caption = '-'
-      GroupIndex = 1
-    end
-    object MenuThreViewSearchNext: TMenuItem
-      Tag = 5
-      Caption = #8595#26908#32034'(&N)'
-      GroupIndex = 1
-      ShortCut = 114
-      OnClick = MenuThreViewSearchCopyClick
-    end
-    object MenuThreViewSearchPrev: TMenuItem
-      Tag = 6
-      Caption = #8593#26908#32034'(&P)'
-      GroupIndex = 1
-      ShortCut = 8306
-      OnClick = MenuThreViewSearchCopyClick
-    end
-    object N107: TMenuItem
-      Caption = '-'
-      GroupIndex = 1
-    end
-    object MenuThreViewSearchCopy: TMenuItem
-      Caption = #12467#12500#12540'(&C)'
-      GroupIndex = 1
-      ShortCut = 16451
-      OnClick = MenuThreViewSearchCopyClick
-    end
-    object MenuThreViewSearchCut: TMenuItem
-      Tag = 1
-      Caption = #20999#12426#21462#12426'(&T)'
-      GroupIndex = 1
-      ShortCut = 16472
-      OnClick = MenuThreViewSearchCopyClick
-    end
-    object MenuThreViewSearchPaste: TMenuItem
-      Tag = 2
-      Caption = #36028#12426#20184#12369'(&P)'
-      GroupIndex = 1
-      ShortCut = 16470
-      OnClick = MenuThreViewSearchCopyClick
-    end
-    object MenuThreViewSearchSelectAll: TMenuItem
-      Tag = 3
-      Caption = #12377#12409#12390#36984#25246'(&A)'
-      GroupIndex = 1
-      ShortCut = 16449
-      OnClick = MenuThreViewSearchCopyClick
-    end
-    object MenuThreViewSearchClear: TMenuItem
-      Tag = 4
-      Caption = #12463#12522#12450'(&E)'
-      GroupIndex = 1
-      ShortCut = 16453
-      OnClick = MenuThreViewSearchCopyClick
-    end
-    object N106: TMenuItem
-      Caption = '-'
-      GroupIndex = 1
-    end
-    object MenuThreViewSearchNormal: TMenuItem
-      Caption = #36890#24120#26908#32034'(&N)'
-      GroupIndex = 1
-      RadioItem = True
-      ShortCut = 16462
-      OnClick = MenuThreViewSearchNormalClick
-    end
-    object MenuThreViewSearchMigemo: TMenuItem
-      Tag = 1
-      Caption = 'Migemo'#26908#32034'(&M)'
-      GroupIndex = 1
-      RadioItem = True
-      ShortCut = 16461
-      OnClick = MenuThreViewSearchNormalClick
-    end
-    object MenuThreViewSearchRegExp: TMenuItem
-      Tag = 2
-      Caption = #27491#35215#26908#32034'(&R)'
-      GroupIndex = 1
-      RadioItem = True
-      ShortCut = 16466
-      OnClick = MenuThreViewSearchNormalClick
-    end
-    object N93: TMenuItem
-      Caption = '-'
-      GroupIndex = 1
-    end
-    object MenuThreViewSearchIncremental: TMenuItem
-      Caption = #12452#12531#12463#12522#12513#12531#12479#12523'(&I)'
-      GroupIndex = 1
-      ShortCut = 16457
-      OnClick = MenuListViewSearchIncrementalClick
-    end
-    object MenuThreViewSearchMultiWord: TMenuItem
-      Caption = #12510#12523#12481#12527#12540#12489'(&W)'
-      GroupIndex = 1
-      ShortCut = 16471
-      OnClick = MenuListViewSearchMultiWordClick
-    end
-    object MenuThreViewSearchIgnoreFullHalf: TMenuItem
-      Caption = #20840#21322#35282#19968#33268'(&F)'
-      GroupIndex = 1
-      ShortCut = 16454
-      OnClick = MenuListViewSearchIgnoreFullHalfClick
-    end
-    object N97: TMenuItem
-      Caption = '-'
-      GroupIndex = 1
-    end
-    object MenuThreViewSearchClose: TMenuItem
-      Caption = #38281#12376#12427'(&Q)'
-      GroupIndex = 1
-      ShortCut = 27
-      OnClick = MenuThreViewSearchCloseClick
-    end
-  end
-  object ThreSearchTimer: TTimer
-    Enabled = False
-    Interval = 300
-    OnTimer = ThreSearchTimerTimer
-    Left = 80
-    Top = 200
-  end
-  object PopupTreeViewSearch: TPopupMenu
-    OnPopup = PopupTreeViewSearchPopup
-    Left = 24
-    Top = 96
-    object MenuTreeViewSearchNext: TMenuItem
-      Tag = 5
-      Caption = #8595#26908#32034'(&N)'
-      GroupIndex = 1
-      ShortCut = 114
-      OnClick = MenuTreeViewSearchCopyClick
-    end
-    object MenuTreeViewSearchPrev: TMenuItem
-      Tag = 6
-      Caption = #8593#26908#32034'(&P)'
-      GroupIndex = 1
-      ShortCut = 8306
-      OnClick = MenuTreeViewSearchCopyClick
-    end
-    object N110: TMenuItem
-      Caption = '-'
-      GroupIndex = 1
-    end
-    object MenuTreeViewSearchCopy: TMenuItem
-      Caption = #12467#12500#12540'(&C)'
-      GroupIndex = 1
-      ShortCut = 16451
-      OnClick = MenuTreeViewSearchCopyClick
-    end
-    object MenuTreeViewSearchCut: TMenuItem
-      Tag = 1
-      Caption = #20999#12426#21462#12426'(&T)'
-      GroupIndex = 1
-      ShortCut = 16472
-      OnClick = MenuTreeViewSearchCopyClick
-    end
-    object MenuTreeViewSearchPaste: TMenuItem
-      Tag = 2
-      Caption = #36028#12426#20184#12369'(&P)'
-      GroupIndex = 1
-      ShortCut = 16470
-      OnClick = MenuTreeViewSearchCopyClick
-    end
-    object MenuTreeViewSearchSelectAll: TMenuItem
-      Tag = 3
-      Caption = #12377#12409#12390#36984#25246'(&A)'
-      GroupIndex = 1
-      ShortCut = 16449
-      OnClick = MenuTreeViewSearchCopyClick
-    end
-    object MenuTreeViewSearchClear: TMenuItem
-      Tag = 4
-      Caption = #12463#12522#12450'(&E)'
-      GroupIndex = 1
-      ShortCut = 16453
-      OnClick = MenuTreeViewSearchCopyClick
-    end
-    object N94: TMenuItem
-      Caption = '-'
-      GroupIndex = 1
-    end
-    object MenuTreeViewSearchNormal: TMenuItem
-      Caption = #36890#24120#26908#32034'(&N)'
-      GroupIndex = 1
-      RadioItem = True
-      ShortCut = 16462
-      OnClick = MenuTreeViewSearchNormalClick
-    end
-    object MenuTreeViewSearchMigemo: TMenuItem
-      Tag = 1
-      Caption = 'Migemo'#26908#32034'(&M)'
-      GroupIndex = 1
-      RadioItem = True
-      ShortCut = 16461
-      OnClick = MenuTreeViewSearchNormalClick
-    end
-    object MenuTreeViewSearchRegExp: TMenuItem
-      Tag = 2
-      Caption = #27491#35215#26908#32034'(&R)'
-      GroupIndex = 1
-      RadioItem = True
-      ShortCut = 16466
-      OnClick = MenuTreeViewSearchNormalClick
-    end
-    object MenuItem5: TMenuItem
-      Caption = '-'
-      GroupIndex = 1
-    end
-    object MenuTreeViewSearchIncremental: TMenuItem
-      Caption = #12452#12531#12463#12522#12513#12531#12479#12523'(&I)'
-      GroupIndex = 1
-      ShortCut = 16457
-      OnClick = MenuListViewSearchIncrementalClick
-    end
-    object MenuTreeViewSearchMultiWord: TMenuItem
-      Caption = #12510#12523#12481#12527#12540#12489'(&W)'
-      GroupIndex = 1
-      ShortCut = 16471
-      OnClick = MenuListViewSearchMultiWordClick
-    end
-    object MenuTreeViewSearchIgnoreFullHalf: TMenuItem
-      Caption = #20840#21322#35282#19968#33268'(&F)'
-      GroupIndex = 1
-      ShortCut = 16454
-      OnClick = MenuListViewSearchIgnoreFullHalfClick
-    end
-    object MenuItem9: TMenuItem
-      Caption = '-'
-      GroupIndex = 1
-    end
-    object MenuTreeViewSearchClose: TMenuItem
-      Caption = #38281#12376#12427'(&Q)'
-      GroupIndex = 1
-      ShortCut = 27
-      OnClick = MenuTreeViewSearchCloseClick
-    end
-  end
-  object TreeSearchTimer: TTimer
-    Enabled = False
-    Interval = 300
-    OnTimer = TreeSearchTimerTimer
-    Left = 48
-    Top = 168
   end
   object PopupUrlEdit: TPopupMenu
     AutoHotkeys = maManual

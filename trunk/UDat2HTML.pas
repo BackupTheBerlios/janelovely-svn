@@ -149,6 +149,7 @@ type
                           const HRef: string;
                           str: PChar; size: integer); override;
     procedure WriteItem(str: PChar; size: integer; itemType: TDatItemType); override;
+    procedure Clear;
     property Text: String read GetText;
   end;
   (*-------------------------------------------------------*)
@@ -2017,6 +2018,16 @@ begin
   ProcHTML;
   end;
 end;
+
+//aiai BufferÇè¡ãé
+procedure TStrDatOut.Clear;
+begin
+  FString := '';
+  FPosition := 0;
+  FSize := 0;
+  FSupress := False;
+end;
+
 (*=======================================================*)
 
 {aiai}

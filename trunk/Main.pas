@@ -741,17 +741,17 @@ type
     ListViewSearchCloseButton: TToolButton;
     ListViewSearchToolButton: TToolButton;
     SearchImages: TImageList;
-    PopupListViewSearch: TPopupMenu;
-    MenuListViewSearchNormal: TMenuItem;
-    MenuListViewSearchMigemo: TMenuItem;
+    PopupSearch: TPopupMenu;
+    MenuSearchNormal: TMenuItem;
+    MenuSearchMigemo: TMenuItem;
     ListViewSearchEditBox: TComboBox;
-    MenuListViewSearchRegExp: TMenuItem;
+    MenuSearchRegExp: TMenuItem;
     N88: TMenuItem;
-    MenuListViewSearchMultiWord: TMenuItem;
-    MenuListViewSearchIncremental: TMenuItem;
+    MenuSearchMultiWord: TMenuItem;
+    MenuSearchIncremental: TMenuItem;
     N90: TMenuItem;
-    MenuListViewSearchClose: TMenuItem;
-    MenuListViewSearchIgnoreFullHalf: TMenuItem;
+    MenuSearchClose: TMenuItem;
+    MenuSearchIgnoreFullHalf: TMenuItem;
     ThreViewSearchToolBar: TJLXPToolBar;
     ThreViewSearchToolButton: TToolButton;
     ThreViewSearchEditBox: TComboBox;
@@ -761,31 +761,9 @@ type
     ThreViewSearchSep2: TToolButton;
     ThreViewSearchResFindButton: TToolButton;
     ThreViewSearchSep3: TToolButton;
-    PopupThreViewSearch: TPopupMenu;
-    MenuThreViewSearchNormal: TMenuItem;
-    MenuThreViewSearchMigemo: TMenuItem;
-    MenuThreViewSearchRegExp: TMenuItem;
-    N93: TMenuItem;
-    MenuThreViewSearchIncremental: TMenuItem;
-    MenuThreViewSearchMultiWord: TMenuItem;
-    MenuThreViewSearchIgnoreFullHalf: TMenuItem;
-    N97: TMenuItem;
-    MenuThreViewSearchClose: TMenuItem;
-    ThreSearchTimer: TTimer;
     TreeViewSearchToolBar: TJLXPToolBar;
     TreeViewSearchToolButton: TToolButton;
     TreeViewSearchEditBox: TComboBox;
-    PopupTreeViewSearch: TPopupMenu;
-    MenuTreeViewSearchNormal: TMenuItem;
-    MenuTreeViewSearchMigemo: TMenuItem;
-    MenuTreeViewSearchRegExp: TMenuItem;
-    MenuItem5: TMenuItem;
-    MenuTreeViewSearchIncremental: TMenuItem;
-    MenuTreeViewSearchMultiWord: TMenuItem;
-    MenuTreeViewSearchIgnoreFullHalf: TMenuItem;
-    MenuItem9: TMenuItem;
-    MenuTreeViewSearchClose: TMenuItem;
-    TreeSearchTimer: TTimer;
     PopupUrlEdit: TPopupMenu;
     MenuUrlEditUndo: TMenuItem;
     N89: TMenuItem;
@@ -796,18 +774,12 @@ type
     N91: TMenuItem;
     MenuUrlEditSelectAll: TMenuItem;
     MenuUrlEditPasteAndGo: TMenuItem;
-    MenuListViewSearchCut: TMenuItem;
-    MenuListViewSearchCopy: TMenuItem;
-    MenuListViewSearchPaste: TMenuItem;
+    MenuSearchCut: TMenuItem;
+    MenuSearchCopy: TMenuItem;
+    MenuSearchPaste: TMenuItem;
     N92: TMenuItem;
-    MenuListViewSearchClear: TMenuItem;
-    MenuListViewSearchSelectAll: TMenuItem;
-    MenuTreeViewSearchCopy: TMenuItem;
-    MenuTreeViewSearchCut: TMenuItem;
-    MenuTreeViewSearchPaste: TMenuItem;
-    MenuTreeViewSearchSelectAll: TMenuItem;
-    MenuTreeViewSearchClear: TMenuItem;
-    N94: TMenuItem;
+    MenuSearchClear: TMenuItem;
+    MenuSearchSelectAll: TMenuItem;
     N95: TMenuItem;
     ViewPopupCmdSep: TMenuItem;
     MenuStatusCmdSep: TMenuItem;
@@ -872,25 +844,13 @@ type
     TreeTabControl: TTabControl;
     N98: TMenuItem;
     MenuStatusReset: TMenuItem;
-    MenuThreViewSearchCopy: TMenuItem;
-    MenuThreViewSearchCut: TMenuItem;
-    MenuThreViewSearchPaste: TMenuItem;
-    MenuThreViewSearchSelectAll: TMenuItem;
-    MenuThreViewSearchClear: TMenuItem;
-    N106: TMenuItem;
     ThreViewSearchUpDown: TUpDown;
-    MenuThreViewSearchNext: TMenuItem;
-    MenuThreViewSearchPrev: TMenuItem;
-    N107: TMenuItem;
-    MenuThreViewSearchExtract: TMenuItem;
-    MenuThreViewSearchExtractTree: TMenuItem;
-    N108: TMenuItem;
-    MenuTreeViewSearchNext: TMenuItem;
-    MenuTreeViewSearchPrev: TMenuItem;
-    N110: TMenuItem;
-    MenuListViewSearchNext: TMenuItem;
-    MenuListViewSearchPrev: TMenuItem;
+    MenuSearchNext: TMenuItem;
+    MenuSearchPrev: TMenuItem;
     N111: TMenuItem;
+    MenuSearchExtract: TMenuItem;
+    MenuSearchExtractTree: TMenuItem;
+    N109: TMenuItem;
     {/aiai}
     procedure FormCreate(Sender: TObject);
     procedure MenuToolsOptionsClick(Sender: TObject);
@@ -1334,30 +1294,15 @@ type
     procedure MenuWindowRestoreAllClick(Sender: TObject);
     procedure MenuMemoRestoreClick(Sender: TObject);
     procedure MenuBoardRestoreClick(Sender: TObject);
-    procedure ListViewSearchEditBoxChange(Sender: TObject);
+    procedure SearchEditBoxChange(Sender: TObject);
     procedure ListViewSearchToolBarResize(Sender: TObject);
-    procedure MenuListViewSearchNormalClick(Sender: TObject);
-    procedure PopupListViewSearchPopup(Sender: TObject);
-    procedure MenuListViewSearchMultiWordClick(Sender: TObject);
-    procedure MenuListViewSearchIncrementalClick(Sender: TObject);
-    procedure MenuListViewSearchCloseClick(Sender: TObject);
+    procedure PopupSearchPopup(Sender: TObject);
     procedure ListViewSearchToolButtonClick(Sender: TObject);
     procedure SearchTimerTimer(Sender: TObject);
-    procedure MenuListViewSearchIgnoreFullHalfClick(Sender: TObject);
     procedure ThreViewSearchToolBarResize(Sender: TObject);
-    procedure MenuThreViewSearchNormalClick(Sender: TObject);
-    procedure MenuThreViewSearchCloseClick(Sender: TObject);
     procedure ThreViewSearchToolButtonClick(Sender: TObject);
-    procedure ThreSearchTimerTimer(Sender: TObject);
-    procedure ThreViewSearchEditBoxChange(Sender: TObject);
-    procedure PopupThreViewSearchPopup(Sender: TObject);
     procedure TreeViewSearchToolBarResize(Sender: TObject);
-    procedure MenuTreeViewSearchNormalClick(Sender: TObject);
-    procedure MenuTreeViewSearchCloseClick(Sender: TObject);
-    procedure TreeViewSearchEditBoxChange(Sender: TObject);
-    procedure TreeSearchTimerTimer(Sender: TObject);
     procedure TreeViewSearchToolButtonClick(Sender: TObject);
-    procedure PopupTreeViewSearchPopup(Sender: TObject);
     procedure PopupUrlEditPopup(Sender: TObject);
     procedure MenuUrlEditUndoClick(Sender: TObject);
     procedure MenuUrlEditCutClick(Sender: TObject);
@@ -1366,13 +1311,8 @@ type
     procedure MenuUrlEditPasteAndGoClick(Sender: TObject);
     procedure MenuUrlEditDeleteClick(Sender: TObject);
     procedure MenuUrlEditSelectAllClick(Sender: TObject);
-    procedure MenuListViewSearchCopyClick(Sender: TObject);
-    procedure MenuTreeViewSearchCopyClick(Sender: TObject);
-    procedure ListViewSearchEditBoxKeyPress(Sender: TObject;
-      var Key: Char);
-    procedure TreeViewSearchEditBoxKeyPress(Sender: TObject;
-      var Key: Char);
-    procedure ThreViewSearchEditBoxKeyPress(Sender: TObject;
+    procedure MenuSearchItemClick(Sender: TObject);
+    procedure SearchEditBoxKeyPress(Sender: TObject;
       var Key: Char);
     procedure MenuListHideHistoricalLogClick(Sender: TObject);
     procedure actHideHistoricalLogExecute(Sender: TObject);
@@ -1392,10 +1332,10 @@ type
     procedure MemoWriteMainKeyPress(Sender: TObject; var Key: Char);
     procedure CheckBoxWriteSageClick(Sender: TObject);
     procedure MenuStatusResetClick(Sender: TObject);
-    procedure MenuThreViewSearchCopyClick(Sender: TObject);
     procedure ThreViewSearchUpDownClick(Sender: TObject;
       Button: TUDBtnType);
-    procedure MenuThreViewSearchExtractClick(Sender: TObject);
+    procedure ListViewSearchCloseButtonClick(Sender: TObject);
+    procedure ThreViewSearchCloseButtonClick(Sender: TObject);
     {/aiai}
   private
   { Private 宣言 }
@@ -1626,18 +1566,12 @@ type
     //procedure BrowserHide(Sender: TObject);
     //▼ スレ絞込み
     procedure InitMigemo;
-    procedure ListViewSearchSetSearch(index: integer);
-    procedure ListViewSearchMigemoSearch;
-    procedure ListViewSearchNormalSearch;
-    procedure ListViewSearchRegExpSearch;
+    procedure ListViewSearchNarrowing;
+    procedure SearchSetSearch(index: integer; EditBox: TComboBox;
+      Button: TToolButton);
     procedure ListviewSearchEnd(error: Boolean);
     //▲ スレ絞込み
-    //▼ スレ内検索
-    procedure ThreViewSearchSetSearch(index: integer);
-    //▲ スレ内検索
-    //▼ 板ツリー検索
-    procedure TreeViewSearchSetSearch(index: integer);
-    //▲ 板ツリー検索
+    procedure ExtractRes(IncludeRef: Boolean);
     //▼ WriteWaitTimerのイベントハンドラ
     procedure WriteWaitTimerNotify(Sender: TObject; DomainName: String; Remainder: Integer);
     procedure WriteWaitTimerEnd(Sender: TObject);
@@ -1714,6 +1648,7 @@ type
     procedure FavPtrlManager(Count: Integer;
                   PatrolType: TPatrolType; board: TBoard);
     procedure UpdateListViewColumns;
+    procedure WndProc(var Message: TMessage); override;
     {/aiai}
   end;
 
@@ -2842,62 +2777,64 @@ begin
 
   timeValue := UTC;
 
-  (* フォント *)
+  (* フォント *)  //fontを使いまわす by aiai
+  font := TFont.Create;
   if Config.viewDefFontInfo.face <> '' then
   begin
-    font := TFont.Create;
+    //font := TFont.Create;
     Config.SetFont(font, Config.viewDefFontInfo);
     Self.Font.Assign(font);
     StatusBar.Font.Assign(font);
     TabControl.Font.Assign(font);
     ListTabControl.Font.Assign(font);
     TreeTabControl.Font.Assign(font);
-    font.Free;
+    //font.Free;
   end;
   if Config.viewTreeFontInfo.face <> '' then
   begin
-    font := TFont.Create;
+    //font := TFont.Create;
     Config.SetFont(font, Config.viewTreeFontInfo);
     TreeView.Font.Assign(font);
     FavoriteView.Font.Assign(font);
-    font.Free;
+    //font.Free;
   end;
   if Config.viewTraceFontInfo.face <> '' then
   begin
-    font := TFont.Create;
+    //font := TFont.Create;
     Config.SetFont(font, Config.viewTraceFontInfo);
     Memo.Font.Assign(font);
-    font.Free;
+    //font.Free;
   end;
   //▼スレ覧のフォントを独立に設定
   if Config.viewTraceFontInfo.face <> '' then
   begin
-    font := TFont.Create;
+    //font := TFont.Create;
     Config.SetFont(font, Config.viewListFontInfo);
     ListView.Font.Assign(font);
-    font.Free;
+    //font.Free;
   end;
   //※[457]
   if Config.viewThreadTitleFontInfo.face <> '' then
   begin
-    font := TFont.Create;
+    //font := TFont.Create;
     Config.SetFont(font, Config.viewThreadTitleFontInfo);
     ThreadTitleLabel.Font.Assign(font);
-    font.Free;
+    //font.Free;
   end;
   {beginner}
   if Config.viewHintFontInfo.face <> '' then
   begin
-    font := TFont.Create;
+    //font := TFont.Create;
     Config.SetFont(font, Config.viewHintFontInfo);
     PopupHint.Font.Assign(font);
     PopupHint.Canvas.Font.Assign(font);
-    font.Free;
+    //font.Free;
   end else
   begin
     PopupHint.Font := Screen.HintFont;
     PopupHint.Canvas.Font := Screen.HintFont;
   end;
+  font.Free;
   SetCaption('');
 
   //Memo.TabStop := Config.oprTabStopOnTracePane;
@@ -3008,7 +2945,7 @@ begin
   i2ch := TCategoryList.Create(Config.LogBasePath);
   boardLoaded := i2ch.Load;
 
-  SetCustomSkinToBoard;
+  SetCustomSkinToBoard;  //aiai
 
   UpdateTreeView;
 
@@ -3070,15 +3007,15 @@ begin
   begin
     InitMigemo;  //Migemo初期化
   end;
-  ListViewSearchSetSearch(Config.schDefaultSearch);
-  ThreViewSearchSetSearch(Config.schDefaultSearch);
-  TreeViewSearchSetSearch(Config.schDefaultSearch);
+  SearchSetSearch(Config.schDefaultSearch, ListViewSearchEditBox, ListViewSearchToolButton);
+  SearchSetSearch(Config.schDefaultSearch, TreeViewSearchEditBox, TreeViewSearchToolButton);
+  SearchSetSearch(Config.schDefaultSearch, ThreViewSearchEditBox, ThreViewSearchToolButton);
   ListViewSearchToolBar.Visible := {Config.schUseSearchBar and} Config.schShowListToolbarOnStartup;
   ThreViewSearchToolBar.Visible := {Config.schUseSearchBar and} Config.schShowToolbarOnStartup;
   TreeViewSearchToolBar.Visible := {Config.schUseSearchBar and} Config.schShowTreeToolbarOnStartup;
-  ListViewSearchEditBox.Items := Config.grepSearchList;
-  ThreViewSearchEditBox.Items := Config.grepSearchList;
-  TreeViewSearchEditBox.Items := Config.grepSearchList;
+//  ListViewSearchEditBox.Items := Config.grepSearchList;
+//  ThreViewSearchEditBox.Items := Config.grepSearchList;
+//  TreeViewSearchEditBox.Items := Config.grepSearchList;
 
   (* WriteWaitTimer *)
   WriteWaitTimer := TWriteWaitTimer.Create;
@@ -3617,6 +3554,7 @@ begin
   SetupColumns;
   for i := 0 to ListView.Columns.Count -1 do
     ListView.Column[i].Width := iniFile.ReadInteger(INI_WIN_SECT, 'Column' + IntToStr(ListView.Column[i].Tag), ListView.Column[i].Width);
+  ListView.Show;
 
   (* CoolBar *) //※[457]
   //CoolBar.Bands.BeginUpdate;
@@ -3626,6 +3564,9 @@ begin
      CoolBar.Bands[i].Break := iniFile.ReadBool(INI_WIN_SECT, 'Band' + IntToStr(i) + 'Break', CoolBar.Bands[i].Break);
      CoolBar.Bands[i].Width := iniFile.ReadInteger(INI_WIN_SECT, 'Band' + IntToStr(i) + 'Width', CoolBar.Bands[i].Width);
    end;
+   CoolBar.Visible := Config.stlLinkBarVisible or Config.stlToolBarVisible
+     or Config.stlAddressBarVisible;
+
   //CoolBar.Bands.EndUpdate;
 
   (* Menu *)
@@ -10336,6 +10277,14 @@ begin
   end;
 end;
 
+(* エクスプローラーが再起動したときタスクトレーアイコンを再登録 by aiai *)
+procedure TMainWnd.WndProc(var Message: TMessage);
+begin
+  if (Message.Msg = uTaskBarRecreate) and InTaskTray then
+    CreateTaskBarIcon
+  else
+    inherited WndProc(Message);
+end;
 
 (* 最小化時、タスクトレイに格納 *) //aiai
 procedure TMainWnd.ApplicationEventsMinimize(Sender: TObject);
@@ -15117,7 +15066,7 @@ begin
   begin
     cbSize := SizeOf(TNotifyIconData);
     Wnd    := hWndTrayIcon;
-    uID    := 0;
+    uID    := hWndTrayIcon;  //HWNDと同じにしておく
     uFlags := NIF_MESSAGE or NIF_ICON or NIF_TIP;
     StrPCopy(szTip, Application.Title);
     hIcon  := smallIco;
@@ -15150,24 +15099,20 @@ procedure TMainWnd.TaskTrayWndProc(var Msg: TMessage);
 
 begin
   try
-    Case Msg.LParam of
-      WM_LBUTTONUP:
-        begin
-          MainWndRestore;
-        end;
-      WM_RBUTTONUP:
-        begin
+    if (Msg.Msg = WM_MY_TRAYICON) and (Msg.WParam = WParam(hWndTrayIcon)) then
+    // WParamはNotifyDataのuID
+
+      Case Msg.LParam of
+        WM_LBUTTONUP: MainWndRestore;
+        WM_RBUTTONUP: begin
           SetForegroundWindow(Handle);
           ShowPopupMenu;
         end;
-    end;
-    Case Msg.Msg of
-      WM_MY_TRAYICON:
-        if Msg.LParam = LongInt(uTaskBarRecreate) then
-          CreateTaskBarIcon;
-      else
-        Msg.Result := DefWindowProc(hWndTrayIcon, Msg.Msg, Msg.wParam, Msg.lParam);
-    end;
+      end //case
+
+    else
+      Msg.Result := DefWindowProc(hWndTrayIcon, Msg.Msg, Msg.wParam, Msg.lParam);
+
   except
     Application.HandleException(Self);
   end;
@@ -16617,6 +16562,7 @@ begin
   DeleteTaskBarIcon;
   ShowWindow(Application.Handle,SW_SHOW);
   Show;
+  Application.Restore;
   if Assigned(WriteForm) then
     WriteForm.MainWndOnShow;
   {aiai}
@@ -16628,7 +16574,6 @@ begin
     ImageForm.MainWndOnShow;
   if Assigned(ChottoForm) then
     ChottoForm.MainWndOnShow;
-  Application.Restore;
   if Assigned(ImageViewCacheListForm) then
     ImageViewCacheListForm.MainWndOnShow;
   {/aiai}
@@ -17490,53 +17435,62 @@ begin
     FindInView(false);
 end;
 
-//板ツリー内検索
-procedure TMainWnd.FindInTree(forwardP: boolean);
+const
+  SEARCH_OPTION_NORMAL = 0;
+  SEARCH_OPTION_MIGEMO = 1;
+  SEARCH_OPTION_REGEXP = 2;
+
+function InitializeSearchKeywordList(const KeywordText: String; SearchMode: Byte;
+  var keywordList: TStringList; var RegExp: TRegExp;
+  var RegMode, MigemoMode: Boolean): Boolean;
 var
-  i, j: integer;
-  tree: TTreeView;
-  node: TTreeNode;
-  targetList: TStringList;
   str: PChar;
-  RegMode: Boolean;
-  MigemoMode: Boolean;
-  RegExp: TRegExp;
-  target: string;
+  i: integer;
 begin
-  TreeViewSearchEditBox.Color := clWindow;
-  targetList := TStringList.Create;
+  Result := False;
+
+  if Length(KeywordText) <= 0 then
+    exit;
+
+  keywordList := TStringList.Create;
 
   if Config.schMultiWord then
   begin
-    targetList.Delimiter := #$20;
-    targetList.DelimitedText := ReplaceStr(TreeViewSearchEditBox.Text, #$81#$40, #$20);
+    keywordList.Delimiter := #$20;
+    keywordList.DelimitedText := ReplaceStr(KeywordText, #$81#$40, #$20);
   end else
-    targetList.Add(TreeViewSearchEditBox.Text);
+    keywordList.Add(KeywordText);
 
-  if targetList.Count = 0 then
+  if keywordList.Count = 0 then
   begin
-    targetList.Free;
+    keywordList.Free;
     exit;
   end;
 
-  if (TreeViewSearchEditBox.Tag = 1)
-    and Config.schEnableMigemo and MigemoOBJ.CanUse then
+  SearchTarget := KeywordText;
+
+  i := Length(KeywordText);
+  str := PChar(KeywordText);
+  if (SearchMode = SEARCH_OPTION_MIGEMO) and Config.schEnableMigemo
+    and MigemoOBJ.CanUse and NumAlpha(str, i) then
   begin
     RegMode := True;
     MigemoMode := True;
-    for i := 0 to targetList.Count - 1 do
+    for i := 0 to keywordList.Count - 1 do
     begin
-      str := MigemoOBJ.Query(targetList.Strings[i]);
-      targetList.Delete(i);
-      targetList.Insert(i, str);
+      str := MigemoOBJ.Query(keywordList.Strings[i]);
+      keywordList.Delete(i);
+      keywordList.Insert(i, str);
       MigemoOBJ.Release(str);
     end;
-  end else if (TreeViewSearchEditBox.Tag = 2) then
+  end else if (SearchMode = SEARCH_OPTION_REGEXP) then
   begin
     RegMode := True;
     MigemoMode := False;
   end else
   begin
+    if Config.schIgnoreFullHalf then
+      keywordList.Text := StrUnify(keywordList.Text);
     RegMode := False;
     MigemoMode := False;
   end;
@@ -17546,11 +17500,76 @@ begin
     RegExp := TRegExp.Create(nil);
     RegExp.IgnoreCase := True;
   end else
-  begin
-    if Config.schIgnoreFullHalf then
-      targetList.Text := StrUnify(targetList.Text);
     RegExp := nil;
+
+  Result := True;
+end;
+
+type
+  SRESULT = (SEARCH_OK, SEARCH_FAIL, SEARCH_REGERR, SEARCH_NOMATCH);
+
+function SearchFromKeywordList(const KeywordList: TStrings;
+  const TargetText: String; RegExp: TRegExp): SRESULT;
+var
+  i: integer;
+begin
+
+  if not Assigned(KeywordList) then
+  begin
+    Result := SEARCH_FAIL;
+    exit;
   end;
+
+  for i := 0 to KeywordList.Count - 1 do
+  begin
+
+    if Assigned(RegExp) then
+    begin
+      try
+        RegExp.Pattern := KeywordList.Strings[i];
+        if RegExp.Test(TargetText) then
+        begin
+          Result := SEARCH_OK;
+          exit;
+        end;
+      except
+        on E: Exception do begin
+          Log('SearchFromTargetList: ' + e.Message);
+          Result := SEARCH_REGERR;
+          exit;
+        end;
+      end;
+    end else
+    begin
+      if 0 < AnsiPos(KeywordList.Strings[i], TargetText) then
+      begin
+        Result := SEARCH_OK;
+        exit;
+      end;
+    end;
+
+  end;
+
+  Result := SEARCH_NOMATCH;
+end;
+
+//板ツリー内検索
+procedure TMainWnd.FindInTree(forwardP: boolean);
+var
+  i: integer;
+  tree: TTreeView;
+  node: TTreeNode;
+  KeywordList: TStringList;
+  RegMode: Boolean;
+  MigemoMode: Boolean;
+  RegExp: TRegExp;
+  target: string;
+begin
+  TreeViewSearchEditBox.Color := clWindow;
+
+  if not InitializeSearchKeywordList(TreeViewSearchEditBox.Text,
+    TreeViewSearchEditBox.Tag, KeywordList, RegExp, RegMode, MigemoMode) then
+    exit;
 
   if TreeTabControl.TabIndex = 1 then
     tree := FavoriteView
@@ -17558,7 +17577,6 @@ begin
     tree := TreeView;
 
   node := tree.Selected;
-
   if node = nil then
   begin
     if ForwardP then
@@ -17587,40 +17605,38 @@ begin
     end else
       target := node.Text;
 
-    for j := 0 to targetList.Count - 1 do
-    begin
-      if Assigned(RegExp) then
-      begin
-        try
-          RegExp.Pattern := targetList.Strings[j];
-          if RegExp.Test(target) then
-          begin
-            tree.Selected := nil;
-            tree.Selected := tree.Items[i];
-            RegExp.Free;
-            targetList.Free;
-            exit;
-          end;
-        except
-          on E: Exception do
-          begin
-            Log('TMainWnd.FindInTree: ' + e.Message);
-            RegExp.Free;
-            targetList.Free;
-            TreeViewSearchEditBox.Color := $D0FFFF;
-            exit;
-          end;
-        end;
-      end else
-      begin
-        if AnsiContainsText(target, targetList.Strings[j]) then
-        begin
-          tree.Selected := nil;
-          tree.Selected := tree.Items[i];
-          targetList.Free;
-          exit;
-        end;
+    case SearchFromKeywordList(KeywordList, target, RegExp) of
+
+      SEARCH_OK: begin
+        tree.Selected := nil;
+        tree.Selected := tree.Items[i];
+        if Assigned(RegExp) then
+          RegExp.Free;
+        KeywordList.Free;
+        exit;
       end;
+
+      SEARCH_FAIL: begin
+        if Assigned(RegExp) then
+          RegExp.Free;
+        KeywordList.Free;
+        exit;
+      end;
+
+      SEARCH_REGERR: begin
+        RegExp.Free;
+        KeywordList.Free;
+        TreeViewSearchEditBox.Color := $D0FFFF;
+        exit;
+      end;
+
+      SEARCH_NOMATCH:;
+
+    else
+      if Assigned(RegExp) then
+        RegExp.Free;
+      KeywordList.Free;
+      exit;
     end;
 
     if ForwardP then Inc(i) else Dec(i);
@@ -17628,72 +17644,34 @@ begin
 
   if Assigned(RegExp) then
     RegExp.Free;
-  targetList.Free;
+  KeywordList.Free;
   TreeViewSearchEditBox.Color := $CCCCFF;
 end;
 
 //スレ欄内検索
 procedure TMainWnd.FindInList(forwardP: boolean);
 var
-  i, j: integer;
+  i: integer;
   item: TListItem;
-  targetList: TStringList;
-  str: PChar;
+  keywordList: TStringList;
   RegMode: Boolean;
   MigemoMode: Boolean;
   RegExp: TRegExp;
   target: string;
+  strDatOut: TStrDatOut;
 label
   DONE;
 begin
   ListViewSearchEditBox.Color := clWindow;
-  item := ListView.ItemFocused;
 
-  targetList := TStringList.Create;
-  if Config.schMultiWord then
-  begin
-    targetList.Delimiter := #$20;
-    targetList.DelimitedText := ReplaceStr(ListViewSearchEditBox.Text, #$81#$40, #$20);
-  end else
-    targetList.Add(ListViewSearchEditBox.Text);
-
-  if targetList.Count = 0 then
-  begin
-    targetList.Free;
+  if CurrentBoard = nil then
     exit;
-  end;
 
-  if (ListViewSearchEditBox.Tag = 1)
-    and Config.schEnableMigemo and MigemoOBJ.CanUse then
-  begin
-    MigemoMode := True;
-    RegMode := True;
-    for i := 0 to targetList.Count - 1 do
-    begin
-      str := MigemoOBJ.Query(targetList.Strings[i]);
-      targetList.Delete(i);
-      targetList.Insert(i, str);
-      MigemoOBJ.Release(str);
-    end;
-  end else if (ListViewSearchEditBox.Tag = 2) then
-  begin
-    RegMode := True;
-    MigemoMode := False;
-  end else
-  begin
-    if Config.schIgnoreFullHalf then
-      targetList.Text := StrUnify(targetList.Text);
-    MigemoMode := False;
-    RegMode := False;
-  end;
+  if not InitializeSearchKeywordList(ListViewSearchEditBox.Text,
+    ListViewSearchEditBox.Tag, keywordList, RegExp, RegMode, MigemoMode) then
+    exit;
 
-  if RegMode then
-  begin
-    RegExp := TRegExp.Create(nil);
-    RegExp.IgnoreCase := True;
-  end else
-    RegExp := nil;
-
+  item := ListView.ItemFocused;
   if item = nil then
   begin
     if ForwardP then
@@ -17708,53 +17686,59 @@ begin
       i := item.Index - 1;
   end;
 
+  StrDatOut := TStrDatOut.Create;
+
   while (ForwardP and (i < ListView.Items.Count)) or (not ForwardP and (i > -1)) do
   begin
+
+    StrDatOut.Clear;
+    StrDatOut.WriteHTML(TThreadItem(ListView.List[i]).title);
 
     if Config.schIgnoreFullHalf and (not RegMode or MigemoMode) then
     begin
       if MigemoMode then
-        target := StrUnify2(HTML2String(TThreadItem(ListView.List[i]).title))
+        target := StrUnify2(StrDatOut.Text)
       else
-        target := StrUnify(HTML2String(TThreadItem(ListView.List[i]).title));
+        target := StrUnify(StrDatOut.Text);
     end else
-      target := HTML2String(TThreadItem(ListView.List[i]).title);
+      target := StrDatOut.Text;
 
-    for j := 0 to targetList.Count - 1 do
-    begin
+    case SearchFromKeywordList(keywordList, target, RegExp) of
 
-      if Assigned(RegExp) then
-      begin
-        try
-          RegExp.Pattern := targetList.Strings[j];
-          if RegExp.Test(target) then
-          begin
-            ListView.Selected := nil;
-            ListViewSelectIntoView(ListView.Items[i]);
-            RegExp.Free;
-            targetList.Free;
-            exit;
-          end;
-        except
-          on E: Exception do begin
-            Log('TMainWnd.FindInList: ' + e.Message);
-            RegExp.Free;
-            targetList.Free;
-            ListViewSearchEditBox.Color := $D0FFFF;
-            exit;
-          end;
-        end;
-      end else
-      begin
-        if 0 < AnsiPos(targetList.Strings[j], target) then
-        begin
-          ListView.Selected := nil;
-          ListViewSelectIntoView(ListView.Items[i]);
-          targetList.Free;
-          exit;
-        end;
+      SEARCH_OK: begin
+        ListView.Selected := nil;
+        ListViewSelectIntoView(ListView.Items[i]);
+        if Assigned(RegExp) then
+          RegExp.Free;
+        keywordList.Free;
+        StrDatOut.Free;
+        exit;
       end;
 
+      SEARCH_FAIL: begin
+        if Assigned(RegExp) then
+          RegExp.Free;
+        keywordList.Free;
+        StrDatOut.Free;
+        exit;
+      end;
+
+      SEARCH_REGERR: begin
+        RegExp.Free;
+        keywordList.Free;
+        StrDatOut.Free;
+        ListViewSearchEditBox.Color := $D0FFFF;
+        exit;
+      end;
+
+      SEARCH_NOMATCH:;
+
+    else
+      if Assigned(RegExp) then
+        RegExp.Free;
+      keywordList.Free;
+      StrDatOut.Free;
+      exit;
     end;
 
     if ForwardP then Inc(i) else Dec(i);
@@ -17762,7 +17746,8 @@ begin
 
   if Assigned(RegExp) then
     RegExp.Free;
-  targetList.Free;
+  keywordList.Free;
+  StrDatOut.Free;
   ListViewSearchEditBox.Color := $CCCCFF;
 end;
 
@@ -17772,11 +17757,9 @@ var
   viewItem: TViewItem;
   str: PChar;
   i, j: integer;
-  targetList: TStringList;
+  keywordList: TStringList;
   hloption: THighLightOption;
 begin
-  ThreSearchTimer.Enabled := False;
-
   ThreViewSearchEditBox.Color := clWindow;
 
   viewItem := GetActiveView;
@@ -17791,18 +17774,18 @@ begin
 
   SearchTarget := ThreViewSearchEditBox.Text;
 
-  targetList := TStringList.Create;
+  keywordList := TStringList.Create;
 
   if Config.schMultiWord then
   begin
-    targetList.Delimiter := #$20;
-    targetList.DelimitedText := ReplaceStr(SearchTarget, #$81#$40, #$20);
+    keywordList.Delimiter := #$20;
+    keywordList.DelimitedText := ReplaceStr(SearchTarget, #$81#$40, #$20);
   end else
-    targetList.Add(SearchTarget);
+    keywordList.Add(SearchTarget);
 
-  if targetList.Count = 0 then
+  if keywordList.Count = 0 then
   begin
-    targetList.Free;
+    keywordList.Free;
     exit;
   end;
 
@@ -17814,11 +17797,11 @@ begin
     and Config.schEnableMigemo and MigemoOBJ.CanUse and NumAlpha(str, j) then
   begin
     hloption := hloReg;
-    for i := 0 to targetList.Count - 1 do
+    for i := 0 to keywordList.Count - 1 do
     begin
-      str := MigemoOBJ.Query(targetList[i]);
-      targetList.Delete(i);
-      targetList.Insert(i, str);
+      str := MigemoOBJ.Query(keywordList[i]);
+      keywordList.Delete(i);
+      keywordList.Insert(i, str);
       MigemoOBJ.Release(str);
     end;
   end else if (TreeViewSearchEditBox.Tag = 2) then
@@ -17827,11 +17810,11 @@ begin
   try
     if ForwardP then
     begin
-      if not viewItem.browser.SearchForward(targetList, hloption) then
+      if not viewItem.browser.SearchForward(keywordList, hloption) then
         ThreViewSearchEditBox.Color := $CCCCFF;
     end else
     begin
-      if not viewItem.browser.SearchBackward(targetList, hloption) then
+      if not viewItem.browser.SearchBackward(keywordList, hloption) then
         ThreViewSearchEditBox.Color := $CCCCFF;
     end;
   except
@@ -17841,368 +17824,111 @@ begin
     end;
   end;
 
-  targetList.Free;
+  keywordList.Free;
 end;
 
-//▲検索
-
-//▼ スレ絞込み
-
-procedure TMainWnd.InitMigemo;
-var
-  DicPath: String; //'\つきpath';
-begin
-  if Length(Config.schMigemoDic) > 0 then
-    DicPath := ExtractFilePath(Config.schMigemoDic);
-  MigemoOBJ := TMigemo.Create(Config.schMigemoPath,
-                              Config.schMigemoDic,
-                              DicPath + 'roma2hira.dat',
-                              DicPath + 'hira2kata.dat',
-                              DicPath + 'han2zen.dat');
-end;
-
-procedure TMainWnd.ListViewSearchSetSearch(index: integer);
-begin
-  ListViewSearchEditBox.Tag := index;
-  SearchTimer.Enabled := False;
-  case index of
-  0: begin  //通常検索
-    ListViewSearchEditBox.OnChange := ListViewSearchEditBoxChange;
-    ListViewSearchToolButton.ImageIndex := 0;
-    MenuListViewSearchNormal.Checked := True;
-  end;
-  1: begin  //Migemo
-    if Config.schEnableMigemo and MigemoOBJ.CanUse then
-      ListViewSearchToolButton.ImageIndex := 1
-    else
-      ListViewSearchToolButton.ImageIndex := 3;
-    ListViewSearchEditBox.OnChange := ListViewSearchEditBoxChange;
-    MenuListViewSearchMigemo.Checked := True;
-  end;
-  2: begin  //正規表現
-    ListViewSearchEditBox.OnChange := nil;
-    ListViewSearchToolButton.ImageIndex := 2;
-    MenuListViewSearchRegExp.Checked := True;
-  end;
-  else
-  end;
-end;
-
-procedure TMainWnd.ListViewSearchEditBoxChange(Sender: TObject);
-begin
-  SearchTimer.Enabled := False;
-  if currentBoard = nil then
-    exit;
-  SearchTimer.Enabled := Config.schIncremental;
-end;
-
-procedure TMainWnd.ListViewSearchEditBoxKeyPress(Sender: TObject;
-  var Key: Char);
-begin
-  if Ord(Key) = VK_RETURN then
-  Case ListViewSearchEditBox.Tag of
-  0: begin ListViewSearchNormalSearch; Key := #0; end;
-  1:
-    begin
-      if Config.schEnableMigemo and MigemoOBJ.CanUse then
-        ListViewSearchMigemoSearch
-      else
-        ListViewSearchNormalSearch;
-       Key := #0;
-    end;
-  2: begin ListViewSearchRegExpSearch; Key := #0; end;
-  end;
-end;
-
-procedure TMainWnd.SearchTimerTimer(Sender: TObject);
-begin
-  SearchTimer.Enabled := False;
-  Case ListViewSearchEditBox.Tag of
-  0:  //通常検索
-    begin
-      ListViewSearchNormalSearch;
-    end;
-  1:  //Migemo検索
-    begin
-      if Config.schEnableMigemo and MigemoOBJ.CanUse then
-        ListViewSearchMigemoSearch
-      else
-        ListViewSearchNormalSearch;
-    end;
-  end;  //Case
-end;
-
-//Migemo検索
-procedure TMainWnd.ListViewSearchMigemoSearch;
+//スレ絞込み
+procedure TMainWnd.ListViewSearchNarrowing;
 var
   target: string;
   i, j: Integer;
-  str: PChar;
-  targetList: TStringList;
+  keywordList: TStringList;
   RegExp: TRegExp;
+  RegMode, MigemoMode: Boolean;
+  r: boolean;
+  strDatOut: TStrDatOut;
 begin
-  SearchTimer.Enabled := False;
-
   ListViewSearchEditBox.Color := clWindow;
 
   if currentBoard = nil then
     exit;
 
-  if (Length(ListViewSearchEditBox.Text) = 0) or not MigemoOBJ.CanUse then
+  if not InitializeSearchKeywordList(ListViewSearchEditBox.Text,
+    ListViewSearchEditBox.Tag, keywordList, RegExp, RegMode, MigemoMode) then
   begin
     ListviewSearchEnd(True);
     exit;
   end;
 
-  str := PChar(ListViewSearchEditBox.Text);
-  j := Length(ListViewSearchEditBox.Text);
-  if not NumAlpha(str, j) then
-  begin
-    ListViewSearchNormalSearch;
-    exit
-  end;
+  strDatOut := TStrDatOut.Create;
 
-  RegExp := TRegExp.Create(nil);   //WSH
-  RegExp.IgnoreCase := True;       //大文字小文字を区別しない
-
-  if Config.schMultiWord then
+  for i := 0 to keywordList.Count - 1 do
   begin
-    targetList := TStringList.Create;
-    targetList.Delimiter := #$20;
-    targetList.DelimitedText := ReplaceStr(ListViewSearchEditBox.Text, #$81#$40, #$20);
-    if targetList.Count = 0 then
-    begin
-      targetList.Free;
-      ListviewSearchEnd(True);
-      RegExp.Free;
-      exit;
-    end;
-    str := MigemoOBJ.Query(targetList.Strings[0]);
-    target := Copy(str, 1, Length(str));
-    MigemoOBJ.Release(str);
-    try
-      RegExp.Pattern := WideString(target); //正規表現パターン
-    except
-      ListViewSearchEditBox.Color := $D0FFFF;
-      RegExp.Free;
-      targetList.Free;
-      exit;
-    end;
-    if target <> '' then
-      for i := 0 to ListView.Items.Count -1 do
-        with TThreadItem(LIstView.List[i]) do
-          try
-            if Config.schIgnoreFullHalf then
-              if RegExp.Test(StrUnify2(HTML2String(title))) then
-                liststate := 1
-              else liststate := 0
-            else
-              if RegExp.Test(HTML2String(title)) then
-                liststate := 1
-              else liststate := 0
-          except
-            ListViewSearchEditBox.Color := $D0FFFF;
-            RegExp.Free;
-            targetList.Free;
-            exit;
-          end;
-    //さらに絞り込む
-    for j := 1 to targetList.Count - 1 do
-    begin
-      str := MigemoOBJ.Query(targetList.Strings[j]);
-      target := Copy(str, 1, Length(str));
-      MigemoOBJ.Release(str);
+
+    if Assigned(RegExp) then
       try
-        RegExp.Pattern := WideString(target);       //正規表現パターン
+        RegExp.Pattern := keywordList.Strings[i];
       except
-        ListViewSearchEditBox.Color := $D0FFFF;
-        RegExp.Free;
-        targetList.Free;
-        exit;
-      end;
-      if target <> '' then
-        for i := 0 to ListView.Items.Count -1 do
-          with TThreadItem(LIstView.List[i]) do
-            if liststate <> 0 then
-              try
-                if Config.schIgnoreFullHalf then
-                begin
-                  if not RegExp.Test(StrUnify2(HTML2String(title))) then
-                    liststate := 0;
-                end else
-                begin
-                if not RegExp.Test(HTML2String(title)) then
-                    liststate := 0;
-                end;
-              except
-                ListViewSearchEditBox.Color := $D0FFFF;
-                targetList.Free;
-                exit;
-              end;
-    end;
-    targetList.Free;
-  end else
-  begin
-    str := MigemoOBJ.Query(ListViewSearchEditBox.Text);
-    target := Copy(str, 1, Length(str));
-    MigemoOBJ.Release(str);
-    try
-      RegExp.Pattern := target;   //正規表現パターン
-    except
-      ListViewSearchEditBox.Color := $D0FFFF;
-      RegExp.Free;
-      exit;
-    end;
-    if target <> '' then
-      for i := 0 to ListView.Items.Count -1 do
-        with TThreadItem(LIstView.List[i]) do
-          try
-            if Config.schIgnoreFullHalf then
-              if RegExp.Test(StrUnify2(HTML2String(title))) then
-                liststate := 1
-              else
-               liststate := 0
-            else
-              if RegExp.Test(HTML2String(title)) then
-                liststate := 1
-              else
-               liststate := 0
-          except
-            ListViewSearchEditBox.Color := $D0FFFF;
-            RegExp.Free;
-            exit;
-          end;
-
-  end;
-
-  RegExp.Free;
-  ListviewSearchEnd(False);
-end;
-
-//通常検索
-procedure TMainWnd.ListViewSearchNormalSearch;
-var
-  i, j: Integer;
-  target: String;
-  targetList: TStringList;
-begin
-  SearchTimer.Enabled := False;
-
-  ListViewSearchEditBox.Color := clWindow;
-
-  if currentBoard = nil then
-    exit;
-
-  SearchTarget := Trim(ListViewSearchEditBox.Text);
-
-  if (Length(SearchTarget) = 0) then
-  begin
-    ListviewSearchEnd(True);
-    exit;
-  end;
-
-  if Config.schIgnoreFullHalf then
-    target := StrUnify(SearchTarget)
-  else
-    target := SearchTarget;
-
-  if Config.schMultiWord then
-  begin
-    targetList := TStringList.Create;
-    targetList.Delimiter := #$20;
-    targetList.DelimitedText := ReplaceStr(target, #$81#$40, #$20);
-    if targetList.Count = 0 then
-    begin
-      targetList.Free;
-      ListviewSearchEnd(True);
-      exit;
-    end;
-    if targetList.Strings[0] <> '' then
-      for i := 0 to ListView.Items.Count -1 do
-        with TThreadItem(LIstView.List[i]) do
-          if Config.schIgnoreFullHalf then
-            if 0 < AnsiPos(targetList.Strings[0], StrUnify(HTML2String(title))) then
-              liststate := 1
-            else
-              liststate := 0
-          else
-            if 0 < AnsiPos(targetList.Strings[0], HTML2String(title)) then
-              liststate := 1
-            else
-              liststate := 0;
-    //更に絞り込む
-    for j := 1 to targetList.Count - 1 do
-      if targetList.Strings[j] <> '' then
-        for i := 0 to ListView.Items.Count -1 do
-          with TThreadItem(LIstView.List[i]) do
-            if Config.schIgnoreFullHalf then
-            begin
-              if (liststate <> 0) and (0 >= AnsiPos(targetList.Strings[j], StrUnify(HTML2String(title)))) then
-                  liststate := 0;
-            end else
-              if (liststate <> 0) and (0 >= AnsiPos(targetList.Strings[j], HTML2String(title))) then
-                  liststate := 0;
-    targetList.Free;
-  end else if target <> '' then
-    for i := 0 to ListView.Items.Count -1 do
-      with TThreadItem(LIstView.List[i]) do
-        if Config.schIgnoreFullHalf then
-          if 0 < AnsiPos(target, StrUnify(HTML2String(title))) then
-            liststate := 1
-          else
-            liststate := 0
-        else
-          if 0 < AnsiPos(target, HTML2String(title)) then
-            liststate := 1
-          else
-            liststate := 0;
-  ListviewSearchEnd(False);
-end;
-
-//正規表現検索
-procedure TMainWnd.ListViewSearchRegExpSearch;
-var
-  i: Integer;
-  RegExp: TRegExp;
-  target: String;
-begin
-  SearchTimer.Enabled := False;
-
-  ListViewSearchEditBox.Color := clWindow;
-
-  if CurrentBoard = nil then
-    exit;
-
-  target := Trim(ListViewSearchEditBox.Text);
-
-  if Length(target) = 0 then
-  begin
-    ListviewSearchEnd(True);
-    exit;
-  end;
-
-  RegExp := TRegExp.Create(nil);  //WSH
-  RegExp.IgnoreCase := True;   //大文字小文字を区別しない
-  try
-    RegExp.Pattern := target;      //正規表現パターン
-  except
-    ListViewSearchEditBox.Color := $D0FFFF;
-    RegExp.Free;
-    exit;
-  end;
-
-  if target <> '' then
-    for i := 0 to ListView.Items.Count -1 do
-      with TThreadItem(LIstView.List[i]) do
-        try
-          if RegExp.Test(HTML2String(title)) then liststate := 1
-          else liststate := 0;
-        except
+        on E: Exception do
+        begin
+          ListviewSearchEnd(True);
           ListViewSearchEditBox.Color := $D0FFFF;
+          Log('TMainWnd.ListViewSearchNarrowing: ' + E.Message);
           RegExp.Free;
+          keywordList.Free;
+          strDatOut.Free;
           exit;
         end;
-  RegExp.Free;
+      end;
+
+    r := false;
+
+    for j := 0 to ListView.Items.Count - 1 do
+    begin
+
+      if (i > 0) and (TThreadItem(ListView.List[j]).liststate = 0) then
+        Continue;
+
+      StrDatOut.Clear;
+      StrDatOut.WriteHTML(TThreadItem(ListView.List[j]).title);
+
+      if Config.schIgnoreFullHalf and (not RegMode or MigemoMode) then
+      begin
+        if MigemoMode then
+          target := StrUnify2(StrDatOut.Text)
+        else
+          target := StrUnify(StrDatOut.Text);
+      end else
+        target := StrDatOut.Text;
+
+      if Assigned(RegExp) then
+        try
+          if RegExp.Test(target) then
+            TThreadItem(ListView.List[j]).liststate := 1
+          else
+            TThreadItem(ListView.List[j]).liststate := 0;
+        except
+          on E: Exception do
+          begin
+            ListviewSearchEnd(True);
+            ListViewSearchEditBox.Color := $D0FFFF;
+            Log('TMainWnd.ListViewSearchNarrowing: ' + E.Message);
+            RegExp.Free;
+            keywordList.Free;
+            strDatOut.Free;
+            exit;
+          end;
+        end
+      else if (AnsiPos(keywordList.Strings[i], target) > 0) then
+        TThreadItem(ListView.List[j]).liststate := 1
+      else
+        TThreadItem(ListView.List[j]).liststate := 0;
+
+      if TThreadItem(ListView.List[j]).liststate = 1 then
+        r := true;
+    end;
+
+    if not r then
+    begin
+      ListViewSearchEditBox.Color := $CCCCFF;
+      break;
+    end;
+  end;
+
+  if Assigned(RegExp) then
+    RegExp.Free;
+  keywordList.Free;
+  strDatOut.Free;
   ListviewSearchEnd(False);
 end;
 
@@ -18237,142 +17963,9 @@ begin
   end;
 end;
 
-procedure TMainWnd.MenuListViewSearchNormalClick(Sender: TObject);
-begin
-  ListViewSearchSetSearch(TComponent(Sender).Tag);
-end;
-
-procedure TMainWnd.PopupListViewSearchPopup(Sender: TObject);
-begin
-  MenuListViewSearchCopy.Enabled := Length(ListViewSearchEditBox.SelText) > 0;
-  MenuListViewSearchCut.Enabled := MenuListViewSearchCopy.Enabled;
-  MenuListViewSearchPaste.Enabled := ClipBoard.HasFormat(CF_TEXT);
-  MenuListViewSearchSelectAll.Enabled := Length(ListViewSearchEditBox.Text) > 0;
-  MenuListViewSearchClear.Enabled := MenuListViewSearchSelectAll.Enabled;
-  MenuListViewSearchMultiWord.Checked := Config.schMultiWord;
-  MenuListViewSearchIncremental.Checked := Config.schIncremental;
-  MenuListViewSearchIgnoreFullHalf.Checked := Config.schIgnoreFullHalf;
-end;
-
-procedure TMainWnd.MenuListViewSearchCopyClick(Sender: TObject);
-begin
-  case TComponent(Sender).Tag of
-  0: ClipBoard.AsText := ListViewSearchEditBox.SelText; //コピー
-  1:                                                    //切り取り
-    begin
-      ClipBoard.AsText := ListViewSearchEditBox.SelText;
-      ListViewSearchEditBox.SelText := '';
-    end;
-  2: ListViewSearchEditBox.SelText := ClipBoard.AsText; //貼り付け
-  3: ListViewSearchEditBox.SelectAll;                   //すべて選択
-  4: ListViewSearchEditBox.Text := '';                  //クリア
-  5: FindInList(True);                                  //前方検索
-  6: FindInList(False);                                 //後方検索
-  end;
-end;
-
-procedure TMainWnd.MenuListViewSearchIncrementalClick(Sender: TObject);
-begin
-  Config.schIncremental := not Config.schIncremental;
-end;
-
-procedure TMainWnd.MenuListViewSearchMultiWordClick(Sender: TObject);
-begin
-  Config.schMultiWord := not Config.schMultiWord;
-end;
-
-procedure TMainWnd.MenuListViewSearchIgnoreFullHalfClick(Sender: TObject);
-begin
-  Config.schIgnoreFullHalf := not Config.schIgnoreFullHalf;
-end;
-
-procedure TMainWnd.MenuListViewSearchCloseClick(Sender: TObject);
-begin
-  ListViewSearchToolBar.Hide;
-end;
-
-procedure TMainWnd.ListViewSearchToolButtonClick(Sender: TObject);
-var
-  i: integer;
-begin
-  i := ListViewSearchEditBox.Tag;
-  if i = 2 then i := 0 else Inc(i);
-  ListViewSearchSetSearch(i);
-end;
-
-procedure TMainWnd.ListViewSearchToolBarResize(Sender: TObject);
-begin
-  ListViewSearchEditBox.Width := ListViewSearchToolBar.ClientWidth
-    - ListViewSearchCloseButton.Width
-      - ListViewSearchToolButton.Width - ListViewSearchSep.Width;
-end;
-
-//▲ スレ絞込み
-
-//▼ スレ内検索
-
-procedure TMainWnd.ThreViewSearchEditBoxKeyPress(Sender: TObject;
-  var Key: Char);
-begin
-  if Ord(Key) = VK_RETURN then
-  begin
-    ThreSearchTimer.Enabled := False;
-    FindInView(True);
-    Key := #0;
-  end;
-end;
-
-procedure TMainWnd.ThreViewSearchUpDownClick(Sender: TObject;
-  Button: TUDBtnType);
-begin
-  ThreSearchTimer.Enabled := False;
-  FindInView(Button = btPrev);
-end;
-
-procedure TMainWnd.ThreViewSearchSetSearch(index: integer);
-begin
-  ThreViewSearchEditBox.Tag := index;
-  ThreSearchTimer.Enabled := False;
-  case index of
-  0: begin  //通常検索
-    ThreViewSearchEditBox.OnChange := ThreViewSearchEditBoxChange;
-    ThreViewSearchToolButton.ImageIndex := 0;
-    MenuThreViewSearchNormal.Checked := True;
-  end;
-  1: begin  //Migemo
-    if Config.schEnableMigemo and MigemoOBJ.CanUse then begin
-      ThreViewSearchToolButton.ImageIndex := 1;
-    end else begin
-      ThreViewSearchToolButton.ImageIndex := 3;
-    end;
-      ThreViewSearchEditBox.OnChange := ThreViewSearchEditBoxChange;
-    MenuThreViewSearchMigemo.Checked := True;
-  end;
-  2: begin  //正規表現
-    ThreViewSearchEditBox.OnChange := nil;
-    ThreViewSearchToolButton.ImageIndex := 2;
-    MenuThreViewSearchRegExp.Checked := True;
-  end;
-  else
-  end;
-end;
-
-procedure TMainWnd.ThreViewSearchEditBoxChange(Sender: TObject);
-begin
-  ThreViewSearchUpDown.Position := 0;
-  ThreSearchTimer.Enabled := False;
-  ThreSearchTimer.Enabled := Config.schIncremental
-    and (ThreViewSearchEditBox.Tag <> 2);
-end;
-
-procedure TMainWnd.ThreSearchTimerTimer(Sender: TObject);
-begin
-  ThreSearchTimer.Enabled := False;
-  FindInView(True);
-end;
-
 //レス抽出
-procedure TMainWnd.MenuThreViewSearchExtractClick(Sender: TObject);
+
+procedure TMainWnd.ExtractRes(IncludeRef: Boolean);
 var
   viewItem: TViewItem;
   GrepMode: Byte;
@@ -18389,8 +17982,8 @@ begin
     exit;
   MigemoMode := False;
   case ThreViewSearchEditBox.Tag of
-    0: GrepMode := Byte(Config.schMultiWord) * GREP_OPTION_OR;
-    1: begin
+    SEARCH_OPTION_NORMAL: GrepMode := Byte(Config.schMultiWord) * GREP_OPTION_OR;
+    SEARCH_OPTION_MIGEMO: begin
       GrepMode := Byte(Config.schMultiWord) * GREP_OPTION_OR;
       if Config.schEnableMigemo and MigemoOBJ.CanUse then
       begin
@@ -18399,41 +17992,240 @@ begin
         MigemoMode := NumAlpha(str, size);
       end;
     end;
-
-    2: GrepMode := GREP_OPTION_REGEXP;
+    SEARCH_OPTION_REGEXP: GrepMode := GREP_OPTION_REGEXP;
   else
     GrepMode := GREP_OPTION_NORMAL;
   end;
 
   NewView(true).ExtractKeyword(SearchTarget, viewItem.thread, GrepMode,
-    TComponent(Sender).Tag = 1, MigemoMode);
+    IncludeRef, MigemoMode);
 end;
 
-procedure TMainWnd.MenuThreViewSearchCopyClick(Sender: TObject);
+//▲検索
+
+//Migemo初期化
+procedure TMainWnd.InitMigemo;
+var
+  DicPath: String; //'\つきpath';
 begin
-  Case TComponent(Sender).Tag of
-  0: ClipBoard.AsText := ThreViewSearchEditBox.SelText; //コピー
-  1:                                                    //切り取り
-    begin
-      ClipBoard.AsText := ThreViewSearchEditBox.SelText;
-      ListViewSearchEditBox.SelText := '';
-    end;
-  2: ThreViewSearchEditBox.SelText := ClipBoard.AsText; //貼り付け
-  3: ThreViewSearchEditBox.SelectAll;                   //すべて選択
-  4: ThreViewSearchEditBox.Text := '';                  //クリア
-  5: FindInView(True);  //前方検索
-  6: FindInView(False);  //後方検索
+  if Length(Config.schMigemoDic) > 0 then
+    DicPath := ExtractFilePath(Config.schMigemoDic);
+  MigemoOBJ := TMigemo.Create(Config.schMigemoPath,
+                              Config.schMigemoDic,
+                              DicPath + 'roma2hira.dat',
+                              DicPath + 'hira2kata.dat',
+                              DicPath + 'han2zen.dat');
+end;
+
+procedure TMainWnd.SearchSetSearch(index: integer; EditBox: TComboBox;
+  Button: TToolButton);
+begin
+  EditBox.Tag := index;
+  SearchTimer.Enabled := False;
+  case index of
+  SEARCH_OPTION_NORMAL: begin  //通常検索
+    EditBox.OnChange := SearchEditBoxChange;
+    Button.ImageIndex := 0;
+  end;
+  SEARCH_OPTION_MIGEMO: begin  //Migemo
+    if Config.schEnableMigemo and MigemoOBJ.CanUse then
+      Button.ImageIndex := 1
+    else
+      Button.ImageIndex := 3;
+    EditBox.OnChange := SearchEditBoxChange;
+  end;
+  SEARCH_OPTION_REGEXP: begin  //正規表現
+    EditBox.OnChange := nil;
+    Button.ImageIndex := 2;
+  end;
+  else
   end;
 end;
 
-procedure TMainWnd.MenuThreViewSearchNormalClick(Sender: TObject);
+//▼ 共通イベントハンドラ
+
+procedure TMainWnd.SearchTimerTimer(Sender: TObject);
+var
+  cb: TComboBox;
 begin
-  ThreViewSearchSetSearch(TComponent(Sender).Tag);
+  SearchTimer.Enabled := False;
+  cb := TComboBox(SearchTimer.Tag);
+  if cb = ThreViewSearchEditBox then
+    FindInView(True)
+  else if cb = ListViewSearchEditBox then
+    ListViewSearchNarrowing
+  else if cb = TreeViewSearchEditBox then
+    FindInTree(True);
 end;
 
-procedure TMainWnd.MenuThreViewSearchCloseClick(Sender: TObject);
+procedure TMainWnd.SearchEditBoxChange(Sender: TObject);
 begin
-  ThreViewSearchToolBar.Hide;
+  SearchTimer.Enabled := False;
+  SearchTimer.Tag := Integer(Sender);
+  SearchTimer.Enabled := Config.schIncremental
+    and (TComponent(Sender).Tag <> SEARCH_OPTION_REGEXP);
+end;
+
+procedure TMainWnd.SearchEditBoxKeyPress(Sender: TObject;
+  var Key: Char);
+var
+  cb: TComboBox;
+begin
+  if Ord(Key) = VK_RETURN then
+  begin
+    SearchTimer.Enabled := False;
+    cb := TComboBox(Sender);
+    if cb = ThreViewSearchEditBox then
+      FindInView(True)
+    else if cb = ListViewSearchEditBox then
+      ListViewSearchNarrowing
+    else if cb = TreeViewSearchEditBox then
+      FindInTree(True);
+    Key := #0;
+  end;
+end;
+
+procedure TMainWnd.PopupSearchPopup(Sender: TObject);
+var
+  cb: TComboBox;
+begin
+  if TPopupMenu(Sender).PopupComponent is TComboBox then
+    cb := TPopupMenu(Sender).PopupComponent as TComboBox
+  else if TPopupMenu(Sender).PopupComponent = TreeViewSearchToolBar then
+    cb := TreeViewSearchEditBox
+  else if TPopupMenu(Sender).PopupComponent = ListViewSearchToolBar then
+    cb := ListViewSearchEditBox
+  else if TPopupMenu(Sender).PopupComponent = ThreViewSearchToolBar then
+    cb := ThreViewSearchEditBox
+  else
+    exit;
+
+  MenuSearchCopy.Enabled := Length(cb.SelText) > 0;
+  MenuSearchCut.Enabled := MenuSearchCopy.Enabled;
+  MenuSearchPaste.Enabled := ClipBoard.HasFormat(CF_TEXT);
+  MenuSearchSelectAll.Enabled := Length(cb.Text) > 0;
+  MenuSearchClear.Enabled := MenuSearchSelectAll.Enabled;
+  MenuSearchMultiWord.Checked := Config.schMultiWord;
+  MenuSearchIncremental.Checked := Config.schIncremental;
+  MenuSearchIgnoreFullHalf.Checked := Config.schIgnoreFullHalf;
+
+  case cb.Tag of
+    SEARCH_OPTION_NORMAL: MenuSearchNormal.Checked := True;
+    SEARCH_OPTION_MIGEMO: MenuSearchMigemo.Checked := True;
+    SEARCH_OPTION_REGEXP: MenuSearchRegExp.Checked := True;
+  end;
+
+  MenuSearchExtract.Visible := cb = ThreViewSearchEditBox;
+  MenuSearchExtractTree.Visible := MenuSearchExtract.Visible;
+
+end;
+
+procedure TMainWnd.MenuSearchItemClick(Sender: TObject);
+var
+  pc: TComponent;
+  cb: TComboBox;
+
+begin
+  pc := PopupSearch.PopupComponent;
+  if pc <> nil then
+  begin
+    PopupSearch.PopupComponent := nil;
+    if  pc is TComboBox then
+      cb := pc as TComboBox
+    else if pc = TreeViewSearchToolBar then
+      cb := TreeViewSearchEditBox
+    else if pc = ListViewSearchToolBar then
+      cb := ListViewSearchEditBox
+    else if pc = ThreViewSearchToolBar then
+      cb := ThreViewSearchEditBox
+    else
+      exit;
+  end else
+  begin
+    if ThreViewSearchEditBox.Focused then
+      cb := ThreViewSearchEditBox
+    else if ListViewSearchEditBox.Focused then
+      cb := ListViewSearchEditBox
+    else if TreeViewSearchEditBox.Focused then
+      cb := TreeViewSearchEditBox
+    else
+      exit;
+  end;
+
+  case TComponent(Sender).Tag of
+    0, 1: if cb = ThreViewSearchEditBox then  //レス抽出
+      ExtractRes(TComponent(Sender).Tag = 1);
+    2: if cb = ThreViewSearchEditBox then  //前方検索
+         FindInView(True)
+       else if cb = ListViewSearchEditBox then
+         FindInList(True)
+       else if cb = TreeViewSearchEditBox then
+        FindInTree(True);
+    3: if cb = ThreViewSearchEditBox then  //後方検索
+         FindInView(False)
+       else if cb = ListViewSearchEditBox then
+         FindInList(False)
+       else if cb = TreeViewSearchEditBox then
+         FindInTree(False);
+    4: cb.Perform(WM_COPY, 0, 0);          //コピー
+    5: cb.Perform(WM_CUT, 0, 0);           //切り取り
+    6: cb.Perform(WM_PASTE, 0, 0);         //貼り付け
+    7: cb.SelectAll;                       //すべて選択
+    8: cb.Text := '';                      //クリア
+    9, 10, 11:
+      if cb = ThreViewSearchEditBox then
+        SearchSetSearch(TComponent(Sender).Tag - 9, cb, ThreViewSearchToolButton)
+      else if cb = ListViewSearchEditBox then
+        SearchSetSearch(TComponent(Sender).Tag - 9, cb, ListViewSearchToolButton)
+      else if cb = TreeViewSearchEditBox then
+        SearchSetSearch(TComponent(Sender).Tag - 9, cb, TreeViewSearchToolButton);
+    12: Config.schIncremental := not Config.schIncremental;
+    13: Config.schMultiWord := not Config.schMultiWord;
+    14: Config.schIgnoreFullHalf := not Config.schIgnoreFullHalf;
+    15:
+      if cb = ThreViewSearchEditBox then
+        ThreViewSearchToolBar.Hide
+      else if cb = ListViewSearchEditBox then
+        ListViewSearchToolBar.Hide
+      else if cb = TreeViewSearchEditBox then
+        TreeViewSearchToolBar.Hide;
+  end;
+end;
+
+//▲ 共通イベントハンドラ
+
+//▼ スレ絞込み
+
+procedure TMainWnd.ListViewSearchToolButtonClick(Sender: TObject);
+var
+  i: integer;
+begin
+  i := ListViewSearchEditBox.Tag;
+  if i = 2 then i := 0 else Inc(i);
+  SearchSetSearch(i, ListViewSearchEditBox, ListViewSearchToolButton);
+end;
+
+procedure TMainWnd.ListViewSearchToolBarResize(Sender: TObject);
+begin
+  ListViewSearchEditBox.Width := ListViewSearchToolBar.ClientWidth
+    - ListViewSearchCloseButton.Width
+      - ListViewSearchToolButton.Width - ListViewSearchSep.Width;
+end;
+
+procedure TMainWnd.ListViewSearchCloseButtonClick(Sender: TObject);
+begin
+  ListViewSearchToolBar.Hide;
+end;
+
+//▲ スレ絞込み
+
+//▼ スレ内検索
+
+procedure TMainWnd.ThreViewSearchUpDownClick(Sender: TObject;
+  Button: TUDBtnType);
+begin
+  SearchTimer.Enabled := False;
+  FindInView(Button = btPrev);
 end;
 
 procedure TMainWnd.ThreViewSearchToolButtonClick(Sender: TObject);
@@ -18442,7 +18234,7 @@ var
 begin
   i := ThreViewSearchEditBox.Tag;
   if i = 2 then i := 0 else Inc(i);
-  ThreViewSearchSetSearch(i);
+  SearchSetSearch(i, ThreViewSearchEditBox, ThreViewSearchToolButton);
 end;
 
 procedure TMainWnd.ThreViewSearchToolBarResize(Sender: TObject);
@@ -18454,105 +18246,19 @@ begin
           - ThreViewSearchSep3.Width;
 end;
 
-procedure TMainWnd.PopupThreViewSearchPopup(Sender: TObject);
+procedure TMainWnd.ThreViewSearchCloseButtonClick(Sender: TObject);
 begin
-  MenuThreViewSearchCopy.Enabled := Length(ThreViewSearchEditBox.SelText) > 0;
-  MenuThreViewSearchCut.Enabled := MenuThreViewSearchCopy.Enabled;
-  MenuThreViewSearchPaste.Enabled := ClipBoard.HasFormat(CF_TEXT);
-  MenuThreViewSearchSelectAll.Enabled := Length(ThreViewSearchEditBox.Text) > 0;
-  MenuThreViewSearchClear.Enabled := MenuThreViewSearchSelectAll.Enabled;
-  MenuThreViewSearchMultiWord.Checked := Config.schMultiWord;
-  MenuThreViewSearchIncremental.Checked := Config.schIncremental;
-  MenuThreViewSearchIgnoreFullHalf.Checked := Config.schIgnoreFullHalf;
+  ThreViewSearchToolBar.Hide;
 end;
 
 //▲ スレ内検索
 
 //▼ 板ツリー検索
 
-procedure TMainWnd.TreeViewSearchSetSearch(index: integer);
-begin
-  TreeViewSearchEditBox.Tag := index;
-  TreeSearchTimer.Enabled := False;
-  case index of
-  0: begin  //通常検索
-    TreeViewSearchEditBox.OnChange := TreeViewSearchEditBoxChange;
-    TreeViewSearchToolButton.ImageIndex := 0;
-    MenuTreeViewSearchNormal.Checked := True;
-  end;
-  1: begin  //Migemo
-    if Config.schEnableMigemo and MigemoOBJ.CanUse then begin
-      TreeViewSearchToolButton.ImageIndex := 1;
-      TreeViewSearchEditBox.OnChange := TreeViewSearchEditBoxChange;
-    end else begin
-      TreeViewSearchToolButton.ImageIndex := 3;
-      TreeViewSearchEditBox.OnChange := nil;
-    end;
-    MenuTreeViewSearchMigemo.Checked := True;
-  end;
-  2: begin  //正規表現
-    TreeViewSearchEditBox.OnChange := nil;
-    TreeViewSearchToolButton.ImageIndex := 2;
-    MenuTreeViewSearchRegExp.Checked := True;
-  end;
-  else
-  end;
-end;
-
-procedure TMainWnd.TreeViewSearchEditBoxChange(Sender: TObject);
-begin
-  TreeSearchTimer.Enabled := False;
-  TreeSearchTimer.Enabled := Config.schIncremental
-    and (TreeViewSearchEditBox.Tag <> 2);
-end;
-
-procedure TMainWnd.TreeSearchTimerTimer(Sender: TObject);
-begin
-  TreeSearchTimer.Enabled := False;
-  FindInTree(True);
-end;
-
-procedure TMainWnd.TreeViewSearchEditBoxKeyPress(Sender: TObject;
-  var Key: Char);
-begin
-  if Ord(Key) = VK_RETURN then
-  begin
-    Key := #0;
-    FindInTree(True);
-  end;
-end;
-
 procedure TMainWnd.TreeViewSearchToolBarResize(Sender: TObject);
 begin
   TreeViewSearchEditBox.Width := TreeViewSearchToolBar.ClientWidth
     - 38;//TreeViewSearchToolButton.Width;
-end;
-
-procedure TMainWnd.MenuTreeViewSearchNormalClick(Sender: TObject);
-begin
-  TreeViewSearchSetSearch(TComponent(Sender).Tag);
-end;
-
-procedure TMainWnd.MenuTreeViewSearchCopyClick(Sender: TObject);
-begin
-  case TComponent(Sender).Tag of
-  0: ClipBoard.AsText := TreeViewSearchEditBox.SelText; //コピー
-  1:                                                    //切り取り
-    begin
-      ClipBoard.AsText := TreeViewSearchEditBox.SelText;
-      TreeViewSearchEditBox.SelText := '';
-    end;
-  2: TreeViewSearchEditBox.SelText := ClipBoard.AsText; //貼り付け
-  3: TreeViewSearchEditBox.SelectAll;                   //すべて選択
-  4: TreeViewSearchEditBox.Text := '';                  //クリア
-  5: FindInTree(True);                                  //前方検索
-  6: FindInTree(false);                                 //後方検索
-  end;
-end;
-
-procedure TMainWnd.MenuTreeViewSearchCloseClick(Sender: TObject);
-begin
-  TreeViewSearchToolBar.Hide;
 end;
 
 procedure TMainWnd.TreeViewSearchToolButtonClick(Sender: TObject);
@@ -18561,19 +18267,7 @@ var
 begin
   i := TreeViewSearchEditBox.Tag;
   if i = 2 then i := 0 else Inc(i);
-  TreeViewSearchSetSearch(i);
-end;
-
-procedure TMainWnd.PopupTreeViewSearchPopup(Sender: TObject);
-begin
-  MenuTreeViewSearchCopy.Enabled := Length(TreeViewSearchEditBox.SelText) > 0;
-  MenuTreeViewSearchCut.Enabled := MenuTreeViewSearchCopy.Enabled;
-  MenuTreeViewSearchPaste.Enabled := ClipBoard.HasFormat(CF_TEXT);
-  MenuTreeViewSearchSelectAll.Enabled := Length(TreeViewSearchEditBox.Text) > 0;
-  MenuTreeViewSearchClear.Enabled := MenuTreeViewSearchSelectAll.Enabled;
-  MenuTreeViewSearchMultiWord.Checked := Config.schMultiWord;
-  MenuTreeViewSearchIncremental.Checked := Config.schIncremental;
-  MenuTreeViewSearchIgnoreFullHalf.Checked := Config.schIgnoreFullHalf;
+  SearchSetSearch(i, TreeViewSearchEditBox, TreeViewSearchToolButton);
 end;
 
 //▲ 板ツリー検索
