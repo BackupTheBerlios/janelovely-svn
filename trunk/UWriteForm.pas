@@ -1091,6 +1091,8 @@ begin
   end;
   cookie := 'Cookie: NAME=' + encName + '; MAIL=' + encMail;
   list := TStringList.Create;
+  {aiai}
+  (*
   if (board.GetBBSType = bbs2ch) and (0 < length(Config.tstWrtCookie)) then
   begin
     {if Pos('=', Config.tstWrtCookie) < 0 then
@@ -1098,6 +1100,19 @@ begin
     else}
       cookie := cookie + '; ' + Config.tstWrtCookie;
   end;
+  *)
+  if (board.GetBBSType = bbs2ch) then
+  begin
+    if (0 < length(Config.wrtBEIDDMDM)) and (0 < length(Config.wrtBEIDMDMD)) then
+      if Config.wrtBeLogin or AnsiStartsStr('be', board.host)
+        {or AnsiStartsStr('live14', board.host)}
+        or (SettingTxt.Lines.Values['BBS_BE_ID'] = '1') then
+        cookie := cookie + '; DMDM=' + Config.wrtBEIDDMDM
+          + '; MDMD=' + Config.wrtBEIDMDMD;
+    if (0 < length(Config.tstWrtCookie)) then
+      cookie := cookie + '; ' + Config.tstWrtCookie;
+  end;
+  {/aiai}
   list.Add(cookie);
   procPost := Main.AsyncManager.Post(URI, postDat, referer, list,
                                      OnWritten, OnNotify);
@@ -1246,7 +1261,11 @@ begin
     board.timeValue := tempTime
   else
     Inc(board.timeValue); //古いbbs.cgiで2重カキコループにならないように
-
+  {aiai}
+  if board.NeedConvert then
+    responseHTML := euc2sjis(sender.GetString)
+  else
+  {/aiai}
   responseHTML := sender.GetString;
   responseText := HTML2String(responseHTML);
 

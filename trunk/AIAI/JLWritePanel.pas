@@ -998,7 +998,7 @@ begin
   begin
     if (0 < length(Config.wrtBEIDDMDM)) and (0 < length(Config.wrtBEIDMDMD)) then
       if Config.wrtBeLogin or AnsiStartsStr('be', TargetBoard.host)
-        or AnsiStartsStr('live14', TargetBoard.host)
+        {or AnsiStartsStr('live14', TargetBoard.host)}
         or (SettingTxt.Lines.Values['BBS_BE_ID'] = '1') then
         cookie := cookie + '; DMDM=' + Config.wrtBEIDDMDM
           + '; MDMD=' + Config.wrtBEIDMDMD;
