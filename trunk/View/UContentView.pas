@@ -3,8 +3,9 @@ unit UContentView;
 interface
 
 uses
-  Windows, SysUtils, Forms, Classes, Controls, Graphics, ExtCtrls, FileCtrl, Dialogs, ComCtrls,
-  ShellAPI, Messages, ApiBmp, SPIs, SPIBmp, UGIF, {GIFImage,} PNGImage, UMSPageControl, UAnimatedPaintBox, UCardinalList;
+  Windows, SysUtils, Forms, Classes, Controls, Graphics, ExtCtrls, FileCtrl,
+  Dialogs, ComCtrls, ShellAPI, Messages, ApiBmp, SPIs, SPIBmp, GIFImage,
+  PNGImage, UMSPageControl, UAnimatedPaintBox, UCardinalList;
 
 type
 
@@ -103,9 +104,11 @@ type
     FData:TStringStream;
     Bitmap:TBitmap;
     Mosaic:TBitmap;
-    FImageList:TBitmapList;
-    FDelayTimeList:TCardinalList;
-    FLoopLimit:Integer;
+//    FImageList:TBitmapList;
+//    FDelayTimeList:TCardinalList;
+//    FLoopLimit:Integer;
+    FAnimateImage: TImage;
+    FGifImage: TGifImage;
     Panel:TDragScrollPanel;
     PaintBox:TAnimatedPaintBox;
     FProtect:Boolean;
@@ -157,8 +160,8 @@ type
   //現在使用する唯一のCustomImageVew継承クラス
   TImageView = class(TCustomImageView)
   private
-    GifData:TGifData;
-    procedure GifDataOnComplete(Sender:TObject);
+//    GifData:TGifData;
+//    procedure GifDataOnComplete(Sender:TObject);
   public
     destructor Destroy;override;
     procedure Action;override;
@@ -285,12 +288,17 @@ begin
     PaintBox.Hide;
     PaintBox.Free;
   end;
+  FGifImage.Free;
+  if Assigned(FAnimateImage) then begin
+    FAnimateImage.Free;
+  end;
   Panel.Free;
 
   FSmallBitmap.Free;
   Bitmap.Free;
-  FImageList.Free;
-  FDelayTimeList.Free;
+//  FImageList.Free;
+//  FDelayTimeList.Free;
+
 
   inherited Destroy;
 end;
@@ -391,13 +399,25 @@ end;
 procedure TCustomImageView.SetAdjustToWindow(AAdjustToWindow:Boolean);
 begin
   FAdjustToWindow:=AAdjustToWindow;
-  if FAdjustToWindow then begin
-    PaintBox.Adjust:=ajBitmapResize;
-    PaintBox.Align:=alClient;
-  end else begin
-    PaintBox.Align:=alNone;
-    PaintBox.Adjust:=ajFieldResize;
-  end;
+  if Assigned(PaintBox) then
+    if FAdjustToWindow then begin
+      PaintBox.Adjust:=ajBitmapResize;
+      PaintBox.Align:=alClient;
+    end else begin
+      PaintBox.Align:=alNone;
+      PaintBox.Adjust:=ajFieldResize;
+    end
+  else if Assigned(FAnimateImage) then
+    if FAdjustToWindow then begin
+      FAnimateImage.Align := alClient;
+      FAnimateImage.Center := True;
+      FAnimateImage.Proportional := True;
+    end else begin
+      FAnimateImage.Align := alNone;
+      FAnimateImage.SetBounds(0, 0, FAnimateImage.Picture.Graphic.Width, FAnimateImage.Picture.Graphic.Height);
+      FAnimateImage.Center := False;
+      FAnimateImage.Proportional := False;
+    end;
 end;
 function TCustomImageView.GetOriginalSize:TPoint;
 begin
@@ -412,7 +432,16 @@ end;
 function TCustomImageView.GetScale:Integer;
 begin
   Result:=100;
-  if Assigned(PaintBox) then Result:=PaintBox.Scale;
+  if Assigned(PaintBox) then Result:=PaintBox.Scale
+  else if Assigned(FAnimateImage) then begin
+    if FAdjustToWindow then begin
+      Result := FAnimateImage.Width * 100 div FAnimateImage.Picture.Width;
+      if Result > 100 then begin
+        Result := FAnimateImage.Height * 100 div FAnimateImage.Picture.Height;
+        if Result > 100 then Result := 100;
+      end;
+    end;
+  end;
 end;
 
 function TCustomImageView.GetOnMouseDown:TMouseEvent;
@@ -474,13 +503,16 @@ begin
     Mosaic.Canvas.CopyRect(Rect(0,0,Mosaic.Width,Mosaic.Height),
                    tmpImage.Canvas,Rect(0,0,tmpImage.Width,tmpImage.Height));
 
-    TAnimatedPaintBox(PaintBox).Bitmap:=Mosaic;
+    if Assigned(PaintBox) then
+      PaintBox.Bitmap:=Mosaic
+    else if Assigned(FAnimateImage) then
+      FAnimateImage.Picture.Graphic := Mosaic;
     tmpImage.Free;
 
   end else begin
-    if Assigned(FImageList) then begin
-      PaintBox.SetImageList(FImageList,FDelayTimeList);
-      PaintBox.LoopLimit:=FLoopLimit;
+    if Assigned(FAnimateImage) then
+    begin
+      FAnimateImage.Picture.Graphic := FGifImage;
       Action;
     end else
       TAnimatedPaintBox(PaintBox).Bitmap:=Bitmap;
@@ -527,7 +559,7 @@ end;
 
 destructor TImageView.Destroy;
 begin
-  GifData.Free;
+//  GifData.Free;
   inherited;
 end;
 
@@ -567,15 +599,42 @@ begin
   if not Assigned(Bitmap) then Bitmap:=TBitmap.Create;
 
   ImageConv := nil;
-  if (StrLComp(HeaderPointer,'GIF',3) = 0) then begin
+  if (StrLComp(HeaderPointer,'GIF', 3) = 0) then begin
 
-    FImageList:=TBitmapList.Create;
-    FImageList.ShareImage:=False;
-    FDelayTimeList:=TCardinalList.Create;
-
-    GifData := TGifData.Create;
-    GifData.Data := FData.ReadString(High(Integer));
-    GifData.MakeImageList(FImageList, FDelayTimeList, GifDataOnComplete);
+    FGifImage := TGifImage.Create;
+    DummyBMP := TBitmap.Create;
+    try
+      FGifImage.LoadFromStream(FData);
+      DummyBMP.Width := FGifImage.Width;
+      DummyBMP.Height := FGifImage.Height;
+      DummyBMP.Canvas.Draw(0, 0, FGifImage);
+      Bitmap.Assign(DummyBMP);
+      MakeSmallImage;
+      if (FGifImage.Images.Count = 1) then begin
+        SetProtect(FProtect);
+        if Assigned(FOnComplete) then FOnComplete(Self, False);
+      end else begin
+        if Assigned(PaintBox) then FreeAndNil(PaintBox);
+        if not Assigned(FAnimateImage) then begin
+          FAnimateImage := TImage.Create(Panel.ScrollBox);
+          FAnimateImage.Parent := Panel.ScrollBox;
+          FAnimateImage.Align := alClient;
+        end;
+        SetProtect(FProtect);
+        SetAdjustToWindow(FAdjustToWindow);
+        if Assigned(FOnComplete) then FOnComplete(Self,False);
+      end;
+    except
+      on e:Exception do begin
+        Log(e.Message);
+        if Assigned(PaintBox) then
+          PaintBox.Bitmap:=nil;
+        FreeAndNil(Bitmap);//エラーの時はビットマップを解放
+        FreeAndNil(FGifImage);
+        if Assigned(FOnComplete) then FOnComplete(Self, True);
+      end;
+    end;
+    FreeAndNil(DummyBMP);
 
   (* pngの展開にPNGImageを使う (aiai) *)
   end else if (StrLComp(HeaderPointer, PngHeader, 8) = 0) then begin
@@ -636,12 +695,12 @@ end;
 
 
 //GIFデータのデコード処理完了
-procedure TImageView.GifDataOnComplete(Sender:TObject);
-var
+//procedure TImageView.GifDataOnComplete(Sender:TObject);
+{var
   i: Integer;
-  MaxDelay: Cardinal;
-begin
-  if GifData.ErrorText<>'' then begin
+  MaxDelay: Cardinal;}
+//begin
+  {if GifData.ErrorText<>'' then begin
     FreeAndNil(FImageList);
     FreeAndNil(FDelayTimeList);
     Bitmap:=nil;
@@ -666,23 +725,33 @@ begin
     SetProtect(FProtect);
     if Assigned(FOnComplete) then FOnComplete(Self,False);
   end;
-  FreeAndNil(GifData);//イベントハンドラ中での自殺
-end;
+  FreeAndNil(GifData);//イベントハンドラ中での自殺}
+//end;
 
 
 //アニメーションを再生／停止
 procedure TImageView.Action;
+var
+  gif: TGraphic;
 begin
-  if assigned(PaintBox) then begin
-    PaintBox.Visible:=True;
-    PaintBox.BeginAnimation;
+  if assigned(FAnimateImage) then begin
+    FAnimateImage.Visible := True;
+    gif := FAnimateImage.Picture.Graphic;
+    if gif is TGifImage then
+      TGifImage(gif).PaintStart;
   end;
   inherited;
 end;
 procedure TImageView.Halt;
+var
+  gif: TGraphic;
 begin
-  if assigned(PaintBox) then
-    PaintBox.EndAnimation;
+  if assigned(FAnimateImage) then begin
+    FAnimateImage.Visible := True;
+    gif := FAnimateImage.Picture.Graphic;
+    if gif is TGifImage then
+      TGifImage(gif).PaintStop;
+  end;
   inherited;
 end;
 

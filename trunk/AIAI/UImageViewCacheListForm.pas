@@ -456,6 +456,7 @@ var
   CacheStream: TStringStream;
   ImageConv: TGraphic;
   ImageHeaderPointer: PChar;
+  DummyBMP: TBitmap;
 begin
   Header := TStringList.Create;
   CacheStream := TStringStream.Create('');
@@ -486,15 +487,20 @@ begin
       end else
         ImageConv := TSPIBitmap.Create;
 
+      DummyBMP := TBitmap.Create;
       try
         ImageConv.LoadFromStream(CacheStream);
-        OwnBitmap.Assign(ImageConv);
+        DummyBMP.Width := ImageConv.Width;
+        DummyBMP.Height := ImageConv.Height;
+        DummyBMP.Canvas.Draw(0, 0, ImageConv);
+        OwnBitmap.Assign(DummyBMP);
         PaintBox.Bitmap := OwnBitmap;
       except
         PaintBox.Bitmap := nil;
         Memo.Lines.Add('Decode Error');
       end;
-      ImageConv.Free;
+      FreeAndNil(ImageConv);
+      FreeAndNil(DummyBMP);
     end;
   end;
 

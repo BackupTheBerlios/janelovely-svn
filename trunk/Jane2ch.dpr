@@ -4,6 +4,7 @@ program Jane2ch;
 {$R 'sqlite.res' 'sqlite.rc'}
 
 uses
+  MemCheck,
   Windows,
   SysUtils,
   MMSystem,
@@ -55,7 +56,6 @@ uses
   UCardinalList in 'View\UCardinalList.pas',
   UContentView in 'View\UContentView.pas',
   UEditSaveLocation in 'View\UEditSaveLocation.pas' {SavePointDialog},
-  UGIF in 'View\UGIF.pas',
   UHttpManage in 'View\UHttpManage.pas',
   UImageHint in 'View\UImageHint.pas',
   UImagePageControl in 'View\UImagePageControl.pas',

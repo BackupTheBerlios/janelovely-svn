@@ -12,7 +12,7 @@ type
   TShrinkType=(stHighQuality,stHighSpeed);
 
   //ImageListが役に立たず、仕方なく作ったBitmap保持専用リスト
-  TBitmapList = class(TObject)
+  {TBitmapList = class(TObject)
   protected
     FList:TList;
     FShareImage: Boolean;
@@ -36,7 +36,7 @@ type
     property Width:Integer read GetWidth;
     property Height:Integer read GetHeight;
     property ShareImage:Boolean read FShareImage write FShareImage;
-  end;
+  end;}
 
   //アニメーションとビットマップ保持が可能なTPaintBox派生オブジェクト
   //HALFTONEモードで拡大縮小も可能
@@ -58,7 +58,7 @@ type
     FImageHeight:Integer;
 
     //ここからアニメーション関係
-    Sync:TCriticalSection;
+    {Sync:TCriticalSection;
     FImageList:TBitmapList;
     FImageListCache:TBitmapList;
     FDelayTimeList:TCardinalList;
@@ -66,7 +66,7 @@ type
     FPaintThread:TThread;    //本当はTTreadではなくTPaintThread
     FLoopLimit: Cardinal;
     FNotPaintedYet:Boolean;
-    FWantToBegin:Boolean;
+    FWantToBegin:Boolean;}
 
 
     function CalcImageBound:Boolean;
@@ -80,17 +80,17 @@ type
     procedure Paint;override;
     procedure Resize;override;
     //ここからアニメーション関係
-    procedure SetLoopLimit(const Value: Cardinal);
+    {procedure SetLoopLimit(const Value: Cardinal);}
 
   public
     constructor Create(AOwner: TComponent);override;
     destructor Destroy;override;
     //ここからアニメーション関係
-    procedure BeginAnimation;
+    {procedure BeginAnimation;
     procedure EndAnimation;
     procedure SuspendAnimation;
     procedure ResumeAnimation;
-    procedure SetImageList(const AImageList: TBitmapList; ADelayTimeList: TCardinalList);
+    procedure SetImageList(const AImageList: TBitmapList; ADelayTimeList: TCardinalList);}
 
   published
     property OnResize;
@@ -101,16 +101,16 @@ type
     property Center:Boolean read FCenter write SetCenter;
     property Scale:Integer read GetScale;
     //ここからアニメーション関係
-    property LoopLimit:Cardinal read FLoopLimit write SetLoopLimit;
+    //property LoopLimit:Cardinal read FLoopLimit write SetLoopLimit;
   end;
 
   //Animation絡みの例外
-  EAnimatedPaintBox=Class(Exception);
+  //EAnimatedPaintBox=Class(Exception);
 
 implementation
 
 //アニメーション描画用のスレッドは隠蔽
-type
+{type
   TPaintThread = class(TThread)
   protected
     Event:TEvent;
@@ -127,11 +127,11 @@ type
     procedure RequestSuspend;
     procedure Terminate;
     property CurrentFrame:Integer read FCurrentFrame write SetCurrentFrame;
-  end;
+  end;}
 
 { TBitmapList }
 
-constructor TBitmapList.Create;
+{constructor TBitmapList.Create;
 begin
   FList:=TList.Create;
   FShareImage:=True;
@@ -223,7 +223,7 @@ procedure TBitmapList.SetBitmap(Index: Integer; const Value: TBitmap);
 begin
   if not ShareImage then TBitmap(FList[Index]).Free;
   FList[Index]:=Value;
-end;
+end;}
 
 
 { TAnimatedPaintBox }
@@ -234,14 +234,14 @@ constructor TAnimatedPaintBox.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
-  FNotPaintedYet:=True;
-  FWantToBegin:=False;
+  {FNotPaintedYet:=True;
+  FWantToBegin:=False;}
   FAdjust:=ajBitmapResize;
   FShrinkType:=stHighQuality;
   FBorder:=2;
   FCenter:=True;
-  FOwnBitmap:=False;
-  Sync:=TCriticalSection.Create;
+  {FOwnBitmap:=False;
+  Sync:=TCriticalSection.Create;}
 
 end;
 
@@ -249,15 +249,15 @@ end;
 destructor TAnimatedPaintBox.Destroy;
 begin
 
-  if Assigned(FPaintThread) then begin
+  {if Assigned(FPaintThread) then begin
     EndAnimation;
     FPaintThread.Free;
   end;
-  Sync.Free;
+  Sync.Free;}
 
   FBitmapCache.Free;
-  FImageListCache.Free;
-  if FOwnBitmap then FBitmap.Free;
+  {FImageListCache.Free;
+  if FOwnBitmap then FBitmap.Free;}
 
   inherited;
 end;
@@ -277,14 +277,14 @@ begin
   if (Align=alNone) and (FAdjust=ajFieldResize) then begin
     if Assigned(FBitmap) then
       SetBounds(Left,Top,FBitmap.Width,FBitmap.Height)
-    else if Assigned(FImageList) then
-      SetBounds(Left,Top,FImageList.Width,FImageList.Height);
+    {else if Assigned(FImageList) then
+      SetBounds(Left,Top,FImageList.Width,FImageList.Height);}
   end;
 
   if Assigned(Parent) then
     Parent.Update
   else
-    raise EAnimatedPaintBox.Create('親コントロールが設定されていません');
+    //raise EAnimatedPaintBox.Create('親コントロールが設定されていません');
 
 end;
 //周囲の空白(まともに働くのはajBitmapResizeの時だけ)
@@ -294,7 +294,7 @@ begin
   if Assigned(Parent) then
     Parent.Update
   else
-    raise EAnimatedPaintBox.Create('親コントロールが設定されていません');
+    //raise EAnimatedPaintBox.Create('親コントロールが設定されていません');
 end;
 //画像を中心に
 procedure TAnimatedPaintBox.SetCenter(const Value: Boolean);
@@ -303,15 +303,15 @@ begin
   if Assigned(Parent) then
     Parent.Update
   else
-    raise EAnimatedPaintBox.Create('親コントロールが設定されていません');
+    //raise EAnimatedPaintBox.Create('親コントロールが設定されていません');
 end;
 //ループ回数をセット
-procedure TAnimatedPaintBox.SetLoopLimit(const Value: Cardinal);
+{procedure TAnimatedPaintBox.SetLoopLimit(const Value: Cardinal);
 begin
   Sync.Enter;
   FLoopLimit := Value;
   Sync.Leave;
-end;
+end;}
 //現在の縮尺
 function TAnimatedPaintBox.GetScale:Integer;
 begin
@@ -322,9 +322,9 @@ end;
 //ビットマップの返値、保持中のビットマップが自分で作った物ならnilを返す
 function TAnimatedPaintBox.GetBitmap: TBitmap;
 begin
-  if FOwnBitmap then
+  {if FOwnBitmap then
     Result:=nil
-  else
+  else}
     Result:=FBitmap;
 end;
 
@@ -333,18 +333,18 @@ end;
 procedure TAnimatedPaintBox.SetBitmap(const Value: TBitmap);
 begin
 
-  if FOwnBitmap then begin
+  {if FOwnBitmap then begin
     FBitmap.Free;
     FOwnBitmap:=False;
-  end;
+  end;}
 
   FBitmap := Value;
 
-  if Assigned(FImageList) then FImagelist:=nil;
-  if Assigned(FDelayTimeList) then FDelayTimeList:=nil;
+  {if Assigned(FImageList) then FImagelist:=nil;
+  if Assigned(FDelayTimeList) then FDelayTimeList:=nil;}
 
   FreeAndNil(FBitmapCache);
-  FreeAndNil(FImageListCache);
+  {FreeAndNil(FImageListCache);}
 
   if Assigned(FBitmap) and (Align=alNone) and (FAdjust=ajFieldResize) then
     SetBounds(Left,Top,FBitmap.Width,FBitmap.Height);
@@ -359,7 +359,7 @@ end;
 //FPaintThreadの動作中に実行してもフレームはリセットされない。
 //必要ならEndAnimationとBeginAnimationのペアを実行する
 //ビットマップがある時は消去。ただし、アニメーションが画像一枚の場合はそれをビットマップに代入
-procedure TAnimatedPaintBox.SetImageList(const AImageList: TBitmapList; ADelayTimeList: TCardinalList);
+{procedure TAnimatedPaintBox.SetImageList(const AImageList: TBitmapList; ADelayTimeList: TCardinalList);
 begin
 
   if AImageList.Count<1 then EAnimatedPaintBox.Create('画像がありません');
@@ -392,7 +392,7 @@ begin
   if Assigned(Parent) then Parent.Refresh;
 
   ResumeAnimation;
-end;
+end;}
 
 
 //Bitmapの表示位置、サイズ設定
@@ -406,9 +406,9 @@ begin
   if Assigned(FBitmap) and (FBitmap.Height>0) and (FBitmap.Width>0) then begin
     FOriginalWidth:=FBitmap.Width;
     FOriginalHeight:=FBitMap.Height;
-  end else if Assigned(FImageList) and (FImageList.Height>0) and (FImageList.Width>0) then begin
+  {end else if Assigned(FImageList) and (FImageList.Height>0) and (FImageList.Width>0) then begin
     FOriginalWidth:=FImageList.Width;
-    FOriginalHeight:=FImageList.Height;
+    FOriginalHeight:=FImageList.Height;}
   end else begin
     Exit;
   end;
@@ -456,22 +456,22 @@ end;
 
 //描画及び縮小画像のキャッシュ作成
 procedure TAnimatedPaintBox.Paint;
-var
+{var
   FrameBitmapCache:TBitmap;
   i:Integer;
-  Locked:Boolean;
+  Locked:Boolean;}
 begin
 
-  Locked:=False;
+  {Locked:=False;
   if Assigned(FPaintThread) then begin
     Sync.Enter;
     Locked:=True;
-  end;
+  end;}
 
   inherited Paint;
 
   if not CalcImageBound then begin  //別参照からのイメージリストの直接変更に対応するため表示前は常に寸法チェック
-    if Locked then Sync.Leave;
+    {if Locked then Sync.Leave;}
     Exit;
   end;
 
@@ -480,7 +480,7 @@ begin
     if Assigned(FBitmap) then begin //通常のビットマップの場合
       Canvas.CopyRect(Bounds(FImageLeft,FImageTop,FImageWidth,FImageHeight),FBitmap.Canvas,Rect(0,0,FImageWidth,FImageHeight));
       if Assigned(FBitmapCache) then FreeAndNil(FBitmapCache);
-    end else if Assigned(FImageList) then begin //アニメーションの場合
+    {end else if Assigned(FImageList) then begin //アニメーションの場合
       if Assigned(FPaintThread) then begin
         Canvas.Draw(FImageLeft,FImageTop,FImageList[TPaintThread(FPaintThread).CurrentFrame]);
       end else begin
@@ -488,7 +488,7 @@ begin
       end;
       if Assigned(FImageListCache) then FreeAndNil(FImageListCache);
     end else begin
-      EAnimatedPaintBox.Create('ビットマップデータなし');
+      EAnimatedPaintBox.Create('ビットマップデータなし');}
     end;
 
   end else begin    //キャッシュを使用
@@ -510,7 +510,7 @@ begin
         FBitmapCache.Canvas.CopyRect(Rect(0,0,FImageWidth,FImageHeight),FBitmap.Canvas,Rect(0,0,FBitmap.Width,FBitmap.Height));
       end;
       Canvas.CopyRect(Bounds(FImageLeft,FImageTop,FImageWidth,FImageHeight),FBitmapCache.Canvas,Rect(0,0,FImageWidth,FImageHeight));
-    end else if Assigned(FImageList) then begin //アニメーションの場合
+    {end else if Assigned(FImageList) then begin //アニメーションの場合
 
       if not(Assigned(FImageListCache)) or (FImageHeight<>FImageListCache.Height)
                     or (FImageWidth<>FImageListCache.Width) then begin //キャッシュが使えなければ再構築
@@ -549,24 +549,24 @@ begin
       end;
 
     end else begin
-      EAnimatedPaintBox.Create('ビットマップデータなし');
+      EAnimatedPaintBox.Create('ビットマップデータなし');}
     end;
 
   end;
 
-  if Locked then Sync.Leave;
+  {if Locked then Sync.Leave;}
 
-  FNotPaintedYet:=False;
+  {FNotPaintedYet:=False;
   if FWantToBegin then begin
     BeginAnimation;
     FWantToBegin:=False;
-  end;
+  end;}
 
 end;
 
 
 //アニメーションの再生を開始
-procedure TAnimatedPaintBox.BeginAnimation;
+{procedure TAnimatedPaintBox.BeginAnimation;
 begin
 
   if FNotPaintedYet then begin
@@ -601,14 +601,14 @@ procedure TAnimatedPaintBox.ResumeAnimation;
 begin
   if Assigned(FPaintThread) then
     FPaintThread.Resume;
-end;
+end;}
 
 
 
 
 
 { TPaintThread }
-
+{
 //きちんとデータがあるかチェック
 constructor TPaintThread.Create(AAnimatedPaintBox:TAnimatedPaintBox);
 begin
@@ -741,7 +741,6 @@ begin
   if Suspended then
     Resume;
   Event.SetEvent;
-end;
-
+end;}
 
 end.

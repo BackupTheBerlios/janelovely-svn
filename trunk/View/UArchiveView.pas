@@ -5,7 +5,7 @@ interface
 uses
   Windows, SysUtils, Classes, Messages, Controls, ComCtrls, StdCtrls, ExtCtrls, FileCtrl,
   Graphics, Forms, Dialogs, Menus, ARCHIVES,
-  UImageTabSheet, UImagePageControl, UMSPageControl, UContentView;
+  UImageTabSheet, UImagePageControl, UMSPageControl, UContentView, JLXPComCtrls;
 
 type
 
@@ -65,7 +65,7 @@ type
     TemporaryFile:string;
     FileList:TStringList;
     PageControl:TArchivePageControl;
-    StatusBar:TStatusBar;
+    StatusBar:TJLXPStatusBar;
     StatusMemo:TMemo;
     ArchiveThread:TArchiveThread;
     procedure SetProtect(AProtect: Boolean); override;
@@ -407,7 +407,7 @@ begin
   end;
 
   if ImageViewConfig.UseIndividualStatusBar then begin
-    StatusBar:=TStatusBar.Create(FOwner);
+    StatusBar:=TJLXPStatusBar.Create(FOwner);
     StatusBar.Parent:=FOwner;
     StatusBar.Align:=alBottom;
     StatusBar.Panels.Add;
