@@ -394,6 +394,7 @@ type
     {$ENDIF}
     function FindViewItem(thread: TThreadItem): TViewItem; overload;
     function FindViewitem(browser: TComponent): TViewItem; overload;
+    function FindFirstViewItem: Integer; //aiai viewListにあるViewのうちで最も高いZオーダーをもつViewのインデックスを返す
     function GetGarbage(insertIndex: integer = -1): TViewItem;
     procedure DoWorkingAll;
     procedure MasterNotifyProc(thread: TThreadItem);
@@ -4537,6 +4538,41 @@ begin
   end;
   result := nil;
 end;
+
+//aiai
+//viewListにあるViewのうちで最も高いZオーダーをもつViewのインデックスを返す
+function TViewList.FindFirstViewItem: Integer;
+var
+  hWindow: HWND;
+  wCnt: TWinControl;
+  wc: Integer;
+  i: Integer;
+begin
+  Result := -1;
+  wc := Count;
+  if wc = 0 then
+    exit;
+
+  hWindow := Items[0].browser.Handle;
+  hWindow := GetWindow(hWindow, GW_HWNDFIRST);
+  while hWindow <> 0 do
+  begin
+    wCnt := FindControl(hWindow);
+    if (wCnt <> nil) and (wCnt is THogeTextView) then
+    begin
+      for i := 0 to wc - 1 do
+      begin
+        if wCnt = Items[i].browser then
+        begin
+          Result := i;
+          exit;
+        end;
+      end;
+    end;
+    hWindow := GetWindow(hWindow, GW_HWNDNEXT);
+  end;
+end;
+
 
 (* カッコ悪いけど全部廻す *)
 procedure TViewList.DoWorkingAll;

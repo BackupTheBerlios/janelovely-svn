@@ -45,7 +45,7 @@ object UIConfig: TUIConfig
     Top = 8
     Width = 393
     Height = 321
-    ActivePage = SheetFavPatrol
+    ActivePage = SheetTabOperation
     Style = tsFlatButtons
     TabOrder = 1
     TabStop = False
@@ -800,16 +800,6 @@ object UIConfig: TUIConfig
       Caption = #12479#12502#25805#20316
       ImageIndex = 17
       TabVisible = False
-      object Label54: TLabel
-        Left = 40
-        Top = 120
-        Width = 81
-        Height = 12
-        Hint = #12484#12522#12540#12391#12398#12463#12522#12483#12463
-        Caption = #12479#12502#12434#38281#12376#12383#12392#12365
-        ParentShowHint = False
-        ShowHint = True
-      end
       object GroupBox14: TJLXPGroupBox
         Left = 24
         Top = 8
@@ -864,17 +854,55 @@ object UIConfig: TUIConfig
             #26368#24460)
         end
       end
-      object ComboBoxOprClosePos: TComboBox
-        Left = 160
-        Top = 116
-        Width = 129
-        Height = 20
-        Style = csDropDownList
-        ItemHeight = 12
+      object GroupBoxClosePos: TJLXPGroupBox
+        Left = 24
+        Top = 111
+        Width = 305
+        Height = 89
+        Caption = #12479#12502#12434#38281#12376#12383#12392#12365
         TabOrder = 1
-        Items.Strings = (
-          #24038#12434#12450#12463#12486#12451#12502
-          #21491#12434#12450#12463#12486#12451#12502)
+        object Label54: TLabel
+          Left = 32
+          Top = 21
+          Width = 53
+          Height = 12
+          Hint = #12484#12522#12540#12391#12398#12463#12522#12483#12463
+          Caption = #12473#12524#12499#12517#12540
+          ParentShowHint = False
+          ShowHint = True
+        end
+        object Label74: TLabel
+          Left = 32
+          Top = 55
+          Width = 33
+          Height = 12
+          Caption = #12473#12524#27396
+        end
+        object ComboBoxOprViewClosePos: TComboBox
+          Left = 136
+          Top = 16
+          Width = 129
+          Height = 20
+          Style = csDropDownList
+          ItemHeight = 12
+          TabOrder = 0
+          Items.Strings = (
+            #24038#12434#12450#12463#12486#12451#12502
+            #21491#12434#12450#12463#12486#12451#12502
+            'MDI'#27161#28310)
+        end
+        object ComboBoxOprListClosePos: TComboBox
+          Left = 136
+          Top = 48
+          Width = 129
+          Height = 20
+          Style = csDropDownList
+          ItemHeight = 12
+          TabOrder = 1
+          Items.Strings = (
+            #24038#12434#12450#12463#12486#12451#12502
+            #21491#12434#12450#12463#12486#12451#12502)
+        end
       end
     end
     object SheetForTest: TTabSheet
@@ -1888,7 +1916,7 @@ object UIConfig: TUIConfig
           Height = 20
           Style = csDropDownList
           DropDownCount = 12
-          ItemHeight = 0
+          ItemHeight = 12
           TabOrder = 1
         end
         object ComboBoxMseGestures: TComboBox
@@ -1992,7 +2020,7 @@ object UIConfig: TUIConfig
           Height = 20
           Style = csDropDownList
           DropDownCount = 12
-          ItemHeight = 0
+          ItemHeight = 12
           TabOrder = 2
           OnDropDown = ComboBoxMseSubMenusDropDown
         end

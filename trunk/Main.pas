@@ -3029,6 +3029,7 @@ begin
   actLogin.Enabled := (Config.accUserID <> '') and (Config.accPasswd <> '');
 
   WebPanel.DoubleBuffered := True;
+  MDIClientPanel.DoubleBuffered := True;
   Panel3.DoubleBuffered := True;
   TabPanel.DoubleBuffered := True;
   TabControl.DoubleBuffered := True;
@@ -4554,7 +4555,7 @@ begin
   end
   else if boardList.IndexOf(currentBoard) < 0 then
   begin
-    case Config.oprClosetPos of
+    case Config.oprListClosePos of
     tcpLeft:
       begin
         if index > 0 then
@@ -6861,6 +6862,7 @@ procedure TMainWnd.CloseThisTab(refresh: Boolean = True);
 var
   actvTab: boolean;
   viewItem: TViewItem; //aiai
+  index: Integer;
 begin
   {aiai}
   viewItem := viewList.Items[tabRightClickedIndex];
@@ -6879,16 +6881,24 @@ begin
   if not TabControl.MultiLine then
     TabControl.ScrollTabs(-1);
   if actvTab then
-    case Config.oprClosetPos of
+    case Config.oprViewClosePos of
     tcpLeft:
       begin
-        if tabRightClickedIndex > 0 then                                     
+        if tabRightClickedIndex > 0 then
           SetCurrentView(tabRightClickedIndex -1)
         else
           SetCurrentView(0);
       end;
-    else // tcpRight;
+    tcpRight:
       SetCurrentView(tabRightClickedIndex);
+    else //tcpPrev;
+      begin
+        index := viewList.FindFirstViewItem;
+        if index >= 0 then
+          SetCurrentView(index)
+        else
+          SetCurrentView(tabRightClickedIndex);
+      end;
     end;
   if refresh then
   begin
@@ -12828,17 +12838,29 @@ procedure TMainWnd.actCloseAllTabsExecute(Sender: TObject);
 {aiai}
 var
   index: integer;
+  remain: Boolean;
 {/aiai}
 begin
  {while TabControl.Tabs.Count > 0 do
    DeleteView(0)}
   {aiai}  //「このタブは閉じない」は閉じない
   index := 0;
+  remain := False;
   while TabControl.Tabs.Count > index do
     if (viewList.Items[index].thread = nil)
         or viewList.Items[index].thread.canclose then
       DeleteView(index)
-    else Inc(index);
+    else
+    begin
+      Inc(index);
+      if not remain then remain := True;
+    end;
+  if remain then //閉じないスレがある場合
+  begin
+    index := viewList.FindFirstViewItem;
+    if index >= 0 then
+      SetCurrentView(index);
+  end;
   {/aiai}
   UpdateTabTexts;
   ListView.DoubleBuffered := True;

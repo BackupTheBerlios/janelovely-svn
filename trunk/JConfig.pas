@@ -20,7 +20,7 @@ type
   TGestureOprType = (gotNOP=0, gotLOCAL=1, gotGRACEFUL=2, gotCHECK=3);
   TGestureType = (gtClick, gtDblClk, gtMenu, gtOther);
   TTabAddPos = (tapFirst, tapLeft, tapRight, tapEnd);
-  TTabClosePos = (tcpLeft, tcpRight);
+  TTabClosePos = (tcpLeft, tcpRight, tcpPrev);
 
   TFontInfo = record
     face: string;
@@ -122,7 +122,8 @@ type
 
     oprAddPosNormal: TTabAddPos;
     oprAddPosRelative: TTabAddPos;
-    oprClosetPos: TTabClosePos;
+    oprViewClosePos: TTabClosePos;
+    oprListClosePos: TTabClosePos;
 
     optEnableBoardMenu: boolean;
     optEnableFavMenu: boolean;
@@ -625,7 +626,8 @@ begin
 
   oprAddPosNormal := tapEnd;
   oprAddPosRelative := tapEnd;
-  oprClosetPos := tcpRight;
+  oprViewClosePos := tcpPrev;
+  oprListClosePos := tcpRight;
 
   optEnableBoardMenu := true;
   optEnableFavMenu := true;
@@ -1298,7 +1300,8 @@ begin
 
   oprAddPosNormal := TTabAddPos(ini.ReadInteger(INI_OPR_SECT, 'AddPosNormal', Ord(oprAddPosNormal)));
   oprAddPosRelative := TTabAddPos(ini.ReadInteger(INI_OPR_SECT, 'AddPosRelative', Ord(oprAddPosRelative)));
-  oprClosetPos := TTabClosePos(ini.ReadInteger(INI_OPR_SECT, 'ClosePos', Ord(oprClosetPos)));
+  oprViewClosePos := TTabClosePos(ini.ReadInteger(INI_OPR_SECT, 'ViewClosePos', Ord(oprViewClosePos)));
+  oprListClosePos := TTabClosePos(ini.ReadInteger(INI_OPR_SECT, 'ListClosePos', Ord(oprListClosePos)));
 
   optEnableBoardMenu:= ini.ReadBool(INI_OPT_SECT, 'EnableBoardMenu', optEnableBoardMenu);
   optEnableFavMenu  := ini.ReadBool(INI_OPT_SECT, 'EnableFavMenu', optEnableFavMenu);
@@ -1846,7 +1849,8 @@ begin
 
   ini.WriteInteger(INI_OPR_SECT, 'AddPosNormal', Ord(oprAddPosNormal));
   ini.WriteInteger(INI_OPR_SECT, 'AddPosRelative', Ord(oprAddPosRelative));
-  ini.WriteInteger(INI_OPR_SECT, 'ClosePos', Ord(oprClosetPos));
+  ini.WriteInteger(INI_OPR_SECT, 'ViewClosePos', Ord(oprViewClosePos));
+  ini.WriteInteger(INI_OPR_SECT, 'ListClosePos', Ord(oprListClosePos));
 
   ini.WriteBool(INI_OPT_SECT, 'EnableBoardMenu', optEnableBoardMenu);
   ini.WriteBool(INI_OPT_SECT, 'EnableFavMenu', optEnableFavMenu);

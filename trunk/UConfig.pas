@@ -279,8 +279,6 @@ type
     Label53: TLabel;
     ComboBoxOprAddPosNormal: TComboBox;
     ComboBoxOprAddPosRelative: TComboBox;
-    Label54: TLabel;
-    ComboBoxOprClosePos: TComboBox;
     GroupBox15: TJLXPGroupBox;
     CheckBoxOprThreBgOpen: TCheckBox;
     CheckBoxOprFavBgOpen: TCheckBox;
@@ -451,6 +449,11 @@ type
     Label73: TLabel;
     EditMail_BEID_DMDM: TEdit;
     EditCode_BEID_MDMD: TEdit;
+    GroupBoxClosePos: TJLXPGroupBox;
+    ComboBoxOprViewClosePos: TComboBox;
+    Label54: TLabel;
+    Label74: TLabel;
+    ComboBoxOprListClosePos: TComboBox;
     procedure FormShow(Sender: TObject);
     procedure OkButtonClick(Sender: TObject);
     procedure CancelButtonClick(Sender: TObject);
@@ -827,7 +830,8 @@ begin
 
   Main.Config.oprAddPosNormal := TTabAddPos(self.ComboBoxOprAddPosNormal.ItemIndex);
   Main.Config.oprAddPosRelative := TTabAddPos(self.ComboBoxOprAddPosRelative.ItemIndex);
-  Main.Config.oprClosetPos := TTabClosePos(self.ComboBoxOprClosePos.ItemIndex);
+  Main.Config.oprViewClosePos := TTabClosePos(self.ComboBoxOprViewClosePos.ItemIndex);
+  Main.Config.oprListClosePos := TTabClosePos(self.ComboBoxOprListClosePos.ItemIndex);
 
   Main.Config.optEnableBoardMenu := self.CheckBoxOptEnableBoardMenu.Checked;
   Main.Config.optEnableFavMenu := self.CheckBoxOptEnableFavMenu.Checked;
@@ -1227,7 +1231,8 @@ begin
 
   self.ComboBoxOprAddPosNormal.ItemIndex   := Ord(Main.Config.oprAddPosNormal);
   self.ComboBoxOprAddPosRelative.ItemIndex := Ord(Main.Config.oprAddPosRelative);
-  self.ComboBoxOprClosePos.ItemIndex       := Ord(Main.Config.oprClosetPos);
+  self.ComboBoxOprViewClosePos.ItemIndex       := Ord(Main.Config.oprViewClosePos);
+  self.ComboBoxOprListClosePos.ItemIndex       := Ord(Main.Config.oprListClosePos);
 
   self.CheckBoxOptEnableBoardMenu.Checked := Main.Config.optEnableBoardMenu;
   self.CheckBoxOptEnableFavMenu.Checked := Main.Config.optEnableFavMenu;
