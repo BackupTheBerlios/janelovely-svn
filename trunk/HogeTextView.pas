@@ -681,6 +681,7 @@ begin
   if PictLine and Assigned(Picture) and (PictOverlap = -1) then
   begin
     Point.X := FView.LeftMargin + FOffsetLeft;
+    Point.Y := Ceil(Picture.Height / FView.BaselineSkip) - 1;
     Result := Point.X;
     exit;
   end;
@@ -2277,60 +2278,6 @@ var
       FBitmap.Canvas.Font.Color := FIDLinkColorMany;
   end;
 
-  //HogeTVItemごとにハイライトすべき文字列のstartindexとendindexの配列をつくる
-//  procedure CreateHLightList(const str: String; option: THighlightOption);
-//  var
-//    sp, tlen, lsize, i: Integer;
-//    RegExp: TRegExp;
-//    Matches: MatchCollection;
-//    Mat: Match;
-//  begin
-//    SetLength(hlightl, 0);
-//    lsize := 0;
-//    tlen := Length(FHighlightTarget);
-//    if tlen = 0 then exit;
-//
-//    if Option = hloReg then
-//    begin
-//      RegExp := TRegExp.Create(nil);
-//      RegExp.IgnoreCase := True;
-//      RegExp.Global := True;
-//      try
-//        RegExp.Pattern := FHighlightTarget;
-//        Matches := RegExp.Execute(str);
-//      except
-//        RegExp.Free;
-//        exit;
-//      end;
-//      SetLength(hlightl, Matches.Count);
-//      sp := 0;
-//      for i := 0 to Matches.Count - 1 do
-//      begin
-//        Mat := Match(Matches.Item[i]);
-//        sp := AnsiPos(AnsiString(Mat.Value), PChar(str) + sp);
-//        hlightl[i].startp := sp;
-//        hlightl[i].endp := sp - 1 + Length(AnsiString(Mat.Value));
-//      end;
-//      RegExp.Free;
-//    end else
-//    begin
-//      sp := 0;
-//      while sp <= len - tlen do
-//      begin
-//        if 0 <> StrLIComp(PChar(FHighlightTarget), PChar(str) + sp, tlen) then
-//        begin
-//          Inc(sp);
-//          Continue;
-//        end;
-//        Inc(lsize);
-//        SetLength(hlightl, lsize);
-//        hlightl[lsize - 1].startp := sp + 1;
-//        Inc(sp, tlen);
-//        hlightl[lsize - 1].endp := sp;
-//      end;
-//    end;
-//  end;
-
   //indexがstartindexとendindexの間にあればハイライト
   function InHighlight(index: integer): Boolean;
   var
@@ -2417,9 +2364,14 @@ begin
   //{/aiai}
 
   X := FLeftMargin + item.OffsetLeft;
+
+  {aiai}
   if (item.PictLine and (item.PictOverlap = -1)) then
-    Y := FTopMargin - FFraction - FTopLineOffset * bs
-  else
+  begin
+    Y := FTopMargin - FFraction - FTopLineOffset * bs;
+    screenLine := - FTopLineOffset;
+  end else
+  {/aiai}
     Y := FTopMargin - FFraction; //beginner
 
   nchar := 0;
@@ -2427,44 +2379,38 @@ begin
   while screenLine < vLines do
   begin
     {aiai}
-    if item.PictLine and (item.PictOverlap = -1) and Assigned(item.Picture) then
+    if item.PictLine and Assigned(item.Picture) then
     begin
-      //<IMG>
-      FBitmap.Canvas.Draw(FLeftMargin + item.OffsetLeft, Y, item.Picture);
-      Inc(screenLine, Ceil(item.Picture.Height / bs));
-      if vLines <= screenLine then
-        break;
-      Inc(physicalLine);
-      if FStrings.Count <= physicalLine then
-        break;
-      Inc(Y, Ceil(item.Picture.Height / bs) * bs);
-      item := FStrings[physicalLine];
-      X := FLeftMargin + item.OffsetLeft;
-      index := 1;
-      attrib := item.FAttrib;
-      len := length(attrib);
-      cw := item.GetWidthInfo;
-      Continue;
-    end else if (index > len) and item.PictLine and (item.PictOverlap >= 0) and Assigned(item.Picture) then
-    begin
-      //<IMG align=overlap> テキストがないphysicallineの場合
-      point := item.IndexToLogicalPos(item.PictOverlap);
-      FBitmap.Canvas.Draw(point.X, point.Y + Y, item.Picture);
+      if item.PictOverlap = -1 then
+      begin
+        //<IMG>
+        FBitmap.Canvas.Draw(FLeftMargin + item.OffsetLeft, Y, item.Picture);
+        Inc(screenLine, item.LogicalLines);
+        if vLines <= screenLine then
+          break;
+        Inc(physicalLine);
+        if FStrings.Count <= physicalLine then
+          break;
+        Inc(Y, item.LogicalLines * bs);
+        item := FStrings[physicalLine];
+        X := FLeftMargin + item.OffsetLeft;
+        index := 1;
+        attrib := item.FAttrib;
+        len := length(attrib);
+        cw := item.GetWidthInfo;
+        Continue;
+      end else
+      begin
+        //<IMG align=overlap>
+        point := item.IndexToLogicalPos(item.PictOverlap);
+        if screenLine = 0 then
+          point.Y := point.Y - FTopLineOffset;
+        FBitmap.Canvas.Draw(point.X, point.Y * bs + Y, item.Picture);
+      end;
     end;
     //検索ハイライト
     if FHighLightOption <> hloNone then
-    begin
-//      if (item.FHighLightTarget = FHighLightTarget)
-//        and (item.FHighLightOption = FHighLightOption) then
-        hlightl := item.FHighLight
-//      else
-//      begin
-//        CreateHLightList(item.FText, FHighLightOption);
-//        item.FHighLight := hlightl;
-//        item.FHighLightTarget := PChar(FHighLightTarget);
-//        item.FHighLightOption := FHighLightOption;
-//      end;
-    end;
+      hlightl := item.FHighLight;
     {/aiai}
 
     while index <= len do
@@ -2491,14 +2437,6 @@ begin
         next := index + 1;
         while next <= len do
         begin
-          {aiai}
-          if item.PictLine and (item.PictOverlap >= index) and (item.PictOverlap < next) and Assigned(item.Picture) then
-          begin
-            //<IMG align=overlap>
-            point := item.IndexToLogicalPos(item.PictOverlap);
-            FBitmap.Canvas.Draw(point.X, point.Y + Y, item.Picture);
-          end;
-          {/aiai}
           if Ord(attrib[next]) <> attCode then
             break;
           if cw[next] <> #0 then
@@ -3172,9 +3110,19 @@ function THogeTextView.SearchClear: Boolean;
 var
   i: integer;
 begin
+  Result := False;
   Canceled := True;
+  if FHighLightOption = hloNone then
+    exit;
   for i := 0 to FStrings.Count - 1 do
-    SetLength(FStrings.Items[i].FHighLight, 0);
+    With FStrings.Items[i] do
+    begin
+      FHighlightTargetList := nil;
+      FHighLightOption := hloNone;
+      SetLength(FHighLight, 0);
+    end;
+  FHighLightOption := hloNone;
+  FHighLightTargetList.Clear;
   Invalidate;
   Result := True;
 end;
@@ -3378,6 +3326,8 @@ begin
   item.PictLine := True;
   item.PictOverlap := -1;
   item.Picture := Image;
+  item.FLogicalLines := 0;
+  item.GetLogicalLines;
 
   item := THogeTVItem.Create(Self);
   item.OffsetLeft := offsetleft;
