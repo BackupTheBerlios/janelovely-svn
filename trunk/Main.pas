@@ -5475,7 +5475,7 @@ begin
   if (viewItem = nil) or (viewItem.thread = nil) then
     exit;
 
-  ref := FStatusText; //aiai
+  ref := viewItem.GetLinkUnderCursor; //aiai
 
   if not StartWith('menu:', ref, 1) then
     Exit;
@@ -7748,7 +7748,7 @@ begin
   if (viewItem=nil) or (viewItem.thread=nil) then
     exit;
 
-  target := FStatusText;
+  target := viewItem.LinkText;
   if not (Length(target) > 3) or not AnsiStartsStr('ID:', target) then
     exit;
 
@@ -11662,7 +11662,7 @@ begin
   {aiai}
   s := viewItem.GetSelection;
   selecting := Length(s) > 0;
-  s := FStatusText;
+  s := viewItem.GetLinkUnderCursor;
   linking := Length(s) > 0;
   iding := linking and AnsiStartsStr('ID:', s);
   protocol := linking and not iding and ProtocolCheck(s);
@@ -11902,7 +11902,7 @@ begin
     viewItem := GetActiveView;
   if viewItem = nil then
     exit;
-  S := FStatusText;
+  S := viewItem.LinkText;
   S := CutImenu(S);
   if ProtocolCheck(S) then
     OpenByLovelyBrowser(S);
@@ -11920,7 +11920,7 @@ begin
     viewItem := GetActiveView;
   if viewItem = nil then
     exit;
-  S := FStatusText;
+  S := viewItem.LinkText;
   S := CutImenu(S);
   if ProtocolCheck(S) then
     OpenByBrowser(S);
@@ -11938,7 +11938,7 @@ begin
     viewItem := GetActiveView;
   if viewItem = nil then
     exit;
-  S := FStatusText;
+  S := viewItem.LinkText;
   S := CutImenu(S);
   if not NavigateIntoView(S, gtOther) then
     if not ImageForm.GetImage(S,viewItem,nil,True) then
@@ -11957,7 +11957,7 @@ begin
     viewItem := GetActiveView;
   if viewItem = nil then
     exit;
-  S := FStatusText;
+  S := viewItem.LinkText;
   S := ProofURL(CutImenu(S));
   HttpManager.RegisterBrowserCrasher(S);
 end;
@@ -11974,7 +11974,7 @@ begin
     viewItem := GetActiveView;
   if viewItem = nil then
     exit;
-  S := FStatusText;
+  S := viewItem.LinkText;
   if Length(S) <= 0 then
     exit;
   S := ProofURL(CutImenu(S));
@@ -11997,7 +11997,7 @@ begin
   if viewItem = nil then
     exit;
   {aiai}
-  link := FStatusText;
+  link := viewItem.LinkText;
   if AnsiStartsStr('BE:', link) then
     Clipboard.AsText := 'http://be.2ch.net/test/p.php?i='
       + Copy(link, 4, Length(link) - 3)
@@ -12338,7 +12338,7 @@ procedure TMainWnd.CommandExecute(command: string; replace: boolean = true;
       {/aiai}
       if assigned(viewItem) then
       begin
-        link := FStatusText;  //aiai
+        link := viewItem.LinkText;  //aiai
         if (link <> '') and not AnsiStartsStr('http://', link) and
            assigned(viewItem.thread) and assigned(viewItem.thread.board) then
         begin
@@ -12568,9 +12568,11 @@ begin
       end; //case
     end;
 
-    // $LINKがある場合はMainMenuには出さない
+    // $LINKがある場合はMainMenuには出さない、ない場合はStatusbarに出さない
     if AnsiContainsStr(Config.cmdExecuteList[i], '$LINK') then
-       MenuFlag := MenuFlag and not cmdMain;
+       MenuFlag := MenuFlag and not cmdMain
+    else
+      MenuFlag := MenuFlag and not cmdStatus;
 
     (* MainMenu *)
     if MenuFlag and cmdMain = cmdMain then begin
@@ -14462,7 +14464,13 @@ var
   LifeSpan: Integer;
   MResult: Integer;
 begin
-  Item := FStatusText;
+  if PopupTextMenu.PopupComponent is THogeTextView then
+    viewItem := TViewItem(GetViewOf(PopupTextMenu.PopupComponent))
+  else
+    viewItem := GetActiveView;
+  if viewItem = nil then
+    exit;
+  Item := viewItem.LinkText;
   if Item = '' then exit;
   Item := RightStr(Item, length(Item) - 3);
   if Item = '' then exit;
@@ -14550,7 +14558,13 @@ var
   dat: TThreadData;
   AboneType: Integer;
 begin
-  Item := FStatusText;
+  if PopupTextMenu.PopupComponent is THogeTextView then
+    viewItem := TViewItem(GetViewOf(PopupTextMenu.PopupComponent))
+  else
+    viewItem := GetActiveView;
+  if viewItem = nil then
+    exit;
+  Item := viewItem.LinkText;
   if Item = '' then exit;
   //Item := RightStr(Item, length(Item) - 3);
   //if Item = '' then exit;
@@ -15516,7 +15530,7 @@ begin
     viewItem := GetActiveView;
   if viewItem = nil then
     exit;
-  S := FStatusText;
+  S := viewItem.LinkText;
   if Length(S) <= 0 then
     exit;
   S := CutImenu(S);
@@ -16315,14 +16329,15 @@ end;
 procedure TMainWnd.TextPopupChottoViewClick(Sender: TObject);
 var
   viewItem: TViewItem;
-  point: TPoint;
   chottoURL: string;
 begin
-  viewItem := GetActiveView;
+  if PopupTextMenu.PopupComponent is THogeTextView then
+    viewItem := TViewItem(GetViewOf(PopupTextMenu.PopupComponent))
+  else
+    viewItem := GetActiveView;
   if viewItem = nil then
     exit;
-  point := viewItem.browser.Caret;
-  chottoURL := FStatusText;
+  chottoURL := viewItem.LinkText;
 
   if GetKeyState(VK_CONTROL) < 0 then
     chottoURL := chottoURL + Config.optChottoView;

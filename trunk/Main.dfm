@@ -1,5 +1,5 @@
 object MainWnd: TMainWnd
-  Left = 264
+  Left = 258
   Top = 134
   AutoScroll = False
   Caption = 'Jane2ch'

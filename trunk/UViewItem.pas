@@ -217,7 +217,7 @@ type
     FPossessionView: TPopupViewItem;
     FLockCount: Integer;
     FPopupViewList: TPopupViewList;
-    //FLinkText: String; //aiai
+    FLinkText: String; //aiai
     function GetBaseItem: TBaseViewItem; virtual; abstract;
     function GetBaseThread: TThreadItem; virtual;
     function GetRootControl: TWinControl; virtual; abstract;
@@ -235,7 +235,7 @@ type
     procedure Cancel; virtual; abstract;
     function GetSelection: String; virtual; abstract;
     //function GetFocusedLink: String; {virtual;}
-    //function GetLinkUnderCursor: String; //aiai
+    function GetLinkUnderCursor: String; //aiai
     procedure SelectAll; virtual;
     procedure Lock; virtual;
     procedure UnLock; virtual;
@@ -250,7 +250,7 @@ type
     property PossessionView:TPopupViewItem read FPossessionView;
     property RootControl: TWinControl read GetRootControl;
     property PopUpViewList: TPopupViewList read FPopupViewList;
-    //property LinkText: String read FLinkText; //aiai
+    property LinkText: String read FLinkText; //aiai
   end;
 
   (* Doe,非DoeそれぞれでTHogeTextView,TWebBrowserを管理するための基礎クラス *)
@@ -2129,7 +2129,7 @@ begin
 end;}
 
 //aiai CaretでなくCursorの下のリンクを取得し、結果をFLinkTextに入れる
-{function TBaseViewItem.GetLinkUnderCursor: String;
+function TBaseViewItem.GetLinkUnderCursor: String;
 var
   browser: THogeTextView;
   Point: TPoint;
@@ -2153,7 +2153,7 @@ begin
   except
     Result := '';
   end;
-end;}
+end;
 
 procedure TBaseViewItem.SelectAll;
 var
