@@ -86,7 +86,7 @@ type
                         itemType: TDatItemType); virtual; abstract;
     procedure WriteAnchor(const Name: string;
                           const HRef: string;
-                          str: PChar; size: integer); overload; virtual; abstract;
+                          str: PChar; size: integer); virtual; abstract;
     procedure WriteID(ID: PChar; size: integer; line: Integer); virtual; abstract;
     procedure SetLine(line: integer); virtual; abstract;
     procedure Flush; virtual;
@@ -2881,9 +2881,6 @@ begin
   ns := IntToStr(line);
   try
     dest.SetLine(line);
-    {$IFDEF IE}
-    if not(dest is THTMLDatOut) then
-    {$ENDIF}
     dest.WriteAnchor(ns, '', '', 0); //HogeTextViewのみ必要(実際にはPopupでは使わない)
     for i := 0 to tmplen do
     begin
@@ -2899,28 +2896,6 @@ begin
           dest.WriteItem(name, nameSize, ditNAME);
         end;
         {/beginner}
-      {$IFDEF IE}
-      TYPE_NUMBER:
-        if dest is THTMLDatOut then //IE版でもポップアップはHogeTextView用の出力が必要
-          dest.WriteAnchor(ns, 'menu:' + ns, PChar(ns), length(ns))
-        else
-          dest.WriteAnchor('', 'menu:' + ns, PChar(ns), length(ns));
-      TYPE_MAILNAME:
-        begin
-          if mailSize > 0 then
-          begin
-            SetString(strMailName, mail, mailSize);
-            dest.WriteItem(PChar('<a href="mailto:' + strMailName + '"><b>'), 21 + mailSize , ditNORMAL);
-            dest.WriteItem(name, nameSize, ditNORMAL);
-            dest.WriteItem('</b></a>', 8, ditNORMAL);
-          end
-          else begin
-            dest.WriteItem('<b>', 3, ditNORMAL);
-            dest.WriteItem(name, nameSize, ditNAME);
-            dest.WriteItem('</b>', 4, ditNORMAL);
-          end;
-        end;
-      {$ELSE}
       TYPE_NUMBER:
         begin
           dest.WriteAnchor('', 'menu:' + ns, PChar(ns), length(ns));
@@ -2950,19 +2925,14 @@ begin
           else if mailSize > 0 then
             dest.WriteItem('<SA i=14/>', 10, ditNORMAL)
         end;
-      {$ENDIF}
       {beginner}
       TYPE_MAIL:
-      {$IFDEF IE}
-        dest.WriteText(mail, mailSize);
-      {$ELSE}
         begin
           if FindPosP('<', mail, mailSize) <= 0 then
             dest.WriteHTML(mail, mailSize)
           else
             dest.WriteText(mail, mailSize);
         end;
-      {$ENDIF}
       TYPE_DATE:
         begin
           if MsgShow > 0 then

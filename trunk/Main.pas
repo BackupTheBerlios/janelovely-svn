@@ -11376,6 +11376,7 @@ begin
         //Nothing To Do
       end else
       begin
+        ReleasePopupHint(viewItem, True);  //aiai
         Cancel := False;
         OnBrowserMouseMove(Sender, Shift, X, Y);
         BrowserBeforeNavigate(Sender, FStatusText, Mouse.CursorPos, Cancel, False);

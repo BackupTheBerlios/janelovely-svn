@@ -1792,6 +1792,7 @@ begin
   begin
     SetLogicalCaret(ClientToLogical(X, Y));
   end;
+  if not AutoScroll then //aiai
   inherited;
 end;
 
