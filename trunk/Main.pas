@@ -15802,8 +15802,6 @@ end;
 
 procedure TMainWnd.MenuFavPatrolClick(Sender: TObject);
 begin
-  if FavPtrlFavs <> nil then
-    exit;
   FavPtrlFavs := favorites;
   FavoriteRenewCheck;
 end;
@@ -15813,8 +15811,7 @@ var
   node: TTreeNode;
 begin
   node := FavoriteView.Selected;
-  if (node = nil) or not (TObject(node.Data) is TFavoriteList) or
-    (FavPtrlFavs <> nil) then
+  if (node = nil) or not (TObject(node.Data) is TFavoriteList) then
     exit;
 
   FavPtrlFavs := TObject(node.Data) as TFavoriteList;
@@ -15892,61 +15889,7 @@ end;
 procedure TMainWnd.FavBrdOpen;
 var
   FavoriteListBoard: TFavoriteListBoard;
-begin
-  FavoriteListBoardAdmin.GarbageCollect;
-  if FavPtrlFavs = favorites then
-    //お気に入り全体はi2chに板として登録済み
-    FavoriteListBoard := TFavoriteListBoard(i2ch.Items[0].Items[1]) //  i2ch.FindBoard('Jane', 'fav'));
-  else
-    //その他のフォルダの板はFavoriteListBoardAdminで管理
-    FavoriteListBoard := FavoriteListBoardAdmin.GetBoard(FavPtrlFavs);
-  if FavoriteListBoard <> nil then
-  begin
-    //ListViewNavigate(FavoriteListBoard, gotLOCAL,  //▼新しいタブで開くか
-    //                (Config.oprOpenBoardWNewTab xor (GetKeyState(VK_SHIFT) < 0)));
-    FavoriteListBoard.AddRef;
-    if (FavoriteListBoard = CurrentBoard) then
-    begin
 
-      ListView.OnData := nil;
-
-      currentBoard.SafeClear;
-      currentBoard.Load;
-      currentBoard.ResetListState;
-      ListView.OnData := ListViewData;
-      UpdateListView;
-      if not Config.optFavPatrolOpenBack then
-        SetRPane(ptList);
-      exit;
-    end else
-
-    begin
-
-      FavoriteListBoard.SafeClear;
-
-      FavoriteListBoard.Load;
-
-      FavoriteListBoard.ResetListState;
-
-    end;
-
-
-    FavoriteListBoard.AddRef;
-
-    subjectReadyEvent.ResetEvent;
-
-    OpenBoard(FavoriteListBoard,
-              (Config.oprOpenBoardWNewTab xor (GetKeyState(VK_SHIFT) < 0)),
-              not Config.optFavPatrolOpenBack);
-
-    if not Config.optFavPatrolOpenBack then
-      SetRPane(ptList);
-    FavoriteListBoard.Release;
-  end;
-end;
-
-procedure TMainWnd.FavPtrlManager(board: TBoard; Count: Integer;
-                   PatrolType: TPatrolType);
   procedure OpenAll;
   var
     limit: integer;
@@ -15954,7 +15897,7 @@ procedure TMainWnd.FavPtrlManager(board: TBoard; Count: Integer;
     thread: TThreadItem;
     index: integer;
   begin
-    board :=  TFavoriteListBoard(i2ch.Items[0].Items[1]);
+    board :=  FavoriteListBoard;
     if board = nil then exit;
 
     limit := 0;
@@ -15974,6 +15917,60 @@ procedure TMainWnd.FavPtrlManager(board: TBoard; Count: Integer;
       SetRPane(ptView);
   end;
 
+
+begin
+  FavoriteListBoardAdmin.GarbageCollect;
+  if FavPtrlFavs = favorites then
+    //お気に入り全体はi2chに板として登録済み
+    FavoriteListBoard := TFavoriteListBoard(i2ch.Items[0].Items[1]) //  i2ch.FindBoard('Jane', 'fav'));
+  else
+    //その他のフォルダの板はFavoriteListBoardAdminで管理
+    FavoriteListBoard := FavoriteListBoardAdmin.GetBoard(FavPtrlFavs);
+  if FavoriteListBoard <> nil then
+  begin
+    //ListViewNavigate(FavoriteListBoard, gotLOCAL,  //▼新しいタブで開くか
+    //                (Config.oprOpenBoardWNewTab xor (GetKeyState(VK_SHIFT) < 0)));
+    if (FavoriteListBoard = CurrentBoard) then
+    begin
+      FavoriteListBoard.AddRef;
+
+      ListView.OnData := nil;
+
+      currentBoard.SafeClear;
+      currentBoard.Load;
+      currentBoard.ResetListState;
+      ListView.OnData := ListViewData;
+      UpdateListView;
+      if not Config.optFavPatrolOpenBack then
+        SetRPane(ptList);
+      if Config.optFavPatrolOpenNewResThread then
+        OpenAll;
+      FavoriteListBoard.Release;
+      exit;
+    end;
+
+    FavoriteListBoard.AddRef;
+
+    FavoriteListBoard.SafeClear;
+    FavoriteListBoard.Load;
+    FavoriteListBoard.ResetListState;
+
+    subjectReadyEvent.ResetEvent;
+
+    OpenBoard(FavoriteListBoard,
+              (Config.oprOpenBoardWNewTab xor (GetKeyState(VK_SHIFT) < 0)),
+              not Config.optFavPatrolOpenBack);
+
+    if not Config.optFavPatrolOpenBack then
+      SetRPane(ptList);
+    if Config.optFavPatrolOpenNewResThread then
+      OpenAll;
+    FavoriteListBoard.Release;
+  end;
+end;
+
+procedure TMainWnd.FavPtrlManager(board: TBoard; Count: Integer;
+                   PatrolType: TPatrolType);
 begin
   if Count >= 0 then
     FavPtrlCount := Count   //更新する板数
@@ -16008,8 +16005,8 @@ begin
         else
           MessageBeep(MB_ICONASTERISK);
 
-        if Config.optFavPatrolOpenNewResThread then
-          OpenAll;
+//        if Config.optFavPatrolOpenNewResThread then
+//          OpenAll;
       end else if PatrolType = patTab then
       begin
         if usetrace[50] then Log(tracestring[50])
@@ -16018,7 +16015,6 @@ begin
       begin
         Log('川 ’ー’川全板ﾘﾛｰﾄﾞ完了ﾔﾖ');
       end;
-      FavPtrlFavs := nil;
     end;
   end;
 end;
