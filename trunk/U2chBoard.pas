@@ -128,7 +128,7 @@ type
     property subjectText: string read subjectTxt;
     property uma: boolean read FUma write SetUma;
     property host: string read FHost write SetHost;
-    property settingText: TStringList read settingTXT;
+    property settingText: TStringList read settingTXT write settingTXT;
     property NeedConvert: Boolean read FNeedConvert; //aiai
   end;
 

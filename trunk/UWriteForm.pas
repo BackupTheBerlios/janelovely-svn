@@ -1669,6 +1669,8 @@ begin
           BBSSubjectCount := StrToIntDef(SettingTxt.Lines.Values[BBS_SUBJECT_COUNT], High(Integer));
           BBSNameCount    := StrToIntDef(SettingTxt.Lines.Values[BBS_NAME_COUNT], High(Integer));
           BBSMailCount    := StrToIntDef(SettingTxt.Lines.Values[BBS_MAIL_COUNT], High(Integer));
+          Board.settingText.Assign(SettingTxt.Lines);
+          ChangeWriteMemoSettingText(Board);
           MemoChange(nil);
         end;
       304: (* NotModifiedの時も再保存することで最終チェック時刻を更新 *)
