@@ -9138,4 +9138,11 @@ object MainWnd: TMainWnd
       OnClick = MenuUrlEditSelectAllClick
     end
   end
+  object TrayIcon: TJLTrayIcon
+    Visible = False
+    PopupMenu = PopupTaskTray
+    OnMouseUp = TrayIconMouseUp
+    Left = 504
+    Top = 16
+  end
 end

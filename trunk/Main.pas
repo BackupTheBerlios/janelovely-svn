@@ -38,7 +38,8 @@ uses
   UAutoScrollSettingForm, ULovelyWebForm, UNews, UGetBoardListForm,
   UChottoForm, UImageViewCacheListForm,
   UCheckSeverDown, UMDITextView, UWriteWait, UXPHintWindow,
-  UWritePanelControl, JLToolButton, JLSideBar, JLXPComCtrls, TntStdCtrls;
+  UWritePanelControl, JLToolButton, JLSideBar, JLXPComCtrls, TntStdCtrls,
+  JLTrayIcon;
   {/aiai}
 
 const
@@ -850,6 +851,7 @@ type
     MenuSearchExtract: TMenuItem;
     MenuSearchExtractTree: TMenuItem;
     N109: TMenuItem;
+    TrayIcon: TJLTrayIcon;
     {/aiai}
     procedure FormCreate(Sender: TObject);
     procedure MenuToolsOptionsClick(Sender: TObject);
@@ -1335,6 +1337,8 @@ type
       Button: TUDBtnType);
     procedure ListViewSearchCloseButtonClick(Sender: TObject);
     procedure ThreViewSearchCloseButtonClick(Sender: TObject);
+    procedure TrayIconMouseUp(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
     {/aiai}
   private
   { Private 宣言 }
@@ -1371,10 +1375,6 @@ type
 
     savedListHeight: integer;
     savedListWidth: integer;
-
-    inTaskTray: Boolean;
-    hWndTrayIcon :HWND;
-    uTaskBarRecreate: UINT;
 
     FResJumpNormalPopup: Boolean;
     FHovering: Boolean;
@@ -1625,9 +1625,6 @@ type
       OwnerView: TBaseViewItem; Nesting: Boolean): boolean;
     function ShowIDInfo(const Point: TPoint; const IDStr: String; const URI: string;
       OwnerView: TBaseViewITem; Nesting: Boolean): boolean; //aiai
-    procedure CreateTaskBarIcon;
-    procedure DeleteTaskBarIcon;
-    procedure TaskTrayWndProc(var Msg: TMessage);
     procedure ReleasePopupHint(viewItem: TBaseViewItem = nil; Force: Boolean = False);
     procedure SetviewListItemsColor;
     {aiai}
@@ -1638,7 +1635,6 @@ type
     procedure FavPtrlManager(Count: Integer;
                   PatrolType: TPatrolType; board: TBoard);
     procedure UpdateListViewColumns;
-    procedure WndProc(var Message: TMessage); override;
     {/aiai}
   end;
 
@@ -2678,11 +2674,6 @@ begin
   except
   end;
 
-
-  uTaskBarRecreate := RegisterWindowMessage('TaskbarCreated');
-  hWndTrayIcon := Classes.AllocateHWnd(TaskTrayWndProc);
-  inTaskTray := false;
-
   Randomize;
   GetTimeZoneInformation(TimeZoneInfo);
   TimeZoneBias := TimeZoneInfo.Bias * 60;
@@ -3020,8 +3011,8 @@ begin
   end;
   {/beginner}
 
-  if inTaskTray then
-    inTaskTray := false
+  if TrayIcon.Visible then
+    TrayIcon.Hide
   else begin
     LoadWindowPos;
 
@@ -3110,8 +3101,6 @@ begin
 //  Application.OnMessage := nil;
   if MyWindowHandle <> nil then
     MyWindowHandle.Free;
-
-  Classes.DeallocateHWnd(hWndTrayIcon);
 
   (* バックグラウンド処理を強制終了 *)
   AsyncManager.WaitForTerminateAll;
@@ -3668,12 +3657,8 @@ end;
 procedure TMainWnd.UpdateBoardMenu;
   procedure RemoveOldItem;
   begin
-    while 0 < MenuBoardList.Items.Count do
-    begin
-      if MenuBoardList.Items[0] = MenuBoardSep then
-        break;
+    while 0 < MenuBoardList.Count do
       MenuBoardList.Items[0].Free;
-    end;
   end;
 var
   i, j: integer;
@@ -3689,11 +3674,9 @@ begin
     for i := 0 to i2ch.Count -1 do
     begin
       category := i2ch.Items[i];
-      //menuCategory := TMenuItem.Create(MenuBoard);
       menuCategory := TMenuItem.Create(MenuBoardList);
       menuCategory.Caption := category.name;
       menuCategory.ImageIndex := 0; // ※[JS]
-      //MenuBoard.Insert(i, menuCategory);
       MenuBoardList.Insert(i, menuCategory);
       for j := 0 to category.Count -1 do
       begin
@@ -4671,21 +4654,9 @@ var
             if Config.optCheckThreadMadeAfterLstMdfy2
                 and (CurrentBoard.last2Modified <> '')
                     and (StrToInt(thread.datName) > CheckNewThreadAfter2) then
-                            //and (CurrentBoard.previouslastModified
-                            //        < StrToInt64(thread.datName)) then
               result := Config.viewListMarkerNewThread2; //'●'
           except
           end;
-          (*
-          try
-            if StrToInt(thread.datName)>=CheckNewThreadAfter then
-              result := Config.viewListMarkerNewThread //'○'
-            else
-              result := Config.viewListMarkerNone; // ''
-          except
-            result := Config.viewListMarkerNone; // ''
-          end;
-          *)
         end;
         {/beginner}
       end;
@@ -4775,21 +4746,7 @@ var
           exit;
         if (0 < thread.lines) then //開いたことがあるスレ
         begin
-        {aiai}
-          {if (thread.oldLines < thread.lines) then
-          begin
-            if thread.mark = timMARKER then
-              result := 11
-            else
-              result := 10;
-          end
-          else if (thread.lines < thread.itemCount) then
-          begin
-            if thread.mark = timMARKER then
-              result := 6
-            else
-              result := 4;
-          end}
+        {aiai} //新着がある時と未読がある時の判定順を逆に
           if (thread.lines < thread.itemCount) then  //新着がある時
             if thread.mark = timMARKER then
               result := 6
@@ -5574,23 +5531,6 @@ var
 begin
   if (0 <= index) and (index < viewList.Count) then
   begin
-    {aiai}
-
-    {for i := 0 to viewList.Count -1 do
-    begin
-      if i = index then
-      begin
-        viewList.Items[i].browser.TabStop := true;
-        viewList.Items[i].browser.Visible := true;
-      end
-      else begin
-        viewList.Items[i].browser.TabStop := false;
-        viewList.Items[i].browser.Visible := false;
-      end;
-    end;}
-
-    {/aiai}
-
     currentView := viewList.Items[index];
     currentViewHandle := currentView.browser.Handle;
     currentView.browser.BringToFront;
@@ -5939,7 +5879,6 @@ begin
       PopupViewReplyOnWriteMemo.Tag := PopupViewReply.Tag;
       PopupViewReplyOnWriteMemo.Enabled := PopupViewReply.Enabled;
       PopupViewAddAAList.Tag := PopupViewReply.Tag;
-      //PopupViewAddAAList.Enabled := PopupViewReply.Enabled;
       PopupViewCopyData.Tag := PopupViewReply.Tag;
       PopupViewCopyRD.Tag := PopupViewReply.Tag;
       PopupViewCopyURL.Tag := PopupViewReply.Tag;
@@ -6019,7 +5958,8 @@ begin
     except
     end;
   end else
-  {aiai}   //IDポップアップ
+  {aiai}
+  //IDポップアップ
   if Config.ojvIDPopUp and not Config.ojvIDPopOnMOver
      and  AnsiStartsStr('ID:', URI) then
   begin
@@ -6040,6 +5980,7 @@ begin
       end;
     finally
     end;
+  //BE
   end else if AnsiStartsStr('BE:', URI) then
   begin
     cancel := true;
@@ -6612,7 +6553,6 @@ begin
     UpdateTabTexts;
     ListView.DoubleBuffered := True;
     ListView.Update;
-    //ListView.Repaint;
     ListView.DoubleBuffered := False;
   end;
 end;
@@ -7511,9 +7451,6 @@ var
   {/aiai}
 begin
   {aiai}
-  //viewItem := GetActiveView;
-  //if (viewItem=nil) or(viewItem.thread=nil) then
-  //  Exit;
   if UseSelection and (PopupTextMenu.PopupComponent is THogeTextView) then
     viewItem := GetViewOf(PopupTextMenu.PopupComponent)
   else
@@ -7576,13 +7513,6 @@ begin
   else
     NavigateIntoView(target, gtOther, false, Config.oprAddrBgOpen);
 end;
-
-//procedure TMainWnd.TreeTabSetChange(Sender: TObject; NewTab: Integer;
-//  var AllowChange: Boolean);
-//begin
-//  (*  *)
-//  ChangeActiveTreePane(NewTab);
-//end;
 
 (* お気に入りの表示 *)
 procedure TMainWnd.UpdateFavorites;
@@ -8452,8 +8382,8 @@ begin
     AutoScroll.Enabled := true;
     if (AutoReload <> nil) and AutoReload.Enabled then
       actAutoReSc.Checked := true;
-    {if WriteMemo.Visible then
-      try WriteMemo.SetFocus; except end;}//aiai-pre
+    if MemoWriteMain.Visible then
+      try MemoWriteMain.SetFocus; except end;
   end else if (AutoScroll <> nil) then
   begin
     AutoScroll.Enabled := false;
@@ -9209,7 +9139,6 @@ begin
     if viewItem = nil then
     begin
       StatusBar.Panels.Items[2].Text := '';
-      //StatusBar2.Text[2] := '';    //aiai
       ThreadTitleLabel.Caption := '';   //※[JS]
       exit;
     end;
@@ -10199,15 +10128,6 @@ begin
   end;
 end;
 
-(* エクスプローラーが再起動したときタスクトレーアイコンを再登録 by aiai *)
-procedure TMainWnd.WndProc(var Message: TMessage);
-begin
-  if (Message.Msg = uTaskBarRecreate) and InTaskTray then
-    CreateTaskBarIcon
-  else
-    inherited WndProc(Message);
-end;
-
 (* 最小化時、タスクトレイに格納 *) //aiai
 procedure TMainWnd.ApplicationEventsMinimize(Sender: TObject);
 begin
@@ -10224,8 +10144,7 @@ begin
     if Assigned(ImageViewCacheListForm) then
       ImageViewCacheListForm.MainWndOnHide;
     ShowWindow(Application.Handle, SW_HIDE);
-    CreateTaskBarIcon;
-    inTaskTray := true;
+    TrayIcon.Show;
   end;
 end;
 
@@ -14973,72 +14892,7 @@ begin
   {/aiai}
   Hide;
   ShowWindow(Application.Handle, SW_HIDE);
-  CreateTaskBarIcon;
-  inTaskTray := true;
-end;
-
-procedure TMainWnd.CreateTaskBarIcon;
-var
-  NotifyData: TNotifyIconData;
-  hnd: THandle;
-  smallIco: HICON;
-begin
-  ExtractIconEx(PChar(ParamStr(0)), 0, HICON(hnd), smallIco, 1);
-  with NotifyData do
-  begin
-    cbSize := SizeOf(TNotifyIconData);
-    Wnd    := hWndTrayIcon;
-    uID    := Cardinal(hWndTrayIcon);  //HWNDと同じにしておく
-    uFlags := NIF_MESSAGE or NIF_ICON or NIF_TIP;
-    StrPCopy(szTip, Application.Title);
-    hIcon  := smallIco;
-    uCallbackMessage := WM_MY_TRAYICON;
-  end;
-  Shell_NotifyIcon(NIM_ADD, @NotifyData);
-end;
-
-procedure TMainWnd.DeleteTaskBarIcon;
-var
-  NotifyData: TNotifyIconData;
-begin
-  zeromemory(@NotifyData, sizeof(TNotifyIconData));
-  with NotifyData do
-  begin
-    cbSize := SizeOf(TNotifyIconData);
-    Wnd    := hWndTrayIcon;
-    uID    := Cardinal(hWndTrayIcon);  //HWNDと同じにしておく;
-  end;
-  Shell_NotifyIcon(NIM_DELETE, @NotifyData);
-end;
-
-procedure TMainWnd.TaskTrayWndProc(var Msg: TMessage);
-  procedure ShowPopupMenu;
-  var
-    Point: TPoint;
-  begin
-    GetCursorPos(Point);
-    PopupTaskTray.Popup(Point.X, Point.Y);
-  end;
-
-begin
-  try
-    if (Msg.Msg = WM_MY_TRAYICON) and (Msg.WParam = WParam(hWndTrayIcon)) then
-    // WParamはNotifyDataのuID
-
-      Case Msg.LParam of
-        WM_LBUTTONUP: MainWndRestore;
-        WM_RBUTTONUP: begin
-          SetForegroundWindow(Handle);
-          ShowPopupMenu;
-        end;
-      end //case
-
-    else
-      Msg.Result := DefWindowProc(hWndTrayIcon, Msg.Msg, Msg.wParam, Msg.lParam);
-
-  except
-    Application.HandleException(Self);
-  end;
+  TrayIcon.Show;
 end;
 
 procedure TMainWnd.MenuOptDumpShortcutClick(Sender: TObject);
@@ -16330,7 +16184,7 @@ end;
 
 procedure TMainWnd.MenuBoardListClick(Sender: TObject);
 begin
-  if (Config.optEnableBoardMenu and (MenuBoardList.IndexOf(MenuBoardSep) <= 0)) or
+  if (Config.optEnableBoardMenu and (MenuBoardList.Count = 0)) or
      (not Config.optEnableBoardMenu) then
     UpdateBoardMenu;
 end;
@@ -16471,7 +16325,6 @@ end;
 
 procedure TMainWnd.PopupTaskTrayCloseClick(Sender: TObject);
 begin
-  DeleteTaskBarIcon;
   Close;
 end;
 
@@ -16480,9 +16333,18 @@ begin
   MainWndRestore;
 end;
 
+procedure TMainWnd.TrayIconMouseUp(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+begin
+  if Button = mbLeft then
+  begin
+    MainWndRestore;
+  end;
+end;
+
 procedure TMainWnd.MainWndRestore;
 begin
-  DeleteTaskBarIcon;
+  TrayIcon.Hide;
   ShowWindow(Application.Handle,SW_SHOW);
   Show;
   Application.Restore;
