@@ -41,8 +41,8 @@ uses
   {/aiai}
 
 const
-  VERSION  = '0.1.2.2';      (* Printable ASCIIコード厳守。')'はダメ *)
-  JANE2CH  = 'JaneLovely 0.1.2.2';
+  VERSION  = '0.1.2.3';      (* Printable ASCIIコード厳守。')'はダメ *)
+  JANE2CH  = 'JaneLovely 0.1.2.3';
   KEYWORD_OF_USER_AGENT = 'JaneLovely';      (*  *)
 
   DISTRIBUTORS_SITE = 'http://www.geocities.jp/openjane4714/';
@@ -5565,8 +5565,6 @@ begin
   if result = nil then
   begin
     {aiai} //MDI化
-    //browser := THogeTextView.Create(self.WebPanel);
-    //browser.Parent := self.WebPanel;
     browser := TMDITextView.Create(self.MDIClientPanel);
     browser.Parent := self.MDIClientPanel;
     browser.Align := alClient;
@@ -5578,7 +5576,9 @@ begin
     browser.OnDbClickTBar := actMaxViewExecute;
     browser.OnActive := BrowserActive;
     //browser.OnHide := BrowserHide;
-    browser.KeywordBrushColor := Config.viewKeywordBrushColor; //ハイライトの色
+    browser.OnScrollEnd := BrowserScrollEnd;
+    browser.OnEnter     := BrowserEnter;
+    browser.OnExit      := BrowserExit;
     {/aiai}
     browser.LeftMargin := BrowserLeftMargin;
     browser.RightMargin := BrowserRightMargin;
@@ -5603,22 +5603,20 @@ begin
     browser.OnKeyDown   := OnBrowserKeyDown;
     browser.PopupMenu := PopupTextMenu;
     browser.Invalidate;
-    //▼ブラウザ部の色指定
-    browser.Color := Config.clViewColor;
-    {aiai}
-    browser.ColordNumber := Config.ojvColordNumber;       //レス番着色
-    browser.LinkedNumColor := Config.ojvLinkedNumColor;   //レス番着色
-    browser.IDLinkColor := Config.ojvIDLinkColor;         //ID着色
-    browser.IDLinkColorMany := Config.ojvIDLinkColorMany; //ID着色
-    browser.IDLinkColorNone := Config.ojvIDLinkColorNone; //ID着色
-    browser.IDLinkThreshold := Config.ojvIDLinkThreshold; //ID着色
-    browser.OnScrollEnd := BrowserScrollEnd;
-    browser.OnEnter     := BrowserEnter;
-    browser.OnExit      := BrowserExit;
-    {/aiai}
     result := viewList.NewView(browser, index);
     Result.RootControl := browser;
   end;
+  //▼ブラウザ部の色指定
+  result.browser.Color := Config.clViewColor;
+  {aiai}
+  result.browser.ColordNumber := Config.ojvColordNumber;       //レス番着色
+  result.browser.LinkedNumColor := Config.ojvLinkedNumColor;   //レス番着色
+  result.browser.IDLinkColor := Config.ojvIDLinkColor;         //ID着色
+  result.browser.IDLinkColorMany := Config.ojvIDLinkColorMany; //ID着色
+  result.browser.IDLinkColorNone := Config.ojvIDLinkColorNone; //ID着色
+  result.browser.IDLinkThreshold := Config.ojvIDLinkThreshold; //ID着色
+  result.browser.KeywordBrushColor := Config.viewKeywordBrushColor; //ハイライトの色
+  {/aiai}
   result.browser.VerticalCaretMargin := Config.viewVerticalCaretMargin;
   result.browser.WheelPageScroll := Config.viewPageScroll;
   result.browser.VScrollLines := Config.viewScrollLines;
