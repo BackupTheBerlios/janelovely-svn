@@ -1363,6 +1363,7 @@ type
     procedure actUpOpenThreadExecute(Sender: TObject);
     procedure actUpImportantThreadExecute(Sender: TObject);
     procedure MenuListSortClick(Sender: TObject);
+    procedure ThreViewSearchResFindButtonClick(Sender: TObject);
     {/aiai}
   private
   { Private êÈåæ }
@@ -18214,6 +18215,11 @@ procedure TMainWnd.ThreViewSearchUpDownClick(Sender: TObject;
 begin
   SearchTimer.Enabled := False;
   FindInView(Button = btPrev);
+end;
+
+procedure TMainWnd.ThreViewSearchResFindButtonClick(Sender: TObject);
+begin
+  ExtractRes(GetKeyState(VK_CONTROL) < 0);
 end;
 
 procedure TMainWnd.ThreViewSearchToolButtonClick(Sender: TObject);

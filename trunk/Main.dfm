@@ -784,6 +784,7 @@ object MainWnd: TMainWnd
               Top = 0
               Caption = 'ThreViewSearchResFindButton'
               ImageIndex = 4
+              OnClick = ThreViewSearchResFindButtonClick
             end
             object ThreViewSearchSep3: TToolButton
               Left = 243
