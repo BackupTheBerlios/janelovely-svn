@@ -1981,9 +1981,13 @@ function MouseInPane(control: TControl): boolean;
 var
   point: TPoint;
 begin
-  point := control.ScreenToClient(Mouse.CursorPos);
-  result := (0 <= point.X) and (point.X < control.Width) and
-            (0 <= point.Y) and (point.Y < control.Height);
+  Result := False;
+  if GetCursorPos(point) and not InvalidPoint(point) then
+  begin
+    point := control.ScreenToClient(point);
+    result := (0 <= point.X) and (point.X < control.Width) and
+              (0 <= point.Y) and (point.Y < control.Height);
+  end;
 end;
 
 function IsPrimaryInstance: Boolean;
@@ -10180,6 +10184,7 @@ begin
       ImageForm.MainWndOnHide;
     if Assigned(ImageViewCacheListForm) then
       ImageViewCacheListForm.MainWndOnHide;
+    Hide;
     ShowWindow(Application.Handle, SW_HIDE);
     TrayIcon.Show;
   end;

@@ -7,7 +7,7 @@ interface
 uses
   Classes, StrUtils, Controls,
   jconvert,
-  UAsync, UDat2HTML;
+  UAsync, UDat2HTML, U2chTicket;
 
 type
   (*-------------------------------------------------------*)
@@ -71,7 +71,7 @@ begin
     reqType := agrtHead;
 
   LogBeginQuery2;
-  if AsyncManager.Get(URI, OnHead, nil, '', 0, Config.hintForURLMaxSize,
+  if AsyncManager.Get(URI, OnHead, ticket2ch.OnChottoPreConnect, '', 0, Config.hintForURLMaxSize,
                       reqType) = nil then
   begin
     Delete(0);
