@@ -3666,10 +3666,6 @@ object MainWnd: TMainWnd
       object MenuBoardList: TMenuItem
         Caption = #26495#19968#35239
         OnClick = MenuBoardListClick
-        object MenuBoardSep: TMenuItem
-          Caption = '-'
-          Visible = False
-        end
       end
       object N87: TMenuItem
         Caption = '-'

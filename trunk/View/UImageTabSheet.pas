@@ -3,7 +3,7 @@ unit UImageTabSheet;
 interface
 uses
   Windows, Messages, SysUtils, Classes, Controls, ComCtrls, Graphics,
-  StdCtrls, Menus, Dialogs, ExtDlgs, ARCHIVES, SPIs, SPIbmp,
+  StdCtrls, Menus, Dialogs, ExtDlgs, ShellAPI, ARCHIVES, SPIs, SPIbmp,
   jconvert,UViewItem,HogeTextView,UTVSub,JConfig,
   UHttpManage, UImageViewConfig, UContentView, UAnimatedPaintBox,UMSPageControl;
 type

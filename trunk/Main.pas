@@ -86,7 +86,6 @@ type
     Panel0: TPanel;
     TreeView: TTreeView;
     MenuBoard: TMenuItem;
-    MenuBoardSep: TMenuItem;
     ListPopupMenu: TPopupMenu;
     ListPopupOpen: TMenuItem;
     N3: TMenuItem;
@@ -1391,7 +1390,6 @@ type
     FavPtrlFavs: TFavoriteList;
     FavPtrlCount: Integer;
     LovelyWebForm: TLovelyWebForm;
-    //preWindowState: TWindowState;
 
     TreePanelVisible: Boolean;
     TreePanelCanMove: Boolean;
@@ -1409,7 +1407,7 @@ type
     WritePanelHoverRect: TRect;
     WritePanelFixedHeight: Integer;
 
-    CanAutoCheckNewRes: Boolean; //更新のあるスレを選択するだけでリロード可能してよいかどうか
+    CanAutoCheckNewRes: Boolean; //更新のあるスレを選択するだけでリロード可能にしてよいかどうか
     {/aiai}
 
     procedure SaveWindowPos;
@@ -1494,6 +1492,7 @@ type
     procedure SaveKeyConf;
     procedure OpenConfigDlg(PanelSpec: Integer = -1);
     procedure WindowRecentlyClosedClick(Sender: TObject);
+    procedure CopyResToClipBrd(title, uri, res: boolean; num: integer);
     //▼test
     procedure SetMouseGesture;
     procedure OpenStartupThread;
@@ -1512,7 +1511,6 @@ type
     procedure LoadSkin(skinPath: string);
     procedure SetCustomSkinToBoard;
 
-    //procedure SetLPane(visible: boolean);
     procedure SetDivision(vertical: boolean);
     procedure SetPaneType(toggle: boolean);
     procedure SetStyle;
@@ -1542,7 +1540,7 @@ type
     procedure BrowserScrollEnd(Sender: TObject);
     procedure BrowserEnter(Sender: TObject);
     procedure BrowserExit(Sender: TObject);
-    procedure OpenChottoForm(chottoURL: String); (* ちょっと見るを開く (aiai) *)
+    procedure OpenChottoForm(chottoURL: String);
     procedure MainWndRestore;
     procedure CloseThisTab(refresh: Boolean = True);
     //▼ 板ツリー表示関連
@@ -1557,27 +1555,22 @@ type
     procedure ToggleWritePanelPos(APos: Boolean);
     //▲ 書き込みパネル
     //▼ ステータスバー
-    //procedure StatusBar2Click(Sender: TObject);
-    //procedure StatusBar2RClick(Sender: TObject);
     procedure MyNewsNews(Sender: TObject; News: String);
-    //procedure StatusBar2ReSize(Sender: TObject; Width: Integer);
     //▲ ステータスバー
     procedure BrowserActive(Sender: TObject);
-    //procedure BrowserHide(Sender: TObject);
-    //▼ スレ絞込み
+    //▼ 検索
     procedure InitMigemo;
     procedure ListViewSearchNarrowing;
     procedure SearchSetSearch(index: integer; EditBox: TComboBox;
       Button: TToolButton);
     procedure ListviewSearchEnd(error: Boolean);
-    //▲ スレ絞込み
     procedure ExtractRes(IncludeRef: Boolean);
+    //▲ 検索
     //▼ WriteWaitTimerのイベントハンドラ
     procedure WriteWaitTimerNotify(Sender: TObject; DomainName: String; Remainder: Integer);
     procedure WriteWaitTimerEnd(Sender: TObject);
     //▲ WriteWaitTimerのイベントハンドラ
     {/aiai}
-    procedure CopyResToClipBrd(title, uri, res: boolean; num: integer);
   public
     { Public 宣言 }
     //ListFontColor: TColor; //※[457]
@@ -1586,10 +1579,6 @@ type
     QuickAboneRegist: TQuickAboneRegist; //beginner
 
     {aiai}
-    waittime: integer;
-    hostname: string;
-    strdate: string;
-    thedayofweek : string;
     AutoScroll: TAutoScroll;
     AutoReload: TAutoReload;
 
@@ -1709,9 +1698,7 @@ var
   {aiai}
   writing: Boolean;      //現在書き込み中かどうか
   MyNews: TNews;
-  //NGThreadItems: TStringList;
   MigemoOBJ: TMigemo;
-//  WSHRegExp: Variant;
   NGItems: TNGList;
   ExNGList: TExNGList;
   ThreNGList: TNGStringList;
@@ -1734,14 +1721,6 @@ procedure StatLog(const str: string);
 procedure Log2(i:Integer; const str: String);
 procedure StatLog2(i:Integer; const str: String);
 {//ayaya}
-
-function ShellExecute(hWnd: HWND;
-                      const lpOperation: PChar;
-                      const lpFile: PChar;
-                      const lpParameters: PChar;
-                      const lpDirectory: PChar;
-                      nShowCmd: integer):integer;
-    stdcall; external 'shell32.dll' name 'ShellExecuteA';
 
 function IsPrimaryInstance: Boolean;
 function OnStartup: Boolean;
@@ -1788,12 +1767,6 @@ type TDummyToolButton = class(TToolbutton); //beginner
 
 
 const
-  {aiai}
-  WRITE_BUTTON_CAPTION_A  = '書き込み(Shift+Enter)';
-  WRITE_BUTTON_CAPTION_B  = 'あと';
-  WRITE_BUTTON_CAPTION_C  = '秒';
-  {/aiai}
-
   HTML_HEADER_TEMPLATE  = 'Header.html';
   HTML_BODY_TEMPLATE    = 'Res.html';
   HTML_NEWBODY_TEMPLATE = 'NewRes.html';
@@ -1826,8 +1799,6 @@ const
   CLI_SUFFIX = 'CLI';
   MAX_URL_LEN = 1024;
 
-  LIST_RELOAD_INTERVAL = 15; (* seconds *)
-
   WM_XBUTTONDOWN   = $020B;
   WM_XBUTTONUP     = $020C;
   WM_XBUTTONDBLCLK = $020D;
@@ -1849,11 +1820,6 @@ var
   TabSwitchList: TList;
   TimeZoneBias: integer;
   (*==================*)
-  //NGItems, ExNGListはグローバルにしました by aiai
-  {beginner}
-  //NGItems: array[TNGItemIdent] of TNGStringList;
-  //ExNGList: TExNGList;
-  {/beginner}
   sharedResourceName: string;
   initialURL: TStringList;
   MyWindowHandle: THogeSharedMem;
@@ -2089,7 +2055,6 @@ begin
   begin
     daemon.Log(traceString[i] + str);
     MainWnd.StatusBar.Panels.Items[2].Text := traceString[i] + str;
-    //MainWnd.StatusBar2.Text[2] := traceString[i] + str;  //aiai
   end;
 end;
 {//ayaya}
@@ -2528,8 +2493,8 @@ begin
   LoadCustomImageList;
   CreateToolBar(ToolBarMain, skinPath + 'mtoolbar.txt');
   CreateToolBar(ThreadToolBar, skinPath + 'ttoolbar.txt');
-  //if toolbarResized then
-    ThreadToolBarResize;
+
+  ThreadToolBarResize;
 end;
 
 procedure TMainWnd.SetCustomSkinToBoard;
@@ -2629,12 +2594,6 @@ begin
   {aiai}
   SetupNGStringList(ThreNGList, NG_THREAD_FILE, Ord(High(TNGItemIdent)) + 2);
   SetupBMSearch(ThreNGList, true);
-
-//  if FileExists(Config.BasePath + NG_THREAD_FILE) then
-//    try
-//      NGThreadItems.LoadFromFile(Config.BasePath + NG_THREAD_FILE);
-//    except
-//    end;
   {/aiai}
 
 {/beginner}
@@ -2786,54 +2745,42 @@ begin
   font := TFont.Create;
   if Config.viewDefFontInfo.face <> '' then
   begin
-    //font := TFont.Create;
     Config.SetFont(font, Config.viewDefFontInfo);
     Self.Font.Assign(font);
     StatusBar.Font.Assign(font);
     TabControl.Font.Assign(font);
     ListTabControl.Font.Assign(font);
     TreeTabControl.Font.Assign(font);
-    //font.Free;
   end;
   if Config.viewTreeFontInfo.face <> '' then
   begin
-    //font := TFont.Create;
     Config.SetFont(font, Config.viewTreeFontInfo);
     TreeView.Font.Assign(font);
     FavoriteView.Font.Assign(font);
-    //font.Free;
   end;
   if Config.viewTraceFontInfo.face <> '' then
   begin
-    //font := TFont.Create;
     Config.SetFont(font, Config.viewTraceFontInfo);
     Memo.Font.Assign(font);
-    //font.Free;
   end;
   //▼スレ覧のフォントを独立に設定
   if Config.viewTraceFontInfo.face <> '' then
   begin
-    //font := TFont.Create;
     Config.SetFont(font, Config.viewListFontInfo);
     ListView.Font.Assign(font);
-    //font.Free;
   end;
   //※[457]
   if Config.viewThreadTitleFontInfo.face <> '' then
   begin
-    //font := TFont.Create;
     Config.SetFont(font, Config.viewThreadTitleFontInfo);
     ThreadTitleLabel.Font.Assign(font);
-    //font.Free;
   end;
   {beginner}
   if Config.viewHintFontInfo.face <> '' then
   begin
-    //font := TFont.Create;
     Config.SetFont(font, Config.viewHintFontInfo);
     PopupHint.Font.Assign(font);
     PopupHint.Canvas.Font.Assign(font);
-    //font.Free;
   end else
   begin
     PopupHint.Font := Screen.HintFont;
@@ -2871,18 +2818,19 @@ begin
   NGItems[NG_ITEM_ID  ] := TNGStringList.Create;
   ExNGList := TExNGList.Create;
   ThreNGList := TNGStringList.Create;  //aiai
-//  NGThreadItems := TStringList.Create;  //aiai
 
   SetupNGWords;
 
-  ThreAboneLevel := Config.viewThreAboneLevel; //スレッドあぼ～ん表示レベルの初期設定
+  ThreAboneLevel := Config.viewThreAboneLevel; //スレッドあぼ～ん表示レベルの初期設定 by aiai
   AboneLevel := Config.viewAboneLevel;  //あぼーん表示レベルの初期設定
 
+  {aiai}
   case ThreAboneLevel of
    -1: actThreadAboneTranseparency.Checked := True;
     0: actThreadAboneNormal.Checked := True;
     1: actThreadAboneIgnore.Checked := True;
   end;
+  {/aiai}
   {beginner}
   case AboneLevel of
     -1 :actTransparencyAbone.Checked:=True;
@@ -3017,9 +2965,9 @@ begin
   SearchSetSearch(Config.schDefaultSearch, ListViewSearchEditBox, ListViewSearchToolButton);
   SearchSetSearch(Config.schDefaultSearch, TreeViewSearchEditBox, TreeViewSearchToolButton);
   SearchSetSearch(Config.schDefaultSearch, ThreViewSearchEditBox, ThreViewSearchToolButton);
-  ListViewSearchToolBar.Visible := {Config.schUseSearchBar and} Config.schShowListToolbarOnStartup;
-  ThreViewSearchToolBar.Visible := {Config.schUseSearchBar and} Config.schShowToolbarOnStartup;
-  TreeViewSearchToolBar.Visible := {Config.schUseSearchBar and} Config.schShowTreeToolbarOnStartup;
+  ListViewSearchToolBar.Visible := Config.schShowListToolbarOnStartup;
+  ThreViewSearchToolBar.Visible := Config.schShowToolbarOnStartup;
+  TreeViewSearchToolBar.Visible := Config.schShowTreeToolbarOnStartup;
 //  ListViewSearchEditBox.Items := Config.grepSearchList;
 //  ThreViewSearchEditBox.Items := Config.grepSearchList;
 //  TreeViewSearchEditBox.Items := Config.grepSearchList;
@@ -3203,8 +3151,6 @@ begin
   ThreNGList.SaveToFile(Config.BasePath + NG_THREAD_FILE);
   ThreNGList.FreeItems;
   ThreNGList.Free;
-  //NGThreadItems.SaveToFile(Config.BasePath + NG_THREAD_FILE);
-//  NGThreadItems.Free;
   {/aiai}
 
   {ゐ}
@@ -3232,22 +3178,19 @@ begin
   subjectReadyEvent.Free;
   TabSwitchList.Free;
 
+  {aiai}
   if Assigned(AutoReload) then
     AutoReload.Free;
   if Assigned(AutoScroll) then
     AutoScroll.Free;
 
-  (* DataBase (aiai) *)
+  (* DataBase *)
   if Config.ojvQuickMerge then
-  begin
     Finaldll;
-  end;
   (* //DataBase *)
   if Config.schEnableMigemo then
-  begin
     MigemoOBJ.Free;
-//    WSHRegExp := Unassigned;
-  end;
+  {/aiai}
 end;
 
 
@@ -3289,17 +3232,11 @@ begin
   //※[JS] 通常時のウィンドウ位置とサイズを取得
   Placement.length := SizeOf(Placement);
   R := @Placement.rcNormalPosition;
-  //▼Nightly Fri Sep 17 12:21:59 2004 UTC by nbk184
-  {if IsZoomed(Self.Handle) then
-    GetWindowPlacement(Self.Handle, @Placement)
-  else
-    GetWindowRect(Self.Handle, R^);}
   GetWindowPlacement(Self.Handle, @Placement);
-  //▲Nightly Fri Sep 17 12:21:59 2004 UTC by nbk184
 
   iniFile := TMemIniFile.Create(Config.IniPath);
+
   (* MainWindow *)
-  (* マルチディスプレーでウィンドウの位置が正しく保存されないのを修正 (aiai) *)
   if Monitor.Primary then begin
     iniFile.WriteInteger(INI_WIN_SECT, 'Top',
             R^.Top + Monitor.WorkareaRect.Top);
@@ -3312,16 +3249,15 @@ begin
   iniFile.WriteInteger(INI_WIN_SECT, 'Width', R^.Right - R^.Left);
   iniFile.WriteInteger(INI_WIN_SECT, 'Height',R^.Bottom - R^.Top);
   iniFile.WriteInteger(INI_WIN_SECT, 'WindowState', Ord(WindowState)); //※[JS]
+
   (* LogArea *)
   iniFile.WriteInteger(INI_WIN_SECT, 'LogTop', LogPanel.Top);
   iniFile.WriteInteger(INI_WIN_SECT, 'LogHeight', LogPanel.Height);
+
   (* TreeView / board list *)
   {aiai}
   iniFile.WriteInteger(INI_WIN_SECT, 'TreeTab', TreeTabControl.TabIndex);
-  //iniFile.WriteBool(INI_WIN_SECT, 'TreeAutoHide', TreePanelAutoHide);
-  //iniFile.WriteBool(INI_WIN_SECT, 'savedTreePanelVisible', savedTreePanelVisible);
   iniFile.WriteBool(INI_STL_SECT, 'TreeVisible', TreePanel.Visible);
-  //iniFile.WriteBool(INI_WIN_SECT, 'TreeTabPanelVisible', LeftPanel.Visible);
   iniFile.WriteBool(INI_WIN_SECT, 'TreePanelCanMove', TreePanelCanMove);
   if TreePanelCanMove then
   begin
@@ -3338,6 +3274,7 @@ begin
     iniFile.WriteInteger(INI_WIN_SECT, 'TreePanelHoverBottom', TreePanelHoverRect.Bottom);
   end;
   {/aiai}
+
   (* ListView / thread list *)
   if Config.oprToggleRView then
   begin
@@ -3356,7 +3293,7 @@ begin
     iniFile.WriteInteger(INI_WIN_SECT, 'WebHeight', WebPanel.Height);
   end;
 
-  (* WritePanel *)
+  (* WritePanel (aiai) *)
   iniFile.WriteBool(INI_WIN_SECT, 'WriteMemoVisible', WritePanel.Visible);
   iniFile.WriteBool(INI_WIN_SECT, 'WriteMemoPos', WritePanelPos);
   iniFile.WriteBool(INI_WIN_SECT, 'WriteMemoCanMove', WritePanelCanMove);
@@ -3400,6 +3337,7 @@ begin
   iniFile.WriteBool(INI_STL_SECT, 'LinkBarVisible',    Config.stlLinkBarVisible);
   iniFile.WriteBool(INI_STL_SECT, 'AddressBarVisible', Config.stlAddressBarVisible);
   iniFile.WriteBool(INI_STL_SECT, 'MenuVisible',       assigned(MainWnd.Menu));
+
   (* Write *)
   iniFile.WriteBool(INI_WRT_SECT, 'RecordNameMail', Config.wrtRecordNameMail); //521
   iniFile.WriteBool(INI_WRT_SECT, 'WriteFormStayOnTop', Config.wrtFormStayOnTop); //521
@@ -3408,14 +3346,15 @@ begin
   iniFile.WriteBool(INI_WRT_SECT, 'NameMailWarning', Config.wrtNameMailWarning); //aiai
   iniFile.WriteBool(INI_WRT_SECT, 'MemoImeMode', Config.optWriteMemoImeMode); //aiai
   iniFile.WriteBool(INI_WRT_SECT, 'BeLogin', Config.wrtBeLogin); //aiai
+
   (* Menu *)
   iniFile.WriteBool(INI_NET_SECT, 'Online', Config.netOnline);
-  {aiai}
-  (* Search *)
+
+  (* Search (aiai) *)
   iniFile.WriteBool(INI_SCH_SECT, 'MultiWord', Config.schMultiWord);
   iniFile.WriteBool(INI_SCH_SECT, 'Incremental', Config.schIncremental);
   iniFile.WriteBool(INI_SCH_SECT, 'IgnoreFullHalf', Config.schIgnoreFullHalf);
-  {/aiai}
+
   //LoginはaccAutoAuth,account.cfg管理なのでとりあえずパス
   (*  *)
   iniFile.UpdateFile;
@@ -3462,27 +3401,6 @@ var
       Main.initialURL.Free;
       exit;
     end;
-    {case index of
-    0:
-      begin
-        if Config.optShowCacheOnBoot and
-           (TreeView.Selected <> nil) and
-           (TObject(TreeView.Selected.Data) is TBoard) then
-          TreeViewSelected(TreeView, TreeView.Selected, gotLOCAL);
-      end;
-    1:
-      begin
-        if Config.optShowCacheOnBoot and
-           (FavoriteView.Selected <> nil) and
-           (TObject(FavoriteView.Selected.Data) is TFavorite) then
-        begin
-          with TFavorite(FavoriteView.Selected.Data) do
-          begin
-            NavigateIntoView(host, bbs, datName, -1, false, gtOther);
-          end;
-        end;
-      end;
-    end;}
   end;
 
 var
@@ -3490,13 +3408,14 @@ var
   wh: TWidthHeight;
 begin
   iniFile := TMemIniFile.Create(Config.IniPath);
+
   (* MainWindow *)
   SetBounds(iniFile.ReadInteger(INI_WIN_SECT, 'Left',  Left),
             iniFile.ReadInteger(INI_WIN_SECT, 'Top',   Top),
             iniFile.ReadInteger(INI_WIN_SECT, 'Width', Width),
             iniFile.ReadInteger(INI_WIN_SECT, 'Height',Height));
   WindowState := TWindowState(iniFile.ReadInteger(INI_WIN_SECT,
-                                    'WindowState', Ord(WindowState))); //※[JS]
+    'WindowState', Ord(WindowState))); //※[JS]
 
   (* LogArea *)
   h := iniFile.ReadInteger(INI_WIN_SECT, 'LogHeight', LogPanel.Height);
@@ -3533,7 +3452,7 @@ begin
     savedListWidth := iniFile.ReadInteger(INI_WIN_SECT, 'ListWidth', Panel2.Width div 2);
   end;
 
-  (* Memo *)
+  (* Memo (aiai) *)
   WritePanel.Height := iniFile.ReadInteger(INI_WIN_SECT, 'WriteMemoHeight', WritePanel.Height);
   WritePanelFixedHeight := WritePanel.Height;
   WritePanel.Visible := iniFile.ReadBool(INI_WIN_SECT, 'WriteMemoVisible', True);
@@ -3542,19 +3461,15 @@ begin
   wh.Height := iniFile.ReadInteger(INI_WIN_SECT, 'WriteMemoAAHeight', 50);
   WritePanelControl.SaveAAListBoundsRect(wh);
   WritePanelTitle.Visible := iniFile.ReadBool(INI_WIN_SECT, 'WriteMemoTopBar', True);
-
   WritePanelCanMove := iniFile.ReadBool(INI_WIN_SECT, 'WriteMemoCanMove', True);
-
   WritePanelHoverRect.Left := iniFile.ReadInteger(INI_WIN_SECT, 'WriteMemoHoverLeft', 10);
   WritePanelHoverRect.Top := iniFile.ReadInteger(INI_WIN_SECT, 'WriteMemoHoverTop', 10);
   WritePanelHoverRect.Right := iniFile.ReadInteger(INI_WIN_SECT, 'WriteMemoHoverRight', 200);
   WritePanelHoverRect.Bottom := iniFile.ReadInteger(INI_WIN_SECT, 'WriteMemoHoverBottom', 150);
-
   ToggleWritePanelPos(WritePanelPos);
   if WritePanelCanMove then
-    ToggleWritePanelCanMove(WritePanelCanMove); 
+    ToggleWritePanelCanMove(WritePanelCanMove);
   ToggleWritePanelVisible(WritePanel.Visible);
-
   MenuViewWriteMemoToggleVisible.Checked := WritePanel.Visible;
 
   (* Columns *)
@@ -3571,8 +3486,10 @@ begin
      CoolBar.Bands[i].Break := iniFile.ReadBool(INI_WIN_SECT, 'Band' + IntToStr(i) + 'Break', CoolBar.Bands[i].Break);
      CoolBar.Bands[i].Width := iniFile.ReadInteger(INI_WIN_SECT, 'Band' + IntToStr(i) + 'Width', CoolBar.Bands[i].Width);
    end;
+   {aiai}
    CoolBar.Visible := Config.stlLinkBarVisible or Config.stlToolBarVisible
      or Config.stlAddressBarVisible;
+   {/aiai}
 
   //CoolBar.Bands.EndUpdate;
 
@@ -3627,7 +3544,7 @@ end;
 procedure TMainWnd.OpenConfigDlg(PanelSpec: Integer = -1);
 var
   rc: integer;
-  oldSkinPath: string;
+  //oldSkinPath: string;
   i: TNGItemIdent; //beginner
 begin
   if UIConfig = nil then
@@ -3638,7 +3555,7 @@ begin
   ExNGList.SaveToFile(Config.BasePath + NG_EX_FILE);
   {/beginner}
   Config.tmpChanged := false;
-  oldSkinPath := Config.SkinPath;
+  //oldSkinPath := Config.SkinPath;
   if 0 < PanelSpec then
     UIConfig.PageControl.TabIndex := PanelSpec;
   rc := UIConfig.ShowModal;
@@ -3687,11 +3604,6 @@ begin
   //Memo.TabStop := Config.oprTabStopOnTracePane;
 
   ListViewSelectItem(ListView, ListView.Selected, ListView.Selected <> nil);
-//  if (Config.optEnableBoardMenu and (MenuBoard.IndexOf(MenuBoardSep) <= 0)) or
-//  if (Config.optEnableBoardMenu and (MenuBoardList.IndexOf(MenuBoardSep) <= 0)) or
-//     (not Config.optEnableBoardMenu) then
-//    UpdateBoardMenu;
-  (* aiai 板覧メニューへの板一覧の展開は板一覧を表示する時にする *)
   UpdateFavoritesMenu;
 
   //SetMouseGesture;
@@ -3756,13 +3668,7 @@ end;
 procedure TMainWnd.UpdateBoardMenu;
   procedure RemoveOldItem;
   begin
-    //while 2 < MenuBoard.Count do
-    //begin
-    //  if MenuBoard.Items[0] = MenuBoardSep then
-    //    break;
-    //  MenuBoard.Items[0].Free;
-    //end;
-    while 0 < MenuBoardList.Count do
+    while 0 < MenuBoardList.Items.Count do
     begin
       if MenuBoardList.Items[0] = MenuBoardSep then
         break;
