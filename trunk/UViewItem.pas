@@ -349,6 +349,7 @@ type
     procedure SetItems(index: integer; viewItem: TViewItem);
   public
     wallPaperList: TPictureViewList;
+    PictViewList: TPictureViewList;
     constructor Create;
     destructor Destroy; override;
     procedure Delete(index: integer);
@@ -1476,10 +1477,12 @@ var
 begin
   Flush;
   Image := nil;
-  index := PictViewList.IndexOf(pass);
+  if not Assigned(ViewList.PictViewList) then
+    viewList.PictViewList := TPictureViewList.Create;
+  index := ViewList.PictViewList.IndexOf(pass);
   if index <> -1 then
   begin
-    Image := TGraphic(PictViewList.Objects[index]);
+    Image := TGraphic(ViewList.PictViewList.Objects[index]);
   end else
   begin
     Ext := ExtractFileExt(Config.SkinPath + pass);
@@ -1502,7 +1505,7 @@ begin
             FreeAndNil(Image);
           end;
         end;  //try
-        PictViewList.AddObject(pass, Image);
+        ViewList.PictViewList.AddObject(pass, Image);
 
       end else if SameText(Ext, '.png') then begin
 
@@ -1515,7 +1518,7 @@ begin
             FreeAndNil(Image);
           end;
         end;  //try
-        PictViewList.AddObject(pass, Image);
+        ViewList.PictViewList.AddObject(pass, Image);
 
       end else if SameText(Ext, '.gif') then begin
 
@@ -1529,7 +1532,7 @@ begin
             FreeAndNil(Image);
           end;
         end;  //try
-        PictViewList.AddObject(pass, Image);
+        ViewList.PictViewList.AddObject(pass, Image);
 
       end else if SameText(Ext, '.bmp') then begin
 
@@ -1542,7 +1545,7 @@ begin
             FreeAndNil(Image);
           end;
         end;  //try
-        PictViewList.AddObject(pass, Image);
+        ViewList.PictViewList.AddObject(pass, Image);
       end else
         exit;
     end else
@@ -4222,6 +4225,7 @@ begin
   synchro := THogeMutex.Create;
   garbageList := TList.Create;
   wallPaperList := nil;
+  PictViewList := nil;
 end;
 
 (* è¡ñ≈ *)
@@ -4232,6 +4236,8 @@ begin
   Clear;
   if Assigned(wallPaperList) then
     wallPaperList.Free;
+  if Assigned(PictViewList) then
+    PictViewList.Free;
   for i := 0 to garbageList.Count -1 do
     TViewItem(garbageList.Items[i]).Free;
   garbageList.Free;

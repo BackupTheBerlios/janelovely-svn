@@ -34,11 +34,10 @@ type
 
 
 
-  TWritePanelControl = class(TComponent)
+  TWritePanelControl = class(TObject)
   private
     PreView: THogeTextView;
     PreViewItem: TFlexViewItem;
-    FParent2: TWinControl;
     BBSLineNumber: Integer;
     BBSMessageCount: Integer;
     BBSSubjectCount: Integer;
@@ -84,6 +83,8 @@ type
     PageControl: TPageControl;
     WStatusBar: TStatusBar;
     ButtonWrite: TButton;
+    constructor Create;
+    destructor Destroy; override;
     procedure writeActShowAAListExecute(Sender: TObject);
     procedure ChangeMemoIme;
     procedure SaveMemoIme;
@@ -105,7 +106,6 @@ type
     procedure WriteWaitEnd;
 
     property board: TBoard read FBoard write SetBoard;
-    property Parent2: TWinControl read FParent2;
   end;
 
 //-------------------------- Util Func --------------------------------------//
@@ -130,6 +130,57 @@ end;
 
 { TWritePanelControl }
 
+constructor TWritePanelControl.Create;
+begin
+  Preview := THogeTextView.Create(MainWnd);
+  with PreView do
+  begin
+    Parent := MainWnd.TabSheetWritePreview;
+    Align := alClient;
+    LeftMargin := 8;
+    TopMargin := 4;
+    RightMargin := 8;
+    ExternalLeading := 1;
+    Font.Name := '‚l‚r ‚oƒSƒVƒbƒN';
+    Color := RGB($ef, $ef, $ef);
+    TextAttrib[1].style := [fsBold];
+    TextAttrib[2].color := clBlue;
+    TextAttrib[2].style := [fsUnderline];
+    TextAttrib[3].color := clBlue;
+    TextAttrib[3].style := [fsBold, fsUnderline];
+    TextAttrib[4].color := clGreen;
+    TextAttrib[5].color := clGreen;
+    TextAttrib[5].style := [fsBold];
+    OnMouseMove :=  MainWnd.OnBrowserMouseMove;
+    OnMouseDown :=  MainWnd.OnBrowserMouseDown;
+    OnMouseHover := MainWnd.OnBrowserMouseHover;
+  end;
+
+  PreViewItem := TFlexViewItem.Create;
+  PreViewItem.browser := PreView;
+  PreViewItem.RootControl := MainWnd.PageControlWrite;
+  PreViewItem.PopUpViewList := popupviewList;
+
+  AAList := TRSListBox.Create(MainWnd);
+  With AAList do
+  begin
+    Parent := MainWnd;
+    Hide;
+    Align := alCustom;
+    Constraints.MinWidth := 100;
+    Constraints.MinHeight := 100;
+    OnMouseUp := AAListMouseUp;
+    OnExit := AAListExit;
+    OnKeyDown := AAListKeyDown;
+  end;
+end;
+
+destructor TWritePanelControl.Destroy;
+begin
+  PreViewItem.Free;
+
+  inherited Destroy;
+end;
 
 procedure TWritePanelControl.MakePreView;
 begin
@@ -839,8 +890,43 @@ begin
   ButtonWrite.Caption := WRITE_BUTTON_CAPTION_B + IntToStr(newWaitTime) + WRITE_BUTTON_CAPTION_C;
 end;
 
+(* AA“ü—ÍŽx‰‡ *)
+procedure TWritePanelControl.AAListMouseUp(Sender: TObject; Button: TMouseButton;
+                                   Shift: TShiftState; X, Y: Integer);
+begin
+  if Button = mbLeft then
+  begin
+    if  (AAList.ItemIndex > -1) then
+    begin
+      PasteAA;
+    end;
+    AAList.Hide;
+    Memo.SetFocus;
+  end;
+end;
 
+procedure TWritePanelControl.AAListKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  if (Key = VK_ESCAPE) then
+  begin
+    AAList.Hide;
+    MainWnd.MemoWriteMain.SetFocus;
+  end else
+  if (Key = VK_RETURN) then
+  begin
+    if (AAList.ItemIndex > -2) then
+    begin
+      PasteAA;
+    end;
+    AAList.Hide;
+    Memo.SetFocus;
+  end;
+end;
 
+procedure TWritePanelControl.AAListExit(Sender: TObject);
+begin
+  AAList.Hide;
+end;
 
 //------------------- public Procedure --------------------------------------//
 
@@ -859,51 +945,7 @@ begin
     ToolButtonWriteBelogin.Down         := Config.wrtBeLogin;
   end;
 
-  ChangeWriteMemoColor;
-  ChangeWriteMemoFont;
-
-  Preview := THogeTextView.Create(MainWnd);
-  with PreView do
-  begin
-    Parent := MainWnd.TabSheetWritePreview;
-    Align := alClient;
-    LeftMargin := 8;
-    TopMargin := 4;
-    RightMargin := 8;
-    ExternalLeading := 1;
-    Font.Name := '‚l‚r ‚oƒSƒVƒbƒN';
-    Color := RGB($ef, $ef, $ef);
-    TextAttrib[1].style := [fsBold];
-    TextAttrib[2].color := clBlue;
-    TextAttrib[2].style := [fsUnderline];
-    TextAttrib[3].color := clBlue;
-    TextAttrib[3].style := [fsBold, fsUnderline];
-    TextAttrib[4].color := clGreen;
-    TextAttrib[5].color := clGreen;
-    TextAttrib[5].style := [fsBold];
-    OnMouseMove :=  MainWnd.OnBrowserMouseMove;
-    OnMouseDown :=  MainWnd.OnBrowserMouseDown;
-    OnMouseHover := MainWnd.OnBrowserMouseHover;
-  end;
-  ChangePreViewStyle;
-
-  PreViewItem := TFlexViewItem.Create;
-  PreViewItem.browser := PreView;
-  PreViewItem.RootControl := MainWnd.PageControlWrite;
-  PreViewItem.PopUpViewList := popupviewList;
-
-  AAList := TRSListBox.Create(MainWnd);
-  With AAList do
-  begin
-    Parent := MainWnd;
-    Hide;
-    Align := alCustom;
-    Constraints.MinWidth := 100;
-    Constraints.MinHeight := 100;
-    OnMouseUp := AAListMouseUp;
-    OnExit := AAListExit;
-    OnKeyDown := AAListKeyDown;
-  end;
+  ChangeWriteMemoStyle
 end;
 
 procedure TWritePanelControl.SetThread(AThread: TThreadItem);
@@ -1031,21 +1073,6 @@ begin
     MakePreView;
 end;
 
-(* AA“ü—ÍŽx‰‡ *)
-procedure TWritePanelControl.AAListMouseUp(Sender: TObject; Button: TMouseButton;
-                                   Shift: TShiftState; X, Y: Integer);
-begin
-  if Button = mbLeft then
-  begin
-    if  (AAList.ItemIndex > -1) then
-    begin
-      PasteAA;
-    end;
-    AAList.Hide;
-    Memo.SetFocus;
-  end;
-end;
-
 procedure TWritePanelControl.writeActShowAAListExecute(Sender: TObject);
 var
   point: TPoint;
@@ -1068,29 +1095,6 @@ begin
     AAList.Show;
     AAList.SetFocus;
   end;
-end;
-
-procedure TWritePanelControl.AAListKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-begin
-  if (Key = VK_ESCAPE) then
-  begin
-    AAList.Hide;
-    MainWnd.MemoWriteMain.SetFocus;
-  end else
-  if (Key = VK_RETURN) then
-  begin
-    if (AAList.ItemIndex > -2) then
-    begin
-      PasteAA;
-    end;
-    AAList.Hide;
-    Memo.SetFocus;
-  end;
-end;
-
-procedure TWritePanelControl.AAListExit(Sender: TObject);
-begin
-  AAList.Hide;
 end;
 
 procedure TWritePanelControl.ChangeWriteMemoColor;

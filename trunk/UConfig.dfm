@@ -2537,7 +2537,6 @@ object UIConfig: TUIConfig
           Height = 22
           Alignment = taCenter
           AutoSize = False
-          Caption = 'LabelList'
           Color = clBtnFace
           ParentColor = False
           Layout = tlCenter

@@ -1750,8 +1750,6 @@ var
   writing: Boolean;      //現在書き込み中かどうか
   MyNews: TNews;
   //NGThreadItems: TStringList;
-  PictViewList: TPictureViewList;
-
   MigemoOBJ: TMigemo;
 //  WSHRegExp: Variant;
   NGItems: TNGList;
@@ -3060,7 +3058,7 @@ begin
   WriteWaitTimer.OnEnd := WriteWaitTimerEnd;
 
   (* メモ欄のセットアップ *)
-  WritePanelControl := TWritePanelControl.Create(Self);
+  WritePanelControl := TWritePanelControl.Create;
   With WritePanelControl do
   begin
     EditNameBox := ComboboxWriteName;
@@ -3085,8 +3083,6 @@ begin
   {aiai}
   MenuOptUseNews.Checked := Config.tstUseNews;
   CreateNewsBar;
-  PictViewList := TPictureViewList.Create;
-
   {/aiai}
 
 //  Application.OnMessage := Self.OnMessage;
@@ -3181,6 +3177,7 @@ begin
   UILock := True;
   {aiai}
   MyNews.Free;
+  WritePanelControl.Free;
   WriteWaitTimer.Free;
   {/aiai}
 
@@ -3261,9 +3258,6 @@ begin
   HogeMutex.Free;
   subjectReadyEvent.Free;
   TabSwitchList.Free;
-
-  if Assigned(PictViewList) then
-    FreeAndNil(PictViewList);
 
   if Assigned(AutoReload) then
     AutoReload.Free;
@@ -16362,8 +16356,8 @@ var
   board: TBoard;
   node: TTreeNode;
 begin
-  if Config.oprGestureBrdClick = gotNOP then
-    exit;
+//  if Config.oprGestureBrdClick = gotNOP then
+//    exit;
 
   if PopupTreeClose.Visible or (Sender = MenuListOpenNewResThreads) then
     board := TBoard(ListTabControl.Tabs.Objects[tabRightClickedIndex])
@@ -16405,8 +16399,8 @@ var
   board: TBoard;
   node: TTreeNode;
 begin
-  if Config.oprGestureBrdClick = gotNOP then
-    exit;
+//  if Config.oprGestureBrdClick = gotNOP then
+//    exit;
 
   if PopupTreeClose.Visible or (Sender = MenuListOpenNewResFavorites) then
     board := TBoard(ListTabControl.Tabs.Objects[tabRightClickedIndex])
@@ -16449,8 +16443,8 @@ var
   board: TBoard;
   node: TTreeNode;
 begin
-  if Config.oprGestureBrdClick = gotNOP then
-    exit;
+//  if Config.oprGestureBrdClick = gotNOP then
+//    exit;
 
   if PopupTreeClose.Visible or (Sender = MenuListOpenFavorites) then
     board := TBoard(ListTabControl.Tabs.Objects[tabRightClickedIndex])

@@ -2094,10 +2094,10 @@ begin
     font := TFont.Create;
     Config.SetFont(font, Config.viewDefFontInfo);
     MainWnd.Font.Assign(font);
-    //MainWnd.StatusBar.Font.Assign(font); //aiai
+    MainWnd.StatusBar.Font.Assign(font);
     MainWnd.TabControl.Font.Assign(font);
     MainWnd.ListTabControl.Font.Assign(font);
-    //MainWnd.TreeTabControl.Font.Assign(font); //aiai
+    MainWnd.TreeTabControl.Font.Assign(font);
     self.Font.Assign(font);
     font.Free;
   end;
@@ -2404,6 +2404,7 @@ begin
     self.LabelHintFix.Font.Style := [fsUnderLine];
     {/beginner}
     self.LabelWriteMemo.Color := Config.wrtWritePanelColor; //aiai
+    self.LabelWriteMemo.Font := MainWnd.MemoWriteMain.Font; //aiai
     if Config.viewWriteFontInfo.face <> '' then
     begin
       font := TFont.Create;
