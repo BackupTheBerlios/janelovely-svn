@@ -286,6 +286,7 @@ type
     {aiai}
     tstUseNews: Boolean;
     tstNewsInterval: integer;
+    tstNewsBarSize: Integer;
 
     viewLinkAbone: Boolean;
     viewReadIfScrollBottom: Boolean;
@@ -798,6 +799,7 @@ begin
   {aiai}
   tstUseNews := false;
   tstNewsInterval := 10;
+  tstNewsBarSize := 500;
 
   optWriteMemoImeMode := true;
   optShowOrHideOld := true;
@@ -1455,6 +1457,7 @@ begin
 
   tstUseNews := ini.ReadBool(INI_TEST_SECT, 'UseNews', tstUseNews);
   tstNewsInterval := ini.ReadInteger(INI_TEST_SECT, 'NewsInterval', tstNewsInterval);
+  tstNewsBarSize :=  ini.ReadInteger(INI_TEST_SECT, 'NewsBarSize', tstNewsBarSize);
   optWriteMemoImeMode := ini.ReadBool(INI_WRT_SECT, 'MemoImeMode', optWriteMemoImeMode);
   //optShowOrHideOld := ini.ReadBool(INI_OPT_SECT, 'ShowOrHideOld', optShowOrHideOld);
   optHideInTaskTray := ini.ReadBool(INI_OPT_SECT, 'HideInTaskTray', optHideInTaskTray);
@@ -1953,6 +1956,7 @@ begin
 
   ini.WriteBool(INI_TEST_SECT, 'UseNews', tstUseNews);
   ini.WriteInteger(INI_TEST_SECT, 'NewsInterval', tstNewsInterval);
+  ini.WriteInteger(INI_TEST_SECT, 'NewsBarSize', tstNewsBarSize);
 
   ini.WriteBool(INI_VIEW_SECT, 'ReadIfScrollBottom', viewReadIfScrollBottom);
 

@@ -1777,6 +1777,10 @@ object MainWnd: TMainWnd
           Caption = #12491#12517#12540#12473#20999#26367#38291#38548#12398#35373#23450
           OnClick = MenuOptSetNewsIntervalClick
         end
+        object MenuOptSetNewsSize: TMenuItem
+          Caption = #12491#12517#12540#12473#12496#12540#12398#24133#12398#35373#23450
+          OnClick = MenuOptSetNewsSizeClick
+        end
       end
       object MenuClearHistory: TMenuItem
         Caption = #23653#27508#28040#21435

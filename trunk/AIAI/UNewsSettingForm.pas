@@ -7,6 +7,8 @@ uses
   Dialogs, StdCtrls, Spin;
 
 type
+  TSettingType = (TInterval, TBarSize);
+
   TNewsSettingForm = class(TForm)
     ButtonOK: TButton;
     ButtonCancel: TButton;
@@ -18,6 +20,7 @@ type
     { Private êÈåæ }
   public
     { Public êÈåæ }
+    Flag: TSettingType;
   end;
 
 implementation
@@ -30,6 +33,7 @@ uses
 procedure TNewsSettingForm.FormCreate(Sender: TObject);
 begin
   SpinEditNewsInterval.Value := Mynews.getChangeNewsTimerInterval div 1000;
+  Flag := TInterval;
 end;
 
 procedure TNewsSettingForm.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -37,8 +41,12 @@ begin
   inherited;
   if modalResult = mrOK then
   begin
-    Mynews.setChangeNewsTimerInterval(SpinEditNewsInterval.Value * 1000);
-    Config.tstNewsInterval := SpinEditNewsInterval.Value;
+    if Flag = TInterval then
+    begin
+      Mynews.setChangeNewsTimerInterval(SpinEditNewsInterval.Value * 1000);
+      Config.tstNewsInterval := SpinEditNewsInterval.Value;
+    end else
+      Config.tstNewsBarSize := SpinEditNewsInterval.Value;
     Config.Modified := True;
   end;
 end;

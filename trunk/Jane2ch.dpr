@@ -93,7 +93,7 @@ uses
   {$ENDIF}
   ClipBrdSub in 'AIAI\ClipBrdSub.pas',
   JLControls in 'AIAI\JLControls.pas',
-  JLStatusBar in 'AIAI\JLStatusBar.pas';
+  JLCommCtrl in 'AIAI\JLCommCtrl.pas';
 
 {$R *.res}
 

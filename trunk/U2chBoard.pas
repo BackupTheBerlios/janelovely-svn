@@ -47,7 +47,6 @@ type
     datList: THashedStringList; //aiai subject.txtにあるスレのdatのリスト
                                 //     TBoard.FindFirstでTThreadの検索に使う
     //ngthreadlist: TStringList;  //aiai NGThread
-    threadABoneList: THashedStringList; //スレッドあぼ～ん
     function GetItems(index: integer): TThreadItem;
     procedure SetItems(index: integer; value: TThreadItem);
     procedure MergeCache;
@@ -115,7 +114,7 @@ type
     procedure Activate;
     procedure ResetListState; virtual; (* 仮想メソッドにする (aiai) *)
     //改造▽ 追加 (スレッドあぼ～ん)
-    function ThreadAbone(const thread: TThreadItem): boolean; (* スレッドあぼ～ん *)
+    function ThreadAbone(ABoneList: TList): boolean; (* スレッドあぼ～ん *)
     //改造△ 追加 (スレッドあぼ～ん)
     (* Drag and Drop でログ追加 (aiai) *)
     procedure MergeCacheFrequency(fnamelist: TStringList);
@@ -273,7 +272,6 @@ begin
   lastAccess := 0;
   bbstype := bbsNone;
   //ngthreadlist := TStringList.Create;  //aiai NGThread
-  threadABoneList := THashedStringList.Create; //スレッドあぼ～ん1
   SettingTxt := TStringList.Create;
   (* DataBase (aiai) *)
   if Config.ojvQuickMerge then
@@ -289,7 +287,6 @@ begin
   Clear;
   FreeAndNil(SettingTxt);
   //FreeAndNil(ngthreadlist);  //aiai NGThread
-  FreeAndNil(threadABoneList);  //スレッドあぼ～ん
   (* DataBase (aiai) *)
   if Config.ojvQuickMerge then
     FreeAndNil(IdxDataBase);
@@ -391,6 +388,7 @@ procedure TBoard.Analyze((*const*) txt: string; const lstModified: string; refre
 var
   refered: TStringList;  //aiai GetReferedThreadItemの効率化
   //改造▽ 追加 (スレッドあぼ～ん)
+  threadABoneList: THashedStringList;
   threadABoneCount: integer;  //スレッドあぼ～んカウンタ
   threadABoneNext: THashedStringList; //ヒットしたスレを加える
   //改造△ 追加 (スレッドあぼ～ん)
@@ -620,7 +618,15 @@ begin
   end;
 
   {aiai}
+  //あぼ～んリスト
+  threadABoneList := THashedStringList.Create;
+
+  //threadABoneListのスレッドのうち、subject.txtにあったスレッドをいれておく
   threadABoneNext := THashedStringList.Create;
+
+  if FileExists(GetLogDir + SUBJECT_ABN) then
+    threadABoneList.LoadFromFile(GetLogDir + SUBJECT_ABN);
+
   if refresh then
     datList := THashedStringList.Create;
   //if FileExists(GetLogDir + '\NGThread.txt') then  //NGThread
@@ -639,8 +645,13 @@ begin
 
   {aiai}
   //ngthreadlist.Clear;  //NGThread
-  threadABoneList.Assign(threadABoneNext);
+  {aiai} //スレッドあぼ～ん
+  if threadABoneNext.Count > 0 then
+    threadABoneNext.SaveToFile(GetLogDir + SUBJECT_ABN)
+  else
+    SysUtils.DeleteFile(GetLogDir + SUBJECT_ABN);
   FreeAndNil(threadABoneNext);
+  FreeAndNil(threadABoneList);
   {/aiai}
 
   for i := 0 to refered.Count -1 do
@@ -1163,10 +1174,7 @@ begin
 
   LoadIndex;
   
-  {aiai} //スレッドあぼ～ん
-  if FileExists(GetLogDir + SUBJECT_ABN) then
-    threadABoneList.LoadFromFile(GetLogDir + SUBJECT_ABN);
-  LoadSettingTXT;
+  //LoadSettingTXT;
   (* DataBase *)
   if Config.ojvQuickMerge then
     LoadDataBase
@@ -1222,12 +1230,6 @@ begin
     datModified := false;
   end;
   SaveIndex;
-  {aiai} //スレッドあぼ～ん
-  if threadABoneList.Count > 0 then
-    threadABoneList.SaveToFile(GetLogDir + SUBJECT_ABN)
-  else
-    SysUtils.DeleteFile(GetLogDir + SUBJECT_ABN);
-  {/aiai}
 end;
 
 (*  *)
@@ -1349,24 +1351,74 @@ end;
 
 //改造▽ 追加 (スレッドあぼ～ん)
 (* スレッドあぼ～ん *)
-function TBoard.ThreadAbone(const thread: TThreadItem): boolean;
+function TBoard.ThreadAbone(ABoneList: TList): boolean;
 var
-  intIndex: integer;
+  i, intIndex: integer;
+  threadABoneList: TStringList;
+  thread: TThreadItem;
+
+  procedure FindIndex;
+  var
+    j: Integer;
+    ti: TThreadItem;
+  begin
+    for j := 0 to Count - 1 do
+    begin
+      ti := Items[j];
+      if (ti <> nil) and (thread = ti) then
+      begin
+        intIndex := j;
+        exit;
+      end;
+    end;
+    intIndex := -1;
+  end;
+
+
 begin
   result := False;
-  for intIndex := 0 to (Count -1) do
+
+  //subject.abnをLoad
+  threadABoneList := TStringList.Create;
+
+  if FileExists(GetLogDir + SUBJECT_ABN) then
+    threadABoneList.LoadFromFile(GetLogDir + SUBJECT_ABN);
+
+  for i := 0 to ABoneList.Count - 1 do
   begin
-    if thread = Items[intIndex] then
-    begin
-      if threadABoneList.IndexOfName(thread.datName) >= 0 then  //すでに登録されている
-        exit;
-      threadABoneList.Add(thread.datName + '=' + thread.title);
-      thread.Free;
-      Self.Delete(intIndex);
-      Result := True;
-      exit;
-    end;
+
+    thread := TThreadItem(ABoneList.Items[i]);
+
+    //このスレッドのインデックスを探す
+    FindIndex;
+
+    if intIndex = -1 then
+      Continue;
+
+    //すでに登録されているかどうか
+    //if threadABoneList.IndexOfName(thread.datName) >= 0 then
+    //  Continue;
+
+    //あぼ～んリストに加える
+    threadABoneList.Add(thread.datName + '=' + thread.title);
+
+    //スレッドを削除
+    thread.Free;
+
+    //板から削除
+    Self.Delete(intIndex);
+
+    Result := True;
+    
   end;
+
+  //subject.abnをsave、あぼ～んリストが空ならsubject.abnを削除
+  if threadABoneList.Count > 0 then
+    threadABoneList.SaveToFile(GetLogDir + SUBJECT_ABN)
+  else
+    SysUtils.DeleteFile(GetLogDir + SUBJECT_ABN);
+
+  threadABoneList.Free;
 end;
 //改造△ 追加 (スレッドあぼ～ん)
 

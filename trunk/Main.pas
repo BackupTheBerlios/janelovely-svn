@@ -37,12 +37,12 @@ uses
   UAutoScrollSettingForm, ULovelyWebForm, UNews, UGetBoardListForm,
   UChottoForm, UImageViewCacheListForm,
   UCheckSeverDown,
-  JLWritePanel, JLTab, JLToolButton, JLSideBar, JLStatusBar;
+  JLWritePanel, JLTab, JLToolButton, JLSideBar, JLCommCtrl;
   {/aiai}
 
 const
-  VERSION  = '0.1.0.2';      (* Printable ASCIIコード厳守。')'はダメ *)
-  JANE2CH  = 'JaneLovely 0.1.0.2';
+  VERSION  = '0.1.0.4';      (* Printable ASCIIコード厳守。')'はダメ *)
+  JANE2CH  = 'JaneLovely 0.1.0.4';
   KEYWORD_OF_USER_AGENT = 'JaneLovely';      (*  *)
 
   DISTRIBUTORS_SITE = 'http://www.geocities.jp/openjane4714/';
@@ -720,6 +720,7 @@ type
     MenuStatusCopyURI: TMenuItem;
     MenuWritePanelDisableTopBar: TMenuItem;
     MenuWriteMemoDisableTopBar: TMenuItem;
+    MenuOptSetNewsSize: TMenuItem;
     {/aiai}
     procedure FormCreate(Sender: TObject);
     procedure MenuToolsOptionsClick(Sender: TObject);
@@ -1167,6 +1168,7 @@ type
     procedure MenuMemoClick(Sender: TObject);
     procedure MenuStatusCopyURIClick(Sender: TObject);
     procedure MenuWritePanelDisableTopBarClick(Sender: TObject);
+    procedure MenuOptSetNewsSizeClick(Sender: TObject);
     {/aiai}
   private
   { Private 宣言 }
@@ -1277,7 +1279,7 @@ type
     procedure LoadString(const fname: string; var str: string);
     function NewView(relative: boolean = false; background: boolean = false): TViewItem;
     function NewPopUpView(OwnerView: TBaseViewItem): TPopUpViewItem;
-    procedure DeleteView(index: integer; savePos: boolean = True; refresh: Boolean = True);
+    procedure DeleteView(index: integer; savePos: boolean = True);
 //    function GetActiveView: TViewItem; publicへ移動 by beginner
     function GetViewOf(browser: TComponent): TBaseViewItem;
     procedure AppDeactivate(Sender: TObject);
@@ -1392,6 +1394,7 @@ type
     procedure StatusBar2Click(Sender: TObject);
     procedure StatusBar2RClick(Sender: TObject);
     procedure MyNewsNews(Sender: TObject; News: String);
+    procedure StatusBar2ReSize(Sender: TObject; Width: Integer);
     //▲ ステータスバー
     {/aiai}
   public
@@ -1486,8 +1489,6 @@ const
   SW_SHOWMINNOACTIVE: integer = 7;
   SW_SHOWNA         : integer = 8;
   SW_SHOWDEFAULT    : integer =10;
-
-  ID_MAINSTATUSBAR = 501;
 
 var
   MainWnd: TMainWnd;
@@ -2686,15 +2687,16 @@ begin
   TabSwitchList.Add(Memo);
 
   {aiai}
-  StatusBar2 := TJLStatusBar.Create(Self.Handle, ID_MAINSTATUSBAR);
+  StatusBar2 := TJLStatusBar.Create(Self.Handle);
   With StatusBar2 do
   begin
    Parts := 4;
    PartWidth[0] := 20;
-   PartWidth[1] := 100;
+   PartWidth[1] := 70;
    PartWidth[2] := 500;
    OnClick := Statusbar2Click;
    OnRClick := StatusBar2RClick;
+   OnReSize := StatusBar2ReSize;
   end;
   {/aiai}
 
@@ -6450,8 +6452,7 @@ begin
 end;
 
 (* ビューを削除する *)
-procedure TMainWnd.DeleteView(index:integer;
-    savePos: boolean = True; refresh: Boolean = True);
+procedure TMainWnd.DeleteView(index:integer; savePos: boolean = True);
 begin
   if (0 <= index) then
   begin
@@ -6464,8 +6465,7 @@ begin
     viewList.Items[index].FreeThread(savePos);
     viewList.Delete(index);
     viewListLock.Release;
-    if refresh then
-      ListView.Invalidate;
+    ListView.Invalidate;
     //UpdateTabTexts;
   end;
 end;
@@ -6574,7 +6574,7 @@ begin
   {/aiai}
 
   actvTab := (tabRightClickedIndex = TabControl.TabIndex);
-  DeleteView(tabRightClickedIndex, False);
+  DeleteView(tabRightClickedIndex);
   //▼連続で閉じたときタブが見えなくなる問題の対策
   if not TabControl.MultiLine then
     TabControl.ScrollTabs(-1);
@@ -6595,6 +6595,7 @@ begin
     UpdateTabTexts;
     ListView.DoubleBuffered := True;
     ListView.Update;
+    //ListView.Repaint;
     ListView.DoubleBuffered := False;
   end;
 end;
@@ -16265,6 +16266,22 @@ begin
     MyNews.OpenSettingDlg;
 end;
 
+procedure TMainWnd.MenuOptSetNewsSizeClick(Sender: TObject);
+var
+  bs: Integer;
+begin
+  if MyNews <> nil then
+  begin
+    bs := StatusBar2.PartWidth[0] + StatusBar2.PartWidth[1]
+      + StatusBar2.PartWidth[2] + Config.tstNewsBarSize;
+
+    MyNews.OpenSizeSettingDlg;
+
+    StatusBar2.PartWidth[2] := bs - StatusBar2.PartWidth[0] -
+      StatusBar2.PartWidth[1] - Config.tstNewsBarSize;
+  end;
+end;
+
 procedure TMainWnd.CreateNewsBar;
 begin
   if Config.tstUseNews then
@@ -16323,6 +16340,7 @@ var
   thread: TThreadItem;
   viewItem: TViewItem;
   index: Integer;
+  deletelist: TList;
 begin
   if CurrentBoard is TFunctionalBoard then Exit;
 
@@ -16337,6 +16355,8 @@ begin
 
   UILock := True;
   StopAutoReSc;
+
+  deleteList := TList.Create;
 
   while (listItem <> nil) and (listItem.Data <> thread) do begin
     thread := TThreadItem(listItem.Data);
@@ -16354,9 +16374,12 @@ begin
     thread.CancelAsyncRead;
     thread.RemoveLog;
     UnRegisterFavorite(thread);
-    TBoard(thread.board).ThreadAbone(thread);
+    deleteList.Add(thread);
+    //TBoard(thread.board).ThreadAbone(thread);
     listItem := ListView.GetNextItem(listItem, sdBelow, [isSelected]);
   end;
+  CurrentBoard.ThreadAbone(deleteList);
+  deleteList.Free;
 
   UpdateListView;
   UpdateTabTexts;
@@ -16990,6 +17013,12 @@ begin
   if InvalidPoint(Point) then exit;
 
   PopupStatusBar.Popup(Point.X, Point.Y);
+end;
+
+procedure TMainWnd.StatusBar2ReSize(Sender: TObject; Width: Integer);
+begin
+  StatusBar2.PartWidth[2] := Width - StatusBar2.PartWidth[0] -
+    StatusBar2.PartWidth[1] - Config.tstNewsBarSize;
 end;
 
 procedure TMainWnd.PopupStatusBarPopup(Sender: TObject);

@@ -5,7 +5,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, OleCtrls, SHDocVw_TLB, ComCtrls, ToolWin, ImgList, StdCtrls;
+  Dialogs, OleCtrls, SHDocVw_TLB, ComCtrls, ToolWin, ImgList, StdCtrls,
+  JLCommCtrl;
 
 const
   LOVELY_WEB_BROWSER = 'êÏ ÅfÅ[ÅfêÏ Lovely Web Browser';
@@ -22,7 +23,6 @@ type
     RefreshButton: TToolButton;
     NavigateEdit: TEdit;
     NavigateButtonImageList: TImageList;
-    StatusBar: TStatusBar;
     WebBrowser: TWebBrowser;
     procedure NavigateButtonClick(Sender: TObject);
     procedure NavigateEditKeyDown(Sender: TObject; var Key: Word;
@@ -41,6 +41,9 @@ type
     procedure FormActivate(Sender: TObject);
     procedure FormHide(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure WebBrowserWindowClosing(Sender: TObject;
+      IsChildWindow: WordBool; var Cancel: WordBool);
+    procedure FormResize(Sender: TObject);
   private
     { Private êÈåæ }
     HideOnApplicationMinimize: Boolean;
@@ -48,6 +51,7 @@ type
     savedWidth:  Integer;
     savedTop:    Integer;
     savedLeft:   Integer;
+    StatusBar: TJLStatusBar;
   public
     { Public êÈåæ }
     procedure MainWndOnShow;
@@ -70,6 +74,8 @@ begin
   savedHeight := 0;
   savedWidth  := 0;
   HideOnApplicationMinimize := false;
+
+  StatusBar := TJLStatusBar.Create(Handle);
 end;
 
 procedure TLovelyWebForm.FormActivate(Sender: TObject);
@@ -91,7 +97,8 @@ begin
     savedTop  := Top;
     savedWidth:= Width;
     savedHeight:= Height;
-    Height := 10;
+    Height := 50;
+    Height := 0;
   end;
   SaveImeMode(Handle);
 end;
@@ -158,7 +165,7 @@ end;
 procedure TLovelyWebForm.WebBrowserStatusTextChange(Sender: TObject;
   const Text: WideString);
 begin
-  StatusBar.SimpleText := Text;
+  StatusBar.Text[0] := Text;
 end;
 
 (* URLÇëSëIë *)
@@ -222,6 +229,20 @@ begin
                          Config.lovelyWebFormWidth,
                          Config.lovelyWebFormHeight);
 
+end;
+
+procedure TLovelyWebForm.WebBrowserWindowClosing(Sender: TObject;
+  IsChildWindow: WordBool; var Cancel: WordBool);
+begin
+  Cancel := True;
+  Close;
+end;
+
+procedure TLovelyWebForm.FormResize(Sender: TObject);
+begin
+  WebBrowser.Width := ClientWidth;
+  WebBrowser.Height := ClientHeight - NavigateToolBar.Height - StatusBar.Height;
+  WebBrowser.Top := NavigateToolBar.BoundsRect.Bottom;
 end;
 
 end.

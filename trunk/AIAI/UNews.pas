@@ -50,6 +50,7 @@ type
     procedure setChangeNewsTimerInterval(interval: Cardinal);
     function getChangeNewsTimerInterval: Cardinal;
     procedure OpenSettingDlg;
+    procedure OpenSizeSettingDlg;
 
     property OnNews: TNewsEvent read FNews write FNews;
     property NewsText: String read GetNewsText;
@@ -246,7 +247,21 @@ begin
   dlg.Release;
 end;
 
-
+procedure TNews.OpenSizeSettingDlg;
+var
+  dlg: TNewsSettingForm;
+begin
+  dlg := TNewsSettingForm.Create(MainWnd);
+  dlg.Caption := 'ニュースバーの幅の設定';
+  dlg.Label1.Caption := '幅';
+  dlg.SpinEditNewsInterval.MaxValue := 2000;
+  dlg.SpinEditNewsInterval.MinValue := 50;
+  dlg.SpinEditNewsInterval.Value := Config.tstNewsBarSize;
+  dlg.SpinEditNewsInterval.Increment := 20;
+  dlg.Flag := TBarSize;
+  dlg.ShowModal;
+  dlg.Release;
+end;
 
 
 function TNews.GetNewsText: String;

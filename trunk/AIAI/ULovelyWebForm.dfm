@@ -15,6 +15,7 @@ object LovelyWebForm: TLovelyWebForm
   OnCreate = FormCreate
   OnDeactivate = FormDeactivate
   OnHide = FormHide
+  OnResize = FormResize
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 12
@@ -26,6 +27,7 @@ object LovelyWebForm: TLovelyWebForm
     Flat = True
     Images = NavigateButtonImageList
     TabOrder = 0
+    Transparent = True
     object GoBackButton: TToolButton
       Tag = 1
       Left = 0
@@ -79,27 +81,19 @@ object LovelyWebForm: TLovelyWebForm
       OnKeyDown = NavigateEditKeyDown
     end
   end
-  object StatusBar: TStatusBar
-    Left = 0
-    Top = 434
-    Width = 688
-    Height = 19
-    Panels = <>
-    SimplePanel = False
-  end
   object WebBrowser: TWebBrowser
     Left = 0
     Top = 27
     Width = 688
-    Height = 407
-    Align = alClient
-    TabOrder = 2
+    Height = 426
+    TabOrder = 1
     OnStatusTextChange = WebBrowserStatusTextChange
     OnCommandStateChange = WebBrowserCommandStateChange
     OnTitleChange = WebBrowserTitleChange
     OnNavigateComplete2 = WebBrowserNavigateComplete2
+    OnWindowClosing = WebBrowserWindowClosing
     ControlData = {
-      4C0000001B470000112A00000000000000000000000000000000000000000000
+      4C0000001B470000072C00000000000000000000000000000000000000000000
       000000004C000000000000000000000001000000E0D057007335CF11AE690800
       2B2E126208000000000000004C0000000114020000000000C000000000000046
       8000000000000000000000000000000000000000000000000000000000000000
