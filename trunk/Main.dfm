@@ -212,7 +212,7 @@ object MainWnd: TMainWnd
                 OnMouseMove = ThreadTitleLabelMouseMove
               end
               object ThreadToolBar: TJLXPToolBar
-                Left = 215
+                Left = 237
                 Top = 0
                 Width = 326
                 Height = 22
@@ -3549,7 +3549,7 @@ object MainWnd: TMainWnd
         Caption = '-'
       end
       object MenuListRefreshIdxList: TMenuItem
-        Caption = 'IdxList'#12434#20877#27083#31689
+        Caption = #12508#12540#12489#12487#12540#12479#12398#20877#27083#25104
         OnClick = MenuListRefreshIdxListClick
       end
     end
