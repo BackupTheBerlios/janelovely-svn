@@ -259,7 +259,9 @@ object ImageForm: TImageForm
   end
   object SPIs: TSPIs
     GraphicPreview = False
+    AutoSearch = False
     SearchOptions = [spsSusieDir, spsAppDir, spsSystemDir, spsWindowsDir]
+    OnSearch = SPIsSearch
     OnPictureRegister = SPIsPictureRegister
     Left = 40
     Top = 16

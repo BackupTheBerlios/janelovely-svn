@@ -6,7 +6,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   UHttpManage, UImageViewConfig, UImageViewer, ApiBmp, PNGImage, SPIs, SPIbmp,
   Dialogs, ExtCtrls, StdCtrls, ComCtrls, UAnimatedPaintBox, Menus,
-  JLXPComCtrls{, GIFImage};
+  JLXPComCtrls, GIFImage;
 
 type
   TLoadCacheEvent = procedure (Item: TCacheItem) of Object;
@@ -478,10 +478,12 @@ begin
       if (StrLComp(ImageHeaderPointer, #$FF#$D8#$FF#$E0#$00#$10'JFIF',10) = 0)
           or (StrLComp(ImageHeaderPointer, #$FF#$D8#$FF#$E1, 4) = 0) then
         ImageConv := TApiBitmap.Create
-      (* png‚Ì“WŠJ‚ÉPNGImage‚ðŽg‚¤ (aiai) *)
       else if (StrLComp(ImageHeaderPointer, PngHeader, 8) = 0) then
         ImageConv := TPNGObject.Create
-      else
+      else if (StrLComp(ImageHeaderPointer,'GIF',3)=0) then begin
+        ImageConv := TGifImage.Create;
+        TGifImage(ImageConv).Animate := False;
+      end else
         ImageConv := TSPIBitmap.Create;
 
       try

@@ -3,8 +3,8 @@ unit UGIF;
 interface
 
 uses
-  SysUtils, Windows, Contnrs, Classes, Graphics, Controls, SPIs, SPIBmp, ExtCtrls, SyncObjs,
-  UAnimatedPaintBox, UCardinalList;
+  SysUtils, Windows, Contnrs, Classes, Graphics, Controls, {SPIs, SPIBmp,} ExtCtrls, SyncObjs,
+  UAnimatedPaintBox, UCardinalList, GifImage;
 
 type
 
@@ -86,7 +86,8 @@ type
     BlockList:TObjectList;
     ImageList:TBitmapList;
     DelayTimeList:TCardinalList;
-    SpiBMP:TSPIBitmap;
+    //SpiBMP:TSPIBitmap;
+    GifImage: TGifImage;//TOleBITMAP;
 
     TransparentColor:Integer;
     Header:TGifHeader;
@@ -563,7 +564,7 @@ begin
   FOnProgress:=Value;
 end;
 
-//Susieプラグインを使ってイメージリストに展開
+//GifImageプラグインを使ってイメージリストに展開
 //ブロッキングモード
 procedure TGifData.MakeImageList(var AImageList:TBitmapList; var ADelayTimeList:TCardinalList);
 begin
@@ -638,7 +639,9 @@ begin
   Header:=TGifHeader(BlockList[0]);
   TransparentColor:=$0;
 
-  SpiBMP:=TSPIBitmap.Create;
+  //SpiBMP:=TSPIBitmap.Create;
+  GifImage := TGifImage.Create;
+  GifImage.Animate := False;
   FrameImage:=TBitmap.Create;
   PreviousFrameImage:=TBitmap.Create;
 
@@ -658,11 +661,12 @@ begin
   tmpStream.Free;
   PreviousFrameImage.Free;
   FrameImage.Free;
-  SpiBMP.Free;
+  //SpiBMP.Free;
+  GifImage.Free;
 end;
 
 
-//Susieプラグインを使ってイメージリストに展開
+//{Susieプラグイン}GifImageを使ってイメージリストに展開
 procedure TGifThread.Execute;
 var
   i, j: Integer;
@@ -743,23 +747,26 @@ begin
             ColorTable[ValidGrpCntlExt.TransparentColorIndex] := TransparentColor;
         end;
         tmpStream:=TStringStream.Create(FrameGifData.Data);
-        SpiBMP.LoadFromStream(tmpStream);
+        //SpiBMP.LoadFromStream(tmpStream);
+        GifImage.LoadFromStream(tmpStream);
         FreeAndNil(tmpStream);
-        if Transparent then begin
+        {if Transparent then begin
           SpiBMP.Transparent:=True;
           SpiBMP.TransparentMode:=tmFixed;
           SpiBMP.TransparentColor:=TransparentColor;
         end else begin
           SpiBMP.Transparent:=False;
-        end;
-        SpiBMP.PixelFormat:=pf24bit;
+        end;}
+        //SpiBMP.PixelFormat:=pf24bit;
+
         if Assigned(ValidGrpCntlExt) and (ValidGrpCntlExt.DisposalMothod=3) then PreviousFrameImage.Assign(FrameImage);
         FrameImage.Canvas.Lock;
-        SpiBMP.Canvas.Lock;
+        //SpiBMP.Canvas.Lock;
         try
-          FrameImage.Canvas.Draw(ImageBlock.Left,ImageBlock.Top,SpiBMP);
+          //FrameImage.Canvas.Draw(ImageBlock.Left,ImageBlock.Top,SpiBMP);
+          FrameImage.Canvas.Draw(ImageBlock.Left,ImageBlock.Top,GifImage);
         finally
-          SpiBMP.Canvas.Unlock;
+          //SpiBMP.Canvas.Unlock;
           FrameImage.Canvas.Unlock;
         end;
         tmpFrameImage:=TBitmap.Create;

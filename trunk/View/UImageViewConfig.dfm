@@ -1,10 +1,10 @@
 object ImageViewPreference: TImageViewPreference
-  Left = 286
-  Top = 168
+  Left = 258
+  Top = 192
   BorderStyle = bsDialog
   Caption = #12452#12513#12540#12472#12499#12517#12540#12450#35373#23450
-  ClientHeight = 323
-  ClientWidth = 430
+  ClientHeight = 320
+  ClientWidth = 498
   Color = clBtnFace
   Font.Charset = SHIFTJIS_CHARSET
   Font.Color = clWindowText
@@ -16,7 +16,7 @@ object ImageViewPreference: TImageViewPreference
   PixelsPerInch = 96
   TextHeight = 12
   object btOK: TButton
-    Left = 297
+    Left = 363
     Top = 295
     Width = 60
     Height = 20
@@ -26,7 +26,7 @@ object ImageViewPreference: TImageViewPreference
     OnClick = DoOK
   end
   object btCancel: TButton
-    Left = 364
+    Left = 430
     Top = 295
     Width = 60
     Height = 20
@@ -37,10 +37,10 @@ object ImageViewPreference: TImageViewPreference
   object PageControl1: TPageControl
     Left = 0
     Top = 0
-    Width = 430
+    Width = 497
     Height = 289
-    ActivePage = TabSheetCache
-    TabIndex = 5
+    ActivePage = TabSheetGeneral
+    TabIndex = 0
     TabOrder = 2
     object TabSheetGeneral: TJLXPTabSheet
       Caption = #25805#20316
@@ -499,7 +499,7 @@ object ImageViewPreference: TImageViewPreference
       Caption = #12463#12452#12483#12463#20445#23384
       ImageIndex = 2
       object ToolBar1: TJLXPToolBar
-        Left = 390
+        Left = 457
         Top = 0
         Width = 32
         Height = 262
@@ -561,7 +561,7 @@ object ImageViewPreference: TImageViewPreference
       object lvQuickSPList: TListView
         Left = 0
         Top = 0
-        Width = 390
+        Width = 457
         Height = 262
         Align = alClient
         Columns = <
@@ -692,17 +692,30 @@ object ImageViewPreference: TImageViewPreference
         TabOrder = 1
       end
     end
+    object TabSheet1: TJLXPTabSheet
+      Caption = #12503#12521#12464#12452#12531
+      ImageIndex = 7
+      object clbSusiePluginsEnabled: TCheckListBox
+        Left = 0
+        Top = 32
+        Width = 489
+        Height = 225
+        ItemHeight = 12
+        TabOrder = 0
+      end
+      object cbSusiePluginsEnabled: TCheckBox
+        Left = 14
+        Top = 6
+        Width = 131
+        Height = 17
+        Caption = 'Susie'#12503#12521#12464#12452#12531#26377#21177
+        TabOrder = 1
+        OnClick = cbSusiePluginsEnabledClick
+      end
+    end
     object TabSheetDanger: TJLXPTabSheet
       Caption = #23455#39443#23460
       ImageIndex = 4
-      object Label8: TLabel
-        Left = 7
-        Top = 53
-        Width = 129
-        Height = 12
-        Caption = #35501#12415#36796#12414#12428#12383'SusiePlugin'
-        Transparent = True
-      end
       object cbInvisibleTab: TCheckBox
         Left = 8
         Top = 8
@@ -728,30 +741,6 @@ object ImageViewPreference: TImageViewPreference
         Height = 17
         Caption = 'FLASH'#12512#12540#12499#12540#20877#29983
         TabOrder = 1
-      end
-      object ListViewSusie: TListView
-        Left = 0
-        Top = 71
-        Width = 420
-        Height = 150
-        Columns = <
-          item
-            Caption = 'Format'
-          end
-          item
-            Caption = 'Ext'
-          end
-          item
-            Caption = 'Plugin'
-            Width = 155
-          end
-          item
-            Caption = 'FileName'
-            Width = 155
-          end>
-        ReadOnly = True
-        TabOrder = 3
-        ViewStyle = vsReport
       end
     end
   end

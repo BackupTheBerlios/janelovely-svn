@@ -6,7 +6,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, ExtCtrls,
   Math, Dialogs, StdCtrls, ComCtrls, Contnrs, Menus, Clipbrd, StrUtils, ExtDlgs,
   ImgList, ApiBmp, SyncObjs, AppEvnts,
-  SPIs, SPIbmp, {GIFImage,} PNGImage, Idhttp, RegExpr,
+  SPIs, SPIbmp, GIFImage, PNGImage, Idhttp, RegExpr,
   UViewITem,
   UImageViewConfig, UAnimatedPaintBox, UHttpManage, UArchiveView, UImageHint,
   UImagePageControl, UImageTabSheet, UPopUpButtons, CheckURL, JLXPComCtrls;
@@ -21,6 +21,19 @@ type
   TRootPageControl = class(TImagePageControl);
 
   TQuickSaveMenuItem = class(TMenuItem);//クイックセーブメニューの識別用
+
+  {aiai}
+  TSPIINFO = class(TObject)
+  private
+    FEnabled: Boolean;
+    FInfomation: String;
+    FExtension: String;
+  public
+    property Enabled: Boolean read FEnabled write FEnabled;
+    property Infomation: String read FInfomation write FInfomation;
+    property Extension: String read FExtension write FExtension;
+  end;
+  {/aiai}
 
   TImageForm = class(TForm)
     StatusBar: TJLXPStatusBar;
@@ -138,6 +151,7 @@ type
     procedure FormMouseMove(Sender: TObject; Shift: TShiftState; X,
       Y: Integer);
     procedure FormHide(Sender: TObject);
+    procedure SPIsSearch(Sender: TObject; ASPI: TSPI; var Accept: Boolean);
   private
     savedLeft:Integer;
     savedTop:Integer;
@@ -161,6 +175,8 @@ type
   public
     PopUpHint: TImageHint;
     TabNavigateIcon:TPopUpButtons;
+    spilist: TStringList;  //aiai  SusiPluginリスト
+    denyspilist: TStringList;  //aiai 除外リスト
     procedure AddMenuItemToMainWnd;
     function GetImage(URL:string; ViewItem:TBaseViewItem=nil; CallFrom:TTabSheet=nil; ForceOpen:Boolean=False):Boolean;
     function ShowImageHint(Text:String; ForSelf:Boolean):Boolean;
@@ -188,6 +204,7 @@ var
   RegExpReplaceRef:TStringList;
 
 {$R *.dfm}
+
 
 
 { TImageForm }
@@ -283,6 +300,20 @@ begin
 
   DisableTitlebar(ImageViewConfig.DisableTitleBar);
 
+  {aiai} //Susieプラグインを読み込む
+  spilist := TStringList.Create;
+  denyspilist := TStringList.Create;
+  if FileExists(Config.BasePath + 'DeniedSPI.txt') then
+    try
+      denyspilist.LoadFromFile(Config.BasePath + 'DeniedSPI.txt');
+    except
+      on E: Exception do begin
+        Log(E.Message);
+      end;
+    end;
+  SPIs.Search('*.spi');
+  FreeAndNil(denyspilist);
+  {/aiai}
 end;
 
 
@@ -292,7 +323,7 @@ procedure TImageForm.SPIsPictureRegister(Sender: TObject; ASPI: TInSPI;
   var AGraphicClass: TGraphicClass);
 begin
   if (LowerCase(AExtension) = 'jpg') or (LowerCase(AExtension) = 'jpeg')
-     or (LowerCase(AExtension) = 'png')   //aiai
+     or (LowerCase(AExtension) = 'png') or (LowerCase(AExtension) = 'gif')  //aiai
   then begin
     AGraphicClass := nil;
   end;
@@ -301,6 +332,39 @@ begin
   end;
 end;
 
+//aiai Susieプラグイン読み込み除外
+procedure TImageForm.SPIsSearch(Sender: TObject; ASPI: TSPI;
+  var Accept: Boolean);
+var
+  fname, ext, info: String;
+  i: Integer;
+  spiinfo: TSPIINFO;
+begin
+  // Susieプラグイン情報を保存
+  if Assigned(spilist) then begin
+    fname := ASPI.FileName;
+    ext := '';
+    for i := 0 to ASPI.ExtNames.Count - 1 do begin
+      ext := ext + ASPI.ExtNames.Strings[i];
+      if i <> ASPI.ExtNames.Count - 1 then
+        ext := ext + ';';
+    end;
+    info := ASPI.Infomation;
+
+    // Susieプラグイン読み込み除外
+    if Assigned(denyspilist) then
+      Accept := denyspilist.IndexOf(fname) = -1;
+
+    spiinfo := TSPIINFO.Create;
+    spiinfo.Enabled := Accept;
+    spiinfo.Extension := ext;
+    spiinfo.Infomation := info;
+    spilist.AddObject(fname, spiinfo);
+  end;
+
+  if not ImageViewConfig.SpiEnabled then
+    Accept := False;
+end;
 
 //メインウィンドウの陰に隠れない設定
 //WriteFormと同じ方式(fsStayOnTop)にすると似たもの同士でつぶし合うため苦肉の策
@@ -336,6 +400,12 @@ begin
   if 0 < savedWidth then ImageViewConfig.Width := savedWidth;
 
   ImagePageControl.OnResize:=nil; //破棄後のAccesViolation対策
+
+  {aiai}
+  for i := 0 to spilist.Count - 1 do
+    TSPIINFO(spilist.Objects[i]).Free;
+  FreeAndNil(spilist);
+  {/aiai}
 
 end;
 
@@ -1632,7 +1702,11 @@ begin
       (* pngの展開にPNGImageを使う (aiai) *)
       else if (StrLComp(ImageHeaderPointer, PngHeader, 8)=0)  {SameText(ExtractFileExt(FInfo), '.png')} then
         ImageConv := TPNGObject.Create
-      else
+      (* gifの展開にPNGImageを使う (aiai) *)
+      else if (StrLComp(ImageHeaderPointer,'GIF',3)=0) then begin
+        ImageConv := TGifImage.Create;
+        TGifImage(ImageConv).Animate := False;
+      end else
         ImageConv:=TSPIBitmap.Create;
 
       try
@@ -1934,3 +2008,5 @@ finalization
   DestructRegExp;
 
 end.
+
+

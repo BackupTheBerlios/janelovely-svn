@@ -26,7 +26,7 @@ uses
    Forms,
    IdGlobal, Types, Windows,
    U2chThread, U2chBoard, U2chCat, U2chCatList, UAsync, JConfig, UDat2HTML,
-   USynchro, StrSub, StdCtrls, ApiBmp, PNGImage, Graphics, IniFiles;
+   USynchro, StrSub, StdCtrls, ApiBmp, PNGImage, GifImage, Graphics, IniFiles;
 
 {const
   TESTVER = 'test71+75';
@@ -1368,6 +1368,20 @@ begin
       end else if SameText(Ext, '.png') then begin
 
         Image := TPNGObject.Create;
+        try
+          Image.LoadFromFile(Config.SkinPath + pass);
+        except
+          on E: Exception do begin
+            Main.Log('Load ' + pass+ ':' + E.Message);
+            FreeAndNil(Image);
+          end;
+        end;  //try
+        PictViewList.AddObject(pass, Image);
+
+      end else if SameText(Ext, '.gif') then begin
+
+        Image := TGifImage.Create;
+        TGifImage(Image).Animate := False;
         try
           Image.LoadFromFile(Config.SkinPath + pass);
         except

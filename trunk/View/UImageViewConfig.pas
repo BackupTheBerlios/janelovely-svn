@@ -101,10 +101,12 @@ type
     FPrioryCacheExtention: String;
     FCachePath: String;
 
+    FSpiEnabled: Boolean;  //aiai
+
     FEnableFlashMovie:Boolean;
   private
     (* Susieプラグイン読込情報の表示 (aiai) *)
-    procedure PreviewSusiePluginPreference(ListView: TListView);
+    procedure PreviewSusiePluginPreference(CheckListBox: TCheckListBox);
 
   public
     Top, Left, Height, Width: Integer;
@@ -192,6 +194,8 @@ type
     property CachePath: String read FCachePath;
 
     property EnableFlashMovie:Boolean read FEnableFlashMovie;
+
+    property SpiEnabled: Boolean read FSpiEnabled;  //aiai
 
   end;
 
@@ -300,8 +304,9 @@ type
     cbCacheSelectedFileOnly: TCheckBox;
     cbShowCacheOnImageHint: TCheckBox;
     cbDisableImageViewer: TCheckBox;
-    ListViewSusie: TListView;
-    Label8: TLabel;              //aiai
+    TabSheet1: TJLXPTabSheet;
+    clbSusiePluginsEnabled: TCheckListBox;
+    cbSusiePluginsEnabled: TCheckBox;              //aiai
     procedure SelectExternalViewer(Sender: TObject);
     procedure cbDeleteTmpOnStartUpClick(Sender: TObject);
     procedure DoOK(Sender: TObject);
@@ -324,6 +329,7 @@ type
     procedure edCachePathKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure edCachePathKeyPress(Sender: TObject; var Key: Char);
+    procedure cbSusiePluginsEnabledClick(Sender: TObject);
   private
     { Private 宣言 }
   public
@@ -428,6 +434,8 @@ begin
     FCachePath := IniFile.ReadString('Cache', 'CachePath', '');
 
     FEnableFlashMovie:=IniFile.ReadBool('FLASH','EnableFlashMovie',False);
+
+    FSpiEnabled := IniFile.ReadBool('General', 'SpiEnabled', False);
 
     IniFile.ReadSectionValues('QuickSavePoint',QuickSavePoint);
     for i:=0 to QuickSavePoint.Count-1 do
@@ -622,6 +630,8 @@ begin
 
   IniFile.WriteBool('FLASH','EnableFlashMovie',EnableFlashMovie);
 
+  IniFile.WriteBool('General', 'SpiEnabled', SpiEnabled);  //aiai
+
   for i:=0 to QuickSavePoint.Count-1 do
     IniFile.WriteString('QuickSavePoint',IntToStr(i),QuickSavePoint[i]);
 
@@ -712,6 +722,9 @@ begin
   ImageViewPreference.cbEnableFlashMovie.Checked:=EnableFlashMovie;
   ImageViewPreference.cbEnableFlashMovie.Visible:=false;
 
+  ImageViewPreference.cbSusiePluginsEnabled.Checked := SpiEnabled;
+  ImageViewPreference.clbSusiePluginsEnabled.Enabled := SpiEnabled;
+
   if DeleteTmpOnStartUp then
     ImageViewPreference.cbDisableDeleteTmpAlart.Checked:=DisableDeleteTmpAlart
   else
@@ -739,7 +752,7 @@ begin
   ImageViewPreference.PageControl1.ActivePageIndex := 0;
 
   (* Susieプラグイン読込情報の表示 (aiai) *)
-  PreviewSusiePluginPreference(ImageViewPreference.ListViewSusie);
+  PreviewSusiePluginPreference(ImageViewPreference.clbSusiePluginsEnabled);
 
   if ImageViewPreference.ShowModal=mrOK then begin
 
@@ -804,6 +817,8 @@ begin
 
     FEnableFlashMovie:=ImageViewPreference.cbEnableFlashMovie.Checked;
 
+    FSpiEnabled := ImageViewPreference.cbSusiePluginsEnabled.Checked;
+
     QuickSavePoint.Clear;
     for i:=0 to ImageViewPreference.lvQuickSPList.Items.Count-1 do
       with ImageViewPreference do
@@ -814,6 +829,29 @@ begin
       ArchiveEnabled[i]:=ImageViewPreference.clbArchiveEnabled.Checked[j];
       Inc(j);
     end;
+
+    {aiai}
+    ImageForm.denyspilist := TStringList.Create;
+    for i := 0 to ImageViewPreference.clbSusiePluginsEnabled.Count - 1 do
+    begin
+      if not ImageViewPreference.clbSusiePluginsEnabled.Checked[i] then
+        ImageForm.denyspilist.Add(ImageForm.spilist.Strings[i])
+    end;
+
+    //プラグイン情報と消去
+    for i := 0 to ImageForm.spilist.Count - 1 do
+      TSPIINFO(ImageForm.spilist.Objects[i]).Free;
+    ImageForm.spilist.Clear;
+    //プラグインのオブジェクトを削除
+    ImageForm.SPIs.Clear;
+    //プラグインを読み込む
+    ImageForm.SPIs.Search('*.spi');
+    try //いちおtry
+      ImageForm.denyspilist.SaveToFile(Config.BasePath + 'DeniedSPI.txt');
+    finally
+      FreeAndNil(ImageForm.denyspilist);
+    end;
+    {/aiai}
 
     Config.Save;
     SavePreference;
@@ -876,34 +914,19 @@ begin
 end;
 
 (* Susieプラグインの読込情報を表示する (aiai) *)
-procedure TImageViewConfig.PreviewSusiePluginPreference(ListView: TListView);
+procedure TImageViewConfig.PreviewSusiePluginPreference(CheckListBox: TCheckListBox);
 var
-  spiIdx: Integer;
-  newItem: TListItem;
+  i: Integer;
+  spiinfo: TSPIINFO;
 begin
-  ListView.Items.BeginUpdate;
-  try
-    ListView.Items.Clear;
-    for spiIdx := 0 to ImageForm.SPIs.Count - 1 do begin
-      newItem := ListView.Items.Add;
-        try
-          with ImageForm.SPIs.Plugins[spiIdx] do begin
-            newItem.Caption := FileTypes[0];
-            newItem.SubItems.Add(ExtNames[0]);
-            newItem.SubItems.Add(Infomation);
-            newItem.SubItems.Add(FileName);
-          end;
-        except
-          on e: Exception do begin
-            Log('PreviewSusiePluginPreference: PluginCount '
-              + IntToStr(spiIdx) + ' - ' + e.Message);
-            break;
-          end;
-        end;
-      end;
-  finally
-    ListView.Items.EndUpdate;
+  CheckListBox.Items.BeginUpdate;
+  CheckListBox.Items.Clear;
+  for i := 0 to ImageForm.spilist.Count - 1 do begin
+    spiinfo := TSPIINFO(ImageForm.spilist.Objects[i]);
+    CheckListBox.Items.Add(ImageForm.spilist.Strings[i] + ' [ ' + spiinfo.Extension + ' ]： ' + spiinfo.Infomation);
+    CheckListBox.Checked[i] := spiinfo.Enabled;
   end;
+  CheckListBox.Items.EndUpdate;
 end;
 
 
@@ -1249,6 +1272,12 @@ begin
 
   if not Result then
     Stream.Seek(0, soFromBeginning);
+end;
+
+//aiai
+procedure TImageViewPreference.cbSusiePluginsEnabledClick(Sender: TObject);
+begin
+  clbSusiePluginsEnabled.Enabled := cbSusiePluginsEnabled.Checked;
 end;
 
 initialization

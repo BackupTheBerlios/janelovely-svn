@@ -32,7 +32,7 @@ uses
   {$ELSE}
   sqlite,
   {$ENDIF}
-  ApiBmp, PNGImage, {GIFImage,} ClipBrdSub,
+  ApiBmp, PNGImage, GIFImage, ClipBrdSub,
   UAAForm, UAddAAForm, UAutoReSc, UAutoReloadSettingForm,
   UAutoScrollSettingForm, ULovelyWebForm, UNews, UGetBoardListForm,
   UChottoForm, UImageViewCacheListForm,
@@ -41,8 +41,8 @@ uses
   {/aiai}
 
 const
-  VERSION  = '0.1.1.2';      (* Printable ASCIIコード厳守。')'はダメ *)
-  JANE2CH  = 'JaneLovely 0.1.1.2';
+  VERSION  = '0.1.1.3';      (* Printable ASCIIコード厳守。')'はダメ *)
+  JANE2CH  = 'JaneLovely 0.1.1.3';
   KEYWORD_OF_USER_AGENT = 'JaneLovely';      (*  *)
 
   DISTRIBUTORS_SITE = 'http://www.geocities.jp/openjane4714/';
@@ -2478,6 +2478,20 @@ var
     begin
 
       BrowserWallpaper := TPNGObject.Create;
+      try
+        BrowserWallpaper.LoadFromFile(BrowserWallpaperName);
+      except
+        on E: Exception do begin
+          Log(E.Message);
+          FreeAndNil(BrowserWallpaper);
+        end;
+      end;
+
+    end else if SameText(FileExt, '.gif') then
+    begin
+
+      BrowserWallpaper := TGifImage.Create;
+      TGifImage(BrowserWallpaper).Animate := False;
       try
         BrowserWallpaper.LoadFromFile(BrowserWallpaperName);
       except

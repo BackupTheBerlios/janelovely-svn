@@ -419,8 +419,8 @@ var
   targetLen: integer;
 begin
   startPos := 1;
-  endPos := length(AString);
   targetLen := length(AFrom);
+  endPos := length(AString) - targetLen + 1;
   result := '';
   while true do
   begin
@@ -428,12 +428,12 @@ begin
     if 0 < targetPos then
     begin
       if startPos < targetPos then
-        result := result + Copy(AString, startPos, targetPos - 1);
+        result := result + Copy(AString, startPos, targetPos - startPos);
       result := result + ATo;
       startPos := targetPos + targetLen;
     end
     else begin
-      result := result + Copy(AString, startPos, endPos);
+      result := result + Copy(AString, startPos, length(AString) - startPos + 1);
       break;
     end;
   end;

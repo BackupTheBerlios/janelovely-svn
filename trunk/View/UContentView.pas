@@ -566,7 +566,7 @@ begin
   if not Assigned(Bitmap) then Bitmap:=TBitmap.Create;
 
   ImageConv:=nil;
-  if (StrLComp(HeaderPointer,'GIF',3)=0) and (AnsiPos('gif;',LowerCase(GraphicFileMask(TGraphic))) > 0) then begin
+  if (StrLComp(HeaderPointer,'GIF',3)=0) {and (AnsiPos('gif;',LowerCase(GraphicFileMask(TGraphic))) > 0)} then begin
 
     FImageList:=TBitmapList.Create;
     FImageList.ShareImage:=False;
