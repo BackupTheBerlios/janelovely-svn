@@ -249,6 +249,7 @@ object WriteForm: TWriteForm
       Caption = 'ToolBarTool'
       EdgeBorders = []
       Flat = True
+      Images = MainWnd.MemoImageList
       TabOrder = 2
       Transparent = True
       Wrapable = False
