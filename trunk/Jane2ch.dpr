@@ -4,7 +4,6 @@ program Jane2ch;
 {$R 'sqlite.res' 'sqlite.rc'}
 
 uses
-  MemCheck,
   Windows,
   SysUtils,
   MMSystem,
@@ -87,7 +86,8 @@ uses
   JLWritePanel in 'AIAI\JLWritePanel.pas',
   UWriteForm in 'UWriteForm.pas' {WriteForm},
   sqlite in 'AIAI\sqlite.pas',
-  ClipBrdSub in 'AIAI\ClipBrdSub.pas';
+  ClipBrdSub in 'AIAI\ClipBrdSub.pas',
+  UMDITextView in 'AIAI\UMDITextView.pas';
 
 {$R *.res}
 

@@ -1970,7 +1970,8 @@ begin
   Config.wrtWritePanelColor := self.LabelWriteMemo.Color; //aiai
   {$IFNDEF IE}
   Config.clViewColor := self.LabelTextView.Color;
-  Mainwnd.WebPanel.Color := Config.clViewColor;
+  //Mainwnd.WebPanel.Color := Config.clViewColor;
+  MainWnd.MDIClientPanel.Color := Config.clViewColor;  //aiai
   for i := 0 to viewList.Count -1 do
     viewList.Items[i].browser.Color := Config.clViewColor;
   {$ENDIF}

@@ -323,6 +323,7 @@ type
     procedure btnSelectCachePathClick(Sender: TObject);
     procedure edCachePathKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
+    procedure edCachePathKeyPress(Sender: TObject; var Key: Char);
   private
     { Private êÈåæ }
   public
@@ -1215,6 +1216,12 @@ begin
   case Key of
     VK_DELETE, VK_BACK: edCachePath.Text := '';
   end;
+end;
+
+procedure TImageViewPreference.edCachePathKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+  Key := #0;
 end;
 
 

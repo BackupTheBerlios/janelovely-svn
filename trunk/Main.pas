@@ -36,13 +36,13 @@ uses
   UAAForm, UAddAAForm, UAutoReSc, UAutoReloadSettingForm,
   UAutoScrollSettingForm, ULovelyWebForm, UNews, UGetBoardListForm,
   UChottoForm, UImageViewCacheListForm,
-  UCheckSeverDown,
+  UCheckSeverDown, UMDITextView,
   JLWritePanel, JLTab, JLToolButton, JLSideBar, JLXPComCtrls;
   {/aiai}
 
 const
-  VERSION  = '0.1.0.8';      (* Printable ASCIIコード厳守。')'はダメ *)
-  JANE2CH  = 'JaneLovely 0.1.0.8';
+  VERSION  = '0.1.1.0';      (* Printable ASCIIコード厳守。')'はダメ *)
+  JANE2CH  = 'JaneLovely 0.1.1.0';
   KEYWORD_OF_USER_AGENT = 'JaneLovely';      (*  *)
 
   DISTRIBUTORS_SITE = 'http://www.geocities.jp/openjane4714/';
@@ -588,7 +588,6 @@ type
     N67: TMenuItem;
     actCheckNewResAll: TAction;
     actTabPtrl: TAction;
-    actCloseThisTabAndAlready: TAction;
     actListAlready: TAction;
     ListPopupAlready: TMenuItem;
     MenuFindeThreadTitle: TMenuItem;
@@ -722,6 +721,26 @@ type
     MenuWriteMemoDisableTopBar: TMenuItem;
     MenuOptSetNewsSize: TMenuItem;
     StatusBar: TJLXPStatusBar;
+    MDIClientPanel: TPanel;
+    ThreMaxButton: TToolButton;
+    actMaxView: TAction;
+    MenuWindowTileVertically: TMenuItem;
+    MenuWindowTileHorizontally: TMenuItem;
+    MenuWindowCascade: TMenuItem;
+    N19: TMenuItem;
+    MenuWindowMaximizeAll: TMenuItem;
+    PopupThreSys: TPopupMenu;
+    MenuThreSysMove: TMenuItem;
+    MenuThreSysResize: TMenuItem;
+    MenuThreSysCascade: TMenuItem;
+    MenuThreSysTileVertically: TMenuItem;
+    MenuThreSysTileHorizontally: TMenuItem;
+    MenuThreSysMaximizeAll: TMenuItem;
+    MenuWindowRestoreAll: TMenuItem;
+    MenuThreSysRestoreAll: TMenuItem;
+    N84: TMenuItem;
+    N85: TMenuItem;
+    Image1: TImage;
     {/aiai}
     procedure FormCreate(Sender: TObject);
     procedure MenuToolsOptionsClick(Sender: TObject);
@@ -1172,6 +1191,15 @@ type
     procedure MenuOptSetNewsSizeClick(Sender: TObject);
     procedure StatusBarResize(Sender: TObject);
     procedure StatusBarClick(Sender: TObject);
+    procedure actMaxViewExecute(Sender: TObject);
+    procedure MenuWindowCascadeClick(Sender: TObject);
+    procedure MenuWindowTileVerticallyClick(Sender: TObject);
+    procedure MenuWindowTileHorizontallyClick(Sender: TObject);
+    procedure MenuWindowMaximizeAllClick(Sender: TObject);
+    procedure MenuThreSysMoveClick(Sender: TObject);
+    procedure MenuThreSysResizeClick(Sender: TObject);
+    procedure PopupThreSysPopup(Sender: TObject);
+    procedure MenuWindowRestoreAllClick(Sender: TObject);
     {/aiai}
   private
   { Private 宣言 }
@@ -1279,15 +1307,24 @@ type
     procedure OnMovedSubject(sender: TAsyncReq);
     procedure UpdateListView;
     procedure LoadString(const fname: string; var str: string);
-    function NewView(relative: boolean = false; background: boolean = false): TViewItem;
+    function NewView(relative: boolean = false; background: boolean = false;
+      Left: integer = 0; Top: integer = 0;
+      Right: integer = 0; Bottom: integer = 0;
+      wndstate: TMTVState = MTV_MAX): TViewItem;
     function NewPopUpView(OwnerView: TBaseViewItem): TPopUpViewItem;
     procedure DeleteView(index: integer; savePos: boolean = True);
 //    function GetActiveView: TViewItem; publicへ移動 by beginner
     function GetViewOf(browser: TComponent): TBaseViewItem;
     procedure AppDeactivate(Sender: TObject);
     procedure SetZoomState(zoom: integer);
-    procedure LocalNavigate(const URI: string; activate: boolean = false); overload;
-    procedure LocalNavigate(const host, bbs, datnum: string; activate: boolean = false); overload;
+    procedure LocalNavigate(const URI: string; activate: boolean = false;
+      Left: integer = 0; Top: integer = 0; Right: integer = 0;
+      Bottom: Integer = 0;
+      wndstate: TMTVState = MTV_MAX; canclose: boolean = true); overload;
+    procedure LocalNavigate(const host, bbs, datnum: string;
+      activate: boolean = false; Left: integer = 0; Top: integer = 0;
+      Right: integer = 0; Bottom: Integer = 0;
+      wndstate: TMTVState = MTV_MAX; canclose: boolean = true); overload;
     procedure UpdateFavorites;
     procedure SaveFavorites(save: boolean = true);
     function  IsFavorite(thread: TThreadItem): boolean; overload;
@@ -1304,7 +1341,10 @@ type
                                   newViewP: Boolean;
                                   relative: boolean = false;
                                   background: boolean = false;
-                                  number: Integer = -1);
+                                  number: Integer = -1;
+                                  Left: integer = 0; Top: integer = 0;
+                                  Right: integer = 0; Bottom: integer = 0;
+                                  wndstate: TMTVState = MTV_MAX);
     procedure SetRPane(paneType: TPaneType);
     function TreeViewGetNode(sender: TObject): TTreeNode;
     procedure SetCaption(const BoardName: string);
@@ -1398,6 +1438,8 @@ type
     procedure MyNewsNews(Sender: TObject; News: String);
     //procedure StatusBar2ReSize(Sender: TObject; Width: Integer);
     //▲ ステータスバー
+    procedure BrowserActive(Sender: TObject);
+    //procedure BrowserHide(Sender: TObject);
     {/aiai}
   public
     { Public 宣言 }
@@ -1599,11 +1641,12 @@ const
 }
   FAVORITES_DAT         = 'favorites.dat';
   KEYCONF_FILE          = 'keyconf.ini';
+  SESSION_DAT           = 'session.dat';  //aiai
 
 (*=======================================================*)
 implementation
 
-uses Types, UFormSplash, UTTSearch;
+uses Types, UTTSearch;
 (*=======================================================*)
 
 {$R *.dfm}
@@ -2492,7 +2535,7 @@ begin
   LoadCustomImageList;
   CreateToolBar(ToolBarMain, skinPath + 'mtoolbar.txt');
   CreateToolBar(ThreadToolBar, skinPath + 'ttoolbar.txt');
-  if toolbarResized then
+  //if toolbarResized then
     ThreadToolBarResize;
 end;
 
@@ -3298,6 +3341,7 @@ begin
   wh := SaveAAListBoundsRect(wh);
   iniFile.WriteInteger(INI_WIN_SECT, 'WriteMemoAAWidth', wh.Width);
   iniFile.WriteInteger(INI_WIN_SECT, 'WriteMemoAAHeight', wh.Height);
+  iniFile.WriteBool(INI_WIN_SECT, 'WriteMemoTopBar', WritePanelTitle.Visible);
 
 
   (* Columns *)
@@ -3439,6 +3483,7 @@ begin
   wh.Width := iniFile.ReadInteger(INI_WIN_SECT, 'WriteMemoAAWidth', 100);
   wh.Height := iniFile.ReadInteger(INI_WIN_SECT, 'WriteMemoAAHeight', 50);
   SaveAAListBoundsRect(wh);
+  WritePanelTitle.Visible := iniFile.ReadBool(INI_WIN_SECT, 'WriteMemoTopBar', True);
 
   //WritePanelCanMove := iniFile.ReadBool(INI_WIN_SECT, 'WriteMemoCanMove', True);
   WritePanelCanMove := False;
@@ -5038,7 +5083,10 @@ procedure TMainWnd.ShowSpecifiedThread(thread: TThreadItem;
                                        newViewP: Boolean;
                                        relative: boolean = false;
                                        background: boolean = false;
-                                       number: integer = -1);
+                                       number: integer = -1;
+                                       Left: integer = 0; Top: integer = 0;
+                                       Right: integer = 0; Bottom: integer = 0;
+                                       wndstate: TMTVState = MTV_MAX);
 var
   viewItem: TViewItem;
 begin
@@ -5057,10 +5105,10 @@ begin
     if not newViewP then
       viewItem := GetActiveView;
     if (viewItem = nil) or (viewItem.thread = nil) then
-      viewItem := NewView(relative, background)
+      viewItem := NewView(relative, background, Left, Top, Right, Bottom, wndstate)
     {aiai} //viewItemが「このタブは閉じない」のスレの場合は新しいタブで開く
     else if not viewItem.thread.canclose then
-      viewItem := NewView(relative, background);
+      viewItem := NewView(relative, background, Left, Top, Right, Bottom, wndstate);
     {/aiai}
   end;
   viewItem.NewRequest(thread, oprType, number, false, Config.oprCheckNewWRedraw);
@@ -5435,57 +5483,34 @@ end;
 
 
 (*  *)
-function TMainWnd.NewView(relative: boolean = false; background: boolean = false): TViewItem;
-{$IFDEF IE}
+function TMainWnd.NewView(relative: boolean = false;
+  background: boolean = false; Left: integer = 0; Top: integer = 0;
+  Right: integer = 0; Bottom: integer = 0;
+  wndstate: TMTVState = MTV_MAX): TViewItem;
 var
-  browser: TWebBrowser;
+  //browser: THogeTextView;
+  browser: TMDITextView;
   index: integer;
 begin
   index := AddPosToIndex(relative, viewList, currentView);
   result := viewList.GetGarbage(index);
   if result = nil then
   begin
-    browser := TWebBrowser.Create(self.WebPanel);
-    TOleControl(browser).Parent := self.WebPanel;
+    {aiai} //MDI化
+    //browser := THogeTextView.Create(self.WebPanel);
+    //browser.Parent := self.WebPanel;
+    browser := TMDITextView.Create(self.MDIClientPanel);
+    browser.Parent := self.MDIClientPanel;
     browser.Align := alClient;
-    //browser.Enabled := true;
-    //browser.Visible := true;
-    browser.OnBeforeNavigate2  := WebBrowserBeforeNavigate2;
-    browser.OnDocumentComplete := WebBrowserDocumentComplete;
-    browser.OnStatusTextChange := WebBrowserStatusTextChange;
-    browser.OnEnter            := WebBrowserEnter;
-    browser.OnDownloadComplete := WebBrowserDownloadComplete;
-    result := viewList.NewView(browser, index);
-    Result.RootControl := browser;
-    Result.PopUpViewList := popupviewList;
-  end;
-  //result.browser.Visible := true;
-  //result.browser.BringToFront;
-
-  TabControl.Tabs.Insert(index, '  ');
-  if background then
-    UpdateCurrentView(TabControl.TabIndex)
-  else begin
-    SetCurrentView(index);
-    UpdateCurrentView(index);
-  end;
-  //result.browser.TabStop := True;
-  //result.browser.TabOrder := TabControl.TabOrder + 1;
-
-  UpdateTabTexts;
-end;
-{$ELSE}
-var
-  browser: THogeTextView;
-  index: integer;
-begin
-  index := AddPosToIndex(relative, viewList, currentView);
-  result := viewList.GetGarbage(index);
-  if result = nil then
-  begin
-    browser := THogeTextView.Create(self.WebPanel);
-    browser.Parent := self.WebPanel;
-    browser.Align := alClient;
+    if not ((Left = 0) and (Top = 0) and (Right = 0) and (Bottom = 0)) then
+      browser.NorRect := Bounds(Left, Top, Right - Left, Bottom - Top);
+    browser.WndState := wndstate;
+    browser.OnCloseWindow := actCloseTabExecute;
+    browser.OnMaximizeWindow := actMaxViewExecute;
+    browser.OnDbClickTBar := actMaxViewExecute;
+    browser.OnActive := BrowserActive;
+    //browser.OnHide := BrowserHide;
+    {/aiai}
     browser.LeftMargin := BrowserLeftMargin;
     browser.RightMargin := BrowserRightMargin;
     //browser.MaxWidth := BrowserMaxWidth;
@@ -5552,7 +5577,7 @@ begin
 
   UpdateTabTexts;
 end;
-{$ENDIF}
+
 
 function TMainWnd.NewPopUpView(OwnerView: TBaseViewItem): TPopUpViewItem;
 var
@@ -5647,12 +5672,14 @@ procedure TMainWnd.UpdateCurrentView(index: integer);
     end;
   end;
 
-var
-  i: integer;
+//var
+//  i: integer;
 begin
   if (0 <= index) and (index < viewList.Count) then
   begin
-    for i := 0 to viewList.Count -1 do
+    {aiai}
+
+    {for i := 0 to viewList.Count -1 do
     begin
       if i = index then
       begin
@@ -5663,9 +5690,15 @@ begin
         viewList.Items[i].browser.TabStop := false;
         viewList.Items[i].browser.Visible := false;
       end;
-    end;
+    end;}
+
+    {/aiai}
 
     currentView := viewList.Items[index];
+    {aiai}
+    if not currentView.browser.Visible then
+      currentView.browser.Show;
+    {/aiai}
     currentViewHandle := currentView.browser.Handle;
     currentView.browser.BringToFront;
     if GetFocus() = 0 then
@@ -5803,17 +5836,22 @@ begin
   end;
 end;
 
-procedure TMainWnd.LocalNavigate(const URI: string; activate: boolean = false);
+procedure TMainWnd.LocalNavigate(const URI: string; activate: boolean = false;
+  Left: integer = 0; Top: integer = 0; Right: integer = 0; Bottom: Integer = 0;
+  wndstate: TMTVState = MTV_MAX; canclose: boolean = true);
 var
   host, bbs, datnum: string;
   oldLog: boolean;
   startIndex, endIndex: integer;
 begin
   Get2chInfo(URI, host, bbs, datnum, startIndex, endIndex, oldLog);
-  LocalNavigate(host, bbs, datnum);
+  LocalNavigate(host, bbs, datnum, activate, Left, Top, Right, Bottom, wndstate, canclose);
 end;
 
-procedure TMainWnd.LocalNavigate(const host, bbs, datnum: string; activate: boolean = false);
+procedure TMainWnd.LocalNavigate(const host, bbs, datnum: string;
+  activate: boolean = false; Left: integer = 0; Top: integer = 0;
+  Right: integer = 0; Bottom: Integer = 0; wndstate: TMTVState = MTV_MAX;
+  canclose: boolean = true);
 var
   board: TBoard;
   thread: TThreadItem;
@@ -5835,7 +5873,9 @@ begin
       thread.URI := 'http://' + host + '/' + bbs;
       board.Add(thread);
     end;
-    ShowSpecifiedThread(thread, gotLOCAL, true);
+    thread.canclose := canclose;
+    ShowSpecifiedThread(thread, gotLOCAL, true, false, false, -1,
+      Left, Top, Right, Bottom, wndstate);
     board.Release;
   end;
 end;
@@ -6274,7 +6314,8 @@ begin
     SetRPane(ptView);
     {aiai}
     if Config.optSetFocusOnWriteMemo then
-       try WritePanel.SetFocus; except end;
+       //try WritePanel.SetFocus; except end;
+       SetFocusToWriteMemo;
     {/aiai}
   end;
 end;
@@ -6556,16 +6597,23 @@ begin
     begin
       if (viewList.Items[i].thread <> nil) and
          ((TabControl.Tabs.Strings[i] = '') or refresh) then
+      begin
         TabControl.Tabs.Strings[i] := Copy(AnsiReplaceText(HTML2String(viewList.Items[i].thread.title),
                                                     '&', '&&'), 1, 4095);
+        SetWindowText(viewList.Items[i].browser.Handle, PChar(TabControl.Tabs.Strings[i]));
+      end;
     end
   else
     for i := 0 to viewList.Count -1 do
     begin
       if (viewList.Items[i].thread <> nil) and
          (not AnsiEndsStr('...', TabControl.Tabs.Strings[i]) or refresh) then
+      begin
         TabControl.Tabs.Strings[i] := AnsiReplaceText(TabString(HTML2String(viewList.Items[i].thread.title)),
                                                     '&', '&&');
+        SetWindowText(viewList.Items[i].browser.Handle, PChar(Copy(AnsiReplaceText(HTML2String(viewList.Items[i].thread.title),
+                                                    '&', '&&'), 1, 4095)));
+      end;
   	end;
 
   //※[JS]タブ行の調節
@@ -9216,6 +9264,7 @@ procedure TMainWnd.ViewItemStateChanged;
     actCopyDI.Enabled := false;  //aiai
     actReload.Enabled := false;
     actCloseTab.Enabled := false;
+    actMaxView.Enabled := false;  //aiai
     actKeywordExtraction.Enabled:=false; //beginner
     actSetReadPos.Enabled := false;
     actJumpToReadPos.Enabled := false;
@@ -9353,11 +9402,24 @@ begin
       actAddFavorite.Enabled  := true;
       actDeleteFavorite.Enabled := false;
       actRemvoeLog.Enabled    := true;
-      actSaveDat.Enabled := true; //aiai
-      actCopyDat.Enabled := true; //aiai
-      actCopyDI.Enabled  := true; //aiai
       actReload.Enabled       := true;
       actCloseTab.Enabled     := true;
+      {aiai}
+      actSaveDat.Enabled := true;
+      actCopyDat.Enabled := true;
+      actCopyDI.Enabled  := true;
+      if Assigned(browser) then begin
+        actMaxView.Enabled := true;
+        if TMDITextView(browser).WndState = MTV_NOR then begin
+          actMaxView.ImageIndex := 12;
+          actMaxView.Hint := '最大化';
+        end else begin
+          actMaxView.ImageIndex := 11;
+          actMaxView.Hint := '元のサイズに戻す';
+        end;
+      end else
+        actMaxView.Enabled := False;
+      {/aiai}
       actKeywordExtraction.Enabled := (thread <> nil); //beginner
       //actSetReadPos.Enabled := (thread <> nil);
       //actJumpToReadPos.Enabled := (thread <> nil) and (thread.ReadPos <> 0);
@@ -12595,8 +12657,11 @@ procedure TMainWnd.OpenStartupThread;
 var
   i: integer;
   urlList: TStringList;
+  urlListSub: TStringList;
   favlist: TFavoriteList;
   tmpTap: TTabAddPos;
+  wndstate: TMTVState;
+  uri: string;
 begin
   //開き順が変わるので無理矢理修正
   tmpTap := Config.oprAddPosNormal;
@@ -12620,17 +12685,52 @@ begin
           LocalNavigate(host, bbs, datName);
     end;
 
-  if Config.optSaveLastItems and FileExists(Config.BasePath + 'last.dat') then
-  begin
-    urlList := TStringList.Create;
-    try
-      urlList.LoadFromFile(Config.BasePath + 'last.dat');
-      for i := 0 to urlList.Count -1 do
-        LocalNavigate(urlList[i]);
-    finally
-      urlList.Free;
+  if Config.optSaveLastItems then begin
+    if FileExists(Config.BasePath + SESSION_DAT) then
+    begin
+      urlList := TStringList.Create;
+      urlListSub := TStringList.Create;
+      try
+        urlList.LoadFromFile(Config.BasePath + SESSION_DAT);
+        for i := 0 to urlList.Count - 1 do
+        begin
+          uri := urlList.Names[i];
+          urlListSub.CommaText := urlList.Values[uri];
+          if urlListSub.Count = 6 then begin
+            if urlListSub[4] = '0' then
+              wndstate := MTV_NOR
+            else
+              wndstate := MTV_MAX;
+            LocalNavigate(uri,
+              False,
+              StrToIntDef(urlListSub[0], 0),
+              StrToIntDef(urlListSub[1], 0),
+              StrToIntDef(urlListSub[2], 0),
+              StrToIntDef(urlListSub[3], 0),
+              wndstate,
+              (urlListSub[5] = '1'));
+          end else
+            LocalNavigate(uri);
+          urlListSub.Clear;
+        end;
+      finally
+        urlList.Free;
+        urlListSub.Free;
+      end;
+    end
+    else if FileExists(Config.BasePath + 'last.dat') then
+    begin
+      urlList := TStringList.Create;
+      try
+        urlList.LoadFromFile(Config.BasePath + 'last.dat');
+        for i := 0 to urlList.Count -1 do
+          LocalNavigate(urlList[i]);
+      finally
+        urlList.Free;
+      end;
     end;
   end;
+
   if currentBoard <> nil then
     ListView.TabStop := true;
   Config.oprAddPosNormal := tmpTap;
@@ -12641,6 +12741,9 @@ procedure TMainWnd.SaveLastThread;
 var
   i: integer;
   urlList: TStringList;
+  thread: TThreadItem;
+  browser: TMDITextView;
+  canclose: string;
 begin
   //if not FileExists(Config.BasePath + 'last.dat') then
   if not Config.optSaveLastItems then
@@ -12651,16 +12754,38 @@ begin
     begin
       for i := 0 to ListTabControl.Tabs.Count -1 do
         with ListTabControl.Tabs.Objects[i] as TBoard do
-          urlList.Add(GetURIBase + '/');
+          urlList.Add(GetURIBase + '/' + '=');
     end
     else if currentBoard <> nil then
-      urlList.Add(currentBoard.GetURIBase + '/');
-    for i := 0 to viewList.Count -1 do
-      if viewList.Items[i].thread <> nil then
-        urlList.Add(viewList.Items[i].thread.ToURL(false));
-    SysUtils.DeleteFile(Config.BasePath + 'last.dat.back');
-    SysUtils.RenameFile(Config.BasePath + 'last.dat', Config.BasePath + 'last.dat.back');
-    urlList.SaveToFile(Config.BasePath + 'last.dat');
+      urlList.Add(currentBoard.GetURIBase + '/' + '=');
+    for i := 0 to viewList.Count -1 do begin
+      thread := viewList.Items[i].thread;
+      if thread <> nil then begin
+        if thread.canclose then canclose := '1' else canclose := '0';
+        browser := TMDITextView(viewList.Items[i].browser);
+        if browser.WndState = MTV_MAX then begin
+          urlList.Add(viewList.Items[i].thread.ToURL(false)
+            + '='
+            + IntToStr(browser.NorRect.Left) + ','
+            + IntToStr(browser.NorRect.Top) + ','
+            + IntToStr(browser.NorRect.Right) + ','
+            + IntToStr(browser.NorRect.Bottom) + ','
+            + '1,'
+            + canclose);
+        end else
+          urlList.Add(viewList.Items[i].thread.ToURL(false)
+            + '='
+            + IntToStr(browser.BoundsRect.Left) + ','
+            + IntToStr(browser.BoundsRect.Top) + ','
+            + IntToStr(browser.BoundsRect.Right) + ','
+            + IntToStr(browser.BoundsRect.Bottom) + ','
+            + '0,'
+            + canclose);
+      end;
+    end;
+    SysUtils.DeleteFile(Config.BasePath + SESSION_DAT + '.back');
+    SysUtils.RenameFile(Config.BasePath + SESSION_DAT, Config.BasePath + SESSION_DAT + '.back');
+    urlList.SaveToFile(Config.BasePath + SESSION_DAT);
   finally
     urlList.Free;
   end;
@@ -17109,6 +17234,151 @@ end;
 //▲ ステータスバー
 
 
+//▼ MDI
+
+procedure TMainWnd.actMaxViewExecute(Sender: TObject);
+var
+  viewItem: TViewItem;
+begin
+  viewItem := GetActiveView;
+  if Assigned(viewItem) then
+    if viewList.ViewMaximize(viewItem) then begin
+      actMaxView.ImageIndex := 11;
+      actMaxView.Hint := '元のサイズに戻す';
+    end else begin
+      actMaxView.ImageIndex := 12;
+      actMaxView.Hint := '最大化';
+    end;
+end;
+
+procedure TMainWnd.MenuWindowCascadeClick(Sender: TObject);
+begin
+  viewList.ViewCascade;
+  actMaxView.ImageIndex := 12;
+  actMaxView.Hint := '最大化';
+end;
+
+procedure TMainWnd.MenuWindowTileVerticallyClick(Sender: TObject);
+begin
+  viewList.ViewTile(False);
+  actMaxView.ImageIndex := 12;
+  actMaxView.Hint := '最大化';
+end;
+
+procedure TMainWnd.MenuWindowTileHorizontallyClick(Sender: TObject);
+begin
+  viewList.ViewTile(True);
+  actMaxView.ImageIndex := 12;
+  actMaxView.Hint := '最大化';
+end;
+
+procedure TMainWnd.MenuWindowRestoreAllClick(Sender: TObject);
+begin
+  viewList.ViewAllRestore;
+  actMaxView.ImageIndex := 12;
+  actMaxView.Hint := '最大化';
+end;
+
+procedure TMainWnd.MenuWindowMaximizeAllClick(Sender: TObject);
+begin
+  viewList.ViewAllMaximize;
+  actMaxView.ImageIndex := 11;
+  actMaxView.Hint := '元のサイズに戻す';
+end;
+
+procedure TMainWnd.BrowserActive(Sender: TObject);
+var
+  viewItem: TViewItem;
+  Index: Integer;
+begin
+  if not (Sender is TMDITextView) then
+    exit;
+  viewItem := viewList.FindViewitem(TComponent(Sender));
+  if viewItem <> nil then begin
+    Index := viewList.IndexOf(viewItem);
+    if Index > -1 then begin
+      TabControl.TabIndex := Index;
+      UpdateCurrentView(Index);
+      ViewItemStateChanged;
+      StopAutoReSc;
+    end;
+  end;
+end;
+
+//procedure TMainWnd.BrowserHide(Sender: TObject);
+//var
+//  index: Integer;
+//begin
+//  if not (Sender is TMDITextView) then
+//    exit;
+//
+//  index := tabControl.TabIndex;
+//  case Config.oprClosetPos of
+//
+//    tcpLeft: begin
+//      if index > 0 then
+//        SetCurrentView(index - 1)
+//      else
+//        SetCurrentView(0);
+//    end;
+//
+//    else // tcpRight;
+//      if index < tabControl.Tabs.Count - 1 then
+//        SetCurrentView(index + 1)
+//      else if index > 0 then
+//        SetCurrentView(index - 1)
+//      else
+//        SetCurrentView(index);  //このbrowserをカレントにする
+//
+//  end;  //Case
+//
+//end;
+
+procedure TMainWnd.MenuThreSysMoveClick(Sender: TObject);
+var
+  viewItem: TViewItem;
+  browser: TMDITextView;
+begin
+  viewItem := GetActiveView;
+  if Assigned(viewItem) and Assigned(viewItem.browser) then
+  begin
+    browser := TMDITextView(viewItem.browser);
+    browser.Perform(WM_SYSCOMMAND, SC_MOVE, 0);
+  end;
+end;
+
+procedure TMainWnd.MenuThreSysResizeClick(Sender: TObject);
+var
+  viewItem: TViewItem;
+  browser: TMDITextView;
+begin
+  viewItem := GetActiveView;
+  if Assigned(viewItem) and Assigned(viewItem.browser) then
+  begin
+    browser := TMDITextView(viewItem.browser);
+    browser.Perform(WM_SYSCOMMAND, SC_SIZE, 0);
+  end;
+end;
+
+procedure TMainWnd.PopupThreSysPopup(Sender: TObject);
+var
+  viewItem: TViewItem;
+  browser: TMDITextView;
+begin
+  viewItem := GetActiveView;
+  if Assigned(viewItem) and Assigned(viewItem.browser) then
+  begin
+    browser := TMDITextView(viewItem.browser);
+    MenuThreSysMove.Visible := browser.WndState = MTV_NOR;
+    MenuThreSysResize.Visible := browser.WndState = MTV_NOR;
+  end else
+  begin
+    MenuThreSysMove.Visible := False;
+    MenuThreSysResize.Visible := False;
+  end;
+end;
+
+//▲ MDI
 
 initialization
   OleInitialize(nil);

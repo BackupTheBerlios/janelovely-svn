@@ -1366,7 +1366,7 @@ end;
 //aiai
 function TThreadData.MatchID(var idlist: TStringList; line: Integer; target: string): Boolean;
 
-
+  (*
   procedure Dat2ChGet2DelimiterForID(const AString: String;
                                      startPos: integer;
                                      var idStart, idSize: integer;
@@ -1472,19 +1472,19 @@ function TThreadData.MatchID(var idlist: TStringList; line: Integer; target: str
     dateStart := index;
     Dat2ChGet2CommaDelimiterForID(AString, dateStart, idStart, idSize);
   end;
-
+  *)
 var
-  datType: TDatType;
+  (*datType: TDatType;
   dataString: string;
   startPos: integer;
   nameStart, nameSize: integer;
   mailStart, mailSize: integer;
   dateStart          : integer;
-  idStart,   idSize  : integer;
+  idStart,   idSize  : integer;*)
   idString: string;
 begin
   if idlist.Count < line then begin
-
+    (*
     datType := GetDatType(Self);
     if not FindLine(line) then
     begin
@@ -1516,11 +1516,12 @@ begin
     end;
 
     //idString := RightStr(idString, idSize - 3);
-
+    *)
+    idString := FetchID(line);
     idlist.Add(idString);
   end;
 
-  Result := (strComp(PChar(target) + 3, PChar(idlist.Strings[line - 1]) + 3) = 0);
+  Result := (strComp(PChar(target) + 3, PChar(idlist.Strings[line - 1]) {+ 3}) = 0);
 
 end;
 

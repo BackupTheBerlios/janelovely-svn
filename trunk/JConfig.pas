@@ -1045,7 +1045,8 @@ procedure TJaneConfig.Load;
     wrtWritePanelColor := HexToInt(ini.ReadString(INI_CL_SECT, 'MemoColor', '80000005')); //aiai
     {$IFNDEF IE}
     clViewColor := HexToInt(ini.ReadString(INI_CL_SECT, 'TextViewColor', '00EFEFEF'));   //aiai
-    MainWnd.WebPanel.Color := clViewColor;
+    //MainWnd.WebPanel.Color := clViewColor;
+    MainWnd.MDIClientPanel.Color := clViewColor;  //aiai
     {$ENDIF}
     c := ini.ReadString(INI_CL_SECT, 'ListViewOddBackColor', '');
     if c <> '' then

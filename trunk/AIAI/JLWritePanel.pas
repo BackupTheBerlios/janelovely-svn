@@ -715,6 +715,8 @@ begin
 end;
 
 procedure TJLWritePanel.SetNameMail;
+var
+  SageCheckBoxCheck: TNotifyEvent;
 begin
   //ñºëO
   if FThread.UsedWriteMail <> '' then
@@ -728,7 +730,10 @@ begin
     NameComboBox.Text := SettingTxt.Lines.Values['BBS_NONAME_NAME'];
 
   //ÉÅÅ[Éã
+  SageCheckBoxCheck := SageCheckBox.OnClick;
+  SageCheckBox.OnClick := nil;
   SageCheckBox.Checked := false;
+  SageCheckBox.OnClick := SageCheckBoxCheck;
 
   if FThread.UsedWriteMail <> '' then
     MailComboBox.Text := FThread.UsedWriteMail
@@ -1328,6 +1333,8 @@ begin
 end;
 
 procedure TJLWritePanel.SetThread(AThread: TThreadItem);
+var
+  SageCheckBoxCheck: TNotifyEvent;
 begin
   if AThread = nil then
   begin
@@ -1353,7 +1360,8 @@ begin
 
   if MainPageControl.ActivePageIndex = TABSHEET_PREVIEW then
     CreatePreView;
-
+  SageCheckBoxCheck := SageCheckBox.OnClick;
+  SageCheckBox.OnClick := nil;
   if MailComboBox.Text = 'sage' then
   begin
     MailComboBox.Enabled := false;
@@ -1363,6 +1371,7 @@ begin
     MailComboBox.Enabled := true;
     SageCheckBox.Checked := false;
   end;
+  SageCheckBox.OnClick := SageCheckBoxCheck;
 
   if WaitTimer.Enabled and (FThread <> nil)
       and (0 < AnsiPos(hostname, FThread.GetHost)) then begin

@@ -1566,10 +1566,17 @@ begin
 end;
 
 procedure THogeTextView.ON_WM_CREATE(var msg: TMsg);
+var
+  si: SCROLLINFO;  //aiai
 begin
   SetWindowLong(Handle, GWL_EXSTYLE,
                 GetWindowLong(Handle, GWL_EXSTYLE) or WS_EX_CLIENTEDGE);
   ShowScrollBar(Handle, SB_VERT, True);
+  {aiai} //スクロールバーを再描画する
+  zeromemory(@si, sizeof(si));
+  si.cbSize := sizeof(si);
+  SetScrollInfo(Handle, SB_VERT, si, True);
+  {/aiai}
   FEditPoint.X := 0;
   FEditPoint.Y := 0;
   FLogicalCaret.X := 0;
@@ -3273,6 +3280,7 @@ begin
   SetSelecting(False);
   ForwardLine(1);
 end;
+
 {/aiai}
 
 {beginner}

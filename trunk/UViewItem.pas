@@ -399,6 +399,13 @@ type
     procedure UpdateFocus(index: integer); overload;
     procedure UpdateFocus(viewItem: TViewItem); overload;
     procedure Debug;
+    {aiai}
+    function ViewMaximize(viewItem: TViewItem): Boolean;
+    procedure ViewAllRestore;
+    procedure ViewAllMaximize;
+    procedure ViewCascade;
+    procedure ViewTile(Horize: Boolean);
+    {/aiai}
     property Items[index: integer]: TViewItem read GetItems write SetItems;
   end;
 
@@ -515,7 +522,8 @@ implementation
 (*=======================================================*)
 
 uses
-  Main;
+  Main,
+  UMDITextView;  //aiai
 
 type
   CharEntity = record
@@ -2686,6 +2694,7 @@ procedure TViewItem.NewRequest(thread: TThreadItem; oprType: TGestureOprType;
 
 var
   checkNew: boolean;
+  title: String; //aiai
 label DoReq;
 begin
   if assigned(daemon.FatalException) then
@@ -2752,10 +2761,13 @@ begin
 
   FreeStream;
 
-
-  if TabText then   //aiai
-    MainWnd.TabControl.Tabs.Strings[viewList.IndexOf(self)]
-      := Copy(AnsiReplaceText(HTML2String(thread.title), '&', '&&'), 1, 4095);
+  {aiai}
+  if TabText then begin
+    title := Copy(AnsiReplaceText(HTML2String(thread.title), '&', '&&'), 1, 4095);
+    MainWnd.TabControl.Tabs.Strings[viewList.IndexOf(self)] := title;
+    SetWindowText(FBrowser.Handle, PChar(title));
+  end;
+  {/aiai}
 
   checkNew := CheckP(thread, oprType);
 
@@ -3456,7 +3468,7 @@ begin
     exit;
 
   MainWnd.TabControl.Tabs.Strings[viewList.IndexOf(self)] := '抽出';
-
+  SetWindowText(FBrowser.Handle, '抽出');  //aiai
   ExThread.AddRef;
   ExThread.CancelAsyncRead;
 
@@ -3580,7 +3592,7 @@ begin
     exit;
 
   MainWnd.TabControl.Tabs.Strings[viewList.IndexOf(self)] := 'ツリー';
-
+  SetWindowText(FBrowser.Handle, 'ツリー');  //aiai
   ExThread.AddRef;
 
   {$IFDEF IE}
@@ -3791,6 +3803,7 @@ begin
   end;
   index := viewList.IndexOf(self);
   MainWnd.TabControl.Tabs.Strings[index] := 'ログ検索中';
+  SetWindowText(FBrowser.Handle, 'ログ検索中');  //aiai
   totalCount := 0;
 
   ClearBrowser; //beginner
@@ -4047,8 +4060,10 @@ begin
   {/beginner}
 
   index := viewList.IndexOf(self);
-  if 0 <= index then
+  if 0 <= index then begin
     MainWnd.TabControl.Tabs.Strings[index] := '検索結果';
+    SetWindowText(FBrowser.Handle, '検索結果');  //aiai
+  end;
   FProgress := tpsNone;
   Log('検索終了');
   MainWnd.WriteStatus('検索終了');
@@ -4098,7 +4113,7 @@ var
 begin
   index := viewList.IndexOf(self);
   MainWnd.TabControl.Tabs.Strings[index] := 'ABOUT';
-
+  SetWindowText(FBrowser.Handle, 'ABOUT');  //aiai
   if browser.Document = nil then
   begin
     FProgress := tpsWorking;
@@ -4136,7 +4151,7 @@ var
 begin
   i := viewList.IndexOf(self);
   MainWnd.TabControl.Tabs.Strings[i] := 'ABOUT';
-
+  SetWindowText(FBrowser.Handle, 'ABOUT');  //aiai
   ClearBrowser;
   ZoomBrowser(Config.viewZoomSize);
 
@@ -4170,7 +4185,7 @@ var
 begin
   index := viewList.IndexOf(self);
   MainWnd.TabControl.Tabs.Strings[index] := title;
-
+  SetWindowText(FBrowser.Handle, PChar(title));  //aiai
   if browser.Document = nil then
   begin
     FProgress := tpsWorking;
@@ -4193,7 +4208,7 @@ var
 begin
   i := viewList.IndexOf(self);
   MainWnd.TabControl.Tabs.Strings[i] := title;
-
+  SetWindowText(FBrowser.Handle, PChar(title));
   ClearBrowser;
   ZoomBrowser(Config.viewZoomSize);
 
@@ -4369,6 +4384,7 @@ begin
       else
         inherited Insert(insertIndex, result);
       garbageList.Delete(i);
+      TMDITextView(result.browser).WndState := MTV_MAX;  //aiai
       result.browser.Visible := true;
       result.browser.BringToFront;
       result.FreeThread;
@@ -4527,6 +4543,155 @@ procedure TViewList.Debug;
 begin
   Log(Format('browser: %d, garbage: %d', [Count, garbageList.Count]));
 end;
+
+
+
+{aiai}
+function TViewList.ViewMaximize(viewItem: TViewItem): Boolean;
+var
+  browser: TMDITextView;
+  state: TMTVState;
+  //pcx, pcy: Integer;
+begin
+  Result := True;
+  if Assigned(viewItem.browser) then begin
+    browser := TMDITextView(viewItem.browser);
+    state := browser.WndState;
+    if state = MTV_MAX then begin
+      browser.Hide;
+      browser.WndState := MTV_NOR;
+      //pcx := MainWnd.MDIClientPanel.Width div 20;
+      //pcy := MainWnd.MDIClientPanel.Height div 20;
+      //browser.BoundsRect := Bounds(pcx, pcy, pcx * 18, pcy * 18);
+      browser.Show;
+      browser.SetFocus;
+      Result := False;
+    end else if state = MTV_NOR then begin
+      browser.WndState := MTV_MAX;
+    end;
+  end;
+end;
+procedure TViewList.ViewAllRestore;
+var
+  browser: TMDITextView;
+  i: Integer;
+begin
+  for i := 0 to Count  - 1 do begin
+    browser := TMDITextView(Items[i].browser);
+    browser.WndState := MTV_NOR;
+  end;
+end;
+
+procedure TViewList.ViewAllMaximize;
+var
+  browser: TMDITextView;
+  i: Integer;
+begin
+  for i := 0 to Count  - 1 do begin
+    browser := TMDITextView(Items[i].browser);
+    browser.WndState := MTV_MAX;
+  end;
+end;
+
+procedure TViewList.ViewCascade;
+var
+  cx, cy, x, y, wcnt, i: Integer;
+  browser, activeview: TMDITextView;
+begin
+  wcnt := Count;
+  if wcnt <= 0 then
+    exit;
+
+  activeview := TMDITextView(MainWnd.GetActiveView.browser);
+
+  cx := MainWnd.MDIClientPanel.ClientWidth * 5 div 7;
+  cy := MainWnd.MDIClientPanel.ClientHeight * 5 div 7;
+  x := (MainWnd.MDIClientPanel.ClientWidth - cx) div (wcnt - 1);
+  y := (MainWnd.MDIClientPanel.ClientHeight - cy) div (wcnt - 1);
+
+  for i := 0 to viewList.Count - 1 do begin
+    browser := TMDITextView(Items[i].browser);
+    With browser do begin
+      WndState := MTV_NOR;
+      Width := cx;
+      Height := cy;
+      Left := x * i;
+      Top := y * i;
+      BringToFront;
+    end;
+  end;
+
+  activeview.BringToFront;
+end;
+
+procedure TViewList.ViewTile(Horize: Boolean);
+var
+  cx: Integer;              { WindowのWidth }
+  cy: Integer;              { WindowのHeight }
+  wcnt: Integer;            { Windowの数 }
+  lcnt: Integer;            { 列の数 }
+  rcnt: Integer;            { 行の数 }
+  line: Integer;            { 列のインデックス }
+  row: Integer;             { 行のインデックス }
+  oneplus: Integer;         { 一列多くなる行のインデックスの最小値 or 一行多くなる列のインデックスの最小値 }
+  i: Integer;
+  browser: TMDITextView;
+begin
+  wcnt := viewList.Count;
+  if wcnt <= 0 then
+    exit;
+
+  if Horize then begin
+    lcnt := Trunc(sqrt(wcnt));            { 0行目の列数 }
+    i := wcnt - lcnt * lcnt;
+    rcnt := lcnt + i div lcnt;            { 列の数 }
+    oneplus := rcnt - i mod lcnt;         { 一列多くなる最初の行のインデックス }
+  end else begin
+    rcnt := Trunc(sqrt(wcnt));            { 0列目の行数 }
+    i := wcnt - rcnt * rcnt;
+    lcnt := rcnt + i div rcnt;            { 行の数 }
+    oneplus := lcnt - i mod rcnt;         { 一行多くなる最初の列のインデックス }
+  end;
+
+  cx := MainWnd.MDIClientPanel.ClientWidth div lcnt;
+  cy := MainWnd.MDIClientPanel.ClientHeight div rcnt;
+
+  line := 0;
+  row := 0;
+
+  for i := 0 to Count - 1 do begin
+    browser := TMDITextView(Items[i].browser);
+    With browser do begin
+      WndState := MTV_NOR;
+
+      BoundsRect := Bounds(cx * line, cy * row, cx, cy);
+
+      if Horize then begin
+        Inc(line);         { 次の列へ }
+        if line = lcnt then begin
+          Inc(row);        { 次の行へ }
+          line := 0;
+          if (row = oneplus) then begin
+            Inc(lcnt);
+            cx := MainWnd.MDIClientPanel.ClientWidth div lcnt;
+          end;
+        end;
+      end else begin
+        Inc(row);          { 次の行へ }
+        if row = rcnt then begin
+          Inc(line);       { 次の列へ }
+          row := 0;
+          if (line = oneplus) then begin
+            Inc(rcnt);
+            cy := MainWnd.MDIClientPanel.ClientHeight div rcnt;
+          end;
+        end;
+      end;
+
+    end;
+  end;
+end;
+{/aiai}
 
 
 (*=======================================================*)
