@@ -116,6 +116,16 @@ type
     property Items[index: Integer]: THogeTVitem read GetItem write SetItem; default;
   end;
 
+  {aiai}
+  THogeThumbnailItem = class(THogeTVItem)
+  public
+    PictureList: TList;
+    destructor Destroy; override;
+    function IndexToLogicalPos(index: Integer): TPoint; override;
+    function LogicalPosToIndex(var point: TPoint): Integer; override;
+  end;
+  {/aiai}
+
   (*-------------------------------------------------------*)
   THogeTextAttrib = record
     color: TColor;
@@ -613,6 +623,14 @@ var
   cw: AnsiString;
   nchars, width, maxWidth: integer;
 begin
+  {aiai}
+  if PictLine and (PictOverlap = -1) then
+  begin
+    Result.X := FView.LeftMargin + FOffsetLeft + Picture.Width;
+    Result.Y := Picture.Height div FView.BaselineSkip;
+    exit;
+  end;
+  {/aiai}
   cw := GetWidthInfo;
   len := length(cw);
   nchars := 0;
@@ -646,6 +664,14 @@ var
   cw: AnsiString;
   nchars, width, maxWidth: integer;
 begin
+  {aiai}
+  if PictLine and (PictOverlap = -1) then
+  begin
+    Point.X := FView.LeftMargin + FOffsetLeft + Picture.Width;
+    Result := Point.X;
+    exit;
+  end;
+  {/aiai}
   cw := GetWidthInfo;
   len := length(cw);
   nchars := 0;
