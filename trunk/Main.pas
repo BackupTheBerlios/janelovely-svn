@@ -5703,6 +5703,8 @@ begin
     Dec(index);
     ShowSpecifiedThread(thread, ThreadGesture2Opt(oprType), anotherTab, relative,
                         background, index);
+    if currentBoard is TOpenThreadsBoard then
+      UpdateListView;
     if not background then
       SetRPane(ptView);
     board.Release;
