@@ -38,8 +38,8 @@ uses
   {/aiai}
 
 const
-  VERSION  = '0.1.4';      (* Printable ASCIIコード厳守。')'はダメ *)
-  JANE2CH  = 'JaneLovely 0.1.4';
+  VERSION  = '0.1.5';      (* Printable ASCIIコード厳守。')'はダメ *)
+  JANE2CH  = 'JaneLovely 0.1.5 β1';
   KEYWORD_OF_USER_AGENT = 'JaneLovely';      (*  *)
 
   DISTRIBUTORS_SITE = 'http://www.geocities.jp/openjane4714/';
@@ -5014,7 +5014,7 @@ begin
   else begin
     {aiai}
     OpenThreads := i2ch.items[0].items[2] as TOpenThreadsBoard;
-    if OpenThreads.Refered then
+    if (OpenThreads.Refered) and (-1 = OpenThreads.IndexOf(thread)) then
     begin
       OpenThreads.Add(thread);
       thread.AddRef(false);
@@ -9747,6 +9747,7 @@ begin
     index := viewList.FindViewItemIndex(thread);
     if index <> -1 then
     begin
+      thread.canclose := True;
       tabRightClickedIndex := index;
       CloseThisTab(False);
     end;
