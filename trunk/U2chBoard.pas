@@ -642,6 +642,10 @@ begin
     else begin
       TThreadItem(refered[i]).number := 0; //false;
       Add(refered[i]);
+      {aiai}
+      if refresh then
+        datList.Add(TThreadItem(refered[i]).datName);
+      {/aiai}
     end;
   end;
   refered.Free;
