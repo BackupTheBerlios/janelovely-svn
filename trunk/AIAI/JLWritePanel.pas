@@ -883,6 +883,12 @@ begin
     if MessageCount(MailComboBox.Text) > BBSMailCount then
       WarningList.Add('メール欄が長すぎです。');
 
+    if not AnsiStartsStr('be', TargetBoard.host)
+      and not (SettingTxt.Lines.Values['BBS_BE_ID'] = '1')
+        and Config.wrtBeLogin and (Length(Config.wrtBEIDDMDM) > 0)
+          and (Length(Config.wrtBEIDMDMD) > 0) then
+      Warninglist.Add('Beにログインして書き込みます。');
+
     if Length(Memo.Text) <= 0 then
       WarningList.Add('メッセージが空です。')
     else if (BBSMessageCount > 0) and (MessageCount(Memo.Text) > BBSMessageCount) then

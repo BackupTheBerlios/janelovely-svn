@@ -698,6 +698,7 @@ begin
     postCode := '';
     ToolButtonTrim.Down := Config.wrtTrimRight; //aiai
     ToolButtonNameWarn.Down := Config.wrtNameMailWarning; //aiai
+    ToolButtonBeLogin.Down := Config.wrtBeLogin; //aiai
     if Config.wrtDisableStatusBar then
       WStatusBar.Hide
     else
@@ -827,6 +828,13 @@ begin
       end;
     end;
 
+    {aiai}
+    if not AnsiStartsStr('be', board.host)
+      and not (SettingTxt.Lines.Values['BBS_BE_ID'] = '1')
+        and Config.wrtBeLogin and (Length(Config.wrtBEIDDMDM) > 0)
+          and (Length(Config.wrtBEIDMDMD) > 0) then
+      Warninglist.Add('Beにログインして書き込みます。');
+    {/aiai}
     if formType = formBuild then
       if Length(EditSubjectBox.Text) <= 0 then
         WarningList.Add('スレタイが空です。')
