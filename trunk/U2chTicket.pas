@@ -33,7 +33,6 @@ type
     procedure On2chPreConnect(sender: TAsyncReq; code: TAsyncNotifyCode);
     (* ‚¿‚å‚Á‚ÆŒ©‚é—p (aiai) *)
     procedure OnChottoPreConnect(sender: TAsyncReq; code: TAsyncNotifyCode);
-    procedure OnKuroPreConnect(sender: TAsyncReq; code: TAsyncNotifyCode); //184
     property SessionID: string read GetSessionID;
     property ConfigChanged: boolean read FConfigChanged write FConfigChanged;
   end;
@@ -214,45 +213,38 @@ begin
     else
       sender.Cancel;
   end
-  else if Config.tstEnableHTTPTrace then
-    Log('normal');
+  else begin
+    if Config.tstEnableHTTPTrace then
+      Log('normal');
+    FLock.Enter;
+    TAsyncReq(sender).IdHTTP.Request.UserAgent := 'Mozilla/3.0 (compatible; '
+       + Main.KEYWORD_OF_USER_AGENT + ' ' + Main.VERSION + '; '
+       + Main.GetWin32Version +')';
+    FLock.Leave;
+  end;
 end;
 
 (* ‚¿‚å‚Á‚ÆŒ©‚é—p (aiai) *)
 procedure T2chTicket.OnChottoPreConnect(sender: TAsyncReq;
         code: TAsyncNotifyCode);
-var
-  userAgent: string;
 begin
   if code <> ancPRECONNECT then
     exit;
-  if Is2ch(sender.URI) then
-  begin
-    userAgent := 'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.0)';
-    if Config.tstEnableHTTPTrace then
-      Log('2ch');
-    if 0 < length(userAgent) then
-      TAsyncReq(sender).IdHTTP.Request.UserAgent := userAgent
-    else
-      sender.Cancel;
-  end
-  else if Config.tstEnableHTTPTrace then
-    Log('normal');
-end;
 
-{184}
-procedure T2chTicket.OnKuroPreConnect(sender: TAsyncReq; code: TAsyncNotifyCode);
-var
-  userAgent: string;
-begin
-  if code <> ancPRECONNECT then
-    exit;
-  userAgent := 'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.0)';
-  TAsyncReq(sender).IdHTTP.Request.UserAgent := userAgent;
+  FLock.Enter;
+  TAsyncReq(sender).IdHTTP.Request.UserAgent := 'Mozilla/3.0 (compatible; '
+    + Main.KEYWORD_OF_USER_AGENT + ' ' + Main.VERSION + '; '
+    + Main.GetWin32Version +')';
+  FLock.Leave;
+
   if Config.tstEnableHTTPTrace then
-    Log('normal');
+  begin
+    if Is2ch(sender.URI) then
+      Log('2ch')
+    else
+      Log('normal');
+  end;
 end;
-{/184}
 
 procedure T2chTicket.Reset;
 begin

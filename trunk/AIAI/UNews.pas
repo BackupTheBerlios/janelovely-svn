@@ -178,7 +178,7 @@ var
   URI: String;
 begin
   URI := 'http://www.asahi.com/' + siteList.Strings[siteIndex] + '/list.html';
-  procGet := AsyncManager.Get(URI, LoadHTML, ticket2ch.OnKuroPreConnect,'');
+  procGet := AsyncManager.Get(URI, LoadHTML, ticket2ch.OnChottoPreConnect,'');
 end;
 
 procedure TNews.DisplayNews(News: String);

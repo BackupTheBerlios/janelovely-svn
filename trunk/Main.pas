@@ -71,6 +71,7 @@ const
        'Portions of this software are Copyright (C) 2004 by <a href="http://pc5.2ch.net/test/read.cgi/win/1093163924/176">◆....Ep7prs</a>',
        'Portions of this software are Copyright (C) 2004 by <a href="http://pc5.2ch.net/test/read.cgi/win/1093163924/621">おさ＠J典 ◆JtenNG/SWE </a>',
        'Portions of this software are Copyright (C) 2004 by <a href="http://pc5.2ch.net/test/read.cgi/win/1093163924/670">◆184NBKmVW6</a>');
+
 type
   (*-------------------------------------------------------*)
   TPaneType = (ptView, ptList);
@@ -1733,6 +1734,8 @@ function Bench3(i: Integer): String;
 {$ENDIF}
 procedure InitBench();
 {$ENDIF}
+//Windowsのバージョン文字列を返す
+function GetWin32Version: string;
 
 const
   CMD_OPEN  = 1;
@@ -1878,6 +1881,39 @@ begin
       SetForegroundWindow(wnd);
   end;
 end;
+
+{aiai}
+var
+  //Windowsのバージョン文字列を入れておく
+  // ex. Windows NT 5.1
+  Win32Version: String;
+
+//Windowsのバージョン文字列を返す
+function GetWin32Version: string;
+begin
+  if Length(Win32Version) = 0 then
+  begin
+    Win32Version := 'Windows';
+    case Win32Platform of
+      VER_PLATFORM_WIN32_NT: begin
+        Win32Version := 'Windows NT ' + IntToStr(Win32MajorVersion) + '.'
+          + IntToStr(Win32MinorVersion);
+      end;
+      VER_PLATFORM_WIN32_WINDOWS:
+        // Windows MEでMinorVersionが10の場合があるが無視する
+        case Win32MinorVersion of
+          0..9: Win32Version := 'Windows 95';
+          10..89: Win32Version := 'Windows 98';
+          90: Win32Version := 'Windows ME';
+        end;
+      VER_PLATFORM_WIN32s: begin
+        Win32Version := 'Win32s';
+      end;
+    end;
+  end;
+  result := Win32Version;
+end;
+{/aiai}
 
 (*=======================================================*)
 (*=======================================================*)
@@ -13383,7 +13419,7 @@ begin
   target := 'http://ttsearch.net/s.cgi?k='+URLEncode(target)+'&o=s&A=t';
   if usetrace[47] then Log(traceString[47])
   else Log('スレッドタイトル検索中');
-  procGet := AsyncManager.Get(target, OnFind, ticket2ch.OnKuroPreConnect,'');
+  procGet := AsyncManager.Get(target, OnFind, ticket2ch.OnChottoPreConnect,'');
 end;
 
 //検索結果のhtmlを加工してViewItemに送る
