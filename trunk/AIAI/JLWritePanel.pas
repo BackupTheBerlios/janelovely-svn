@@ -1390,6 +1390,7 @@ begin
   {$IFDEF WRITEPANELDEBUG}
   Main.Log('SettingTxt:UpdateSettingTxt:' + FThread.title);
   {$ENDIF}
+  FBoard.LoadSettingTXT;
   SettingTxt.Lines := FBoard.settingText;
   BBSLineNumuber := FBoard.BBSLineNumuber;
   BBSMessageCount := FBoard.BBSMessageCount;

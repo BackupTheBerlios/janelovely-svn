@@ -42,6 +42,7 @@ type
     storedSettingTxt: TLocalCopy;
     gotSettingTxt: TProgState;
     procGetSettingTxt: TAsyncReq;
+    SettingTxtLoaded: Boolean;
     SettingTxt: TStringList;
     datList: THashedStringList; //aiai subject.txtにあるスレのdatのリスト
                                 //     TBoard.FindFirstでTThreadの検索に使う
@@ -61,7 +62,6 @@ type
     procedure SetHost(newHost: string); virtual;
     procedure OnDone(Sender: TAsyncReq);           (* 通信用 (aiai) *) //テスト
     procedure OnMovedSubject(sender: TAsyncReq);   (* 通信用 (aiai) *) //テスト
-    procedure LoadSettingTXT;
     procedure GetSettingTxt;
     procedure OnSettingTxt(sender: TAsyncReq);
     class procedure PutToRecyleList(Board: TBoard);
@@ -105,6 +105,7 @@ type
     function Refered: boolean;
     function GetBBSType: TBBSType;
     procedure LoadIndex; virtual;
+    procedure LoadSettingTXT;
     (* DataBase (aiai) *)
     //procedure Load; virtual;
     procedure Load(refresh: Boolean = False); virtual;
@@ -278,6 +279,7 @@ begin
   if Config.ojvQuickMerge then
     IdxDataBase := TSQLite.Create;
   (* //DataBase *)
+  SettingTxtLoaded := False;
 end;
 
 (* 破棄 *)
@@ -1541,9 +1543,13 @@ procedure TBoard.LoadSettingTXT;
 var
   NeedSETTINGTXT: Boolean;
 begin
+  if SettingTxtLoaded then exit;
+
   {$IFDEF DEBUG2}
   Main.Log(self.name + ':SETTING.TXT読込');
   {$ENDIF}
+
+  SettingTxtLoaded := True;
   procGetSettingTxt := nil;
   gotSettingTxt := tpsNone;
   FreeAndNil(storedSettingTxt);

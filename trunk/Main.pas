@@ -7271,13 +7271,14 @@ var
   thread: TThreadItem;
   index: integer;
 begin
+  ListView.DoubleBuffered := True;
+
   MakeCheckNewThreadAfter(nil,0,0); //beginner
 
   if Config.stlListViewUseExtraBackColor or currentBoard.threadSearched then
     ListView.OnCustomDrawItem := ListViewCustomDrawItem
   else
     ListView.OnCustomDrawItem := nil;
-  ListView.DoubleBuffered := True;
   ListView.List := currentBoard;
   currentSortColumn := 1;
 
@@ -7290,7 +7291,6 @@ begin
     end else
       ListViewColumnSort(currentBoard.sortColumn);
   end;
-  ListView.DoubleBuffered := False;
 
   //if Config.oprSelPreviousThread then
   if currentBoard.selDatName <> '' then
@@ -7305,6 +7305,8 @@ begin
   end;
   UpdateListTab;
 
+  ListView.Repaint;
+  ListView.DoubleBuffered := False;
 end;
 
 procedure TMainWnd.ViewPopupResClick(Sender: TObject);
