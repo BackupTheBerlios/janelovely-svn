@@ -1,10 +1,10 @@
 object MainWnd: TMainWnd
-  Left = 223
-  Top = 136
+  Left = 205
+  Top = 128
   AutoScroll = False
   Caption = 'Jane2ch'
-  ClientHeight = 520
-  ClientWidth = 667
+  ClientHeight = 519
+  ClientWidth = 671
   Color = clBtnFace
   Font.Charset = SHIFTJIS_CHARSET
   Font.Color = clWindowText
@@ -27,15 +27,15 @@ object MainWnd: TMainWnd
   object Panel0: TPanel
     Left = 0
     Top = 0
-    Width = 667
-    Height = 501
+    Width = 671
+    Height = 500
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 0
     object LogSplitter: TSplitter
       Left = 0
-      Top = 479
-      Width = 667
+      Top = 478
+      Width = 671
       Height = 2
       Cursor = crVSplit
       Align = alBottom
@@ -46,8 +46,8 @@ object MainWnd: TMainWnd
     object Panel1: TPanel
       Left = 4
       Top = 51
-      Width = 663
-      Height = 428
+      Width = 667
+      Height = 427
       Align = alClient
       BevelOuter = bvNone
       ParentShowHint = False
@@ -58,7 +58,7 @@ object MainWnd: TMainWnd
         Left = 120
         Top = 0
         Width = 4
-        Height = 428
+        Height = 427
         Cursor = crHSplit
         AutoSnap = False
         MinSize = 4
@@ -66,15 +66,15 @@ object MainWnd: TMainWnd
       object Panel2: TPanel
         Left = 124
         Top = 0
-        Width = 539
-        Height = 428
+        Width = 543
+        Height = 427
         Align = alClient
         BevelOuter = bvNone
         TabOrder = 1
         object ThreadSplitter: TSplitter
           Left = 0
           Top = 145
-          Width = 539
+          Width = 543
           Height = 4
           Cursor = crVSplit
           Align = alTop
@@ -84,8 +84,8 @@ object MainWnd: TMainWnd
         object WebPanel: TPanel
           Left = 0
           Top = 149
-          Width = 539
-          Height = 279
+          Width = 543
+          Height = 278
           Align = alClient
           BevelOuter = bvNone
           Color = clWindow
@@ -100,8 +100,8 @@ object MainWnd: TMainWnd
           OnResize = WebPanelResize
           object WritePanelSplitter: TSplitter
             Left = 0
-            Top = 131
-            Width = 539
+            Top = 130
+            Width = 543
             Height = 2
             Cursor = crVSplit
             Align = alBottom
@@ -111,7 +111,7 @@ object MainWnd: TMainWnd
           object Panel10: TPanel
             Left = 0
             Top = 0
-            Width = 539
+            Width = 543
             Height = 1
             Align = alTop
             BevelOuter = bvNone
@@ -120,7 +120,7 @@ object MainWnd: TMainWnd
           object Panel3: TPanel
             Left = 0
             Top = 1
-            Width = 539
+            Width = 543
             Height = 48
             Align = alTop
             Alignment = taLeftJustify
@@ -130,7 +130,7 @@ object MainWnd: TMainWnd
             object TabBarPanel: TPanel
               Left = 1
               Top = 1
-              Width = 537
+              Width = 541
               Height = 24
               Align = alTop
               BevelOuter = bvNone
@@ -138,7 +138,7 @@ object MainWnd: TMainWnd
               object TabPanel: TPanel
                 Left = 0
                 Top = 0
-                Width = 537
+                Width = 541
                 Height = 24
                 Align = alClient
                 ParentShowHint = False
@@ -150,7 +150,7 @@ object MainWnd: TMainWnd
                 object TabControl: TTabControl
                   Left = 1
                   Top = 1
-                  Width = 535
+                  Width = 539
                   Height = 22
                   Align = alClient
                   Images = ListImages
@@ -173,7 +173,7 @@ object MainWnd: TMainWnd
             object ThreadToolPanel: TPanel
               Left = 1
               Top = 25
-              Width = 537
+              Width = 541
               Height = 22
               Align = alTop
               Alignment = taLeftJustify
@@ -186,12 +186,12 @@ object MainWnd: TMainWnd
               ParentFont = False
               TabOrder = 0
               DesignSize = (
-                537
+                541
                 22)
               object ThreadTitleLabel: TLabel
                 Left = 8
                 Top = 0
-                Width = 694
+                Width = 698
                 Height = 22
                 Anchors = [akLeft, akTop, akRight, akBottom]
                 AutoSize = False
@@ -212,7 +212,7 @@ object MainWnd: TMainWnd
                 OnMouseMove = ThreadTitleLabelMouseMove
               end
               object ThreadToolBar: TJLXPToolBar
-                Left = 233
+                Left = 215
                 Top = 0
                 Width = 326
                 Height = 22
@@ -361,8 +361,8 @@ object MainWnd: TMainWnd
           end
           object WritePanel: TPanel
             Left = 0
-            Top = 133
-            Width = 539
+            Top = 132
+            Width = 543
             Height = 146
             Align = alBottom
             Constraints.MinHeight = 25
@@ -374,7 +374,7 @@ object MainWnd: TMainWnd
             object WritePanelTitle: TPanel
               Left = 1
               Top = 1
-              Width = 537
+              Width = 541
               Height = 17
               Align = alTop
               BevelOuter = bvNone
@@ -383,7 +383,7 @@ object MainWnd: TMainWnd
               object LabelWriteTitle: TLabel
                 Left = 0
                 Top = 0
-                Width = 486
+                Width = 490
                 Height = 17
                 Align = alClient
                 AutoSize = False
@@ -400,7 +400,7 @@ object MainWnd: TMainWnd
                 OnMouseUp = LabelWriteTitleMouseUp
               end
               object ToolBarWriteTitle: TJLXPToolBar
-                Left = 486
+                Left = 490
                 Top = 0
                 Width = 51
                 Height = 17
@@ -413,6 +413,7 @@ object MainWnd: TMainWnd
                 Flat = True
                 TabOrder = 0
                 Transparent = True
+                Wrapable = False
                 object ToolButtonWriteTitle: TJLToolButton
                   Left = 0
                   Top = 0
@@ -435,6 +436,7 @@ object MainWnd: TMainWnd
                   Top = 0
                   Caption = 'ToolButtonWriteTitleClose'
                   ImageIndex = 3
+                  Wrap = True
                   OnClick = ToolButtonWriteTitleCloseClick
                   OnMouseDown = ToolButtonWriteTitleMouseDown
                   PictureIndex = 3
@@ -444,7 +446,7 @@ object MainWnd: TMainWnd
             object Panel5: TPanel
               Left = 1
               Top = 18
-              Width = 537
+              Width = 541
               Height = 20
               Align = alTop
               BevelOuter = bvNone
@@ -526,16 +528,16 @@ object MainWnd: TMainWnd
           object MDIClientPanel: TPanel
             Left = 0
             Top = 49
-            Width = 539
-            Height = 82
+            Width = 543
+            Height = 81
             Align = alClient
             BevelOuter = bvNone
             TabOrder = 3
             object Image1: TImage
               Left = 0
               Top = 0
-              Width = 539
-              Height = 82
+              Width = 543
+              Height = 81
               Align = alClient
               Picture.Data = {
                 07544269746D6170AE080100424DAE0801000000000036000000280000001902
@@ -2663,7 +2665,7 @@ object MainWnd: TMainWnd
         object ListViewPanel: TPanel
           Left = 0
           Top = 0
-          Width = 539
+          Width = 543
           Height = 145
           Align = alTop
           BevelOuter = bvNone
@@ -2673,7 +2675,7 @@ object MainWnd: TMainWnd
           object ListView: THogeListView
             Left = 0
             Top = 23
-            Width = 539
+            Width = 543
             Height = 122
             Align = alClient
             BevelInner = bvLowered
@@ -2768,7 +2770,7 @@ object MainWnd: TMainWnd
           object Panel7: TPanel
             Left = 0
             Top = 0
-            Width = 539
+            Width = 543
             Height = 1
             Align = alTop
             BevelOuter = bvNone
@@ -2777,7 +2779,7 @@ object MainWnd: TMainWnd
           object ListTabPanel: TPanel
             Left = 0
             Top = 1
-            Width = 539
+            Width = 543
             Height = 22
             Align = alTop
             BevelInner = bvRaised
@@ -2789,7 +2791,7 @@ object MainWnd: TMainWnd
             object ListTabControl: TTabControl
               Left = 2
               Top = 2
-              Width = 535
+              Width = 539
               Height = 18
               Align = alClient
               Images = ListImages
@@ -2812,7 +2814,7 @@ object MainWnd: TMainWnd
         Left = 0
         Top = 0
         Width = 120
-        Height = 428
+        Height = 427
         Align = alLeft
         BevelOuter = bvNone
         Constraints.MinHeight = 25
@@ -2834,7 +2836,7 @@ object MainWnd: TMainWnd
           Left = 0
           Top = 1
           Width = 120
-          Height = 427
+          Height = 426
           Align = alClient
           BevelOuter = bvLowered
           TabOrder = 0
@@ -2842,7 +2844,7 @@ object MainWnd: TMainWnd
             Left = 1
             Top = 38
             Width = 118
-            Height = 388
+            Height = 387
             Align = alClient
             BevelInner = bvNone
             BevelOuter = bvNone
@@ -2875,7 +2877,7 @@ object MainWnd: TMainWnd
             Left = 1
             Top = 38
             Width = 118
-            Height = 388
+            Height = 387
             Align = alClient
             BevelInner = bvNone
             BevelOuter = bvRaised
@@ -3018,8 +3020,8 @@ object MainWnd: TMainWnd
     end
     object LogPanel: TPanel
       Left = 0
-      Top = 481
-      Width = 667
+      Top = 480
+      Width = 671
       Height = 20
       Align = alBottom
       BevelOuter = bvNone
@@ -3027,7 +3029,7 @@ object MainWnd: TMainWnd
       object Memo: TMemo
         Left = 0
         Top = 1
-        Width = 667
+        Width = 671
         Height = 19
         TabStop = False
         Align = alClient
@@ -3049,7 +3051,7 @@ object MainWnd: TMainWnd
       object Panel4: TPanel
         Left = 0
         Top = 0
-        Width = 667
+        Width = 671
         Height = 1
         Align = alTop
         TabOrder = 1
@@ -3058,7 +3060,7 @@ object MainWnd: TMainWnd
     object CoolBar: TCoolBar
       Left = 0
       Top = 0
-      Width = 667
+      Width = 671
       Height = 51
       AutoSize = True
       BandMaximize = bmDblClick
@@ -3074,13 +3076,13 @@ object MainWnd: TMainWnd
           Control = LinkBar
           ImageIndex = -1
           MinHeight = 22
-          Width = 330
+          Width = 334
         end
         item
           Control = ToolBarUrlEdit
           ImageIndex = -1
           MinHeight = 22
-          Width = 663
+          Width = 667
         end>
       ParentShowHint = False
       ShowHint = True
@@ -3228,7 +3230,7 @@ object MainWnd: TMainWnd
       object ToolBarUrlEdit: TJLXPToolBar
         Left = 9
         Top = 25
-        Width = 650
+        Width = 654
         Height = 22
         ButtonHeight = 20
         EdgeInner = esNone
@@ -3254,7 +3256,7 @@ object MainWnd: TMainWnd
       object LinkBar: TJLXPToolBar
         Left = 342
         Top = 0
-        Width = 317
+        Width = 321
         Height = 22
         AutoSize = True
         ButtonWidth = 45
@@ -3276,7 +3278,7 @@ object MainWnd: TMainWnd
       Left = 0
       Top = 51
       Width = 4
-      Height = 428
+      Height = 427
       Checked = True
       FocusColor = clSkyBlue
       Align = alLeft
@@ -3286,8 +3288,8 @@ object MainWnd: TMainWnd
   end
   object StatusBar: TJLXPStatusBar
     Left = 0
-    Top = 501
-    Width = 667
+    Top = 500
+    Width = 671
     Height = 19
     Panels = <
       item
@@ -3338,6 +3340,13 @@ object MainWnd: TMainWnd
           Caption = '-'
           Visible = False
         end
+      end
+      object N87: TMenuItem
+        Caption = '-'
+      end
+      object MenuBoardRestore: TMenuItem
+        Caption = #26495#12484#12522#12540#12398#20301#32622#24489#24112
+        OnClick = MenuBoardRestoreClick
       end
     end
     object MenuList: TMenuItem
@@ -3780,6 +3789,13 @@ object MainWnd: TMainWnd
         Caption = #12488#12483#12503#12496#12540#38750#34920#31034
         OnClick = MenuWritePanelDisableTopBarClick
       end
+      object N86: TMenuItem
+        Caption = '-'
+      end
+      object MenuMemoRestore: TMenuItem
+        Caption = #12513#12514#27396#12398#20301#32622#24489#24112
+        OnClick = MenuMemoRestoreClick
+      end
     end
     object Find1: TMenuItem
       Caption = #26908#32034'(&S)'
@@ -3882,7 +3898,7 @@ object MainWnd: TMainWnd
       object MenuViewWriteMemoToggleVisible: TMenuItem
         Caption = #12513#12514#27396'(&W)'
         Checked = True
-        OnClick = MenuViewWriteMemoToggleVisibleClick
+        OnClick = StatusBarClick
       end
       object N47: TMenuItem
         Caption = '-'
@@ -7858,7 +7874,6 @@ object MainWnd: TMainWnd
     end
     object N56: TMenuItem
       Caption = #12513#12514#27396#12434#34920#31034'(&M)'
-      OnClick = MenuViewWriteMemoToggleVisibleClick
     end
   end
   object PopupWritePanel: TPopupMenu

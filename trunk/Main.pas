@@ -41,8 +41,8 @@ uses
   {/aiai}
 
 const
-  VERSION  = '0.1.1.4';      (* Printable ASCIIコード厳守。')'はダメ *)
-  JANE2CH  = 'JaneLovely 0.1.1.4';
+  VERSION  = '0.1.1.5';      (* Printable ASCIIコード厳守。')'はダメ *)
+  JANE2CH  = 'JaneLovely 0.1.1.5';
   KEYWORD_OF_USER_AGENT = 'JaneLovely';      (*  *)
 
   DISTRIBUTORS_SITE = 'http://www.geocities.jp/openjane4714/';
@@ -741,6 +741,10 @@ type
     N84: TMenuItem;
     N85: TMenuItem;
     Image1: TImage;
+    N86: TMenuItem;
+    MenuMemoRestore: TMenuItem;
+    N87: TMenuItem;
+    MenuBoardRestore: TMenuItem;
     {/aiai}
     procedure FormCreate(Sender: TObject);
     procedure MenuToolsOptionsClick(Sender: TObject);
@@ -1170,7 +1174,6 @@ type
       Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure JLTabControlMouseDown(Sender: TObject;
       Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure MenuViewWriteMemoToggleVisibleClick(Sender: TObject);
     procedure ToolButtonTreeTitleMouseDown(Sender: TObject;
       Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure LabelTreeTitleMouseMove(Sender: TObject; Shift: TShiftState;
@@ -1200,6 +1203,8 @@ type
     procedure MenuThreSysResizeClick(Sender: TObject);
     procedure PopupThreSysPopup(Sender: TObject);
     procedure MenuWindowRestoreAllClick(Sender: TObject);
+    procedure MenuMemoRestoreClick(Sender: TObject);
+    procedure MenuBoardRestoreClick(Sender: TObject);
     {/aiai}
   private
   { Private 宣言 }
@@ -1267,6 +1272,8 @@ type
     TreePanelMouseDowned: Boolean;
     TreePanelOriginalX: Integer;
     TreePanelOriginalY: Integer;
+    TreePanelHoverRect: TRect;
+    TreePanelFixedWidth: Integer;
 
     WritePanelCanMove: Boolean;
     WritePanelTabControlIndex: Byte;
@@ -1274,6 +1281,8 @@ type
     WritePanelOriginalX: Integer;
     WritePanelOriginalY: Integer;
     WritePanelPos: Boolean;
+    WritePanelHoverRect: TRect;
+    WritePanelFixedHeight: Integer;
 
     //改造▽ 追加 (スレビューに壁紙を設定する。Doe用)
     //改造メモ：メモリ節約対応。壁紙の保持をTHogeTextViewの外で行う
@@ -3076,6 +3085,11 @@ begin
     ToggleTreePanel(TreePanelVisible);
     if TreePanel.Visible then
       SetTabSetIndex(TreeTabControlIndex);
+    ToggleTreePanelCanMove(TreePanelCanMove);
+    {if WritePanelCanMove then
+    begin
+      WritePanel.BoundsRect := WritePanelHoverRect;
+    end;}
 
     if viewList.Count > 0 then
     begin
@@ -3318,13 +3332,27 @@ begin
   iniFile.WriteInteger(INI_WIN_SECT, 'LogTop', LogPanel.Top);
   iniFile.WriteInteger(INI_WIN_SECT, 'LogHeight', LogPanel.Height);
   (* TreeView / board list *)
-  iniFile.WriteInteger(INI_WIN_SECT, 'TreeWidth', TreePanel.Width);
   {aiai}
   iniFile.WriteInteger(INI_WIN_SECT, 'TreeTab', TreeTabControlIndex);
   //iniFile.WriteBool(INI_WIN_SECT, 'TreeAutoHide', TreePanelAutoHide);
   //iniFile.WriteBool(INI_WIN_SECT, 'savedTreePanelVisible', savedTreePanelVisible);
   iniFile.WriteBool(INI_STL_SECT, 'TreeVisible', TreePanel.Visible);
   //iniFile.WriteBool(INI_WIN_SECT, 'TreeTabPanelVisible', LeftPanel.Visible);
+  iniFile.WriteBool(INI_WIN_SECT, 'TreePanelCanMove', TreePanelCanMove);
+  if TreePanelCanMove then
+  begin
+    iniFile.WriteInteger(INI_WIN_SECT, 'TreeWidth', TreePanelFixedWidth);
+    iniFile.WriteInteger(INI_WIN_SECT, 'TreePanelHoverLeft', TreePanel.BoundsRect.Left);
+    iniFile.WriteInteger(INI_WIN_SECT, 'TreePanelHoverTop', TreePanel.BoundsRect.Top);
+    iniFile.WriteInteger(INI_WIN_SECT, 'TreePanelHoverRight', TreePanel.BoundsRect.Right);
+    iniFile.WriteInteger(INI_WIN_SECT, 'TreePanelHoverBottom', TreePanel.BoundsRect.Bottom);
+  end else begin
+    iniFile.WriteInteger(INI_WIN_SECT, 'TreeWidth', TreePanel.Width);
+    iniFile.WriteInteger(INI_WIN_SECT, 'TreePanelHoverLeft', TreePanelHoverRect.Left);
+    iniFile.WriteInteger(INI_WIN_SECT, 'TreePanelHoverTop', TreePanelHoverRect.Top);
+    iniFile.WriteInteger(INI_WIN_SECT, 'TreePanelHoverRight', TreePanelHoverRect.Right);
+    iniFile.WriteInteger(INI_WIN_SECT, 'TreePanelHoverBottom', TreePanelHoverRect.Bottom);
+  end;
   {/aiai}
   (* ListView / thread list *)
   if Config.oprToggleRView then
@@ -3345,18 +3373,29 @@ begin
   end;
 
   (* WritePanel *)
-  iniFile.WriteInteger(INI_WIN_SECT, 'WriteMemoHeight', WritePanel.Height);
-  iniFile.WriteInteger(INI_WIN_SECT, 'WriteMemoWidth', WritePanel.Width);
   iniFile.WriteBool(INI_WIN_SECT, 'WriteMemoVisible', WritePanel.Visible);
   iniFile.WriteBool(INI_WIN_SECT, 'WriteMemoPos', WritePanelPos);
-  //iniFile.WriteBool(INI_WIN_SECT, 'WriteMemoCanMove', WritePanelCanMove);
+  iniFile.WriteBool(INI_WIN_SECT, 'WriteMemoCanMove', WritePanelCanMove);
   wh.Width := 0;
   wh.Height := 0;
   wh := SaveAAListBoundsRect(wh);
   iniFile.WriteInteger(INI_WIN_SECT, 'WriteMemoAAWidth', wh.Width);
   iniFile.WriteInteger(INI_WIN_SECT, 'WriteMemoAAHeight', wh.Height);
   iniFile.WriteBool(INI_WIN_SECT, 'WriteMemoTopBar', WritePanelTitle.Visible);
-
+  if WritePanelCanMove then
+  begin
+    iniFile.WriteInteger(INI_WIN_SECT, 'WriteMemoHeight', WritePanelFixedHeight);
+    iniFile.WriteInteger(INI_WIN_SECT, 'WriteMemoHoverLeft', WritePanel.BoundsRect.Left);
+    iniFile.WriteInteger(INI_WIN_SECT, 'WriteMemoHoverTop', WritePanel.BoundsRect.Top);
+    iniFile.WriteInteger(INI_WIN_SECT, 'WriteMemoHoverRight', WritePanel.BoundsRect.Right);
+    iniFile.WriteInteger(INI_WIN_SECT, 'WriteMemoHoverBottom', WritePanel.BoundsRect.Bottom);
+  end else begin
+    iniFile.WriteInteger(INI_WIN_SECT, 'WriteMemoHeight', WritePanel.Height);
+    iniFile.WriteInteger(INI_WIN_SECT, 'WriteMemoHoverLeft', WritePanelHoverRect.Left);
+    iniFile.WriteInteger(INI_WIN_SECT, 'WriteMemoHoverTop', WritePanelHoverRect.Top);
+    iniFile.WriteInteger(INI_WIN_SECT, 'WriteMemoHoverRight', WritePanelHoverRect.Right);
+    iniFile.WriteInteger(INI_WIN_SECT, 'WriteMemoHoverBottom', WritePanelHoverRect.Bottom);
+  end;
 
   (* Columns *)
   for i := 0 to ListView.Columns.Count -1 do
@@ -3404,6 +3443,12 @@ var
     if (TreeTabControlIndex > 1) then
       TreeTabControlIndex := 0;
     TreePanelVisible := iniFile.ReadBool(INI_STL_SECT, 'TreeVisible', True);  //aiai
+    TreePanelCanMove := iniFile.ReadBool(INI_WIN_SECT, 'TreePanelCanMove', True);
+    TreePanelHoverRect.Left := iniFile.ReadInteger(INI_WIN_SECT, 'TreePanelHoverLeft', 10);
+    TreePanelHoverRect.Top := iniFile.ReadInteger(INI_WIN_SECT, 'TreePanelHoverTop', 10);
+    TreePanelHoverRect.Right := iniFile.ReadInteger(INI_WIN_SECT, 'TreePanelHoverRight', 150);
+    TreePanelHoverRect.Bottom := iniFile.ReadInteger(INI_WIN_SECT, 'TreePanelHoverBottom', 300);
+
     //if 0 < Main.initialURL.Count then
     if Assigned(Main.initialURL) then //aiai
     begin
@@ -3464,6 +3509,7 @@ begin
 
   (* TreeView / board list *)
   TreePanel.Width := iniFile.ReadInteger(INI_WIN_SECT, 'TreeWidth', TreePanel.Width);
+  TreePanelFixedWidth := TreePanel.Width;
   SetTreeTab;
 
   (* ListView / thread list *)
@@ -3491,7 +3537,7 @@ begin
 
   (* Memo *)
   WritePanel.Height := iniFile.ReadInteger(INI_WIN_SECT, 'WriteMemoHeight', WriteMemo.Height);
-  WritePanel.Width := iniFile.ReadInteger(INI_WIN_SECT, 'WriteMemoWidth', WriteMemo.Width);
+  WritePanelFixedHeight := WritePanel.Height;
   WritePanel.Visible := iniFile.ReadBool(INI_WIN_SECT, 'WriteMemoVisible', True);
   WritePanelPos := iniFile.ReadBool(INI_WIN_SECT, 'WriteMemoPos', True);
   wh.Width := iniFile.ReadInteger(INI_WIN_SECT, 'WriteMemoAAWidth', 100);
@@ -3499,9 +3545,16 @@ begin
   SaveAAListBoundsRect(wh);
   WritePanelTitle.Visible := iniFile.ReadBool(INI_WIN_SECT, 'WriteMemoTopBar', True);
 
-  //WritePanelCanMove := iniFile.ReadBool(INI_WIN_SECT, 'WriteMemoCanMove', True);
-  WritePanelCanMove := False;
+  WritePanelCanMove := iniFile.ReadBool(INI_WIN_SECT, 'WriteMemoCanMove', True);
+
+  WritePanelHoverRect.Left := iniFile.ReadInteger(INI_WIN_SECT, 'WriteMemoHoverLeft', 10);
+  WritePanelHoverRect.Top := iniFile.ReadInteger(INI_WIN_SECT, 'WriteMemoHoverTop', 10);
+  WritePanelHoverRect.Right := iniFile.ReadInteger(INI_WIN_SECT, 'WriteMemoHoverRight', 200);
+  WritePanelHoverRect.Bottom := iniFile.ReadInteger(INI_WIN_SECT, 'WriteMemoHoverBottom', 150);
+
   ToggleWritePanelPos(WritePanelPos);
+  if WritePanelCanMove then
+    ToggleWritePanelCanMove(WritePanelCanMove); 
   ToggleWritePanelVisible(WritePanel.Visible);
 
   MenuViewWriteMemoToggleVisible.Checked := WritePanel.Visible;
@@ -16703,31 +16756,40 @@ var
 begin
   if ACanMove then
   begin
+    TreePanelFixedWidth := TreePanel.Width;
     ws := GetWindowLong(TreePanel.Handle, GWL_STYLE);
     ws := ws or WS_THICKFRAME;
     SetWindowLong(TreePanel.Handle, GWL_STYLE, ws);
     ToolButtonTreeTitleCanMove.PictureIndex := 2;
     TreePanel.Align := alNone;
     BoardSplitter.Visible := False;
-    TreePanel.Width := TreePanel.Width + 1;
-    TreePanel.Width := TreePanel.Width - 1;
+    TreePanel.BoundsRect := TreePanelHoverRect;
     MenuBoardCanMove.Checked := True;
+    MenuBoardRestore.Visible := True;
     TreePanel.BringToFront;
   end else
   begin
+    TreePanelHoverRect := TreePanel.BoundsRect;
     ws := GetWindowLong(TreePanel.Handle, GWL_STYLE);
     ws := ws and (not WS_THICKFRAME);
     SetWindowLong(TreePanel.Handle, GWL_STYLE, ws);
     ToolButtonTreeTitleCanMove.PictureIndex := 1;
+    TreePanel.Width := TreePanelFixedWidth;
     TreePanel.Align := alLeft;
     BoardSplitter.Left := TreePanel.BoundsRect.Right;
     BoardSplitter.Visible := TreePanel.Visible;
-    TreePanel.Width := TreePanel.Width + 1;
-    TreePanel.Width := TreePanel.Width - 1;
     MenuBoardCanMove.Checked := False;
+    MenuBoardRestore.Visible := False;
     if WritePanel.Visible then
       WritePanel.BringToFront;
   end;
+  SetWindowPos(TreePanel.Handle, 0, 0, 0, 0, 0, 0
+    or SWP_FRAMECHANGED
+    or SWP_NOACTIVATE
+    or SWP_NOMOVE
+    or SWP_NOOWNERZORDER
+    or SWP_NOSIZE
+    or SWP_NOZORDER);
 end;
 
 
@@ -16866,6 +16928,12 @@ begin
   end;
 end;
 
+//万が一、板ツリーが行方不明になったときのために
+procedure TMainWnd.MenuBoardRestoreClick(Sender: TObject);
+begin
+  TreePanel.BoundsRect := Bounds(10, 10, 150, 300);
+end;
+
 //▲ 板ツリーの表示切替
 
 
@@ -16921,17 +16989,17 @@ begin
   ws := GetWindowLong(WritePanel.Handle, GWL_STYLE);
   if WritePanelCanMove then
   begin
+    WritePanelFixedHeight := WritePanel.Height;
     WritePanel.Align := alNone;
     WritePanel.Parent := Panel1;
     ToolButtonWriteTitleAutoHide.PictureIndex := 2;
     WritePanelSplitter.Visible := False;
-    ws := ws or WS_THICKFRAME
+    WritePanel.BoundsRect := WritePanelHoverRect;
+    ws := ws or WS_THICKFRAME;
   end else
   begin
-    {if WritePanelPos then
-      WritePanel.Parent := WebPanel
-    else
-      WritePanel.Parent := ListViewPanel;}
+    WritePanelHoverRect := WritePanel.BoundsRect;
+    WritePanel.Height := WritePanelFixedHeight;
     WritePanel.Align := alBottom;
     ToolButtonWriteTitleAutoHide.PictureIndex := 1;
     WritePanelSplitter.Visible := True;
@@ -16939,8 +17007,13 @@ begin
     ws := ws and not WS_THICKFRAME;
   end;
   SetWindowLong(WritePanel.Handle, GWL_STYLE, ws);
-  WritePanel.Height := WritePanel.Height + 1;
-  WritePanel.Height := WritePanel.Height - 1;
+  SetWindowPos(WritePanel.Handle, 0, 0, 0, 0, 0, 0
+    or SWP_FRAMECHANGED
+    or SWP_NOACTIVATE
+    or SWP_NOMOVE
+    or SWP_NOOWNERZORDER
+    or SWP_NOSIZE
+    or SWP_NOZORDER);
 end;
 
 //位置の変更
@@ -16981,6 +17054,7 @@ begin
   MenuMemoDisableStatusBar.Checked := Config.wrtDisableStatusBar;
   MenuMemoPos.Enabled := not WritePanelCanMove;
   MenuWriteMemoDisableTopBar.Checked := not WritePanelTitle.Visible;
+  MenuMemoRestore.Visible := WritePanelCanMove;
 end;
 
 
@@ -17069,12 +17143,6 @@ begin
     WritePanelMouseDowned := False;
 end;
 
-(* メニューから書き込みパネルを隠す *)
-procedure TMainWnd.MenuViewWriteMemoToggleVisibleClick(Sender: TObject);
-begin
-  ToggleWritePanelVisible(not WritePanel.Visible);
-end;
-
 procedure TMainWnd.MenuViewClick(Sender: TObject);
 begin
   MenuViewWriteMemoToggleVisible.Checked := WritePanel.Visible;
@@ -17116,6 +17184,14 @@ procedure TMainWnd.MenuWritePanelDisableTopBarClick(Sender: TObject);
 begin
   WritePanelTitle.Visible := not WritePanelTitle.Visible;
 end;
+
+//万が一メモ欄が行方不明になったときのために
+procedure TMainWnd.MenuMemoRestoreClick(Sender: TObject);
+begin
+  WritePanel.BoundsRect := Bounds(10, 10, 200, 150);
+end;
+
+
 
 //▲ 書き込みパネルの表示切替
 
