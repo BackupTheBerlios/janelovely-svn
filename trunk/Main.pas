@@ -15,7 +15,7 @@ uses
   IdComponent, IdTCPConnection, IdTCPClient, StdCtrls, StrUtils, IniFiles,
   IdException, DateUtils, imm, Clipbrd, ImgList, ShellAPI, ActiveX, ActnList,
   Tabs, Buttons, Math, AppEvnts,
-  IdHTTP, gzip,  jconvert, HogeTextView, HogeListView, FileSub, StrSub,
+  IdHTTP, jconvert, HogeTextView, HogeListView, FileSub, StrSub,
   HTTPSub, JConfig, UConfig, UTVSub, UPopUpTextView, U2chBoard, UDat2HTML,
   UAsync, UViewItem, UWriteForm, USynchro, UHeadCache, UDaemon, U2chThread,
   U2chCat,  U2chCatList, UIDlg, UFavorite, USharedMem, UXTime, U2chTicket,
@@ -10106,7 +10106,6 @@ begin
     begin
       tabRightClickedIndex := index;
       CloseThisTab(False);
-      break;
     end;
     {/aiai}
     thread.CancelAsyncRead;

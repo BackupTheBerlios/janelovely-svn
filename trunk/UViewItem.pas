@@ -71,7 +71,7 @@ type
     procedure WriteBR;
     procedure WriteHR(color: Integer; custom: Boolean);  //aiai
     procedure WritePicture(pass: String; overlap: Boolean);  //aiai
-    procedure WriteWallPaper(const pass: string);
+    procedure WriteWallPaper(const pass: string);  //aiai
     procedure SetBold(boldP: boolean);
     procedure Flush; override;
     procedure Cancel;
@@ -1554,7 +1554,7 @@ begin
       exit;
   end;
 
-  FBiteSpaces := FBrowser.AppendPicture(Image, overlap);
+  FBiteSpaces := FBrowser.AppendPicture(Image, overlap, FOffsetLeft);
 end;
 
 procedure TDat2View.WriteWallPaper(const pass: string);
@@ -3483,7 +3483,7 @@ begin
     backStack[length(backStack) -1] := FBrowser.LogicalTopLine;
     point.X := 0;
     point.Y := PrevAnchorLine;
-    FBrowser.DownLine;
+    FBrowser.DownLine;  //aiai キャレットを１行下げる
     FBrowser.SetTop(FBrowser.PhysicalToLogical(point).Y);
     FBrowser.SetPhysicalCaret(0, PrevAnchorLine + FBrowser.VerticalCaretMargin);
     result := True;

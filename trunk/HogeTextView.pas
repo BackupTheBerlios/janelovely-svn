@@ -63,8 +63,8 @@ type
     BorderCustom: Boolean;
     BorderColor: TColor;
     PictLine: Boolean;
-    PictPos: Integer;
     Picture: TGraphic;
+    PictOverlap: Integer;
     {/aiai}
 
     constructor Create(view: THogeTextView);
@@ -349,21 +349,8 @@ type
                       count: Integer;
                       attrib: Integer = 0): TPoint;
     {aiai}
-    function AppendPicture(Image: TGraphic; overlap: Boolean): Boolean;
+    function AppendPicture(Image: TGraphic; overlap: Boolean; offsetleft: integer): Boolean;
     procedure AppendHR(Color: TColor; Custom: Boolean; OffsetLeft: Integer);
-    function  newPara: TPoint;
-    function  Insert2(point: TPoint;
-                     const AString: string;
-                     attrib: Integer = 0): TPoint;
-    function  nInsert2(point: TPoint;
-                       pstr: PChar;
-                       count: Integer;
-                       attrib: Integer = 0): TPoint;
-    function  Append2(const AString: string;
-                     attrib: Integer = 0): TPoint;
-    function  nAppend2(pstr: PChar;
-                      count: Integer;
-                      attrib: Integer = 0): TPoint;
     {/aiai}
     procedure SetFont(FaceName: String; Size: Integer);
     procedure SelectWord(physicalPos: TPoint);
@@ -1364,7 +1351,10 @@ begin
 
     while advance < 0 do
     begin
-      if 0 < X then
+      {aiai}
+      //if 0 < X then
+      if (0 < X) and (X < len) then
+      {/aiai}
       begin
         if cw[X] <> #0 then
           Inc(advance);
@@ -2067,8 +2057,25 @@ begin
     SetSelecting(False);
   {/aiai}
   case msg.WParamLo of
-  SB_TOP:      BeginningOfBuffer;
-  SB_BOTTOM:   EndOfBuffer;
+  SB_TOP:
+    {aiai}
+    //BeginningOfBuffer;
+    if FCaretScrollSync then
+      BeginningOfBuffer
+    else
+      ScrollLine2(-FLogicalTopLine);
+    {/aiai}
+  SB_BOTTOM:
+    {aiai}
+    begin
+      //EndOfBuffer;
+      if FCaretScrollSync then
+        EndOfBuffer
+      else
+        ScrollLine2(PhysicalToLogical(Normalize(Point(0, FStrings.Count))).Y);
+      if Assigned(FOnScrollEnd) then FOnScrollEnd(Self);
+    end;
+    {/aiai}
   SB_LINEDOWN:
     begin
       ScrollLine(FVScrollLines);
@@ -2148,7 +2155,7 @@ begin
   result := True;
 end;
 
-//aiai
+//hrタグ用のボーダーを描く (aiai)
 procedure THogeTextView.DrawBorder(X1, X2, Y: Integer; Color: TColor; Custom: Boolean);
 begin
   With FBitmap.Canvas do
@@ -2232,6 +2239,7 @@ var
       FBitmap.Canvas.Font.Color := FIDLinkColorMany;
   end;
 
+  //HogeTVItemごとにハイライトすべき文字列のstartindexとendindexの配列をつくる
   procedure CreateHLightList(const str: String);
   var
     sp, tlen, lsize: Integer;
@@ -2256,7 +2264,8 @@ var
     end;
   end;
 
-  function InHighlight(str: String; index: integer): Boolean;
+  //indexがstartindexとendindexの間にあればハイライト
+  function InHighlight(index: integer): Boolean;
   var
     p, lsize: integer;
   begin
@@ -2291,9 +2300,7 @@ var
   Triangle: array[0..2] of TPoint;
   position: integer;
   WalX, WalY: Integer;
-  PictY: Integer;
-  PictArray: array of Integer;
-  PictCount: Integer;
+  pictindex: integer;
 label
   DONE;
 begin
@@ -2344,37 +2351,39 @@ begin
   //{/aiai}
 
   X := FLeftMargin + item.OffsetLeft;
-  Y := FTopMargin - FFraction; //beginner
+  if (item.PictLine and (item.PictOverlap = -1)) then
+    Y := FTopMargin - FFraction - FTopLineOffset * bs
+  else
+    Y := FTopMargin - FFraction; //beginner
 
   nchar := 0;
 
-  SetLength(PictArray, 0);
   while screenLine < vLines do
   begin
     {aiai}
-    if item.PictLine and Assigned(item.Picture) then
+    if item.PictLine and (item.PictOverlap = -1) and Assigned(item.Picture) then
     begin
-      PictY := Y - item.PictPos * bs;
-      PictCount := Length(PictArray);
-      if (PictCount > 0) then
-      begin
-        if PictArray[PictCount - 1] < PictY then
-        begin
-          SetLength(PictArray, PictCount + 1);
-          PictArray[PictCount] := PictY;
-          FBitmap.Canvas.Draw(FLeftMargin, PictY, item.Picture);
-        end;
-      end else
-      begin
-        SetLength(PictArray, 1);
-        PictArray[0] := PictY;
-        FBitmap.Canvas.Draw(FLeftMargin, PictY, item.Picture);
-      end;
+      FBitmap.Canvas.Draw(FLeftMargin + item.OffsetLeft, Y, item.Picture);
+      Inc(screenLine, item.Picture.Height div bs);
+      if vLines <= screenLine then
+        break;
+      Inc(physicalLine);
+      if FStrings.Count <= physicalLine then
+        break;
+      Inc(Y, item.Picture.Height div bs * bs + bs);
+      item := FStrings[physicalLine];
+      X := FLeftMargin + item.OffsetLeft;
+      index := 1;
+      attrib := item.FAttrib;
+      len := length(attrib);
+      cw := item.GetWidthInfo;
+      Continue;
     end;
 
     //検索ハイライト
     CreateHLightList(item.FText);
     {/aiai}
+
     while index <= len do
     begin
       attCode := Ord(attrib[index]);
@@ -2392,18 +2401,28 @@ begin
         end;
         Inc(nchar);
         selectionP := InSelection(index -1, physicalLine);
-        HighlightP := InHighlight(item.FText, index);
+        {aiai}
+        //検索文字列ハイライト
+        HighlightP := InHighlight(index);
+        {/aiai}
         next := index + 1;
         while next <= len do
         begin
+          {aiai}
+          if item.PictLine and (item.PictOverlap = next) and Assigned(item.Picture) then
+            FBitmap.Canvas.Draw(X + width, Y, item.Picture);
+          {/aiai}
           if Ord(attrib[next]) <> attCode then
             break;
           if cw[next] <> #0 then
           begin
             if InSelection(next -1, physicalLine) <> selectionP then
               break;
-            if InHighlight(item.FText, next) <> HighlightP then
+            {aiai}
+            //検索文字列ハイライト
+            if InHighlight(next) <> HighlightP then
               break;
+            {/aiai}
             if (maxX < (X + width + Ord(cw[next]))) then
               break;
           end;
@@ -2421,6 +2440,8 @@ begin
             if FBitmap.Canvas.Font.Style <> style then
               FBitmap.Canvas.Font.Style := style;
           end
+          {aiai}
+          //検索文字列ハイライト
           else if HighlightP then
           begin
             if FBitmap.Canvas.Font.Color <> color then
@@ -2430,11 +2451,15 @@ begin
             if FBitmap.Canvas.Font.Style <> style then
               FBitmap.Canvas.Font.Style := style;
           end
+          {/aiai}
           else begin
             if FBitmap.Canvas.Font.Color <> color then
               FBitmap.Canvas.Font.Color := color;
+            {aiai}
+            //文字の背景を透明に
             if FBitmap.Canvas.Brush.Style <> bsClear then
                FBitmap.Canvas.Brush.Style := bsClear;
+            {/aiai}
             if FBitmap.Canvas.Font.Style <> style then
               FBitmap.Canvas.Font.Style := style;
           end;
@@ -2771,6 +2796,7 @@ begin
   FSelStart := FEditPoint;
 end;
 
+//すべて選択する (aiai)
 procedure THogeTextView.SelectAll;
 begin
   BeginningOfBuffer;
@@ -2809,39 +2835,39 @@ function THogeTextView.nInsert(point: TPoint;
 var
   item: THogeTVItem;
   startPos: integer;
-  endPos: integer;     (*  *)
-  len: integer;        (* 挿入する文字のバイト *)
-  p: PChar;            (* 挿入する文字の先頭アドレス *)
-  wp: PWideChar;       (*  *)
-  org: TPoint;         (* 挿入する位置 *)
-  startLine: integer;  (* 挿入する行 *)
+  endPos: integer;
+  len: integer;
+  p: PChar;
+  wp: PWideChar;
+  org: TPoint;
+  startLine: integer;
 begin
   if count <= 0 then
     exit;
   point := Normalize(point);
-  org := point;                  //挿入する位置
-  len := count;                  //挿入する文字のバイト
-  startLine := point.Y;          //挿入する行(Logical？)
+  org := point;
+  len := count;
+  startLine := point.Y;
   if (attrib and htvCODEMASK) = htvASCII then
   begin
-    item := FStrings[point.Y];   //挿入する行のTHogeTVItem
-    p := pstr;                   //挿入する文字の先頭アドレス
+    item := FStrings[point.Y];
+    p := pstr;
     startPos := 0;
     endPos := startPos;
     while endPos < len do
     begin
-      if p^ = #10 then           //改行する
+      if p^ = #10 then
       begin
-        if (startPos < endPos) and ((p -1)^ = #13) then  //#13#10なら
+        if (startPos < endPos) and ((p -1)^ = #13) then
         begin
           item.Insert(point.X + 1, pstr + startPos, endPos - startPos -1,
-                      attrib);                           //#13の前までTHogeTVItemに渡す
+                      attrib);
         end
-        else begin                                       //#10なら
+        else begin
           item.Insert(point.X + 1, pstr + startPos, endPos - startPos,
-                      attrib);                           //#10の前までTHogeTVItemに渡す
+                      attrib);
         end;
-        Inc(point.Y);             //次の行へ
+        Inc(point.Y);
         point.X := 0;
         item := THogeTVItem.Create(Self);
         FStrings.Insert(point.Y, item);
@@ -2923,18 +2949,16 @@ end;
 
 {aiai}
 function THogeTextView.AppendPicture(Image: TGraphic;
-    overlap: Boolean): Boolean;
+    overlap: Boolean; offsetleft: integer): Boolean;
 var
   Point: TPoint;
   item: THogeTVItem;
   attrib, cw: AnsiString;
-  linecount, bs, len, i, attCode: Integer;
+  len, i, attCode: Integer;
 begin
   Result := False;
   if Image = nil then
     exit;
-  bs := BaseLineSkip;
-  linecount := Image.Height div bs + 1;
 
   Point.Y := FStrings.Count - 1;
   item := FStrings[Point.Y];
@@ -2942,7 +2966,7 @@ begin
   if overlap then
   begin
     item.PictLine := True;
-    item.PictPos := 0;
+    item.PictOverlap := length(item.FText) + 1;
     item.Picture := Image;
     Result := True;
     exit;
@@ -2957,23 +2981,20 @@ begin
     if attCode and htvVMASK = htvVISIBLE then
     begin
       item := THogeTVItem.Create(Self);
+      item.OffsetLeft := offsetleft;
       FStrings.Add(item);
       break;
     end;
   end;
 
   item.PictLine := True;
-  item.PictPos := 0;
+  item.PictOverlap := -1;
   item.Picture := Image;
 
-  for i := 1 to linecount do
-  begin
-    item := THogeTVItem.Create(Self);
-    FStrings.Add(item);
-    item.PictLine := True;
-    item.PictPos := i;
-    item.Picture := Image;
-  end;
+  item := THogeTVItem.Create(Self);
+  item.OffsetLeft := offsetleft;
+  FStrings.Add(item);
+
   Result := True;
 end;
 
@@ -3010,78 +3031,6 @@ begin
     item.BorderCustom := False;
   item := THogeTVItem.Create(Self);
   FStrings.Add(item);
-end;
-
-
-(* 改行するだけ *)
-function THogeTextView.newPara: TPoint;
-var
-  point: TPoint;
-  item: THogeTVItem;
-  startLine: Integer;
-begin
-  point.Y := FStrings.Count - 1;
-  point.X := length(FStrings[point.Y].FText);
-  point := Normalize(point);
-
-  startLine := point.Y;
-
-  Inc(point.Y);
-  item := THogeTVItem.Create(Self);
-  FStrings.Insert(point.Y, item);
-  point.X := 0;
-
-  if (startLine <= FBottomLine) and (FTopLine <= point.Y) then
-    Invalidate;
-
-  result := point;
-end;
-
-function THogeTextView.nInsert2(point: TPoint;
-                               pstr: PChar;
-                               count: Integer;
-                               attrib: Integer = 0): TPoint;
-var
-  item: THogeTVItem;
-  startLine: integer;
-begin
-  if count <= 0 then
-    exit;
-
-  point := Normalize(point);
-  startLine := point.Y;
-
-  item := FStrings[point.Y];
-  item.Insert(point.X + 1, pstr, count, attrib);
-
-  if (startLine <= FBottomLine) and (FTopLine <= point.Y) then
-    Invalidate;
-
-  result := point;
-end;
-
-function THogeTextView.Insert2(point: TPoint;
-                              const AString: string;
-                              attrib: Integer = 0): TPoint;
-begin
-  result := nInsert2(point, @AString[1], length(AString), attrib);
-end;
-
-function THogeTextView.nAppend2(pstr: PChar;
-                               count: Integer;
-                               attrib: Integer = 0): TPoint;
-var
-  point: TPoint;
-begin
-  point.Y := FStrings.Count -1;
-  point.X := length(FStrings[point.Y].FText);
-  result := nInsert2(point, pstr, count, attrib);
-end;
-
-function THogeTextView.Append2(const AString: string;
-                              attrib: Integer = 0): TPoint;
-begin
-  result := nAppend2(@AString[1], length(AString), attrib);
 end;
 
 {/aiai}
@@ -3354,14 +3303,10 @@ end;
 {aiai}
 procedure THogeTextView.AnalyzeScrollInfo;
 var
-  si: SCROLLINFO;
   Point, LogicalPoint, PhysicalPoint: TPoint;
 begin
   if not Assigned(FStrings) then
     exit;
-
-  si.cbSize := sizeof(si);
-  si.fMask := SIF_RANGE or SIF_POS or SIF_TRACKPOS;
 
   Point.X := 2;
   Point.Y := FStrings.Count;

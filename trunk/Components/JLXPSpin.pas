@@ -184,7 +184,7 @@ procedure Register;
 
 implementation
 
-{$R JLXPSPIN}
+{$R SPIN}
 
 procedure Register;
 begin
@@ -358,7 +358,7 @@ begin
     FUpButton.Glyph := Value
   else
   begin
-    FUpButton.Glyph.Handle := LoadBitmap(HInstance, 'JLXPSpinUp');
+    FUpButton.Glyph.Handle := LoadBitmap(HInstance, 'SpinUp');
     FUpButton.NumGlyphs := 1;
     FUpButton.Invalidate;
   end;
@@ -385,7 +385,7 @@ begin
     FDownButton.Glyph := Value
   else
   begin
-    FDownButton.Glyph.Handle := LoadBitmap(HInstance, 'JLXPSpinDown');
+    FDownButton.Glyph.Handle := LoadBitmap(HInstance, 'SpinDown');
     FUpButton.NumGlyphs := 1;
     FDownButton.Invalidate;
   end;
