@@ -536,7 +536,7 @@ function TThreadItem.GetURI: string;
   end;
 var
   host, bbs: string;
-  i: integer;
+  //i: integer;
 begin
   if not AnsiStartsStr('http', self.URI) then
     self.URI := TBoard(board).GetURIBase;
@@ -599,6 +599,7 @@ begin
            * .datÇ∂Ç·Ç»Ç¢Ç∆éÊÇÍÇ»Ç¢éIÇ™Ç†ÇÈ
            * ÇØÇ«ÅAÇ®Ç®ÇﬁÇÀñ≥ë Ç»ÇÃÇ≈ãåéIèÓïÒÇÕï Ç…éùÇ¬Ç±Ç∆Ç…ÇµÇÊÇ§ÅB
            *)
+           (*
           if AnsiStartsStr('1', datName) and (TBoard(board).GetBBSType = bbs2ch) then
             queryState := tsHistory2;
           i := SplitThreadURI(self.URI, host, bbs);
@@ -610,6 +611,9 @@ begin
           else begin
             result := GetAddr4History('.dat.gz');
           end;
+          *)
+          // Ç∑Ç◊ÇƒÇÃéIÇ≈ .dat.gz -> .dat Ç…ïœçX
+          result := GetAddr4History('.dat.gz');
           {$IFDEF APPEND_SID}
           result := ticket2ch.AppendSID(result, '?');
           {$ENDIF}

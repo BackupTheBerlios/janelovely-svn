@@ -445,8 +445,10 @@ begin
   pBuffer := nil;
   try
     if (not CryptAcquireContext(hProv, nil, nil, PROV_RSA_FULL, 0)) and
+       (not CryptAcquireContext(hProv, nil, nil, PROV_RSA_FULL, CRYPT_MACHINE_KEYSET)) and
+       (not CryptAcquireContext(hProv, nil, nil, PROV_RSA_FULL, CRYPT_NEWKEYSET)) and
        (not CryptAcquireContext(hProv, nil, nil, PROV_RSA_FULL,
-                                CRYPT_NEWKEYSET)) then
+                                CRYPT_NEWKEYSET or CRYPT_MACHINE_KEYSET)) then
       raise Exception.Create('CryptAcquireContext');
     if length(password) <= 0 then
     begin

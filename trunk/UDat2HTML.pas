@@ -270,21 +270,6 @@ function Dat2ChGet2CommaDelimiter(const AString: string;
                              startPos: integer;
                              var nextPos: integer): integer;
 
-(* 日付用 *)
-function Dat2chGet2DelimiterForDate(const AString: string;
-                                    startPos: integer;
-                                    var nextPos: integer): integer;
-
-(* ID用 *)
-function Dat2chGet2DelimiterForID(const AString: string;
-                                  startPos: integer;
-                                  var nextPos: integer;
-                                  var idstring: string): integer;
-
-(* その他用 *)
-function Dat2chGet2DelimiterForOTH(const AString: string;
-                                   startPos: integer;
-                                   var nextPos: integer): integer;
 procedure Dat2ChNextLine(dat: TThreadData);
 function HTML2String(const AString: string): string;
 function GetTagName(const AString: string): string;
@@ -480,105 +465,6 @@ begin
       result := i - startPos;
       nextPos := i;
       exit;
-    end;
-    Inc(p);
-  end;
-  result := 0;
-  nextPos := endPos +1;
-end;
-
-(* 日付用 *)
-function Dat2chGet2DelimiterForDate(const AString: string;
-                                    startPos: integer;
-                                    var nextPos: integer): integer;
-var
-  i, endPos: integer;
-  p: PChar;
-begin
-  p := @AString[startPos];
-  endPos := length(AString);
-  for i := startPos to endPos do
-  begin
-    if p^ = '<' then
-    begin
-      if (i < endPos) and ((p+1)^ = '>') then
-      begin
-        result := i - startPos;
-        nextPos := i;
-        exit;
-      end;
-    end
-    else if p^ = 'I' then
-    begin
-      if (i < endPos) and ((p+1)^ = 'D') then
-      begin
-        result := i - startPos;
-        nextPos := i;
-        exit;
-      end;
-    end;
-    Inc(p);
-  end;
-  result := 0;
-  nextPos := endPos +1;
-end;
-
-(* ID用 *)
-function Dat2chGet2DelimiterForID(const AString: string;
-                                  startPos: integer;
-                                  var nextPos: integer;
-                                  var idstring: string): integer;
-var
-  i, endPos: integer;
-  p: PChar;
-begin
-  p := @AString[startPos];
-  endPos := length(AString);
-  idstring := '';
-  for i := startPos to endPos do
-  begin
-    if p^ = '<' then
-    begin
-      if (i < endPos) and ((p+1)^ = '>') then
-      begin
-        result := i - startPos;
-        nextPos := i;
-        exit;
-      end;
-    end
-    else if p^ = ' ' then
-    begin
-      result := i - startPos;
-      nextPos := i;
-      exit;
-    end;
-    //idstring := idstring + p^;
-    Inc(p);
-  end;
-  result := 0;
-  nextPos := endPos +1;
-end;
-
-(* その他用 *)
-function Dat2chGet2DelimiterForOTH(const AString: string;
-                                   startPos: integer;
-                                   var nextPos: integer): integer;
-var
-  i, endPos: integer;
-  p: PChar;
-begin
-  p := @AString[startPos];
-  endPos := length(AString);
-  for i := startPos to endPos do
-  begin
-    if p^ = '<' then
-    begin
-      if (i < endPos) and ((p+1)^ = '>') then
-      begin
-        result := i - startPos;
-        nextPos := i + 2;
-        exit;
-      end;
     end;
     Inc(p);
   end;
@@ -813,34 +699,6 @@ begin
   dateSize := Dat2ChGet2Delimiter(AString, dateStart, index);
   msgStart := index;
   msgSize  := Dat2ChGet2Delimiter(AString, msgStart, index);
-end;
-
-//aiai
-procedure Dat2ChFetchLineEx(const AString: string;
-                            startPos: integer;
-                            var nameStart, nameSize: integer;
-                            var mailStart, mailSize: integer;
-                            var dateStart, dateSize: integer;
-                            var idStart,   idSize:   integer;
-                            var idString: string;
-                            var othStart,  othSize:  integer;
-                            var msgStart,  msgSize : integer);
-var
-  index: integer;
-begin
-  index := startPos;
-  nameStart := index;
-  nameSize  := Dat2ChGet2Delimiter(AString, nameStart, index);
-  mailStart := index;
-  mailSize  := Dat2ChGet2Delimiter(AString, mailStart, index);
-  dateStart := index;
-  dateSize  := Dat2ChGet2DelimiterForDate(AString, dateStart, index);
-  idStart   := index;
-  idSize    := Dat2chGet2DelimiterForID(AString, idStart, index, idstring);
-  othStart  := index;
-  othSize   := Dat2chGet2DelimiterForOTH(AString, othStart, index);
-  msgStart  := index;
-  msgSize   := Dat2ChGet2Delimiter(AString, msgStart, index);
 end;
 
 procedure Dat2ChFetchCommaDelimitedLine(
@@ -2122,6 +1980,78 @@ procedure TConvDatOut.ProcDATE;
 var
   beid: String;
 
+  (* 年は4桁,1月と2月は前の年の13月と14月とする *)
+  function CalcDayOfWeek(date: PChar; num:integer): string; (* 曜日だけ返す *)
+  var
+    intyear, intmon, intday, thedayofweek: Integer;
+  begin
+    case num of
+      2: begin //年が2桁の場合
+        intyear := (Ord(date^) - 48) * 10 + Ord((date+1)^) - 48;
+        intmon  := (Ord((date+3)^) - 48) * 10 + Ord((date+4)^) - 48;
+        intday  := (Ord((date+6)^) - 48) * 10 + Ord((date+7)^) - 48;
+
+        if intyear < 100 then // 90～99年は1990～1999年に、それ以外は2000年以降にする
+          if (intyear >= 90) and (intyear <= 99) then
+            Inc(intyear, 1900)
+          else
+            Inc(intyear, 2000);
+
+      end;
+      4: begin //年が4桁の場合
+        intyear := (Ord(date^) - 48) * 1000 + (Ord((date+1)^) - 48) * 100 + (Ord((date+2)^) - 48) * 10 + Ord((date+3)^) - 48;
+        intmon  := (Ord((date+5)^) - 48) * 10 + Ord((date+6)^) - 48;
+        intday  := (Ord((date+8)^) - 48) * 10 + Ord((date+9)^) - 48;
+
+      end;
+    else
+     begin
+      result := '';
+      exit;
+     end;
+    end;
+
+    if (intmon = 1) or (intmon = 2) then //1・2月は前年の13・14月
+    begin
+      Dec(intyear);
+      Inc(intmon, 12);
+    end;
+
+    thedayofweek := ( intday + (8 + 13 * intmon) div 5 + intyear
+                   + intyear div 4 - intyear div 100 + intyear div 400 ) mod 7;
+    (* thedayofweek: 0=Sun 1=Mon 2=Tue 3=Wed 4=Thu 5=Fri 6=Sat *)
+
+    result := Config.optDayOfWeekListForThreView.Strings[thedayofweek];
+  end;
+
+  function ProcID: Boolean;
+  var
+    index2: Integer;
+  begin
+    Result := False;
+    if not Config.ojvIDPopUp then
+      exit;
+    index2 := index;
+    if ((index2 + 3) < size) and ((str + index2 + 1)^ = 'D')
+      and ((str + index2 + 2)^ = ':') and ((str + index2 + 3)^ <> '?')then
+    begin
+      Inc(index2, 3);
+
+      (* IDの末尾を探す *)
+      while index2 < size do
+      begin
+        if ((str + index2)^ in [' ']) then
+          break;
+        Inc(index2);
+      end;
+      
+      WriteID(str + index, index2 - index, line);
+      WriteText(str + index + 3, index2 - index - 3);
+      index := index2;
+      Result := True;
+    end;
+  end;
+
   function ProcTag: Boolean;
     procedure GetBeID;
     var
@@ -2159,18 +2089,48 @@ label
   ProcChar;
 var
   idx2: Integer;
+  i: integer;
+  alreadydayofweek: Boolean;
 begin
   beid := '';
+
+  (* 曜日付きがどうか調べる *)
+  alreadydayofweek := false;
+  for i := 0 to size do
+  begin
+    if (str + i)^ in [#$8B..#$96] then
+    begin
+      alreadydayofweek := true;
+      break;
+    end;
+  end;
+
+  if Main.Config.ojvShowDayOfWeek and not alreadydayofweek then
+    (* 年が2桁の場合 *)
+    if (size > 8)  and ((str + 2)^ = '/') and ((str + 8)^ = ' ') then
+    begin
+      WriteText(str, 8);
+      WriteText(CalcDayOfWeek(str, 2));
+      Inc(index, 8);
+    (* 年が4桁の場合 *)
+    end else if (size > 10) and ((str + 4)^ = '/') and ((str + 10)^ = ' ') then
+    begin
+      WriteText(str, 10);
+      WriteText(CalcdayOfWeek(str, 4));
+      Inc(index, 10);
+    end;
+
   while (index < size) do
   begin
     case (str + index)^ of
-      '<':
-        if not ProcTag then
-          goto ProcChar;
+      'I': if not ProcID then
+             goto ProcChar;
+      '<': if not ProcTag then
+             goto ProcChar;
     else
       ProcChar:
       idx2 := index + 1;
-      while (idx2 < size) and not ((str + idx2)^ in ['<']) do
+      while (idx2 < size) and not ((str + idx2)^ in ['<', 'I']) do
         Inc(idx2);
       if Length(beid) > 0 then begin
         WriteAnchor('', beid, str + index, idx2 - index);
@@ -2600,12 +2560,10 @@ var
   nameStart, nameSize: integer;
   mailStart, mailSize: integer;
   dateStart, dateSize: integer;
-  idStart,   idSize:   integer;
-  othStart,  othSize:  integer;
   msgStart,  msgSize : integer;
   tmplen, i: integer;
   ns: string;
-  name, mail, date, id, oth, msg: PChar;
+  name, mail, date, msg: PChar;
   strName, strMail, strDate, strMsg, strMailName: string;
   {beginner}
   ngi: TNGItemIdent;
@@ -2614,7 +2572,6 @@ var
   AboneType:Integer;
   ResItems: TArrayOfNGItemPChar;
   {/beginner}
-  idString: string;  //aiai
 
   {beginner}
   function Arrest(AAboneType: Integer; NGItem: TBaseNGItem): Integer;
@@ -2654,56 +2611,8 @@ var
     nameSize := length(ABONE);
     mailSize := nameSize;
     dateSize := nameSize;
-    idSize := 0;  //aiai
-    othSize := 0; //aiai
     msgSize := 0; //beginner
   end;
-
-  {aiai}
-  (* 年は4桁,1月と2月は前の年の13月と14月とする *)
-  function CalcDayOfWeek(date: PChar; num:integer): string; (* 曜日だけ返す *)
-  var
-    intyear, intmon, intday, thedayofweek: Integer;
-  begin
-    case num of
-      2: begin //年が2桁の場合
-        intyear := (Ord(date^) - 48) * 10 + Ord((date+1)^) - 48;
-        intmon  := (Ord((date+3)^) - 48) * 10 + Ord((date+4)^) - 48;
-        intday  := (Ord((date+6)^) - 48) * 10 + Ord((date+7)^) - 48;
-
-        if intyear < 100 then // 90～99年は1990～1999年に、それ以外は2000年以降にする
-          if (intyear >= 90) and (intyear <= 99) then
-            Inc(intyear, 1900)
-          else
-            Inc(intyear, 2000);
-
-      end;
-      4: begin //年が4桁の場合
-        intyear := (Ord(date^) - 48) * 1000 + (Ord((date+1)^) - 48) * 100 + (Ord((date+2)^) - 48) * 10 + Ord((date+3)^) - 48;
-        intmon  := (Ord((date+5)^) - 48) * 10 + Ord((date+6)^) - 48;
-        intday  := (Ord((date+8)^) - 48) * 10 + Ord((date+9)^) - 48;
-
-      end;
-    else
-     begin
-      result := '';
-      exit;
-     end;
-    end;
-
-    if (intmon = 1) or (intmon = 2) then //1・2月は前年の13・14月
-    begin
-      Dec(intyear);
-      Inc(intmon, 12);
-    end;
-
-    thedayofweek := ( intday + (8 + 13 * intmon) div 5 + intyear
-                   + intyear div 4 - intyear div 100 + intyear div 400 ) mod 7;
-    (* thedayofweek: 0=Sun 1=Mon 2=Tue 3=Wed 4=Thu 5=Fri 6=Sat *)
-
-    result := Config.optDayOfWeekListForThreView.Strings[thedayofweek];
-  end;
-  {/aiai}
 
 label PROC;
 begin
@@ -2714,11 +2623,6 @@ begin
   MsgShow:=0;
   AboneType:=0;
   {/beginner}
-
-  idSize := 0;
-  othsize := 0;
-  id := nil;
-  oth := nil;
 
   if datType = dtComma then
   begin
@@ -2761,32 +2665,16 @@ begin
     else
       msg  := @dataString[msgStart];
   end
-  else begin  //aiai
-    if Config.ojvIDPopUp then begin
-      Dat2chFetchLineEx(dataString, startPos,
-                        nameStart, nameSize,
-                        mailStart, mailSize,
-                        dateStart, dateSize,
-                        idStart,   idSize, idString,
-                        othStart,  othSize,
-                        msgStart,  msgSize);
-      name := @dataString[nameStart];
-      mail := @dataString[mailStart];
-      date := @dataString[dateStart];
-      id   := @dataString[idStart];
-      oth  := @dataString[othStart];
-      msg  := @dataString[msgStart];
-    end else begin
-      Dat2ChFetchLine(dataString, startPos,
-                      nameStart, nameSize,
-                      mailStart, mailSize,
-                      dateStart, dateSize,
-                      msgStart, msgSize);
-      name := @dataString[nameStart];
-      mail := @dataString[mailStart];
-      date := @dataString[dateStart];
-      msg  := @dataString[msgStart];
-    end;
+  else begin
+    Dat2ChFetchLine(dataString, startPos,
+                    nameStart, nameSize,
+                    mailStart, mailSize,
+                    dateStart, dateSize,
+                    msgStart, msgSize);
+    name := @dataString[nameStart];
+    mail := @dataString[mailStart];
+    date := @dataString[dateStart];
+    msg  := @dataString[msgStart];
   end;
 
   if dateSize <= 0 then
@@ -2809,8 +2697,7 @@ begin
     ResItems[NG_ITEM_NAME].Size := nameSize;
     ResItems[NG_ITEM_MAIL].Size := mailSize;
     ResItems[NG_ITEM_MSG ].Size := msgSize;
-    //ResItems[NG_ITEM_ID  ].Size := dateSize;   //aiai
-    ResItems[NG_ITEM_ID  ].Size := dateSize + idSize + othSize;
+    ResItems[NG_ITEM_ID  ].Size := dateSize;
 
     if AboneArray <> nil then AboneType := AboneArray[line];
 
@@ -3009,43 +2896,12 @@ begin
             dest.WriteText(mail, mailSize);
         end;
       {$ENDIF}
-      TYPE_DATE:  //aiai
+      TYPE_DATE:
         begin
           if MsgShow > 0 then
             dest.WriteItem(PChar('<SA i='+IntToStr(MsgShow)+'/>'), 8 + Length(IntToStr(MsgShow)), ditNORMAL);
 
-
-          (* Ex. 「04/09/13 07:25:13 」  *)
-          if Main.Config.ojvShowDayOfWeek and (dateSize > 8)
-                and ((date + 2)^ = '/')
-                      and ((date + 8)^ = ' ') then begin  //曜日表示機能有効 yearが2桁の場合
-            dest.WriteText(date, 8);                      //「04/09/13」
-            dest.WriteText(CalcdayOfWeek(date, 2));       //「(月)」
-            dest.WriteItem(date + 8, dateSize - 8, ditDATE); //「 07:25:13 」
-          end else if Main.Config.ojvShowDayOfWeek and (dateSize > 10)
-                and ((date + 4)^ = '/')
-                      and ((date + 10)^ = ' ') then begin //曜日表示機能有効 yearが4桁の場合
-            dest.WriteText(date, 10);                     //「2004/09/13」
-            dest.WriteText(CalcdayOfWeek(date, 4));       //「(月)」
-            dest.WriteItem(date + 10, dateSize - 10, ditDATE);     //「 07:25:13 」
-          end else                                        //曜日表示無効 or 日付ではないなど
-            dest.WriteItem(date, dateSize, ditDATE);
-
-
-          (* Ex. 「ID:dv4ebI3F」 *)
-          if (idSize > 0) then                            //IDがある
-            if Config.ojvIDPopUp                          //IDポップアップ機能有効
-                and (0<>StrLComp('?', id + 3, 1)) then begin   //IDが???でない
-              dest.WriteID(id, idSize, line);
-              dest.WriteText(id + 3, idSize - 3);         //ID部分
-            end else                                      //IDポップアップ機能無効
-              dest.WriteText(id, idSize);                 //ID部分
-
-
-          (* Ex. 「 [  ABCDEF.ne.jp ] 」 *)               //その他 リモートホストなど
-          if (othSize > 0) then
-            dest.WriteText(oth, othSize);
-
+          dest.WriteItem(date, dateSize, ditDATE); //aiai
 
           if MsgShow > 0 then
             dest.WriteItem('<SA i=0/>', 9, ditNORMAL);

@@ -1315,6 +1315,8 @@ type
     BrowserRightMargin: Integer;
     //BrowserMaxWidth: Integer;
     //StatusBar2: TJLStatusBar;
+
+    CanAutoCheckNewRes: Boolean; //更新のあるスレを選択するだけでリロード可能してよいかどうか
     {/aiai}
 
     procedure SaveWindowPos;
@@ -3182,6 +3184,8 @@ begin
       SetRPane(ptView);
     end else
       SetRPane(ptList);
+
+    CanAutoCheckNewRes := True;  //aiai
 
     try
       DebugTmp.Visible := Config.tstDebugEnabled;
@@ -5903,7 +5907,7 @@ begin
     end;
 
     {aiai}
-    if Config.optCheckNewResSingleClick then
+    if Config.optCheckNewResSingleClick and CanAutoCheckNewRes then
       CheckNewResSingleClick(currentView);
     {/aiai}
   end
@@ -12898,7 +12902,6 @@ var
   favlist: TFavoriteList;
   tmpTap: TTabAddPos;
   wndstate: TMTVState;
-  uri: string;
 begin
   //開き順が変わるので無理矢理修正
   tmpTap := Config.oprAddPosNormal;
@@ -12931,23 +12934,24 @@ begin
         urlList.LoadFromFile(Config.BasePath + SESSION_DAT);
         for i := 0 to urlList.Count - 1 do
         begin
-          uri := urlList.Names[i];
-          urlListSub.CommaText := urlList.Values[uri];
-          if urlListSub.Count = 6 then begin
-            if urlListSub[4] = '0' then
+          urlListSub.Delimiter := #9;
+          urlListSub.DelimitedText := urlList.Strings[i];
+          if urlListSub.Count = 7 then
+          begin
+            if urlListSub[5] = '0' then
               wndstate := MTV_NOR
             else
               wndstate := MTV_MAX;
-            LocalNavigate(uri,
+            LocalNavigate(urlListSub[0],
               False,
-              StrToIntDef(urlListSub[0], 0),
               StrToIntDef(urlListSub[1], 0),
               StrToIntDef(urlListSub[2], 0),
               StrToIntDef(urlListSub[3], 0),
+              StrToIntDef(urlListSub[4], 0),
               wndstate,
-              (urlListSub[5] = '1'));
+              (urlListSub[6] = '1'));
           end else
-            LocalNavigate(uri);
+            LocalNavigate(urlListSub[0]);
           urlListSub.Clear;
         end;
       finally
@@ -12991,10 +12995,10 @@ begin
     begin
       for i := 0 to ListTabControl.Tabs.Count -1 do
         with ListTabControl.Tabs.Objects[i] as TBoard do
-          urlList.Add(GetURIBase + '/' + '=');
+          urlList.Add(GetURIBase + '/');
     end
     else if currentBoard <> nil then
-      urlList.Add(currentBoard.GetURIBase + '/' + '=');
+      urlList.Add(currentBoard.GetURIBase + '/');
     for i := 0 to viewList.Count -1 do begin
       thread := viewList.Items[i].thread;
       if thread <> nil then begin
@@ -13002,21 +13006,21 @@ begin
         browser := TMDITextView(viewList.Items[i].browser);
         if browser.WndState = MTV_MAX then begin
           urlList.Add(viewList.Items[i].thread.ToURL(false)
-            + '='
-            + IntToStr(browser.NorRect.Left) + ','
-            + IntToStr(browser.NorRect.Top) + ','
-            + IntToStr(browser.NorRect.Right) + ','
-            + IntToStr(browser.NorRect.Bottom) + ','
-            + '1,'
+            + #9
+            + IntToStr(browser.NorRect.Left) + #9
+            + IntToStr(browser.NorRect.Top) + #9
+            + IntToStr(browser.NorRect.Right) + #9
+            + IntToStr(browser.NorRect.Bottom) + #9
+            + '1' + #9
             + canclose);
         end else
           urlList.Add(viewList.Items[i].thread.ToURL(false)
             + '='
-            + IntToStr(browser.BoundsRect.Left) + ','
-            + IntToStr(browser.BoundsRect.Top) + ','
-            + IntToStr(browser.BoundsRect.Right) + ','
-            + IntToStr(browser.BoundsRect.Bottom) + ','
-            + '0,'
+            + IntToStr(browser.BoundsRect.Left) + #9
+            + IntToStr(browser.BoundsRect.Top) + #9
+            + IntToStr(browser.BoundsRect.Right) + #9
+            + IntToStr(browser.BoundsRect.Bottom) + #9
+            + '0' + #9
             + canclose);
       end;
     end;
@@ -17514,7 +17518,7 @@ procedure TMainWnd.MenuWindowMaximizeAllClick(Sender: TObject);
 var
   viewItem: TViewItem;
 begin
-  viewItem := currentView;
+  viewItem := GetActiveView;
   if Assigned(viewItem) and Assigned(viewItem.browser) then
   begin
     viewList.ViewAllMaximize(viewItem.browser);

@@ -4286,12 +4286,12 @@ object MainWnd: TMainWnd
         OnClick = KeyEmulateClick
       end
       object ArrowRight: TMenuItem
-        Tag = 37
+        Tag = 39
         Caption = 'Right'
         OnClick = KeyEmulateClick
       end
       object ArrowLeft: TMenuItem
-        Tag = 39
+        Tag = 37
         Caption = 'Left'
         OnClick = KeyEmulateClick
       end

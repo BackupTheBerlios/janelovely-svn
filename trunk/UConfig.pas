@@ -1955,6 +1955,7 @@ begin
 
   {beginner}
   if tag = 201 then begin
+    ColorDialog.Color := Lbl.Font.Color;
     if not ColorDialog.Execute then
       exit;
     Lbl.Font.Color := ColorDialog.Color;
@@ -2555,12 +2556,18 @@ begin
   VK_UP:
     begin
       if (ssCtrl in Shift) or (ssAlt in Shift) then
+      begin
         ButtonClmnUpClick(Sender);
+        Key := 0;
+      end;
     end;
   VK_DOWN:
     begin
       if (ssCtrl in Shift) or (ssAlt in Shift) then
+      begin
         ButtonClmnDownClick(Sender);
+        Key := 0;
+      end;
     end;
   end;
 end;
