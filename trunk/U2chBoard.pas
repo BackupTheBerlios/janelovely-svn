@@ -383,25 +383,23 @@ end;
 (* スレッド一覧を解析する *)
 procedure TBoard.Analyze((*const*) txt: string; const lstModified: string; refresh: boolean);
 var
-  refered: TList;
+  refered: TStringList;  //aiai GetReferedThreadItemの効率化
   //改造▽ 追加 (スレッドあぼ～ん)
   threadABoneCount: integer;  //スレッドあぼ～んカウンタ
   threadABoneNext: THashedStringList; //ヒットしたスレを加える
   //改造△ 追加 (スレッドあぼ～ん)
 
   (* 指定されたdatのスレを探す *)
+  //aiai TStringList.Findを使って効率化
   function GetReferedThreadItem(const datName: string): TThreadItem;
   var
     i: integer;
   begin
-    for i := 0 to refered.Count -1 do
+    if refered.Find(datName, i) then
     begin
-      if AnsiCompareStr(TThreadItem(refered.Items[i]).datName, datName) = 0 then
-      begin
-        result := TThreaditem(refered.Items[i]);
-        refered.Delete(i);
-        exit;
-      end;
+      result := TThreadItem(refered.Objects[i]);
+      refered.Delete(i);
+      exit;
     end;
     result := nil;
   end;
@@ -587,11 +585,13 @@ begin
   if refresh then
     SafeClear;
 
-  refered := TList.Create;
-  for i := 0 to Count -1 do
+  refered := THashedStringList.Create;
+  refered.Sorted := True;
+  for i := 0 to Count - 1 do
   begin
-    refered.Add(Items[i]);
+    refered.AddObject(TThreadItem(items[i]).datName, items[i]);
   end;
+
   inherited Clear;
 
   if GetBBSType = bbsShitaraba then
@@ -636,15 +636,15 @@ begin
 
   for i := 0 to refered.Count -1 do
   begin
-    if not refresh and (TThreadItem(refered[i]).lines <= 0) and
-       not TThreadItem(refered[i]).Refered then
-      TThreadItem(refered[i]).Free
+    if not refresh and (TThreadItem(refered.Objects[i]).lines <= 0) and
+       not TThreadItem(refered.Objects[i]).Refered then
+      TThreadItem(refered.Objects[i]).Free
     else begin
-      TThreadItem(refered[i]).number := 0; //false;
-      Add(refered[i]);
+      TThreadItem(refered.Objects[i]).number := 0; //false;
+      Add(refered.Objects[i]);
       {aiai}
       if refresh then
-        datList.Add(TThreadItem(refered[i]).datName);
+        datList.Add(refered.Strings[i]);
       {/aiai}
     end;
   end;
