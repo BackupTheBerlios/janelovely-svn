@@ -4357,6 +4357,7 @@ end;
 procedure TViewItem.ClearBrowser;
 begin
   FBrowser.Clear;
+  FBrowser.Invalidate;
 end;
 
 procedure TViewItem.WriteSkin(str: PChar; size: integer; thread: TThreadItem = nil);
