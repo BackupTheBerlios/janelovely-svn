@@ -1805,8 +1805,12 @@ function TWriteForm.Res2Dat: string;
     Result := AnsiReplaceStr(Result, 'Ÿ', 'ž');
     if AnsiPos('#', Result) > 0 then
     begin
-      Result := Copy(Result, 1, AnsiPos('#', Result) - 1) + '</b>'
-        + Trip(Copy(Result,AnsiPos('#', Result) + 1, Length(Result))) + ' <b>';
+      if Board.NeedConvert then
+        Result := Copy(Result, 1, AnsiPos('#', Result) - 1) + '</b>'
+          + Trip(sjis2euc(Copy(Result,AnsiPos('#', Result) + 1, Length(Result)))) + ' <b>'
+      else
+        Result := Copy(Result, 1, AnsiPos('#', Result) - 1) + '</b>'
+          + Trip(Copy(Result,AnsiPos('#', Result) + 1, Length(Result))) + ' <b>';
     end;
     if AnsiPos('”', Result) > 0 then
     begin
