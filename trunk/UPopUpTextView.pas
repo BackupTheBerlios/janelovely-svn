@@ -6,7 +6,8 @@ unit UPopUpTextView;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Controls, Graphics, HogeTextView;
+  Windows, Messages, SysUtils, Classes, Controls, Graphics, HogeTextView,
+  JLUxtheme;
 
 type
 
@@ -69,7 +70,12 @@ procedure TPopUpTextView.CreateParams(var Params: TCreateParams);
 begin
   inherited CreateParams(Params);
   Params.ExStyle := WS_EX_TOOLWINDOW or WS_EX_TOPMOST;
-  Params.WindowClass.style := Params.WindowClass.style or CS_SAVEBITS;
+
+  if IsWindowsXP then
+    Params.WindowClass.style
+      := Params.WindowClass.style or CS_SAVEBITS or CS_DROPSHADOW
+  else
+    Params.WindowClass.style := Params.WindowClass.style or CS_SAVEBITS;
 end;
 
 

@@ -37,7 +37,7 @@ uses
   UAAForm, UAddAAForm, UAutoReSc, UAutoReloadSettingForm,
   UAutoScrollSettingForm, ULovelyWebForm, UNews, UGetBoardListForm,
   UChottoForm, UImageViewCacheListForm,
-  UCheckSeverDown, UMDITextView, UWriteWait,
+  UCheckSeverDown, UMDITextView, UWriteWait, UXPHintWindow,
   UWritePanelControl, JLToolButton, JLSideBar, JLXPComCtrls;
   {/aiai}
 
@@ -10214,7 +10214,6 @@ procedure TMainWnd.ApplicationEventsMessage(var Msg: tagMSG;
   var Handled: Boolean);
 
 var
-  Point: TPoint;
   Wnd: HWND;
 begin
   case Msg.message of
@@ -10288,10 +10287,9 @@ begin
       //【初心者】Janeを弄るスレ【歓迎】　その2
       //http://jane.s28.xrea.com/test/read.cgi/bbs/1067059929/604
       (* ホイールメッセージをマウスカーソル下のコントロールに送る *)
-      if Config.mseWheelScrollUnderCursor and not Handled
-          and GetCursorPos(Point) and not InvalidPoint(Point) then
+      if Config.mseWheelScrollUnderCursor and not Handled then
       begin
-        Wnd := WindowFromPoint(Point);
+        Wnd := WindowFromPoint(Point(LOWORD(Msg.lParam), HIWORD(Msg.lParam)));
         if (Wnd <> 0) and (Msg.hwnd <> Wnd) then
         begin
           Handled := true;
@@ -18759,6 +18757,9 @@ end;
 
 initialization
   OleInitialize(nil);
+  Application.ShowHint := False;
+  HintWindowClass := TXPHintWindow; 
+  Application.ShowHint := True;
 finalization
   OleUninitialize;
 

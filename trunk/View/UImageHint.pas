@@ -4,11 +4,11 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Controls, Graphics, Types, StdCtrls, ExtCtrls, Forms, StrUtils, Menus,
-  JConfig, StrSub, UAnimatedPaintBox;
+  JConfig, StrSub, UAnimatedPaintBox, UXPHintWindow;
 
 type
   //Bitmapを表示できるヒントポップアップ
-  TImageHint = class(THintWindow)
+  TImageHint = class(TXPHintWindow)
   protected
     FLastURL: String;
   public

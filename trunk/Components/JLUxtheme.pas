@@ -3,7 +3,7 @@ unit JLUxtheme;
 interface
 
 uses
-  Windows, ComCtrls;
+  Windows, ComCtrls, SysUtils;
 
 type
   HTHEME = THANDLE;
@@ -12,6 +12,7 @@ const
   WM_THEMECHANGED   = $031A;
   WM_DRAWPARENTRECT = $1000;
 
+  CS_DROPSHADOW = $00020000;
 
 
 var
@@ -38,6 +39,7 @@ var
   EnableTheming: function (fEnable: BOOL): HRESULT; stdcall;
 
 
+function IsWindowsXP: Boolean;
 function OKLuna: Boolean;
 
 implementation
@@ -48,6 +50,13 @@ const
 var
   Handle: THandle = 0;
 
+function IsWindowsXP: Boolean;
+begin
+  // Windows XP's internal version number is 5.1
+  // Windows 2000 was 5.0
+  Result := (Win32Platform = VER_PLATFORM_WIN32_NT) and
+    (Win32MajorVersion >= 5) and (Win32MinorVersion >= 1);
+end;
 
 function OKLuna: Boolean;
 begin

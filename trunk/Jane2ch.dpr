@@ -87,7 +87,8 @@ uses
   UMigemo in 'AIAI\UMigemo.pas',
   UWriteWait in 'AIAI\UWriteWait.pas',
   WriteSub in 'AIAI\WriteSub.pas',
-  VBScript_RegExp_55_TLB in 'C:\Program Files\Borland\Delphi6\Imports\VBScript_RegExp_55_TLB.pas';
+  VBScript_RegExp_55_TLB in 'C:\Program Files\Borland\Delphi6\Imports\VBScript_RegExp_55_TLB.pas',
+  UXPHintWindow in 'AIAI\UXPHintWindow.pas';
 
 {$R *.res}
 

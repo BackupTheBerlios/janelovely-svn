@@ -3595,19 +3595,30 @@ procedure AdjustToTextViewLine(const Point: TPoint; const Rect: TRect;
 var
   VCLWindow: TWinControl;
   LaidView: THogeTextView;
-  ClientPt: TPoint;
+  ClientPt, LogicalPt: TPoint;
+  bs: integer;
 begin
   VCLWindow := FindVCLWindow(Point);
   if Assigned(VCLWindow) and (VCLWindow is THogeTextView) then
   begin
     LaidView := THogeTextView(VCLWindow);
-    ClientPt := LaidView.ScreenToClient(Point);
-    offset1 := (ClientPt.Y - LaidView.TopMargin) mod LaidView.BaseLineSkip;
-    offset2 := LaidView.BaselineSkip - offset1;
+    With LaidView do
+    begin
+      {aiai}
+      bs := BaselineSkip;
+      ClientPt := ScreenToClient(Point);
+      LogicalPt := ClientToLogical(ClientPt.X, ClientPt.Y);
+      offset1 :=  ClientPt.Y
+        - ((LogicalPt.Y - FLogicalTopLine) * bs + TopMargin - FFraction);
+      offset2 := bs - offset1;
+      {/aiai}
+    end;
   end else
   begin
+    {aiai}
     offset1 := 8;
     offset2 := 8;
+    {/aiai}
   end;
 end;
 
