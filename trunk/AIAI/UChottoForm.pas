@@ -266,7 +266,7 @@ begin
       begin
       end;
     end;
-    if AnsiContainsStr(strchotto, 'charset=UTF-8') then
+    if AnsiContainsText(strchotto, 'charset=UTF-8') then
       strchotto := UTF8ToAnsi(strchotto)
     else
       strchotto := ConvertJCode(strchotto, SJIS_OUT);

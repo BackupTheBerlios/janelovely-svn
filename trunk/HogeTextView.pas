@@ -116,16 +116,6 @@ type
     property Items[index: Integer]: THogeTVitem read GetItem write SetItem; default;
   end;
 
-  {aiai}
-  THogeThumbnailItem = class(THogeTVItem)
-  public
-    PictureList: TList;
-    destructor Destroy; override;
-    function IndexToLogicalPos(index: Integer): TPoint; override;
-    function LogicalPosToIndex(var point: TPoint): Integer; override;
-  end;
-  {/aiai}
-
   (*-------------------------------------------------------*)
   THogeTextAttrib = record
     color: TColor;
@@ -2389,6 +2379,7 @@ begin
     {aiai}
     if item.PictLine and (item.PictOverlap = -1) and Assigned(item.Picture) then
     begin
+      //<IMG>
       FBitmap.Canvas.Draw(FLeftMargin + item.OffsetLeft, Y, item.Picture);
       Inc(screenLine, item.Picture.Height div bs);
       if vLines <= screenLine then
@@ -2404,8 +2395,12 @@ begin
       len := length(attrib);
       cw := item.GetWidthInfo;
       Continue;
+    end else if (index > len) and item.PictLine and (item.PictOverlap >= 0) and Assigned(item.Picture) then
+    begin
+      //<IMG align=overlap> テキストがないphysicallineの場合
+      point := item.IndexToLogicalPos(item.PictOverlap);
+      FBitmap.Canvas.Draw(point.X, point.Y + Y, item.Picture);
     end;
-
     //検索ハイライト
     CreateHLightList(item.FText);
     {/aiai}
@@ -2435,8 +2430,12 @@ begin
         while next <= len do
         begin
           {aiai}
-          if item.PictLine and (item.PictOverlap = next) and Assigned(item.Picture) then
-            FBitmap.Canvas.Draw(X + width, Y, item.Picture);
+          if item.PictLine and (item.PictOverlap >= index) and (item.PictOverlap < next) and Assigned(item.Picture) then
+          begin
+            //<IMG align=overlap>
+            point := item.IndexToLogicalPos(item.PictOverlap);
+            FBitmap.Canvas.Draw(point.X, point.Y + Y, item.Picture);
+          end;
           {/aiai}
           if Ord(attrib[next]) <> attCode then
             break;
