@@ -7403,9 +7403,9 @@ begin
   ThreadAboneFilter;
   {/aiai}
 
-  currentSortColumn := 1;
+  currentSortColumn := High(Integer);
 
-  if currentBoard.sortColumn <> 1 then //ソート状態の設定
+  //if currentBoard.sortColumn <> 1 then //ソート状態の設定
     ListViewColumnSort(currentBoard.sortColumn);
 
   //if Config.oprSelPreviousThread then
