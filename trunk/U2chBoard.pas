@@ -314,7 +314,9 @@ var
   i: integer;
 begin
   {$IFDEF BENCH}
+  {$IFDEF DEVELBENCH}
   Main.Bench3(0);
+  {$ENDIF}
   {$ENDIF}
   for i := 0 to Count -1 do
   begin
@@ -337,7 +339,9 @@ begin
   end;
   RemoveFromRecyleList(Self);
   {$IFDEF BENCH}
+  {$IFDEF DEVELBENCH}
   Main.Log(name + ':safeClear ' + Main.Bench3(1));
+  {$ENDIF}
   {$ENDIF}
 end;
 
@@ -576,7 +580,10 @@ var
   firstline: string;
 begin
   {$IFDEF BENCH}
+  Main.Bench2(0);
+  {$IFDEF DEVELBENCH}
   Main.Bench3(0);
+  {$ENDIF}
   {$ENDIF}
 
   //改造▽ 追加 (スレッドあぼ～ん)
@@ -649,9 +656,10 @@ begin
     end;
   end;
   refered.Free;
-
   {$IFDEF BENCH}
+  {$IFDEF DEVELBENCH}
   Main.Log(name + ':Analyze subject.txt ' + Main.Bench3(1));
+  {$ENDIF}
   {$ENDIF}
 
   if refresh then
@@ -668,7 +676,9 @@ begin
   end;
   self.datModified := true;
   self.idxModified := true;
-
+  {$IFDEF BENCH}
+  Main.Log('スレ一覧取得時間: ' + IntToStr(Bench2(1)) + 'msec');
+  {$ENDIF}
 end;
 
 (*  *)
@@ -735,8 +745,10 @@ var
   //idx: integer;
 begin
   {$IFDEF BENCH}
+  {$IFDEF DEVELBENCH}
   Main.Bench3(0);
   Main.Log(self.name + ':idx全ｽﾚ読込開始');
+  {$ENDIF}
   {$ENDIF}
 
   MergingList := TList.Create;
@@ -778,15 +790,6 @@ begin
       begin
         item := TThreadItem.Create(self);
         item.datName := datName;
-        {スレッドあぼ～ん}  //※ログ削除はしないことにする
-        //idx := threadABoneList.IndexOfName(datName);
-        //if idx >= 0 then
-        //begin
-        //  item.RemoveLog;
-        //  item.Free;
-        //  Continue;
-        //end;
-        {/スレッドあぼ～ん}
         save := item.LoadIndexData;
         (* DataBase (aiai) *)
         if not save and Config.ojvQuickMerge then
@@ -836,12 +839,13 @@ begin
     {$ENDIF}
   end;
   (* //DataBase *)
-
   {$IFDEF BENCH}
+  {$IFDEF DEVELBENCH}
   if Config.ojvQuickMerge then
     Main.Log(name + ':CreateTable ' + Main.Bench3(1))
   else
     Main.Log(name + ':Load *.idx' + Main.Bench3(1));
+  {$ENDIF}
   {$ENDIF}
 end;
 
@@ -922,7 +926,9 @@ var
   msg: PChar;
 begin
   {$IFDEF BENCH}
+  {$IFDEF DEVELBENCH}
   Main.Bench3(0);
+  {$ENDIF}
   {$ENDIF}
 
   IdxDataBase.ResultText := '';
@@ -975,9 +981,10 @@ begin
   Assign(MergingList, laOr);
 
   MergingList.Free;
-
   {$IFDEF BENCH}
+  {$IFDEF DEVELBENCH}
   Main.Log(name + ':LoadTable ' + Main.Bench3(1));
+  {$ENDIF}
   {$ENDIF}
 end;
 
@@ -1659,15 +1666,12 @@ begin
     datName := ChangeFileExt(ExtractFileName(fnamelist.Strings[i]), '');
     item := Find(datName);
     if item <> nil then
-    begin (* 現行スレッド *)
-      if not item.Refered then
-      begin
-        save := item.LoadIndexData(true);
-        (* DataBase (aiai) *)
-        if not save and Config.ojvQuickMerge then
-          item.InsertToTable;
-        (* //DataBase *)
-      end;
+    begin
+      save := item.LoadIndexData(true);
+      (* DataBase (aiai) *)
+      if not save and Config.ojvQuickMerge then
+        item.InsertToTable;
+      (* //DataBase *)
       if (item.URI <> URI) and ((item.state <> tsComplete) or (item.itemCount > 0)) then
       begin
         item.URI := URI;
@@ -1683,34 +1687,8 @@ begin
       if not save and Config.ojvQuickMerge then
         item.InsertToTable;
       (* //Database *)
-      if (Main.Config.datDeleteOutOfTime) and (not FUma) and
-         (item.mark = timNONE) then
-      begin
-        (* DataBase (aiai) *)
-        if Config.ojvQuickMerge then
-        begin
-          IdxDataBase.Exec(PChar('BEGIN'), nil, nil, msg); //トランザクション
-          {$IFDEF DATABASEDEBUG}
-          if msg <> nil then Main.Log(name + ':BEGIN - ' + msg);
-          {$ENDIF}
-        end;
-        (* //DataBase *)
 
-        item.RemoveLog;
-        item.Free;
-
-        (* DataBase (aiai) *)
-        if Config.ojvQuickMerge then
-        begin
-          IdxDataBase.Exec(PChar('COMMIT'), nil, nil, msg);   //コミット
-          {$IFDEF DATABASEDEBUG}
-          if msg <> nil then Main.Log(name + ':COMMIT - ' + msg);
-          {$ENDIF}
-        end;
-        (* //DataBase *)
-      end
-      else
-        Add(item);
+      Add(item);
     end;
   end; //for
 

@@ -1266,7 +1266,7 @@ type
     procedure LoadString(const fname: string; var str: string);
     function NewView(relative: boolean = false; background: boolean = false): TViewItem;
     function NewPopUpView(OwnerView: TBaseViewItem): TPopUpViewItem;
-    procedure DeleteView(index: integer; savePos: boolean = True);
+    procedure DeleteView(index: integer; savePos: boolean = True; refresh: Boolean = True);
 //    function GetActiveView: TViewItem; publicへ移動 by beginner
     function GetViewOf(browser: TComponent): TBaseViewItem;
     procedure AppDeactivate(Sender: TObject);
@@ -1374,6 +1374,7 @@ type
     function CursorInWritePanel: Boolean;
     procedure AutoHideTreePanel;
     procedure AutoHideWritePanel;
+    procedure CloseThisTab(refresh: Boolean = True);
     {/aiai}
   public
     { Public 宣言 }
@@ -1504,8 +1505,10 @@ var
   benchfreq: Int64;
   benchstart: Int64;
   benchend: Int64;
+  {$IFDEF DEVELBENCH}
   benchstart3: Int64;
   benchend3: Int64;
+  {$ENDIF}
   {$ENDIF}
   PrevPos: TPoint;
 
@@ -1555,7 +1558,9 @@ procedure ResetDaemon;
 {$IFDEF BENCH}
 procedure Bench(i: Integer);
 function Bench2(i: Integer): Integer;
+{$IFDEF DEVELBENCH}
 function Bench3(i: Integer): String;
+{$ENDIF}
 procedure InitBench();
 {$ENDIF}
 
@@ -1695,6 +1700,7 @@ begin
   end;
 end;
 
+{$IFDEF DEVELBENCH}
 function Bench3(i: Integer): String;
 begin
   result := '';
@@ -1706,6 +1712,7 @@ begin
                                                                         + 'ms';
   end;
 end;
+{$ENDIF}
 {$ENDIF}
 
 
@@ -4393,6 +4400,7 @@ procedure TMainWnd.OnSubject(sender: TAsyncReq);
     requestingBoard.Release;
     requestingBoard := nil;
     currentBoard.ResetListState;
+
     UpdateListView;
     //ListView.Enabled := true;
     UILock := false;
@@ -5586,6 +5594,7 @@ procedure TMainWnd.UpdateCurrentView(index: integer);
   procedure CheckNewResSingleClick(viewItem: TViewItem);
   begin
     if (viewItem <> nil) and (viewItem.thread <> nil)
+        and (viewItem.thread.lines > 0)
             and (viewItem.thread.itemCount > viewItem.thread.lines) then
     begin
       viewItem.thread.anchorLine := viewItem.thread.lines;
@@ -6421,7 +6430,8 @@ begin
 end;
 
 (* ビューを削除する *)
-procedure TMainWnd.DeleteView(index:integer; savePos: boolean = True);
+procedure TMainWnd.DeleteView(index:integer;
+    savePos: boolean = True; refresh: Boolean = True);
 begin
   if (0 <= index) then
   begin
@@ -6434,7 +6444,8 @@ begin
     viewList.Items[index].FreeThread(savePos);
     viewList.Delete(index);
     viewListLock.Release;
-    ListView.Invalidate;
+    if refresh then
+      ListView.Invalidate;
     //UpdateTabTexts;
   end;
 end;
@@ -6526,14 +6537,14 @@ begin
 end;
 
 (* タブを閉じる *)
-procedure TMainWnd.actCloseThisTabExecute(Sender: TObject);
+procedure TMainWnd.CloseThisTab(refresh: Boolean = True);
 var
   actvTab: boolean;
   viewItem: TViewItem; //aiai
 begin
   {aiai}
   viewItem := viewList.Items[tabRightClickedIndex];
-  
+
   //このタブは閉じない
   if (viewItem <> nil) and (viewItem.thread <> nil) and not viewItem.thread.canclose then
     exit;
@@ -6543,7 +6554,7 @@ begin
   {/aiai}
 
   actvTab := (tabRightClickedIndex = TabControl.TabIndex);
-  DeleteView(tabRightClickedIndex);
+  DeleteView(tabRightClickedIndex, False);
   //▼連続で閉じたときタブが見えなくなる問題の対策
   if not TabControl.MultiLine then
     TabControl.ScrollTabs(-1);
@@ -6551,7 +6562,7 @@ begin
     case Config.oprClosetPos of
     tcpLeft:
       begin
-        if tabRightClickedIndex > 0 then
+        if tabRightClickedIndex > 0 then                                     
           SetCurrentView(tabRightClickedIndex -1)
         else
           SetCurrentView(0);
@@ -6559,10 +6570,18 @@ begin
     else // tcpRight;
       SetCurrentView(tabRightClickedIndex);
     end;
-  UpdateTabTexts;
-  ListView.DoubleBuffered := True;
-  ListView.Update;
-  ListView.DoubleBuffered := False;
+  if refresh then
+  begin
+    UpdateTabTexts;
+    ListView.DoubleBuffered := True;
+    ListView.Update;
+    ListView.DoubleBuffered := False;
+  end;
+end;
+
+procedure TMainWnd.actCloseThisTabExecute(Sender: TObject);
+begin
+  CloseThisTab;
 end;
 
 procedure TMainWnd.actCloseOtherTabsExecute(Sender: TObject);
@@ -7252,13 +7271,13 @@ var
   thread: TThreadItem;
   index: integer;
 begin
-
   MakeCheckNewThreadAfter(nil,0,0); //beginner
 
   if Config.stlListViewUseExtraBackColor or currentBoard.threadSearched then
     ListView.OnCustomDrawItem := ListViewCustomDrawItem
   else
     ListView.OnCustomDrawItem := nil;
+  ListView.DoubleBuffered := True;
   ListView.List := currentBoard;
   currentSortColumn := 1;
 
@@ -7271,6 +7290,7 @@ begin
     end else
       ListViewColumnSort(currentBoard.sortColumn);
   end;
+  ListView.DoubleBuffered := False;
 
   //if Config.oprSelPreviousThread then
   if currentBoard.selDatName <> '' then
@@ -7284,6 +7304,7 @@ begin
     end;
   end;
   UpdateListTab;
+
 end;
 
 procedure TMainWnd.ViewPopupResClick(Sender: TObject);
@@ -9771,6 +9792,8 @@ begin
   (*  *)
   if (ListView.Selected = nil) or (ListView.SelCount > 1) then
     exit;
+  if UILock then
+    exit;
   thread := TThreadItem(ListView.Selected.Data);
   ShowSpecifiedThread(thread, Config.oprGestureThrOther, True);
   SetRPane(ptView);
@@ -9862,24 +9885,23 @@ var
   viewItem: TViewItem;
   index: Integer;
 begin
-  {aiai}
-  if MyMessageDlg('ログを削除しますよ？)') = mrCancel then
-    exit;
-  {/aiai}
-
   item := ListView.Selected;
   thread := nil;
+
+  UILock := True;
+  StopAutoReSc;
+
   while (item <> nil) and (item.Data <> thread) do
   begin
     thread := TThreadItem(item.Data);
-    {aiai} //開いている場合は閉じる
+    {aiai}  //開いている場合は閉じる
     viewItem := viewList.FindViewItem(thread);
     if viewItem <> nil then
       for index := 0 to TabControl.Tabs.Count - 1 do
         if viewItem = viewList.Items[index] then
         begin
           tabRightClickedIndex := index;
-          actCloseThisTabExecute(Sender);
+          CloseThisTab(False);
           break;
         end;
     {/aiai}
@@ -9889,10 +9911,13 @@ begin
     //UpdateThreadInfo(thread);
     item := ListView.GetNextItem(item, sdBelow, [isSelected]);
   end;
+
   ListView.DoubleBuffered := True;
   ListView.Repaint;
   ListView.DoubleBuffered := False;
   UpdateTabTexts;
+
+  UILock := False;
 end;
 
 //datをクリップボードにコピー   //aiai
@@ -11065,9 +11090,6 @@ begin
       + TCategory(TBoard(board).category).name + ']  '
       + datSize;
     TabControl.Refresh;
-    {$IFDEF BENCH}
-    Log('「' + HTML2String(title) +'」を既読化');
-    {$ENDIF}
   end;
 end;
 
@@ -14735,12 +14757,24 @@ begin
   if board = nil then
     exit;
 
+  UILock := True;
+
   board.IdxDataBase.Exec(PChar('DROP TABLE idxlist'), nil, nil, msg);
   {$IFDEF DATABASEDEBUG}
   if msg <> nil then Log(board.name + ':DROP TABLE idxlist ' + msg);
   {$ENDIF}
-  board.Load(True);
+
+  ListView.OnData := nil;
+
+   board.Load(True);
+   board.ResetListState;
+
+  ListView.OnData := ListViewData;
+
   UpdateListView;
+  UpdateTabTexts;
+
+  UILock := False;
 end;
 
 procedure TMainWnd.PopupTreeCategoryPopup(Sender: TObject);
@@ -15330,7 +15364,7 @@ begin
     else begin
       if thread.Downloading and (viewItem.Progress = tpsProgress) then //更新中
         tabControl.Canvas.Font.Color := Config.tclProcessText
-      else if thread.itemCount > thread.lines then  //まだ読み込んでいないレスがある場合
+      else if (thread.lines > 0) and (thread.itemCount > thread.lines) then  //まだ読み込んでいないレスがある場合
         tabControl.Canvas.Font.Color := Config.tclNew2Text
       else if thread.lines > thread.anchorline then  //新着があった場合
         tabControl.Canvas.Font.Color := Config.tclNewText
@@ -16413,42 +16447,46 @@ var
   listItem: TListItem;
   thread: TThreadItem;
   viewItem: TViewItem;
-  index: integer;
+  index: Integer;
 begin
   if CurrentBoard is TFunctionalBoard then Exit;
 
-  if MyMessageDlg('「スレッドあぼ～ん」しますか？' + #13#10 + #13#10
-                           + '(※ログも同時に削除されます！)')
-                              = mrCancel then begin
-    Exit;
-  end;
+  //if MyMessageDlg('「スレッドあぼ～ん」しますか？' + #13#10 + #13#10
+  //                         + '(※ログも同時に削除されます！)')
+  //                            = mrCancel then begin
+  //  Exit;
+  //end;
 
   listItem := ListView.Selected;
   thread := nil;
 
+  UILock := True;
+  StopAutoReSc;
+
   while (listItem <> nil) and (listItem.Data <> thread) do begin
     thread := TThreadItem(listItem.Data);
-
-    //開いてるスレを閉じる
+    {aiai}  //開いている場合は閉じる
     viewItem := viewList.FindViewItem(thread);
     if viewItem <> nil then
       for index := 0 to TabControl.Tabs.Count - 1 do
         if viewItem = viewList.Items[index] then
         begin
           tabRightClickedIndex := index;
-          actCloseThisTabExecute(Sender);
+          CloseThisTab(False);
           break;
         end;
+    {/aiai}
     thread.CancelAsyncRead;
     thread.RemoveLog;
     UnRegisterFavorite(thread);
     TBoard(thread.board).ThreadAbone(thread);
-
     listItem := ListView.GetNextItem(listItem, sdBelow, [isSelected]);
   end;
 
   UpdateListView;
   UpdateTabTexts;
+
+  UILock := False;
 end;
 
 procedure TMainWnd.MenuImageViewOpenCacheListClick(Sender: TObject);
@@ -16934,7 +16972,9 @@ begin
 
   board.MergeCacheFrequency(flist);
 
+  ListView.DoubleBuffered := True;
   UpdateListView;
+  ListView.DoubleBuffered := False;
 
   flist.Free;
 end;

@@ -883,11 +883,11 @@ begin
 
   (* DataBase (aiai) *)
   if not Config.ojvQuickMerge then exit;
-
   {$IFDEF BENCH}
-  Main.Bench(0);
+  {$IFDEF DEVELBENCH}
+  Main.Bench3(0);
   {$ENDIF}
-
+  {$ENDIF}
   With TBoard(board) do
   begin
     IdxDataBase.Result := False;
@@ -943,7 +943,9 @@ begin
     {$ENDIF}
   end;
   {$IFDEF BENCH}
-  Main.Bench(1);
+  {$IFDEF DEVELBENCH}
+  Main.Log(title + ':' +Main.Bench3(1));
+  {$ENDIF}
   {$ENDIF}
   (* //DataBase *)
 end;
