@@ -299,7 +299,7 @@ type
     procedure WmMouseLeave(var Message: TMessage); message WM_MOUSELEAVE;
     procedure WmMouseHover(var Message: TMessage); message WM_MOUSEHOVER;
     procedure MouseLeave;
-    procedure MouseHover;
+    procedure MouseHover(X, Y: Integer);
     procedure MouseEnter;
 
     {beginner}
@@ -1840,7 +1840,10 @@ end;
 
 procedure THogeTextView.WmMouseHover(var Message: TMessage);
 begin
-  MouseHover;
+  {aiai}
+  //MouseHover;
+  MouseHover(Message.LParamLo, Message.LParamHi);
+  {/aiai}
   FTracking := False;
 end;
 
@@ -1851,14 +1854,20 @@ begin
   FIsMouseIn := False;
 end;
 
-procedure THogeTextView.MouseHover;
+procedure THogeTextView.MouseHover(X, Y: Integer);
 var
-  Point: TPoint;
+  //Point: TPoint;
   Shift: TShiftState;
 begin
   if Assigned(FOnMouseHover) then
   begin
-    Point := ScreenToClient(Mouse.CursorPos);
+    {aiai}
+    //
+    //  スタンバイ中などは
+    //  Mouse.CursorPosは必ず失敗する
+    //
+    //  Point := ScreenToClient(Mouse.CursorPos);
+    //
     Shift := [];
     if GetKeyState(VK_SHIFT) < 0 then Include(Shift, ssShift);
     if GetKeyState(VK_CONTROL) < 0 then Include(Shift, ssCtrl);
@@ -1866,7 +1875,8 @@ begin
     if GetKeyState(VK_RBUTTON) < 0 then Include(Shift, ssRight);
     if GetKeyState(VK_MBUTTON) < 0 then Include(Shift, ssMiddle);
     if GetKeyState(VK_MENU) < 0 then Include(Shift, ssAlt);
-    FOnMouseHover(Self, Shift,  Point.X, Point.Y);
+    FOnMouseHover(Self, Shift, X, Y);
+    {/aiai}
   end;
 end;
 

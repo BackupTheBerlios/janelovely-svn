@@ -42,8 +42,8 @@ uses
   {/aiai}
 
 const
-  VERSION  = '0.1.3.16';      (* Printable ASCIIコード厳守。')'はダメ *)
-  JANE2CH  = 'JaneLovely 0.1.3.16';
+  VERSION  = '0.1.3.17';      (* Printable ASCIIコード厳守。')'はダメ *)
+  JANE2CH  = 'JaneLovely 0.1.3.17';
   KEYWORD_OF_USER_AGENT = 'JaneLovely';      (*  *)
 
   DISTRIBUTORS_SITE = 'http://www.geocities.jp/openjane4714/';
@@ -5253,6 +5253,11 @@ var
   rect: TRect;
   i: integer;
   s: string;
+  {aiai}
+  yoffset1, yoffset2: integer;
+  Monitor: TMonitor;
+  MonitorRect: TRect;
+  {/aiai}
 begin
   if not Application.Active then
     exit;
@@ -5268,19 +5273,39 @@ begin
     Dec(i);
   end;
   SetLength(s, i);
+
+  {aiai}
+  Monitor := Screen.MonitorFromPoint(Point);
+  if Assigned(Monitor) then
+    MonitorRect := Monitor.WorkareaRect
+  else
+    MonitorRect := Screen.WorkAreaRect;
+
   if MaxWidth <= 0 then
-    MaxWidth := Screen.Width;
+    MaxWidth := MonitorRect.Right - MonitorRect.Left;
+
   rect := PopupHint.CalcHintRect(MaxWidth, s, nil);
-  Dec(point.Y, rect.Bottom + 8);
-  Dec(point.X, 8);
-  if rect.Top + point.Y < 0 then
-    point.Y := -rect.Top;
-  Inc(rect.Left, point.X);
-  Inc(rect.Right, point.X);
-  Inc(rect.Top, point.Y);
-  Inc(rect.Bottom, point.Y);
-  if (0 < MaxHeight) and (MaxHeight < rect.Bottom - rect.Top) then
-    rect.Top := rect.Bottom - MaxHeight;
+  AdjustToTextViewLine(point, rect, yoffset1, yoffset2);
+
+  Dec(Point.X, 32);
+  //Dec(Point.Y, 5);
+
+  if Point.X < MonitorRect.Left then
+    Point.X := MonitorRect.Left
+  else if Rect.Right + Point.X > MonitorRect.Right then
+    Point.X := MonitorRect.Right - Rect.Right;
+
+  if Point.Y - (Rect.Bottom - Rect.Top) - yoffset1 - 5 < MonitorRect.Top then
+  begin
+    if Point.Y + (Rect.Bottom - Rect.Top) + yoffset2 < MonitorRect.Bottom then
+      Inc(Point.Y, yoffset2)
+    else
+      Point.Y := MonitorRect.Top - Rect.Top;
+  end else
+    Dec(Point.Y, (Rect.Bottom - Rect.Top) + yoffset1 + 5);
+
+  OffsetRect(Rect, Point.X, Point.Y);
+  {/aiai}
   PopupHint.ActivateHint(rect, s);
 end;
 
