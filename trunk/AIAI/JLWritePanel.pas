@@ -34,7 +34,6 @@ type
     procPost: TAsyncReq;
     writeRetryCount: integer;
     cookieRetryCount: integer;
-    kakikomiFile: TFileStream;
     TargetThread: TThreadItem;
     TargetBoard: TBoard;
     FloatLeft: integer;
@@ -795,25 +794,30 @@ end;
 procedure TJLWritePanel.SaveKakikomi;
 var
   kakikomistr: TStringList;
+  kakikomiFile: TFileStream;
 begin
   if not FileExists(Config.BasePath + 'kakikomi.txt') then
   try
     FileClose(FileCreate(Config.BasePath + 'kakikomi.txt'));
   except
   end;
-  if kakikomiFile = nil then
+
   try
     kakikomiFile := TFileStream.Create(Config.BasePath + 'kakikomi.txt',
                              fmOpenReadWrite or fmShareDenyWrite);
   except
+    on E: Exception do begin
+      Log(e.Message);
+      exit;
+    end;
   end;
 
   kakikomistr := TStringList.Create;
   try
     kakikomistr.Add('--------------------------------------------');
     kakikomistr.Add('Date   : ' + DateToStr(Date) + ' ' + TimeToStr(Time));
-    kakikomistr.Add('Subject: ' + FThread.title);
-    kakikomistr.Add('URL    : ' + FThread.ToURL(false));
+    kakikomistr.Add('Subject: ' + TargetThread.title);
+    kakikomistr.Add('URL    : ' + TargetThread.ToURL(false));
     kakikomistr.Add('FROM   : ' + NameComboBox.Text);
     kakikomistr.Add('MAIL   : ' + MailComboBox.Text);
     kakikomistr.Add('');
@@ -825,6 +829,7 @@ begin
     kakikomiFile.Write(PChar(kakikomistr.Text)^, length(kakikomistr.Text));
   finally
     kakikomistr.Free;
+    FreeAndNil(kakikomiFile);
   end;
 end;
 

@@ -62,11 +62,11 @@ uses
   JLTab, JLDualStateButton, JLToolButton;
 
 const
-  VERSION  = '0.1.0.0';      (* Printable ASCIIコード厳守。')'はダメ *)
+  VERSION  = '0.1.0.1';      (* Printable ASCIIコード厳守。')'はダメ *)
   {$IFDEF IE}
-  JANE2CH  = 'JaneLovely 0.1.0.0';
+  JANE2CH  = 'JaneLovely 0.1.0.1';
   {$ELSE}
-  JANE2CH  = 'JaneLovely 0.1.0.0';
+  JANE2CH  = 'JaneLovely 0.1.0.1';
   {$ENDIF}
   KEYWORD_OF_USER_AGENT = 'JaneLovely';      (*  *)
 

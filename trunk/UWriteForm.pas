@@ -139,7 +139,7 @@ type
     cookieRetryCount: Integer;
     postType: TPostType;
     postCode: string;
-    kakikomiFile: TFileStream;
+    //kakikomiFile: TFileStream;
     formType: TFormType;
     LoadText: TStringList;
     {$IFDEF IE}
@@ -1173,12 +1173,57 @@ var
     MainWnd.PauseToggleAutoReSc(true);  //aiai
   end;
 
+  {aiai}  //書き込み履歴保存部分を分離
+  procedure SaveKakikomi;
+  var
+    kakikomistr: TStringList;
+    kakikomiFile: TFileStream;
+  begin
+    if not FileExists(Config.BasePath + 'kakikomi.txt') then
+    try
+      FileClose(FileCreate(Config.BasePath + 'kakikomi.txt'));
+    except
+    end;
+
+    try
+      kakikomiFile := TFileStream.Create(Config.BasePath + 'kakikomi.txt',
+                               fmOpenReadWrite or fmShareDenyWrite);
+    except
+    //エラーの場合は抜ける
+      on E: Exception do begin
+        Log(e.Message);
+        exit;
+      end;
+    end;
+
+    kakikomistr := TStringList.Create;
+    try
+      kakikomistr.Add('--------------------------------------------');
+      kakikomistr.Add('Date   : ' + DateToStr(Date) + ' ' + TimeToStr(Time));
+      kakikomistr.Add('Subject: ' + thread.title);
+      kakikomistr.Add('URL    : ' + thread.ToURL(false));
+      kakikomistr.Add('FROM   : ' + EditNameBox.Text);
+      kakikomistr.Add('MAIL   : ' + EditMailBox.Text);
+      kakikomistr.Add('');
+      kakikomistr.AddStrings(Memo.Lines);
+      kakikomistr.Add('');
+      kakikomistr.Add('');
+
+      kakikomiFile.Seek(0, soFromEnd);
+      kakikomiFile.Write(PChar(kakikomistr.Text)^, length(kakikomistr.Text));
+    finally
+      kakikomistr.Free;
+      FreeAndNil(kakikomiFile);  //書き込み後ファイルを閉じる
+    end;
+  end;
+  {/aiai}
+
+
 var
   i: integer;
   viewItem: TViewItem;
   responseText: string;
   list: TStringList;
-  kakikomistr: TStringList;
   errMsg: string;
   tempTime: integer;
 begin
@@ -1313,38 +1358,7 @@ begin
 
     //▼書き込み履歴保存
     if Config.wrtRecordWriting then
-    begin
-      if not FileExists(Config.BasePath + 'kakikomi.txt') then
-      try
-        FileClose(FileCreate(Config.BasePath + 'kakikomi.txt'));
-      except
-      end;
-      if kakikomiFile = nil then
-      try
-        kakikomiFile := TFileStream.Create(Config.BasePath + 'kakikomi.txt',
-                                 fmOpenReadWrite or fmShareDenyWrite);
-      except
-      end;
-
-      kakikomistr := TStringList.Create;
-      try
-        kakikomistr.Add('--------------------------------------------');
-        kakikomistr.Add('Date   : ' + DateToStr(Date) + ' ' + TimeToStr(Time));
-        kakikomistr.Add('Subject: ' + thread.title);
-        kakikomistr.Add('URL    : ' + thread.ToURL(false));
-        kakikomistr.Add('FROM   : ' + EditNameBox.Text);
-        kakikomistr.Add('MAIL   : ' + EditMailBox.Text);
-        kakikomistr.Add('');
-        kakikomistr.AddStrings(Memo.Lines);
-        kakikomistr.Add('');
-        kakikomistr.Add('');
-
-        kakikomiFile.Seek(0, soFromEnd);
-        kakikomiFile.Write(PChar(kakikomistr.Text)^, length(kakikomistr.Text));
-      finally
-        kakikomistr.Free;
-      end;
-    end;
+      SaveKakikomi;
 
     viewItem := viewList.FindViewItem(thread);
     if viewItem <> nil then
@@ -1363,13 +1377,14 @@ begin
   if Config.tstCloseAfterWriting then begin
     HideOnApplicationMinimize := False;
     Visible := False;
-  end else begin  //aiai
+  end else begin
     HideOnApplicationMinimize := False;
     PageControl.ActivePage := TabSheetMain;
     try
       Memo.Clear;
       if Memo.Visible then Memo.SetFocus;
     except end;
+    ButtonWrite.Enabled := True;  //aiai
   end;
 end;
 
@@ -1618,8 +1633,8 @@ begin
   //▼コテハンリスト保存
   //if FileExists(Config.BasePath + 'name.dat') then
   //  EditNameBox.Items.SaveToFile(Config.BasePath + 'name.dat');
-  if kakikomiFile <> nil then
-    kakikomiFile.Free;
+  //if kakikomiFile <> nil then
+  //  kakikomiFile.Free;
   //▼よくわかんないけど一応
   Application.UnhookMainWindow(Hook);
   if LoadText <> nil then
