@@ -6,16 +6,9 @@ unit U2chBoard;
 interface
 
 uses
-  Classes, SysUtils, StrUtils, DateUtils,
-  U2chThread, FileSub, StrSub
-  (*※[457]*), UFavorite, IniFiles,
-  UXTime, UAsync, U2chTicket, ULocalCopy, jconvert,Dialogs,
-  {$IFDEF SQLITE3}
-  sqlite3,
-  {$ELSE}
-  sqlite,
-  {$ENDIF}
-  UNGWordsAssistant;
+  Windows, Classes, SysUtils, StrUtils, DateUtils, U2chThread, FileSub, StrSub
+  (*※[457]*), UFavorite, IniFiles, UXTime, UAsync, U2chTicket, ULocalCopy,
+  jconvert, Dialogs, JLDataBase, JLSqlite, UNGWordsAssistant;
 
 type
   TPatrolType = (patFavorite, patTab, patBoardList);
@@ -57,6 +50,8 @@ type
     (* DataBase (aiai) *)
     procedure LoadDataBase;
     procedure MergeCacheFast;
+    procedure IdxDataBaseOpen(Sender: TObject);
+    procedure IdxDataBaseClose(Sender: TObject);
     (* //DataBase *)
     procedure ChangeThreadItemURI;
     procedure SetSelDatName(const datName: string);
@@ -92,7 +87,7 @@ type
     board_id: String;
     MergingList: TList;
     URIBase: String;
-    IdxDataBase: TSQLite;
+    IdxDataBase: TJLSQLite;
     CustomSkinIndex: Integer;
     (* //DataBase *)
     constructor Create(category: TObject);
@@ -200,6 +195,8 @@ type
     property Items[index: integer]: TBoard read GetItems write SetItems;
   end;
 
+procedure SQLCheck(errcode: Byte; const name, sql, msg: string);
+
 (*=======================================================*)
 implementation
 (*=======================================================*)
@@ -231,9 +228,24 @@ const
   IDXLIST_VERSION   = '00000012';
 
   BOARD_DB = '\Board.db';
+
+  CREATE_TABLE_STATEMENT = 'CREATE TABLE idxlist (datname TEXT PRIMARY KEY, title TEXT, last_modified TEXT, lines TEXT, view_pos TEXT, idx_mark TEXT, uri TEXT, state TEXT, new_lines TEXT, write_name TEXT, write_mail TEXT, last_wrote TEXT, last_got TEXT, read_pos TEXT)';
   (* //DataBase *)
 
 (*=======================================================*)
+
+procedure SQLCheck(errcode: Byte; const name, sql, msg: string);
+begin
+  if (errcode <> SQLITE_OK) and Config.tstDataBaseDebug then
+  begin
+    Main.BeginMultiLog;
+    Main.Log(name);
+    Main.Log('SQL: ' + sql);
+    Main.Log('errcode: ' + IntToStr(errcode));
+    Main.Log(msg);
+    Main.EndMultiLog;
+  end;
+end;
 
 (* TBoardの破棄待ちリスト処理用クラス関数群 *) // beginner
 
@@ -279,11 +291,17 @@ begin
   lastAccess := 0;
   bbstype := bbsNone;
   moved := false;
-  //ngthreadlist := TStringList.Create;  //aiai NGThread
   SettingTxt := TStringList.Create;
   (* DataBase (aiai) *)
   if Config.ojvQuickMerge then
-    IdxDataBase := TSQLite.Create;
+  begin
+    IdxDataBase := TJLSQLite.Create;
+    if Config.tstDataBaseDebug then
+    begin
+      IdxDataBase.OnOpen := IdxDataBaseOpen;
+      IdxDataBase.OnClose := IdxDataBaseClose;
+    end;
+  end;
   (* //DataBase *)
   SettingTxtLoaded := false;
   FHideHistoricalLog := Config.stlHideHistoricalLog;
@@ -295,7 +313,6 @@ begin
   Save;
   Clear;
   FreeAndNil(SettingTxt);
-  //FreeAndNil(ngthreadlist);  //aiai NGThread
   (* DataBase (aiai) *)
   if Config.ojvQuickMerge then
     FreeAndNil(IdxDataBase);
@@ -320,11 +337,12 @@ end;
 procedure TBoard.SafeClear;
 var
   i: integer;
-begin
-  {$IFDEF BENCH}
   {$IFDEF DEVELBENCH}
-  Main.Bench3(0);
+  tickcnt: Cardinal;
   {$ENDIF}
+begin
+  {$IFDEF DEVELBENCH}
+  tickcnt := GetTickCount;
   {$ENDIF}
   for i := 0 to Count -1 do
   begin
@@ -341,15 +359,14 @@ begin
     self.lastModified := '';
     self.datModified := false;
     self.idxModified := false;
-    //改造▽ 追加 (スレッドあぼ～ん)
-    //self.abnModified := false;
-    //改造△ 追加 (スレッドあぼ～ん)
   end;
+  (* DataBase (aiai) *)
+  if Config.ojvQuickMerge then
+    IdxDataBase.Release;
+  (* //DataBase (aiai) *)
   RemoveFromRecyleList(Self);
-  {$IFDEF BENCH}
   {$IFDEF DEVELBENCH}
-  Main.Log(name + ':safeClear ' + Main.Bench3(1));
-  {$ENDIF}
+  Main.Log(name + ':safeClear ' + IntToStr(GetTickCount - tickcnt));
   {$ENDIF}
 end;
 
@@ -593,13 +610,9 @@ var
   i, len: integer;
   endOfRec: integer;
   firstline: string;
+  tickcnt: Cardinal;
 begin
-  {$IFDEF BENCH}
-  Main.Bench2(0);
-  {$IFDEF DEVELBENCH}
-  Main.Bench3(0);
-  {$ENDIF}
-  {$ENDIF}
+  tickcnt := GetTickCount;
 
   if refresh then
     SafeClear;
@@ -641,8 +654,6 @@ begin
 
   if refresh then
     datList := THashedStringList.Create;
-  //if FileExists(GetLogDir + '\NGThread.txt') then  //NGThread
-  //  ngthreadlist.LoadFromFile(GetLogDir + '\NGThread.txt');
   {/aiai}
 
   i := 1;
@@ -655,8 +666,6 @@ begin
     i := endOfRec + 1;
   end;
 
-  {aiai}
-  //ngthreadlist.Clear;  //NGThread
   {aiai} //スレッドあぼ～ん
   if threadABoneNext.Count > 0 then
     threadABoneNext.SaveToFile(GetLogDir + SUBJECT_ABN)
@@ -681,14 +690,14 @@ begin
     end;
   end;
   refered.Free;
-  {$IFDEF BENCH}
   {$IFDEF DEVELBENCH}
-  Main.Log(name + ':Analyze subject.txt ' + Main.Bench3(1));
-  {$ENDIF}
+  Main.Log(name + ':Analyze subject.txt ' + IntToStr(GetTickCount - tickcnt));
   {$ENDIF}
 
   if refresh then
   begin
+    if Config.ojvQuickMerge then
+      IdxDataBase.AddRef;
     if Config.ojvQuickMerge then
       MergeCacheFast
     else
@@ -703,9 +712,7 @@ begin
   end;
   self.datModified := true;
   self.idxModified := true;
-  {$IFDEF BENCH}
-  Main.Log('スレ一覧取得時間: ' + IntToStr(Bench2(1)) + 'msec');
-  {$ENDIF}
+  Main.Log('スレ一覧取得時間: ' + IntToStr(GetTickCount - tickcnt) + 'msec');
 end;
 
 (*  *)
@@ -769,13 +776,15 @@ var
   MergingList: TList;
   msg: PChar;
   save: Boolean;
-  //idx: integer;
-begin
-  {$IFDEF BENCH}
   {$IFDEF DEVELBENCH}
-  Main.Bench3(0);
-  Main.Log(self.name + ':idx全ｽﾚ読込開始');
+  tickcnt: Cardinal;
   {$ENDIF}
+  sql: string;
+  err: byte;
+begin
+  {$IFDEF DEVELBENCH}
+  tickcnt := GetTickCount;
+  Main.Log(self.name + ':idx全ｽﾚ読込開始');
   {$ENDIF}
 
   MergingList := TList.Create;
@@ -784,10 +793,12 @@ begin
   (* DataBase (aiai) *)
   if Config.ojvQuickMerge then
   begin
-    IdxDataBase.Exec(PChar('BEGIN'), nil, nil, msg); //トランザクション
-    {$IFDEF DATABASEDEBUG}
-    if msg <> nil then Main.Log(name + ':BEGIN - ' + msg);
-    {$ENDIF}
+
+    // transaction
+
+    sql := 'BEGIN';
+    err := IdxDataBase.Exec(PChar(sql), nil, nil, msg);
+    SQLCheck(err, name, sql, msg);
   end;
   (* //DataBase *)
 
@@ -795,7 +806,6 @@ begin
     URI := GetURIBase;
     repeat
       datName := ChangeFileExt(sr.Name, '');
-      //item := Find(datName);
       item := FindThreadFirst(datName);
       if item <> nil then
       begin (* 現行スレッド *)
@@ -828,10 +838,12 @@ begin
           (* DataBase (aiai) *)
           if Config.ojvQuickMerge then
           begin
-            IdxDataBase.Exec(PChar('COMMIT'), nil, nil, msg);   //コミット
-            {$IFDEF DATABASEDEBUG}
-            if msg <> nil then Main.Log(name + ':COMMIT - ' + msg);
-            {$ENDIF}
+
+            // commit
+
+            sql := 'COMMIT';
+            err := IdxDataBase.Exec(PChar(sql), nil, nil, msg);
+            SQLCheck(err, 'In Delete Log'+#13#10+name, sql, msg);
           end;
           (* //Database *)
 
@@ -841,10 +853,12 @@ begin
           (* DataBase (aiai) *)
           if Config.ojvQuickMerge then
           begin
-            IdxDataBase.Exec(PChar('BEGIN'), nil, nil, msg); //トランザクション
-            {$IFDEF DATABASEDEBUG}
-            if msg <> nil then Main.Log(name + ':BEGIN - ' + msg);
-            {$ENDIF}
+
+            // transaction
+
+            sql := 'BEGIN';
+            err := IdxDataBase.Exec(PChar(sql), nil, nil, msg);
+            SQLCheck(err, 'In Delete Log'+#13#10+name, sql, msg);
           end;
           (* //Database *)
         end
@@ -858,21 +872,16 @@ begin
   MergingList.Free;
 
   (* DataBase (aiai) *)
-  if Config.ojvQuickMerge then
-  begin
-    IdxDataBase.Exec(PChar('COMMIT'), nil, nil, msg);   //コミット
-    {$IFDEF DATABASEDEBUG}
-    if msg <> nil then Main.Log(name + ':COMMIT - ' + msg);
-    {$ENDIF}
-  end;
+  sql := 'COMMIT';
+  err := IdxDataBase.Exec(PChar(sql), nil, nil, msg);
+  SQLCheck(err, name, sql, msg);
   (* //DataBase *)
-  {$IFDEF BENCH}
+
   {$IFDEF DEVELBENCH}
   if Config.ojvQuickMerge then
-    Main.Log(name + ':CreateTable ' + Main.Bench3(1))
+    Main.Log(name + ':CreateTable ' + IntToStr(GetTickCount - tickcnt) + 'ms')
   else
-    Main.Log(name + ':Load *.idx' + Main.Bench3(1));
-  {$ENDIF}
+    Main.Log(name + ':Load *.idx' + IntToStr(GetTickCount - tickcnt) + 'ms');
   {$ENDIF}
 end;
 
@@ -887,7 +896,6 @@ var
   item: TThreadItem;
   datName: string;
   URI: string;
-  //idx: integer;
 begin
   Value := ColumnValues;
 
@@ -910,16 +918,6 @@ begin
     else begin
       item := TThreadItem.Create(Sender);
       item.datName := datName;
-      {スレッドあぼ～ん}
-      //idx := threadABoneList.IndexOfName(datName);
-      //if idx >= 0 then
-      //begin
-      //  item.RemoveLog;
-      //  item.Free;
-      //  result := 0;
-      //  exit;
-      //end;
-      {/スレッドあぼ～ん}
       item.LoadIndexDataFromDataBase(Value, true);
       if (Main.Config.datDeleteOutOfTime) and (not FUma) and
            (item.mark = timNONE) then
@@ -944,76 +942,92 @@ var
   Value: ^PChar;
 begin
   Value := ColumnValues;
-  TSQLite(Sender).ResultText := Value^;
+  TJLSQLite(Sender).ResultText := Value^;
   Result := 0;
 end;
 
 procedure TBoard.MergeCacheFast;
 var
   msg: PChar;
-begin
-  {$IFDEF BENCH}
   {$IFDEF DEVELBENCH}
-  Main.Bench3(0);
+  tickcnt: Cardinal;
   {$ENDIF}
+  sql: string;
+  err: byte;
+begin
+  {$IFDEF DEVELBENCH}
+  tickcnt := GetTickCount;
   {$ENDIF}
 
+  // check idxlist's version
+
   IdxDataBase.ResultText := '';
-  IdxDataBase.Exec(PChar('SELECT version FROM tableversion WHERE tablename = ''idxlist'''), @CallBackCheckTableVersion, IdxDataBase, msg);
-  {$IFDEF DATABASEDEBUG}
-  if msg <> nil then Main.Log(name + ':DataBase - ' + msg);
-  {$ENDIF}
+  sql := 'SELECT version FROM tableversion WHERE tablename = ''idxlist''';
+  err := IdxDataBase.Exec(PChar(sql), @CallBackCheckTableVersion, IdxDataBase, msg);
+  SQLCheck(err, name, sql, msg);
   if IdxDataBase.ResultText <> IDXLIST_VERSION then
   begin
-    IdxDataBase.Exec(PChar('DROP TABLE idxlist'), nil, nil, msg);
-    {$IFDEF DATABASEDEBUG}
-    if msg <> nil then Main.Log(name + ':DROP TABLE idxlist - ' + msg);
-    {$ENDIF}
-    IdxDataBase.Exec(PChar('DELETE FROM tableversion WHERE tablename = ''idxlist'''), nil, nil, msg);
-    {$IFDEF DATABASEDEBUG}
-    if msg <> nil then Main.Log(name + ':DELETE FROM tableversion WHERE tablename = ''idxlist'' - ' + msg);
-    {$ENDIF}
-    IdxDataBase.Exec(PChar('CREATE TABLE idxlist (datname TEXT PRIMARY KEY, title TEXT, last_modified TEXT, lines TEXT, view_pos TEXT, idx_mark TEXT, uri TEXT, state TEXT, new_lines TEXT, write_name TEXT, write_mail TEXT, last_wrote TEXT, last_got TEXT, read_pos TEXT)'), nil, nil, msg);
-    {$IFDEF DATABASEDEBUG}
-    if msg <> nil then Main.Log(name + ':CREATE TABLE idxlist - ' + msg);
-    {$ENDIF}
-    IdxDataBase.Exec(PChar('INSERT INTO tableversion (tablename, version) VALUES (''idxlist'', '''+IDXLIST_VERSION+''')'), nil, nil, msg);
-    {$IFDEF DATABASEDEBUG}
-    if msg <> nil then Main.Log(name + ':INSERT INTO tableversion (tablename, version) VALUES (''idxlist'', '''+IDXLIST_VERSION+''') - ' + msg);
-    {$ENDIF}
-    //IdxDataBase.Exec(PChar('CREATE INDEX idx_idxlist ON idxlist (datname)'), nil, nil, msg);
+
+    // if idxlist's version not match, then recreate a table
+
+    sql := 'DROP TABLE idxlist';
+    IdxDataBase.Exec(PChar(sql), nil, nil, msg);
+
+    sql := 'DELETE FROM tableversion WHERE tablename = ''idxlist''';
+    err := IdxDataBase.Exec(PChar(sql), nil, nil, msg);
+    SQLCheck(err, name, sql, msg);
+
+    sql := CREATE_TABLE_STATEMENT;
+    err := IdxDataBase.Exec(PChar(sql), nil, nil, msg);
+    SQLCheck(err, name, sql, msg);
+
+    sql := 'INSERT INTO tableversion (tablename, version) VALUES (''idxlist'', '''+IDXLIST_VERSION+''')';
+    err := IdxDataBase.Exec(PChar(sql), nil, nil, msg);
+    SQLCheck(err, name, sql, msg);
+
     MergeCache;
     exit;
   end;
+
+  // OK! Let's Load Data!
 
   MergingList := TList.Create;
 
   URIBase := GetURIBase;
 
-  if (0 <> IdxDataBase.Exec(PChar('SELECT * FROM idxlist'), @LoadTable, Self, msg))
-      and (0 < Pos('no such table', msg)) then
+  sql := 'SELECT * FROM idxlist';
+  err := IdxDataBase.Exec(PChar(sql), @LoadTable, Self, msg);
+  SQLCheck(err, name, sql, msg);
+  if (0 < Pos('no such table', msg)) then
   begin
+
+    // if no table exists, then create a new table
+
     MergingList.Free;
-    IdxDataBase.Exec(PChar('CREATE TABLE idxlist (datname TEXT PRIMARY KEY, title TEXT, last_modified TEXT, lines TEXT, view_pos TEXT, idx_mark TEXT, uri TEXT, state TEXT, new_lines TEXT, write_name TEXT, write_mail TEXT, last_wrote TEXT, last_got TEXT, read_pos TEXT)'), nil, nil, msg);
-    {$IFDEF DATABASEDEBUG}
-    if msg <> nil then Main.Log(name + ':CREATE TABLE idxlist - ' + msg);
-    {$ENDIF}
+    sql := CREATE_TABLE_STATEMENT;
+    err := IdxDataBase.Exec(PChar(sql), nil, nil, msg);
+    SQLCheck(err, name, sql, msg);
     MergeCache;
     exit;
   end;
-  {$IFDEF DATABASEDEBUG}
-  if msg <> nil then Main.Log(name + ':SELECT * FROM idxlist - ' + msg);
-  {$ENDIF}
-
   Assign(MergingList, laOr);
 
   MergingList.Free;
-  {$IFDEF BENCH}
   {$IFDEF DEVELBENCH}
-  Main.Log(name + ':LoadTable ' + Main.Bench3(1));
-  {$ENDIF}
+  Main.Log(name + ':LoadTable ' + IntToStr(GetTickCount - tickcnt));
   {$ENDIF}
 end;
+
+procedure TBoard.IdxDataBaseOpen(Sender: TObject);
+begin
+  Main.Log(name + ': db open(' + IntToStr(IdxDataBase.RefCount) + ')');
+end;
+
+procedure TBoard.IdxDataBaseClose(Sender: TObject);
+begin
+  Main.Log(name + ': db close(' + IntToStr(IdxDataBase.RefCount) + ')');
+end;
+
 
 (* //DataBase *)
 
@@ -1035,23 +1049,22 @@ procedure TBoard.LoadDataBase;
 var
   db: String;
   msg: PChar;
-  err: Boolean;
+  sql: string;
+  err: byte;
 
   procedure FirstSetUp;
   begin
-    IdxDataBase.Exec(PChar('PRAGMA default_synchronous = OFF'), nil, nil, msg);
-    {$IFDEF DATABASEDEBUG}
-    if msg <> nil then Main.Log(name + ':PRAGMA default_synchronous = OFF - ' + msg);
-    {$ENDIF}
-    IdxDataBase.Exec(PChar('CREATE TABLE tableversion (tablename PRIMARY KEY, version)'), nil, nil, msg);
-    {$IFDEF DATABASEDEBUG}
-    if msg <> nil then Main.Log(name + ':CREATE TABLE tableversion (tablename PRIMARY KEY, version) - ' + msg);
-    {$ENDIF}
-    IdxDataBase.Exec(PChar('INSERT INTO tableversion (tablename, version) VALUES (''board_db'', '''+BOARD_VERSION+''')'), nil, nil, msg);
-    {$IFDEF DATABASEDEBUG}
-    if msg <> nil then Main.Log(name + ':INSERT INTO tableversion (tablename, version) VALUES (''board_db'', '''+BOARD_VERSION+''') - ' + msg);
-    {$ENDIF}
-    //IdxDataBase.Exec(PChar('INSERT INTO tableversion (tablename, version) VALUES (''idxlist'', '''+IDXLIST_VERSION+''')'), nil, nil, msg);
+    sql := 'PRAGMA default_synchronous = OFF';
+    err := IdxDataBase.Exec(PChar(sql), nil, nil, msg);
+    SQLCheck(err, name, sql, msg);
+
+    sql := 'CREATE TABLE tableversion (tablename PRIMARY KEY, version)';
+    err := IdxDataBase.Exec(PChar(sql), nil, nil, msg);
+    SQLCheck(err, name, sql, msg);
+
+    sql := 'INSERT INTO tableversion (tablename, version) VALUES (''board_db'', '''+BOARD_VERSION+''')';
+    err := IdxDataBase.Exec(PChar(sql), nil, nil, msg);
+    SQLCheck(err, name, sql, msg);
   end;
 
 begin
@@ -1062,26 +1075,20 @@ begin
   if not FileExists(db) then
   begin
     RecursiveCreateDir(GetLogDir);  //板のログフォルダの作成
-    {$IFDEF DATABASEDEBUG}
-    err := IdxDataBase.Open(PChar(db), 0, msg);
-    if err then
-      Main.Log(name + ':DataBase Open');
-    {$ELSE}
-    IdxDataBase.Open(PChar(db), 0, msg);
-    {$ENDIF}
-    {$IFDEF DATABASEDEBUG}
-    if msg <> nil then Main.Log(name + ':Open' + ' ' + db + ' - ' + msg);
-    {$ENDIF}
+    if IdxDataBase.Open(PChar(db), 0, msg) and Config.tstDataBaseDebug then
+      Main.Log(name + ':DataBase Open')
+    else begin
+      ShowMessage('Unable Open '+db +#13#10+ msg);
+      MainWnd.Close;
+      exit;
+    end;
     FirstSetUp;
     exit;
   end;
 
-  err := IdxDataBase.Open(PChar(db), 0, msg);
-  if not err then
+  if not IdxDataBase.Open(PChar(db), 0, msg) then
   begin
-    {$IFDEF DATABASEDEBUG}
     Main.Log(name +':Cannot Open DataBase');
-    {$ENDIF}
     if not SysUtils.DeleteFile(db) then
     begin
       ShowMessage('Unable Delete '+db);
@@ -1090,33 +1097,29 @@ begin
     end else
       Main.Log(name + ':Delete ' + db);
 
-    {$IFDEF DATABASEDEBUG}
-    err := IdxDataBase.Open(PChar(db), 0, msg);
-    if err then
-      Main.Log(name + ':DataBase Open');
-    {$ELSE}
-    IdxDataBase.Open(PChar(db), 0, msg);
-    {$ENDIF}
-    {$IFDEF DATABASEDEBUG}
-    if msg <> nil then Main.Log(name + ':Open' + ' ' + db + ' - ' + msg);
-    {$ENDIF}
+    if IdxDataBase.Open(PChar(db), 0, msg) then
+      Main.Log(name + ':DataBase Open')
+    else begin
+      ShowMessage('Unable Open '+db +#13#10+ msg);
+      MainWnd.Close;
+      exit;
+    end;
     FirstSetUp;
     exit;
-  {$IFDEF DATABASEDEGUB}
-  end else
-    Main.Log(name + ':DataBase Open');
-  {$ELSE}
   end;
-  {$ENDIF}
+
+  // check board_db version
 
   IdxDataBase.ResultText := '';
-  IdxDataBase.Exec(PChar('SELECT version FROM tableversion WHERE tablename = ''board_db'''), @CallBackCheckTableVersion, IdxDataBase, msg);
-  {$IFDEF DATABASEDEBUG}
-  if msg <> nil then Main.Log(name + ':SELECT version FROM tableversion - ' + msg);
-  {$ENDIF}
+  sql := 'SELECT version FROM tableversion WHERE tablename = ''board_db''';
+  err := IdxDataBase.Exec(PChar(sql), @CallBackCheckTableVersion, IdxDataBase, msg);
+  SQLCheck(err, name, sql, msg);
   if IdxDataBase.ResultText <> BOARD_VERSION then
   begin
-    Main.Log(name + ':DataBase Version Change ' + IdxDataBase.ResultText + ' -> ' + BOARD_VERSION);
+
+    // if not board_db version not match, then recreate db file
+
+    Main.Log(name + ':DataBase Version Change ' + '『' + IdxDataBase.ResultText + '』' + ' to ' + '『' + BOARD_VERSION + '』');
     if IdxDataBase.Close then
       Main.Log(name +':DataBase Close');
     if not SysUtils.DeleteFile(db) then
@@ -1126,16 +1129,13 @@ begin
       exit;
     end else
       Main.Log(name +':Delete ' + db);
-    {$IFDEF DATABASEDEBUG}
-    err := IdxDataBase.Open(PChar(db), 0, msg);
-    if err then
-      Main.Log(name + ':DataBase Open');
-    {$ELSE}
-    IdxDataBase.Open(PChar(db), 0, msg);
-    {$ENDIF}
-    {$IFDEF DATABASEDEBUG}
-    if msg <> nil then Main.Log(name + ':Open' + ' ' + db + ' - ' + msg);
-    {$ENDIF}
+    if IdxDataBase.Open(PChar(db), 0, msg) then
+      Main.Log(name + ':DataBase Open')
+    else begin
+      ShowMessage('Unable Open ' + db +#13#10+ msg);
+      MainWnd.Close;
+      exit;
+    end;
     FirstSetUp;
   end;
 end;

@@ -6,7 +6,6 @@ uses
   SysUtils,
   MMSystem,
   Forms,
-  HogeListView,
   Main in 'Main.pas' {MainWnd},
   StrSub in 'StrSub.pas',
   JConfig in 'JConfig.pas',
@@ -28,7 +27,6 @@ uses
   UUngetStream in 'UUngetStream.pas',
   UXTime in 'UXTime.pas',
   IdHTTP2 in '..\derived\IdHTTP2.pas',
-  jconvert in '..\jconvert\jconvert.pas',
   USharedMem in 'USharedMem.pas',
   UDOLIB in 'UDoLib.pas',
   U2chTicket in 'U2chTicket.pas',
@@ -78,13 +76,11 @@ uses
   HogeTextView in 'HogeTextView.pas',
   UWritePanelControl in 'AIAI\UWritePanelControl.pas',
   UWriteForm in 'UWriteForm.pas' {WriteForm},
-  sqlite in 'AIAI\sqlite.pas',
   ClipBrdSub in 'AIAI\ClipBrdSub.pas',
   UMDITextView in 'AIAI\UMDITextView.pas',
   UMigemo in 'AIAI\UMigemo.pas',
   UWriteWait in 'AIAI\UWriteWait.pas',
   WriteSub in 'AIAI\WriteSub.pas',
-  VBScript_RegExp_55_TLB in 'C:\Program Files\Borland\Delphi6\Imports\VBScript_RegExp_55_TLB.pas',
   UXPHintWindow in 'AIAI\UXPHintWindow.pas';
 
 {$R *.res}

@@ -27,12 +27,7 @@ uses
   {/beginner}
 
   {aiai}
-  {$IFDEF SQLITE3}
-  sqlite3,
-  {$ELSE}
-  sqlite,
-  {$ENDIF}
-  UMigemo, VBScript_RegExp_55_TLB,
+  UMigemo, VBScript_RegExp_55_TLB, JLSqlite,
   ApiBmp, PNGImage, GIFImage, ClipBrdSub,
   UAAForm, UAddAAForm, UAutoReSc, UAutoReloadSettingForm,
   UAutoScrollSettingForm, ULovelyWebForm, UNews, UGetBoardListForm,
@@ -854,6 +849,7 @@ type
     MenuSearchExtractTree: TMenuItem;
     N109: TMenuItem;
     TrayIcon: TJLTrayIcon;
+    MenuBoardSep: TMenuItem;
     {/aiai}
     procedure FormCreate(Sender: TObject);
     procedure MenuToolsOptionsClick(Sender: TObject);
@@ -3699,7 +3695,11 @@ procedure TMainWnd.UpdateBoardMenu;
   procedure RemoveOldItem;
   begin
     while 0 < MenuBoardList.Count do
+    begin
+      if MenuBoardList.Items[0] = MenuBoardSep then
+        break;
       MenuBoardList.Items[0].Free;
+    end;
   end;
 var
   i, j: integer;
@@ -14633,6 +14633,8 @@ var
   board: TBoard;
   node: TTreeNode;
   msg: PChar;
+  sql: string;
+  err: byte;
 begin
   if not Config.ojvQuickMerge then
     exit;
@@ -14654,10 +14656,11 @@ begin
 
   UILock := True;
 
-  board.IdxDataBase.Exec(PChar('DROP TABLE idxlist'), nil, nil, msg);
-  {$IFDEF DATABASEDEBUG}
-  if msg <> nil then Log(board.name + ':DROP TABLE idxlist ' + msg);
-  {$ENDIF}
+  board.IdxDataBase.AddRef;
+
+  sql := 'DROP TABLE idxlist';
+  err := board.IdxDataBase.Exec(PChar(sql), nil, nil, msg);
+  SQLCheck(err, board.name, sql, msg);
 
   ListView.OnData := nil;
 
@@ -14665,6 +14668,8 @@ begin
    board.ResetListState;
 
   ListView.OnData := ListViewData;
+
+  board.IdxDataBase.Release;
 
   UpdateListView;
   UpdateTabTexts;
@@ -16226,7 +16231,7 @@ end;
 
 procedure TMainWnd.MenuBoardListClick(Sender: TObject);
 begin
-  if (Config.optEnableBoardMenu and (MenuBoardList.Count = 0)) or
+ if (Config.optEnableBoardMenu and (MenuBoardList.IndexOf(MenuBoardSep) <= 0)) or
      (not Config.optEnableBoardMenu) then
     UpdateBoardMenu;
 end;

@@ -8,7 +8,7 @@ interface
 uses
   Classes, SysUtils, StrUtils, DateUtils, Windows,
   StrSub, FileSub, UAsync, USynchro, UXTime, UDat2HTML, U2chTicket, JConvert,
-  IniFiles, MMSystem;
+  IniFiles, MMSystem, JLSqlite;
 
 const
   TThreAboneTypeMASK   = $07;
@@ -799,13 +799,15 @@ begin
   indexData.Free;
 end;
 
+(* DataBase (aiai) *)
 procedure TThreadItem.InsertToTable;
 var
   markp: String;
   msg: PChar;
   title2: String;
+  sql: string;
+  err: byte;
 begin
-  (* DataBase (aiai) *)
   if not Config.ojvQuickMerge then exit;  //DataBaseを使わない場合は抜ける
 
   if self.mark = timMARKER then
@@ -816,7 +818,8 @@ begin
     title2 := AnsiReplaceStr(title, '''', '''''') //ｼﾝｸﾞﾙｸｫｰﾄがある場合はｼﾝｸﾞﾙｸｫｰﾄを二つ重ねる
   else
     title2 := title;
-  TBoard(board).IdxDataBase.Exec(PChar('INSERT INTO idxlist '+
+  TBoard(board).IdxDataBase.AddRef;
+  sql := 'INSERT INTO idxlist '+
                     '(datname,title, last_modified, lines,view_pos, idx_mark, uri, state, new_lines, write_name, write_mail, last_wrote, last_got, read_pos) '+
                     'VALUES ('+
                     ''''+ datName +''', '+
@@ -832,13 +835,12 @@ begin
                     ''''+ UsedWriteMail +''', '+
                     ''''+ IntToStr(LastWrote) +''', '+
                     ''''+ IntToStr(LastGot) +''', '+
-                    ''''+ IntToStr(readPos) +''')'), nil, nil, msg);
-  {$IFDEF DATABASEDEBUG}
-  if msg <> nil then Main.Log(title + ':INSERT INTO idxlist - ' + msg);
-  {$ENDIF}
-  (* //DataBase *)
-
+                    ''''+ IntToStr(readPos) +''')';
+  err := TBoard(board).IdxDataBase.Exec(PChar(sql), nil, nil, msg);
+  SQLCheck(err, title2, sql, msg);
+  TBoard(board).IdxDataBase.Release;
 end;
+(* //DataBase *)
 
 (* 管理データを保存する *)
 
@@ -859,6 +861,11 @@ var
   msg: PChar;
   markp: String;
   title2: String;
+  sql: string;
+  {$IFDEF DEVELBENCH}
+  tickcnt: Cardinal;
+  {$ENDIF}
+  err: byte;
 begin
   if lines <= 0 then
     exit;
@@ -891,23 +898,23 @@ begin
 
   (* DataBase (aiai) *)
   if not Config.ojvQuickMerge then exit;
-  {$IFDEF BENCH}
   {$IFDEF DEVELBENCH}
-  Main.Bench3(0);
-  {$ENDIF}
+  tickcnt := GetTickCount;
   {$ENDIF}
   With TBoard(board) do
   begin
     IdxDataBase.Result := False;
-    IdxDataBase.Exec(PChar('SELECT datname FROM idxlist' +
-                           ' WHERE datname = ' + datName), @CallBackSaveIndexData, Self, msg);
+    IdxDataBase.AddRef;
+    sql := 'SELECT datname FROM idxlist WHERE datname = ' + datName;
+    err := IdxDataBase.Exec(PChar(sql), @CallBackSaveIndexData, Self, msg);
+    SQLCheck(err, title, sql, msg);
     if IdxDataBase.Result then
     begin
       if 0 < Pos('''', title) then
         title2 := AnsiReplaceStr(title, '''', '''''') //ｼﾝｸﾞﾙｸｫｰﾄがある場合はｼﾝｸﾞﾙｸｫｰﾄを二つ重ねる
       else
         title2 := title;
-      IdxDataBase.Exec(PChar('UPDATE idxlist' +
+      sql := 'UPDATE idxlist' +
                       ' SET title = '''+ title2 +''', ' +
                       'last_modified = '''+ self.lastModified +''', '+
                       'lines = '''+ IntToStr(lines) +''', ' +
@@ -921,14 +928,14 @@ begin
                       'last_wrote = '''+ IntToStr(LastWrote) +''', ' +
                       'last_got = '''+ IntToStr(LastGot) +''', ' +
                       'read_pos = '''+ IntToStr(readPos) +''' ' +
-                      'WHERE datname = '''+ datName +''''), nil, nil, msg);
+                      'WHERE datname = '''+ datName +'''';
     end else
     begin
       if 0 < Pos('''', title) then
         title2 := AnsiReplaceStr(title, '''', '''''') //ｼﾝｸﾞﾙｸｫｰﾄがある場合はｼﾝｸﾞﾙｸｫｰﾄを二つ重ねる
       else
         title2 := title;
-      IdxDataBase.Exec(PChar('INSERT INTO idxlist' +
+      sql := 'INSERT INTO idxlist' +
                       ' (datname,title, last_modified, lines,view_pos, idx_mark, uri, state, new_lines, write_name, write_mail, last_wrote, last_got, read_pos) '+
                       'VALUES ('+
                       ''''+ datName +''', '+
@@ -944,16 +951,14 @@ begin
                       ''''+ UsedWriteMail +''', '+
                       ''''+ IntToStr(LastWrote) +''', '+
                       ''''+ IntToStr(LastGot) +''', '+
-                      ''''+ IntToStr(readPos) +''')'), nil, nil, msg);
+                      ''''+ IntToStr(readPos) +''')';
     end;
-    {$IFDEF DATABASEDEBUG}
-    if msg <> nil then Main.Log(title + ':INSERT INTO idxlist - ' + msg);
-    {$ENDIF}
+    err := IdxDataBase.Exec(PChar(sql), nil, nil, msg);
+    SQLCheck(err, title2, sql, msg);
+    IdxDataBase.Release;
   end;
-  {$IFDEF BENCH}
   {$IFDEF DEVELBENCH}
-  Main.Log(title + ':' +Main.Bench3(1));
-  {$ENDIF}
+  Main.Log(title + ':' + IntToStr(GetTickCount - tickcnt));
   {$ENDIF}
   (* //DataBase *)
 end;
@@ -1087,6 +1092,11 @@ begin
   if (dat = nil) and (load) then
     Activate;
   Inc(refCount);
+
+  (* DataBase (aiai) *)
+  if Config.ojvQuickMerge then
+    TBoard(board).IdxDataBase.AddRef;
+  (* //DataBase *)
 end;
 
 (* 参照カウント減少 *)
@@ -1095,6 +1105,11 @@ begin
   Dec(refCount);
   if refCount <= 0 then
     Deactivate;
+
+  (* DataBase (aiai) *)
+  if Config.ojvQuickMerge then
+    TBoard(board).IdxDataBase.Release;
+  (* //DataBase *)
 end;
 
 (* ログから取得 *)
@@ -1140,6 +1155,8 @@ procedure TThreadItem.RemoveLog(deleteIdx: boolean = true);
 var
   fname: string;
   msg: PChar;
+  sql: string;
+  err: byte;
 begin
   Deactivate;
   fname := GetFileName;
@@ -1152,11 +1169,11 @@ begin
     (* DataBase (aiai) *)
     if Config.ojvQuickMerge then
     begin
-      TBoard(board).IdxDataBase.Exec(PChar('DELETE FROM idxlist'+
-                        ' WHERE datname = '''+ datName +''''), nil, nil, msg);
-      {$IFDEF DATABASEDEBUG}
-      if msg <> nil then Main.Log(title + ':DELETE FROM idxlist WHERE datname = '''+ datName +''' - ' + msg);
-      {$ENDIF}
+      TBoard(board).IdxDataBase.AddRef;
+      sql := 'DELETE FROM idxlist WHERE datname = '''+ datName +'''';
+      err := TBoard(board).IdxDataBase.Exec(PChar(sql), nil, nil, msg);
+      SQLCheck(err, title, sql, msg);
+      TBoard(board).IdxDataBase.Release;
     end;
     (* //DataBase *)
 
