@@ -5,8 +5,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, OleCtrls, SHDocVw_TLB, ComCtrls, ToolWin, ImgList, StdCtrls,
-  JLCommCtrl;
+  Dialogs, OleCtrls, SHDocVw_TLB, ComCtrls, ToolWin, ImgList, StdCtrls;
 
 const
   LOVELY_WEB_BROWSER = 'êÏ ÅfÅ[ÅfêÏ Lovely Web Browser';
@@ -24,6 +23,7 @@ type
     NavigateEdit: TEdit;
     NavigateButtonImageList: TImageList;
     WebBrowser: TWebBrowser;
+    StatusBar: TStatusBar;
     procedure NavigateButtonClick(Sender: TObject);
     procedure NavigateEditKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
@@ -43,7 +43,7 @@ type
     procedure FormShow(Sender: TObject);
     procedure WebBrowserWindowClosing(Sender: TObject;
       IsChildWindow: WordBool; var Cancel: WordBool);
-    procedure FormResize(Sender: TObject);
+    //procedure FormResize(Sender: TObject);
   private
     { Private êÈåæ }
     HideOnApplicationMinimize: Boolean;
@@ -51,7 +51,7 @@ type
     savedWidth:  Integer;
     savedTop:    Integer;
     savedLeft:   Integer;
-    StatusBar: TJLStatusBar;
+    //StatusBar: TJLStatusBar;
   public
     { Public êÈåæ }
     procedure MainWndOnShow;
@@ -75,7 +75,7 @@ begin
   savedWidth  := 0;
   HideOnApplicationMinimize := false;
 
-  StatusBar := TJLStatusBar.Create(Handle);
+  //StatusBar := TJLStatusBar.Create(Handle);
 end;
 
 procedure TLovelyWebForm.FormActivate(Sender: TObject);
@@ -97,7 +97,7 @@ begin
     savedTop  := Top;
     savedWidth:= Width;
     savedHeight:= Height;
-    Height := 50;
+    //Height := 50;
     Height := 0;
   end;
   SaveImeMode(Handle);
@@ -165,7 +165,8 @@ end;
 procedure TLovelyWebForm.WebBrowserStatusTextChange(Sender: TObject;
   const Text: WideString);
 begin
-  StatusBar.Text[0] := Text;
+  //StatusBar.Text[0] := Text;
+  StatusBar.SimpleText := Text;
 end;
 
 (* URLÇëSëIë *)
@@ -238,11 +239,11 @@ begin
   Close;
 end;
 
-procedure TLovelyWebForm.FormResize(Sender: TObject);
+{procedure TLovelyWebForm.FormResize(Sender: TObject);
 begin
   WebBrowser.Width := ClientWidth;
   WebBrowser.Height := ClientHeight - NavigateToolBar.Height - StatusBar.Height;
   WebBrowser.Top := NavigateToolBar.BoundsRect.Bottom;
-end;
+end;}
 
 end.

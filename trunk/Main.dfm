@@ -28,12 +28,13 @@ object MainWnd: TMainWnd
     Left = 0
     Top = 0
     Width = 639
-    Height = 496
+    Height = 501
+    Align = alClient
     BevelOuter = bvNone
     TabOrder = 0
     object LogSplitter: TSplitter
       Left = 0
-      Top = 474
+      Top = 479
       Width = 639
       Height = 2
       Cursor = crVSplit
@@ -46,7 +47,7 @@ object MainWnd: TMainWnd
       Left = 4
       Top = 51
       Width = 635
-      Height = 423
+      Height = 428
       Align = alClient
       BevelOuter = bvNone
       ParentShowHint = False
@@ -57,7 +58,7 @@ object MainWnd: TMainWnd
         Left = 120
         Top = 0
         Width = 4
-        Height = 423
+        Height = 428
         Cursor = crHSplit
         AutoSnap = False
         MinSize = 4
@@ -66,7 +67,7 @@ object MainWnd: TMainWnd
         Left = 124
         Top = 0
         Width = 511
-        Height = 423
+        Height = 428
         Align = alClient
         BevelOuter = bvNone
         TabOrder = 1
@@ -84,7 +85,7 @@ object MainWnd: TMainWnd
           Left = 0
           Top = 149
           Width = 511
-          Height = 274
+          Height = 279
           Align = alClient
           BevelOuter = bvNone
           Color = clWindow
@@ -99,7 +100,7 @@ object MainWnd: TMainWnd
           OnResize = WebPanelResize
           object WritePanelSplitter: TSplitter
             Left = 0
-            Top = 126
+            Top = 131
             Width = 511
             Height = 2
             Cursor = crVSplit
@@ -354,7 +355,7 @@ object MainWnd: TMainWnd
           end
           object WritePanel: TPanel
             Left = 0
-            Top = 128
+            Top = 133
             Width = 511
             Height = 146
             Align = alBottom
@@ -669,7 +670,7 @@ object MainWnd: TMainWnd
         Left = 0
         Top = 0
         Width = 120
-        Height = 423
+        Height = 428
         Align = alLeft
         BevelOuter = bvNone
         Constraints.MinHeight = 25
@@ -691,7 +692,7 @@ object MainWnd: TMainWnd
           Left = 0
           Top = 1
           Width = 120
-          Height = 422
+          Height = 427
           Align = alClient
           BevelOuter = bvLowered
           TabOrder = 0
@@ -699,7 +700,7 @@ object MainWnd: TMainWnd
             Left = 1
             Top = 38
             Width = 118
-            Height = 383
+            Height = 388
             Align = alClient
             BevelInner = bvNone
             BevelOuter = bvNone
@@ -732,7 +733,7 @@ object MainWnd: TMainWnd
             Left = 1
             Top = 38
             Width = 118
-            Height = 383
+            Height = 388
             Align = alClient
             BevelInner = bvNone
             BevelOuter = bvRaised
@@ -875,7 +876,7 @@ object MainWnd: TMainWnd
     end
     object LogPanel: TPanel
       Left = 0
-      Top = 476
+      Top = 481
       Width = 639
       Height = 20
       Align = alBottom
@@ -1131,13 +1132,36 @@ object MainWnd: TMainWnd
       Left = 0
       Top = 51
       Width = 4
-      Height = 423
+      Height = 428
       Checked = True
       FocusColor = clSkyBlue
       Align = alLeft
       BevelOuter = bvNone
       OnClick = MenuViewTreeToggleVisibleClick
     end
+  end
+  object StatusBar: TStatusBar
+    Left = 0
+    Top = 501
+    Width = 639
+    Height = 19
+    Panels = <
+      item
+        Width = 20
+      end
+      item
+        Width = 70
+      end
+      item
+        Width = 500
+      end
+      item
+        Width = -1
+      end>
+    SimplePanel = False
+    OnClick = StatusBarClick
+    OnMouseUp = StatusBarMouseUp
+    OnResize = StatusBarResize
   end
   object MainMenu: TMainMenu
     Left = 88

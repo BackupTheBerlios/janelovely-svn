@@ -37,12 +37,12 @@ uses
   UAutoScrollSettingForm, ULovelyWebForm, UNews, UGetBoardListForm,
   UChottoForm, UImageViewCacheListForm,
   UCheckSeverDown,
-  JLWritePanel, JLTab, JLToolButton, JLSideBar, JLCommCtrl;
+  JLWritePanel, JLTab, JLToolButton, JLSideBar;
   {/aiai}
 
 const
-  VERSION  = '0.1.0.4';      (* Printable ASCIIコード厳守。')'はダメ *)
-  JANE2CH  = 'JaneLovely 0.1.0.4';
+  VERSION  = '0.1.0.5';      (* Printable ASCIIコード厳守。')'はダメ *)
+  JANE2CH  = 'JaneLovely 0.1.0.5';
   KEYWORD_OF_USER_AGENT = 'JaneLovely';      (*  *)
 
   DISTRIBUTORS_SITE = 'http://www.geocities.jp/openjane4714/';
@@ -721,6 +721,7 @@ type
     MenuWritePanelDisableTopBar: TMenuItem;
     MenuWriteMemoDisableTopBar: TMenuItem;
     MenuOptSetNewsSize: TMenuItem;
+    StatusBar: TStatusBar;
     {/aiai}
     procedure FormCreate(Sender: TObject);
     procedure MenuToolsOptionsClick(Sender: TObject);
@@ -1169,6 +1170,10 @@ type
     procedure MenuStatusCopyURIClick(Sender: TObject);
     procedure MenuWritePanelDisableTopBarClick(Sender: TObject);
     procedure MenuOptSetNewsSizeClick(Sender: TObject);
+    procedure StatusBarMouseUp(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure StatusBarResize(Sender: TObject);
+    procedure StatusBarClick(Sender: TObject);
     {/aiai}
   private
   { Private 宣言 }
@@ -1255,7 +1260,7 @@ type
     BrowserLeftMargin: Integer;
     BrowserRightMargin: Integer;
     //BrowserMaxWidth: Integer;
-    StatusBar2: TJLStatusBar;
+    //StatusBar2: TJLStatusBar;
     {/aiai}
 
     procedure SaveWindowPos;
@@ -1391,10 +1396,10 @@ type
     procedure ToggleWritePanelPos(APos: Boolean);
     //▲ 書き込みパネル
     //▼ ステータスバー
-    procedure StatusBar2Click(Sender: TObject);
-    procedure StatusBar2RClick(Sender: TObject);
+    //procedure StatusBar2Click(Sender: TObject);
+    //procedure StatusBar2RClick(Sender: TObject);
     procedure MyNewsNews(Sender: TObject; News: String);
-    procedure StatusBar2ReSize(Sender: TObject; Width: Integer);
+    //procedure StatusBar2ReSize(Sender: TObject; Width: Integer);
     //▲ ステータスバー
     {/aiai}
   public
@@ -1757,8 +1762,8 @@ end;
 
 procedure TMainWnd.WriteStatus(const s: string);
 begin
-  //StatusBar.Panels.Items[1].Text := s; //aiai
-  StatusBar2.Text[1] := s;
+  StatusBar.Panels.Items[1].Text := s;
+  //StatusBar2.Text[1] := s;   //aiai
 end;
 
 procedure LogBeginQuery;
@@ -1803,8 +1808,8 @@ end;
 procedure StatLog(const str: string);
 begin
   Log(str);
-  //MainWnd.StatusBar.Panels.Items[2].Text := str;  //aiai
-  MainWnd.StatusBar2.Text[2] := str;
+  MainWnd.StatusBar.Panels.Items[2].Text := str;
+  //MainWnd.StatusBar2.Text[2] := str;    //aiai
 end;
 
 function IsPrimaryInstance: Boolean;
@@ -1940,8 +1945,8 @@ begin
   if useTrace[i] then
   begin
     daemon.Log(traceString[i] + str);
-    //MainWnd.StatusBar.Panels.Items[2].Text := traceString[i] + str;  //aiai
-    MainWnd.StatusBar2.Text[2] := traceString[i] + str;
+    MainWnd.StatusBar.Panels.Items[2].Text := traceString[i] + str;
+    //MainWnd.StatusBar2.Text[2] := traceString[i] + str;  //aiai
   end;
 end;
 {//ayaya}
@@ -2687,7 +2692,7 @@ begin
   TabSwitchList.Add(Memo);
 
   {aiai}
-  StatusBar2 := TJLStatusBar.Create(Self.Handle);
+  {StatusBar2 := TJLStatusBar.Create(Self.Handle);
   With StatusBar2 do
   begin
    Parts := 4;
@@ -2697,7 +2702,7 @@ begin
    OnClick := Statusbar2Click;
    OnRClick := StatusBar2RClick;
    OnReSize := StatusBar2ReSize;
-  end;
+  end;}
   {/aiai}
 
   Application.UpdateFormatSettings := false;
@@ -8716,7 +8721,7 @@ end;
 
 procedure TMainWnd.FormResize(Sender: TObject);
 begin
-  if Assigned(StatusBar2) then
+  {if Assigned(StatusBar2) then
   begin
     Panel0.Width := ClientWidth;
     Panel0.Height := ClientHeight - StatusBar2.Height;
@@ -8724,7 +8729,7 @@ begin
   begin
     Panel0.Width := ClientWidth;
     Panel0.Height := ClientHeight - 26;
-  end;
+  end;}
 
   if Config.oprToggleRView then
   begin
@@ -9228,8 +9233,8 @@ procedure TMainWnd.ViewItemStateChanged;
     MenuThreChangeDrawLines.Enabled := false;
     MenuThreReadPos.Enabled := false;
     MenuThreCheckRes.Enabled := false;
-    //StatusBar.Panels.Items[2].Text := '';  //aiai
-    StatusBar2.Text[2] := '';
+    StatusBar.Panels.Items[2].Text := '';
+    //StatusBar2.Text[2] := '';  //aiai
     SetCaption(boardNameOfCaption);  //aiai
     {２ちゃんねるブラウザ「OpenJane」改造総合スレ
     http://pc3.2ch.net/test/read.cgi/win/1033913790/949から引用}
@@ -9252,8 +9257,8 @@ procedure TMainWnd.ViewItemStateChanged;
   begin
     if thread = nil then
     begin
-      //StatusBar.Panels.Items[2].Text := '';  //aiai
-      StatusBar2.Text[2] := '';
+      StatusBar.Panels.Items[2].Text := '';
+      //StatusBar2.Text[2] := '';  //aiai
       ThreadTitleLabel.Caption := '';   //※[JS]
       UrlEdit.Text := '';               //※[JS]
       exit;
@@ -9266,21 +9271,21 @@ procedure TMainWnd.ViewItemStateChanged;
       datSize := IntToStr(thread.dat.Size div 1024) + 'KB'
     else
       datSize := '';
-    {StatusBar.Panels.Items[2].Text
+    StatusBar.Panels.Items[2].Text
       := '[新' + IntToStr(thread.lines - thread.anchorLine) + ': 未' //aiai 未読数表示
       +  IntToStr(thread.lines - thread.oldLines) + ': 全'
       +  IntToStr(thread.lines) + '] ' + HTML2String(thread.title)
       +  s
       + ' [' + TBoard(thread.board).name + '/'
       + TCategory(TBoard(thread.board).category).name + ']  '
-      + datSize;}//aiai
-    StatusBar2.Text[2]
+      + datSize;
+    {StatusBar2.Text[2]
       := '[新' + IntToStr(thread.lines - thread.anchorLine) + ': 全'
       +  IntToStr(thread.lines) + '] ' + HTML2String(thread.title)
       +  s
       + ' [' + TBoard(thread.board).name + '/'
       + TCategory(TBoard(thread.board).category).name + ']  '
-      + datSize;
+      + datSize;}  //aiai
     //※[JS]
     {beginner}
     if thread.mayHaveInconsistency then
@@ -9312,8 +9317,8 @@ begin
     SetUrlEdit(viewItem);
     if viewItem = nil then
     begin
-      //StatusBar.Panels.Items[2].Text := '';  //aiai
-      StatusBar2.Text[2] := '';
+      StatusBar.Panels.Items[2].Text := '';
+      //StatusBar2.Text[2] := '';    //aiai
       ThreadTitleLabel.Caption := '';   //※[JS]
       exit;
     end;
@@ -10233,8 +10238,8 @@ end;
 
 procedure TMainWnd.UpdateIndicator;
 begin
-  //StatusBar.Panels[0].Text := loginIndicator + IntToStr(AsyncManager.Count);//aiai
-  StatusBar2.Text[0] := loginIndicator + IntToStr(AsyncManager.Count);
+  StatusBar.Panels[0].Text := loginIndicator + IntToStr(AsyncManager.Count);
+  //StatusBar2.Text[0] := loginIndicator + IntToStr(AsyncManager.Count);    //aiai
 end;
 
 procedure TMainWnd.ON_WM_USER(var msg: TMessage);
@@ -11062,20 +11067,20 @@ begin
     else s := ' ';
     if assigned(dat) then datSize := IntToStr(dat.Size div 1024) + 'KB'
     else datSize := '';
-    {StatusBar.Panels.Items[2].Text
+    StatusBar.Panels.Items[2].Text
       := '[新0: 未0: 全'
       +  IntToStr(lines) + '] ' + HTML2String(title)
       +  s
       + ' [' + TBoard(board).name + '/'
       + TCategory(TBoard(board).category).name + ']  '
-      + datSize;}//aiai
-    StatusBar2.Text[2]
+      + datSize;
+    {StatusBar2.Text[2]
       := '[新0: 全'
       +  IntToStr(lines) + '] ' + HTML2String(title)
       +  s
       + ' [' + TBoard(board).name + '/'
       + TCategory(TBoard(board).category).name + ']  '
-      + datSize;
+      + datSize;}  //aiai
     TabControl.Refresh;
     if not Config.oprCheckNewWRedraw then
     begin
@@ -16267,18 +16272,22 @@ begin
 end;
 
 procedure TMainWnd.MenuOptSetNewsSizeClick(Sender: TObject);
-var
-  bs: Integer;
+//var
+//  bs: Integer;
 begin
   if MyNews <> nil then
   begin
-    bs := StatusBar2.PartWidth[0] + StatusBar2.PartWidth[1]
-      + StatusBar2.PartWidth[2] + Config.tstNewsBarSize;
+    {bs := StatusBar2.PartWidth[0] + StatusBar2.PartWidth[1]
+      + StatusBar2.PartWidth[2] + Config.tstNewsBarSize;}
 
     MyNews.OpenSizeSettingDlg;
 
-    StatusBar2.PartWidth[2] := bs - StatusBar2.PartWidth[0] -
-      StatusBar2.PartWidth[1] - Config.tstNewsBarSize;
+    {StatusBar2.PartWidth[2] := bs - StatusBar2.PartWidth[0] -
+      StatusBar2.PartWidth[1] - Config.tstNewsBarSize;}
+    Statusbar.Panels.Items[2].Width := StatusBar.ClientWidth
+      - Statusbar.Panels.Items[0].Width
+        - Statusbar.Panels.Items[1].Width
+          - Config.tstNewsBarSize;
   end;
 end;
 
@@ -16289,7 +16298,9 @@ begin
     if MyNews = nil then begin
       MyNews := TNews.Create;
       MyNews.OnNews := MyNewsNews;
-      StatusBar2.Parts := 4;
+      //StatusBar2.Parts := 4;
+      if StatusBar.Panels.Count <> 4 then
+        TStatusPanel.Create(StatusBar.Panels);
     end;
     MyNews.setChangeNewsTimerInterval(Config.tstNewsInterval * 1000);
     MyNews.resetChangeNewsTimer;
@@ -16297,13 +16308,15 @@ begin
   begin
     if Assigned(MyNews) then
       FreeAndNil(MyNews);
-    StatusBar2.Parts := 3;
+    if StatusBar.Panels.Count = 4 then
+      StatusBar.Panels.Items[3].Free;
   end;
 end;
 
 procedure TMainWnd.MyNewsNews(Sender: TObject; News: String);
 begin
-  StatusBar2.Text[3] := News;
+  //StatusBar2.Text[3] := News;
+  StatusBar.Panels.Items[3].Text := News;
 end;
 //↑ニュース機能
 
@@ -16998,14 +17011,28 @@ end;
 
 
 //▼ ステータスバー
-procedure TMainWnd.StatusBar2Click(Sender: TObject);
+{procedure TMainWnd.StatusBar2Click(Sender: TObject);
+begin
+  ToggleWritePanelVisible(not WritePanel.Visible);
+  if WritePanel.Visible then
+    JLTabControlMouseDown(JLTabWrite, mbLeft, [], 0, 0);
+end;}
+
+procedure TMainWnd.StatusBarClick(Sender: TObject);
 begin
   ToggleWritePanelVisible(not WritePanel.Visible);
   if WritePanel.Visible then
     JLTabControlMouseDown(JLTabWrite, mbLeft, [], 0, 0);
 end;
 
-procedure TMainWnd.StatusBar2RClick(Sender: TObject);
+procedure TMainWnd.StatusBarMouseUp(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+begin
+  if Button = mbRight then
+    PopupStatusBar.Popup(X, Y);
+end;
+
+{procedure TMainWnd.StatusBar2RClick(Sender: TObject);
 var
   Point: TPoint;
 begin
@@ -17013,13 +17040,21 @@ begin
   if InvalidPoint(Point) then exit;
 
   PopupStatusBar.Popup(Point.X, Point.Y);
+end;}
+
+procedure TMainWnd.StatusBarResize(Sender: TObject);
+begin
+  StatusBar.Panels.Items[2].Width := StatusBar.ClientWidth
+    - StatusBar.Panels.Items[0].Width
+      - StatusBar.Panels.Items[1].Width
+        - Config.tstNewsBarSize;
 end;
 
-procedure TMainWnd.StatusBar2ReSize(Sender: TObject; Width: Integer);
+{procedure TMainWnd.StatusBar2ReSize(Sender: TObject; Width: Integer);
 begin
   StatusBar2.PartWidth[2] := Width - StatusBar2.PartWidth[0] -
     StatusBar2.PartWidth[1] - Config.tstNewsBarSize;
-end;
+end;}
 
 procedure TMainWnd.PopupStatusBarPopup(Sender: TObject);
 begin
@@ -17056,6 +17091,7 @@ begin
 end;
 
 //▲ ステータスバー
+
 
 
 initialization
