@@ -3130,8 +3130,6 @@ begin
     TSkinCollection(SkinCollectionList.Items[j]).Free;
   SkinCollectionList.Free;
 
-  sleep(2000);
-
   UILock := True;
   {aiai}
   MyNews.Free;
