@@ -42,8 +42,8 @@ uses
   {/aiai}
 
 const
-  VERSION  = '0.1.3.2';      (* Printable ASCIIコード厳守。')'はダメ *)
-  JANE2CH  = 'JaneLovely 0.1.3.2';
+  VERSION  = '0.1.3.3';      (* Printable ASCIIコード厳守。')'はダメ *)
+  JANE2CH  = 'JaneLovely 0.1.3.3';
   KEYWORD_OF_USER_AGENT = 'JaneLovely';      (*  *)
 
   DISTRIBUTORS_SITE = 'http://www.geocities.jp/openjane4714/';
@@ -5650,7 +5650,7 @@ begin
   dest := TStrDatOut.Create;
   dup := thread.DupData;
   try
-    POPUPD2HTML.PickUpRes(dest, dup, thread.abonearray, startLine, endLine);
+    POPUPD2HTML.PickUpRes(dest, dup, thread.abonearray, thread.NeedConvert, startLine, endLine);
     Result := dest.Text;
   finally
     dup.Free;

@@ -234,7 +234,7 @@ type
                       AboneArray: TAboneArray = nil;
                       NeedConvert: Boolean = False //aiai
                       ): Integer;
-    function PickUpRes(dest: TDatOut; dat: TThreadData; abonearray: TAboneArray;
+    function PickUpRes(dest: TDatOut; dat: TThreadData; abonearray: TAboneArray; NeedConvert: Boolean;
                               startLine, endLine: integer): Integer;
     function ToString(dat: TThreadData; startLine, lines: Integer; NeedConvert: Boolean = False): String;
   end;
@@ -2973,7 +2973,7 @@ end;
 
 
 (* ポップアップ用の範囲指定レス抽出 *)   //　※datは必要に応じてあらかじめdupしておくこと
-function TDat2HTML.PickUpRes(dest: TDatOut; dat: TThreadData; abonearray: TAboneArray;
+function TDat2HTML.PickUpRes(dest: TDatOut; dat: TThreadData; abonearray: TAboneArray; NeedConvert: Boolean;
                             startLine, endLine: integer): Integer;
 var
   temp: integer;
@@ -3004,7 +3004,7 @@ begin
   if endLine - startLine >= 20 then
     endLine := startLine + 19;
 
-  Result := ToDatOut(dest, dat, startLine, endLine - startLine + 1, ABoneArray);
+  Result := ToDatOut(dest, dat, startLine, endLine - startLine + 1, ABoneArray, NeedConvert);
 end;
 
 

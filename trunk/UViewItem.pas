@@ -2280,7 +2280,7 @@ begin
     Result := 0;
     for i := 1 to thread.lines do
     begin
-      s := SEARCHD2HTML.ToString(dup, i, 1);
+      s := SEARCHD2HTML.ToString(dup, i, 1, thread.NeedConvert);
       if Assigned(RegExp) then
       begin
         s := AnsiReplaceStr(s, #10' ', #10);
@@ -2294,7 +2294,7 @@ begin
           end;
           if IncludeRef then
           begin
-            inc(Result, Tree.TreeDatOut(dest, i, thread.ABoneArray));
+            inc(Result, Tree.TreeDatOut(dest, i, thread.ABoneArray, thread.NeedConvert));
           end
           else
           begin
@@ -2314,7 +2314,7 @@ begin
           end;
           if IncludeRef then
           begin
-            inc(Result, Tree.TreeDatOut(dest, i, thread.ABoneArray));
+            inc(Result, Tree.TreeDatOut(dest, i, thread.ABoneArray, thread.NeedConvert));
           end
           else
           begin
@@ -5120,13 +5120,13 @@ begin
       FStream.DDOffsetLeft := DD_OFFSET_LEFT div 4;
       if OutLine then
       begin
-        Count := IndexTree.OutLine(FStream, Index, nil, AnsiStartsStr('be', AThread.GetHost));
+        Count := IndexTree.OutLine(FStream, Index, nil, AThread.NeedConvert);
       end
       else
       begin
         IndexTree.ShowRoot := False;
         IndexTree.LevelLimit := 1;
-        Count := IndexTree.TreeDatOut(FStream, Index);
+        Count := IndexTree.TreeDatOut(FStream, Index, nil, AThread.NeedConvert);
       end;
 
       Result := Count > 0;
@@ -5412,7 +5412,7 @@ procedure Make2chInfo(dest: TDatOut; URI: string; basethread: TThreadItem;
       try
       if RangeArray[0].st >= 0 then
         for i := 0 to Length(RangeArray) - 1 do
-          POPUPD2HTML.PickUpRes(dest, dat, thread.ABoneArray, RangeArray[i].st, RangeArray[i].ed);
+          POPUPD2HTML.PickUpRes(dest, dat, thread.ABoneArray, thread.NeedConvert, RangeArray[i].st, RangeArray[i].ed);
       finally
         dat.Free;
       end;
