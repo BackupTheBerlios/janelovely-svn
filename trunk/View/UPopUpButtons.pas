@@ -165,6 +165,8 @@ end;
 
 constructor TPopUpButtons.Create(AOwner: TComponent);
 begin
+  inherited Create(AOwner);
+
   MasterWindowProc:=nil;
   FButtonWidth:=24;
   FButtonHeight:=24;
@@ -182,7 +184,8 @@ end;
 destructor TPopUpButtons.Destroy;
 begin
   ButtonList.Free;
-  Timer.Free;      //aiai
+
+  inherited Destroy;
 end;
 
 
