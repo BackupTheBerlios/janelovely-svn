@@ -214,7 +214,7 @@ type
     FRemind: Integer;
 
     {aiai}
-    FOnScrollEnd: TNotifyEvent; //(test)
+    FOnScrollEnd: TNotifyEvent;
 
     FIDListArray: THogeIDListArray;
     FResNumArray: THogeResNumArray;
@@ -222,12 +222,14 @@ type
     FColordNumber: Boolean;
     FLinkedNumColor: TColor;
 
-    FIDLinkColor :Boolean;     //(test)
-    FIDLinkColorNone: TColor;  //(test)
-    FIDLinkColorMany: TColor;  //(test)
-    FIDLinkThreshold: Integer; //(test)
+    FIDLinkColor :Boolean;
+    FIDLinkColorNone: TColor;
+    FIDLinkColorMany: TColor;
+    FIDLinkThreshold: Integer;
 
     CanRepain: Boolean;
+    FHighlightTarget: String;
+    FKeywordBrushColor: TColor;
     {/aiai}
 
     function CharWidth(p: PChar; attrib: Integer): Integer;
@@ -408,6 +410,7 @@ type
     property Fraction: Integer read FFraction; //beginner
     property ResNumArray: THogeResNumArray read FResNumArray write FResNumArray;
     property IDListArray: THogeIDListArray read FIDListArray write FIDListArray;
+    property HighlightTarget: String read FHighlightTarget write FHighlightTarget;  //aiai
   published
     { Published 宣言 }
     property LeftMargin: Integer read FLeftMargin write FLeftMargin;
@@ -427,7 +430,7 @@ type
     property WallpaperHAlign: TWallpaperHAlign read FWallpaperHAlign write FWallpaperHAlign;
     //改造△ 追加 (スレビューに壁紙を設定する。Doe用)
 
-    {aiai}//(test)
+    {aiai}
     property LinkedNumColor: TColor read FLinkedNumColor write FLinkedNumColor;
     property ColordNumber: Boolean read FColordNumber write FColordNumber;
 
@@ -435,6 +438,8 @@ type
     property IDLinkColorNone: TColor read FIDLinkColorNone write FIDLinkColorNone;
     property IDLinkColorMany: TColor read FIDLinkColorMany write FIDLinkColorMany;
     property IDLinkThreshold: Integer read FIDLinkThreshold write FIDLinkThreshold;
+
+    property KeywordBrushColor: TColor read FKeywordBrushColor write FKeywordBrushColor default clYellow;
     {/aiai}
 
     property OnMouseHover: TMouseMoveEvent read FOnMouseHover write FOnMouseHover;
@@ -980,14 +985,17 @@ begin
   FLinkedNumColor := $00CF00AF;
   FColordNumber := true;
 
-  FIDLinkColor := false;          //(test)
-  FIDLinkColorNone := $00000000;  //(test)
-  FIDLinkColorMany := $000000FF;  //(test)
-  FIDLinkThreshold := 5;          //(test)
+  FIDLinkColor := false;
+  FIDLinkColorNone := $00000000;
+  FIDLinkColorMany := $000000FF;
+  FIDLinkThreshold := 5;
   SetLength(FIDListArray, 0);
+
+  FKeywordBrushColor := clYellow;
 
   CanRepain := True;
   //FMaxWidth := 0;
+  FHighlightTarget := '';
   {/aiai}
 
   CalcWidthModifier;
@@ -2085,8 +2093,16 @@ begin
 end;
 
 procedure THogeTextView.PaintWindow(DC: HDC);
+{aiai}
+type
+  hlightrange = record   //1ベースインデックス
+    startp: Integer;
+    endp: Integer;
+  end;
 var
   len: integer;
+  HighlightP: Boolean;
+  hlightl: array of hlightrange;
 
   procedure SetNumberColor(item: THogeTVItem; startPos: integer);
   var
@@ -2133,6 +2149,48 @@ var
     else if IDFreq >= FIDLinkThreshold then
       FBitmap.Canvas.Font.Color := FIDLinkColorMany;
   end;
+
+
+  procedure CreateHLightList(str: String);
+  var
+    sp, tlen, lsize: Integer;
+  begin
+    SetLength(hlightl, 0);
+    lsize := 0;
+    tlen := Length(FHighlightTarget);
+    if tlen = 0 then exit;
+    sp := 0;
+    while sp <= len - tlen do
+    begin
+      if 0 <> StrLIComp(PChar(FHighlightTarget), PChar(str) + sp, tlen) then
+      begin
+        Inc(sp);
+        Continue;
+      end;
+      Inc(lsize);
+      SetLength(hlightl, lsize);
+      hlightl[lsize - 1].startp := sp + 1;
+      Inc(sp, tlen);
+      hlightl[lsize - 1].endp := sp;
+    end;
+  end;
+
+  function InHighlight(str: String; index: integer): Boolean;
+  var
+    p, lsize: integer;
+  begin
+    Result := False;
+    lsize := Length(hlightl);
+    for p := 0 to lsize - 1 do
+    begin
+      if (hlightl[p].startp <= index) and (index <= hlightl[p].endp) then
+      begin
+        Result := True;
+        break;
+      end;
+    end;
+  end;
+{/aiai}
 
 var
   screenLine, vLines: Integer;
@@ -2232,6 +2290,9 @@ begin
         FBitmap.Canvas.Draw(FLeftMargin, PictY, item.Picture);
       end;
     end;
+
+    //検索ハイライト
+    CreateHLightList(item.FText);
     {/aiai}
     while index <= len do
     begin
@@ -2250,6 +2311,7 @@ begin
         end;
         Inc(nchar);
         selectionP := InSelection(index -1, physicalLine);
+        HighlightP := InHighlight(item.FText, index);
         next := index + 1;
         while next <= len do
         begin
@@ -2258,6 +2320,8 @@ begin
           if cw[next] <> #0 then
           begin
             if InSelection(next -1, physicalLine) <> selectionP then
+              break;
+            if InHighlight(item.FText, next) <> HighlightP then
               break;
             if (maxX < (X + width + Ord(cw[next]))) then
               break;
@@ -2273,15 +2337,28 @@ begin
               FBitmap.Canvas.Font.Color := clHighlightText;
             if FBitmap.Canvas.Brush.Color <> clHighlight then
               FBitmap.Canvas.Brush.Color := clHighlight;
+            if FBitmap.Canvas.Font.Style <> style then
+              FBitmap.Canvas.Font.Style := style;
+          end
+          else if HighlightP then
+          begin
+            if FBitmap.Canvas.Font.Color <> color then
+              FBitmap.Canvas.Font.Color := color;
+            if FBitmap.Canvas.Brush.Color <> FKeywordBrushColor then
+              FBitmap.Canvas.Brush.Color := FKeywordBrushColor;
+            if FBitmap.Canvas.Font.Style <> style then
+              FBitmap.Canvas.Font.Style := style;
           end
           else begin
             if FBitmap.Canvas.Font.Color <> color then
               FBitmap.Canvas.Font.Color := color;
             if FBitmap.Canvas.Brush.Style <> bsClear then
                FBitmap.Canvas.Brush.Style := bsClear;
+            if FBitmap.Canvas.Font.Style <> style then
+              FBitmap.Canvas.Font.Style := style;
           end;
-          if FBitmap.Canvas.Font.Style <> style then
-            FBitmap.Canvas.Font.Style := style;
+          //if FBitmap.Canvas.Font.Style <> style then
+          //  FBitmap.Canvas.Font.Style := style;
         end;
         if attCode and htvCODEMASK = htvASCII then
         begin   //aiai
@@ -2525,6 +2602,7 @@ begin
   len := length(AString);
   if len <= 0 then
     exit;
+  FHighlightTarget := AString;
   target := AnsiUpperCase(AString);
   col := FEditPoint.X + 1;
   for line := FEditPoint.Y to FStrings.Count -1 do
@@ -2574,6 +2652,7 @@ begin
   len := length(AString);
   if len <= 0 then
     exit;
+  FHighlightTarget := AString;
   target := AnsiUpperCase(AString);
   col := FEditPoint.X;
   if col <= 0 then
@@ -2975,6 +3054,7 @@ begin
   {/beginner}
   SetLength(FResNumArray, 0); //aiai
   SetLength(FIDListArray, 0);  //aiai
+  FHighlightTarget := '';
 end;
 
 function THogeTextView.CharWidth(p: PChar; attrib: Integer): Integer;

@@ -433,6 +433,8 @@ type
     LabelDefault: TLabel;
     LabelListOdd: TLabel;
     LabelListEven: TLabel;
+    LabelKeywordBrushColor: TLabel;
+    ButtonKeywordBrushColor: TButton;
     procedure FormShow(Sender: TObject);
     procedure OkButtonClick(Sender: TObject);
     procedure CancelButtonClick(Sender: TObject);
@@ -509,6 +511,7 @@ type
     procedure ButtonColordNumberClick(Sender: TObject);
     procedure ButtonIDLinkColorManyClick(Sender: TObject);
     procedure ButtonIDLinkColorNoneClick(Sender: TObject);
+    procedure ButtonKeywordBrushColorClick(Sender: TObject);
     {/aiai}
   private
     AboneListOnHint:TObject;
@@ -961,6 +964,14 @@ begin
     for i := 0 to Main.viewList.Count -1 do
       Main.viewList.Items[i].browser.ConfCaretVisible := self.CheckboxCaretVisible.Checked;
   end;
+  {aiai}
+  if Main.Config.viewKeywordBrushColor <> self.LabelKeywordBrushColor.Color then
+  begin
+    Main.Config.viewKeywordBrushColor := self.LabelKeywordBrushColor.Color;
+    for i := 0 to Main.viewList.Count - 1 do
+      Main.viewList.Items[i].browser.KeywordBrushColor := self.LabelKeywordBrushColor.Color;
+  end;
+  {/aiai}
   Config.viewZoomPointArray[0] := StrToIntDef(EditZoomPoint0.Text, Config.viewZoomPointArray[0]);
   Config.viewZoomPointArray[1] := StrToIntDef(EditZoomPoint1.Text, Config.viewZoomPointArray[1]);
   Config.viewZoomPointArray[2] := StrToIntDef(EditZoomPoint2.Text, Config.viewZoomPointArray[2]);
@@ -1264,6 +1275,8 @@ begin
 
   self.ComboBoxDefSortColumn.ItemIndex := Config.stlDefSortColumn;
   self.ComboBoxDefFuncSortColumn.ItemIndex := Config.stlDefFuncSortColumn;
+
+  self.LabelKeywordBrushColor.Color := Config.viewKeywordBrushColor;
   {/aiai}
 
   self.CheckBoxStlTabMultiline.Checked := Main.Config.stlTabMaltiline;
@@ -2777,6 +2790,15 @@ begin
    ColorDialog.Color := self.LabelIDLinkColorNone.Font.Color;
    if ColorDialog.Execute then
      self.LabelIDLinkColorNone.Font.Color := ColorDialog.Color;
+end;
+
+procedure TUIConfig.ButtonKeywordBrushColorClick(Sender: TObject);
+begin
+  ColorDialog.Color := LabelKeywordBrushColor.Color;
+  if ColorDialog.Execute then
+  begin
+    LabelKeywordBrushColor.Color := ColorDialog.Color;
+  end;
 end;
 
 end.

@@ -3570,7 +3570,8 @@ begin
       ExtStream.WriteHTML('キーワードは有効な正規表現ではありません');
       ExtStream.Flush;
     end;
-  end;
+  end else
+    FBrowser.HighlightTarget := target;
 
   if not(RegExpMode) or Assigned(RegExp) then
     Count := _ExtractKeyWord(ExThread, ExtStream, target, 0, RegExp,IncludeRef, False)
@@ -4994,6 +4995,7 @@ begin
     Lock;
     FIdStr := AIdStr;
     SetThread(AThread);
+    FBrowser.HighlightTarget := Target;
     FStream := TDat2PopupView.Create(FBrowser);
     Result := 0;
 

@@ -205,6 +205,7 @@ type
     viewCaretVisible : boolean;
     {$ENDIF}
     viewZoomPointArray: array[0..5] of integer;
+    viewKeywordBrushColor: TColor;  //aiai
 
     stlVerticalDivision: boolean;
     stlToolBarVisible: boolean;
@@ -709,6 +710,8 @@ begin
   viewZoomPointArray[3] := -14;
   viewZoomPointArray[4] := -15;
   {/beginner}
+
+  viewKeywordBrushColor := clYellow;  //aiai
 
 
   stlVerticalDivision := true;
@@ -1377,6 +1380,8 @@ begin
   {/beginner}
   viewCaretVisible := ini.ReadBool(INI_VIEW_SECT, 'CaretVisible', viewCaretVisible);
 
+  viewKeywordBrushColor := ini.ReadInteger(INI_VIEW_SECT, 'KeywordBrushColor', clYellow);  //aiai
+
   //改造▽ 追加 (スレビューに壁紙を設定する。Doe用)
   //viewBrowserWallpaperEnabled := ini.ReadBool(INI_VIEW_SECT, 'BrowserWallpaperEnabled', viewBrowserWAllpaperEnabled);
   //viewBrowserWallpaperAlign := TWallpaperAlign(ini.ReadInteger(INI_VIEW_SECT, 'BrowserWallpaperAlign', Integer(viewBrowserWallpaperAlign)));
@@ -1892,6 +1897,8 @@ begin
   ini.WriteInteger(INI_VIEW_SECT, 'ScrollFrameRate', viewScrollFrameRate);
   {/beginner}
   ini.WriteBool(INI_VIEW_SECT, 'CaretVisible', viewCaretVisible);
+
+  ini.WriteInteger(INI_VIEW_SECT, 'KeywordBrushColor', viewKeywordBrushColor);
 
   //改造▽ 追加 (スレビューに壁紙を設定する。Doe用)
   //ini.WriteBool(INI_VIEW_SECT, 'BrowserWallpaperEnabled', viewBrowserWallpaperEnabled);

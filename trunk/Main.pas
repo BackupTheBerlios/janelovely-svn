@@ -41,8 +41,8 @@ uses
   {/aiai}
 
 const
-  VERSION  = '0.1.2.0';      (* Printable ASCIIコード厳守。')'はダメ *)
-  JANE2CH  = 'JaneLovely 0.1.2.0';
+  VERSION  = '0.1.2.1';      (* Printable ASCIIコード厳守。')'はダメ *)
+  JANE2CH  = 'JaneLovely 0.1.2.1';
   KEYWORD_OF_USER_AGENT = 'JaneLovely';      (*  *)
 
   DISTRIBUTORS_SITE = 'http://www.geocities.jp/openjane4714/';
@@ -5578,6 +5578,7 @@ begin
     browser.OnDbClickTBar := actMaxViewExecute;
     browser.OnActive := BrowserActive;
     //browser.OnHide := BrowserHide;
+    browser.KeywordBrushColor := Config.viewKeywordBrushColor; //ハイライトの色
     {/aiai}
     browser.LeftMargin := BrowserLeftMargin;
     browser.RightMargin := BrowserRightMargin;
@@ -7795,6 +7796,7 @@ begin
     viewItem.browser.SearchForward(searchTarget)
   else
     viewItem.browser.SearchBackward(searchTarget);
+  viewitem.browser.Invalidate;  //aiai
 end;
 {$ENDIF}
 

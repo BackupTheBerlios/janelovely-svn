@@ -5277,7 +5277,7 @@ object MainWnd: TMainWnd
   end
   object PopupTextMenu: TPopupMenu
     OnPopup = PopupTextMenuPopup
-    Left = 192
+    Left = 200
     Top = 272
     object TextPopupCopy: TMenuItem
       Caption = #12467#12500#12540'(&C)'
@@ -7874,6 +7874,7 @@ object MainWnd: TMainWnd
     end
     object N56: TMenuItem
       Caption = #12513#12514#27396#12434#34920#31034'(&M)'
+      OnClick = StatusBarClick
     end
   end
   object PopupWritePanel: TPopupMenu

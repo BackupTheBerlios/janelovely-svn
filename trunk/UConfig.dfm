@@ -4,7 +4,7 @@ object UIConfig: TUIConfig
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = #35373#23450
-  ClientHeight = 383
+  ClientHeight = 369
   ClientWidth = 512
   Color = clBtnFace
   Font.Charset = SHIFTJIS_CHARSET
@@ -2724,6 +2724,18 @@ object UIConfig: TUIConfig
         Height = 12
         Caption = #12502#12521#12454#12470#12398#12501#12457#12531#12488#12469#12452#12474'('#26368#23567#8594#26368#22823')'
       end
+      object LabelKeywordBrushColor: TLabel
+        Left = 42
+        Top = 287
+        Width = 97
+        Height = 17
+        Alignment = taCenter
+        AutoSize = False
+        Caption = #12495#12452#12521#12452#12488#12398#33394
+        Color = clYellow
+        ParentColor = False
+        Layout = tlCenter
+      end
       object EditViewVerticalCaretMargin: TEdit
         Left = 208
         Top = 8
@@ -2848,6 +2860,15 @@ object UIConfig: TUIConfig
         Width = 33
         Height = 20
         TabOrder = 7
+      end
+      object ButtonKeywordBrushColor: TButton
+        Left = 140
+        Top = 287
+        Width = 25
+        Height = 17
+        Caption = '...'
+        TabOrder = 8
+        OnClick = ButtonKeywordBrushColorClick
       end
     end
     object SheetColumn: TTabSheet
