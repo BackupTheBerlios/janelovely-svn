@@ -201,6 +201,9 @@ begin
   board := TFavoriteListBoard.Create(category);
   category.Add(board);
 
+  board := TOpenThreadsBoard.Create(category);
+  category.Add(board);
+
   LoadBBSMenuInfo;
 end;
 

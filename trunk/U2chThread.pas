@@ -71,6 +71,7 @@ type
   private
     refCount: integer;  (* 参照カウント *)
     logmoved: boolean;
+    FOpened: Boolean;
   protected
     asyncObj: TThreadItemAsyncObj;    (* 受信用のレコード *)
     lastAccess: TDateTime;
@@ -165,6 +166,7 @@ type
 
     property TransferedSize: Cardinal read GetTransferedSize;
     property NeedConvert: Boolean read GetNeedConvert; //aiai
+    property Opened: Boolean read FOpened write FOpened; //aiai (* 開いている *)
   end;
 
   TRange = record
@@ -1069,7 +1071,7 @@ begin
   //  result := ReplaceStr(result, #0, ' ');
   if result = '' then
   begin
-    if GetNeedConvert and (InCodeCheck(title) in [EUC_IN, EUCorSJIS_IN]) then
+    if GetNeedConvert then
       result := euc2sjis(title)
     else
       result := title;
@@ -1077,7 +1079,7 @@ begin
   begin
     if 0 < System.Pos(#0, result) then
       result := ReplaceStr(result, #0, ' ');
-    if GetNeedConvert and (InCodeCheck(result) in [EUC_IN, EUCorSJIS_IN]) then
+    if GetNeedConvert then
       result := euc2sjis(result);
   end;
   {/aiai}
@@ -2100,10 +2102,7 @@ begin
   if assigned(asyncObj) and assigned(asyncObj.proc) then
   begin
     asyncObj.proc.Cancel;
-//    asyncObj.synchro.Wait;
-//    asyncObj.OnNotify := nil;
-//    asyncObj.canceled := True;
-//    asyncObj.synchro.Release;
+    
     {Log('（･∀･）ﾁｭｰｼ!!');}
     Log2(31, '');  //ayaya
   end;

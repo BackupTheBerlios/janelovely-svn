@@ -80,12 +80,12 @@ type
   public
     constructor Create;
     destructor Destroy; override;
-    procedure WriteHTML(str: PChar; size: integer); overload; virtual;
-    procedure WriteHTML(str: String); overload; virtual;
-    procedure WriteText(str: PChar; size: integer); overload; virtual; abstract;
-    procedure WriteText(str: String); overload; virtual;
-    procedure WriteChar(c: Char); virtual;
-    procedure WriteItem(str: PChar; size: integer;
+    procedure WriteHTML(const str: PChar; size: integer); overload; virtual;
+    procedure WriteHTML(const str: String); overload; virtual;
+    procedure WriteText(const str: PChar; size: integer); overload; virtual; abstract;
+    procedure WriteText(const str: String); overload; virtual;
+    procedure WriteChar(const c: Char); virtual;
+    procedure WriteItem(const str: PChar; size: integer;
                         itemType: TDatItemType); virtual; abstract;
     procedure WriteAnchor(const Name: string;
                           const HRef: string;
@@ -124,7 +124,7 @@ type
     function IsThisTag(substr, str: PChar; len: Integer): Boolean;  //aiai
 
   public
-    procedure WriteItem(str: PChar; size: integer;
+    procedure WriteItem(const str: PChar; size: integer;
                          itemType: TDatItemType); override;
     procedure SetLine(line: integer); override;
     procedure SetIgnoreBR(ABool: Boolean); override;
@@ -144,11 +144,11 @@ type
   public
     constructor Create;
     destructor Destroy; override;
-    procedure WriteText(str: PChar; size: integer); override;
+    procedure WriteText(const str: PChar; size: integer); override;
     procedure WriteAnchor(const Name: string;
                           const HRef: string;
                           str: PChar; size: integer); override;
-    procedure WriteItem(str: PChar; size: integer; itemType: TDatItemType); override;
+    procedure WriteItem(const str: PChar; size: integer; itemType: TDatItemType); override;
     procedure Clear;
     property Text: String read GetText;
   end;
@@ -159,8 +159,8 @@ type
     FBiteSpaces: Boolean;
     function ProcBlank: boolean; override;
   public
-    procedure WriteChar(c: Char); override;
-    procedure WriteText(str: PChar; size: integer); override;
+    procedure WriteChar(const c: Char); override;
+    procedure WriteText(const str: PChar; size: integer); override;
     procedure ProcHTML; override;
   end;
 
@@ -175,11 +175,11 @@ type
   public
     constructor Create;
     destructor Destroy; override;
-    procedure WriteText(str: PChar; size: integer); override;
+    procedure WriteText(const str: PChar; size: integer); override;
     procedure WriteAnchor(const Name: string;
                           const HRef: string;
                           str: PChar; size: integer); override;
-    procedure WriteItem(str: PChar; size: integer; itemType: TDatItemType); override;
+    procedure WriteItem(const str: PChar; size: integer; itemType: TDatItemType); override;
     property Text: String read GetText;
   end;
   {/aiai}
@@ -1236,22 +1236,22 @@ begin
   inherited;
 end;
 
-procedure TDatOut.WriteHTML(str: PChar; size: integer);
+procedure TDatOut.WriteHTML(const str: PChar; size: integer);
 begin
   WriteItem(str, size, ditNORMAL);
 end;
 
-procedure TDatOut.WriteHTML(str: String);
+procedure TDatOut.WriteHTML(const str: String);
 begin
   WriteHTML(PChar(str), length(str));
 end;
 
-procedure TDatOut.WriteText(str: String);
+procedure TDatOut.WriteText(const str: String);
 begin
   WriteText(PChar(str), length(str));
 end;
 
-procedure TDatOut.WriteChar(c: Char);
+procedure TDatOut.WriteChar(const c: Char);
 begin
   WriteText(@c, 1);
 end;
@@ -1794,7 +1794,7 @@ begin
 end;
 {/aiai}
 
-procedure TConvDatOut.WriteItem(str: PChar; size: integer; itemType: TDatItemType);
+procedure TConvDatOut.WriteItem(const str: PChar; size: integer; itemType: TDatItemType);
 begin
   Self.str   := str;
   Self.index := 0;
@@ -1962,7 +1962,7 @@ begin
   result := false;
 end;
 
-procedure TStrDatOut.WriteText(str: PChar; size: integer);
+procedure TStrDatOut.WriteText(const str: PChar; size: integer);
 begin
   if FSupress then
     exit;
@@ -2007,7 +2007,7 @@ begin
   end;
 end;
 
-procedure TStrDatOut.WriteItem(str: PChar; size: integer; itemType: TDatItemType);
+procedure TStrDatOut.WriteItem(const str: PChar; size: integer; itemType: TDatItemType);
 begin
   Self.str   := str;
   Self.index := 0;
@@ -2046,7 +2046,7 @@ begin
   WriteChar(' ')
 end;
 
-procedure TStrDatOutForGetMessage.WriteText(str: PChar; size: integer);
+procedure TStrDatOutForGetMessage.WriteText(const str: PChar; size: integer);
   procedure TrimRight;
   var
     i: integer;
@@ -2074,7 +2074,7 @@ begin
   Inherited WriteText(str, size);
 end;
 
-procedure TStrDatOutForGetMessage.WriteChar(c: Char);
+procedure TStrDatOutForGetMessage.WriteChar(const c: Char);
 begin
   if (FBiteSpaces and (c = ' ')) or (FPosition = 0) then
     exit;
@@ -2169,7 +2169,7 @@ begin
   end;
 end;
 
-procedure TIDDatOut.WriteText(str: PChar; size: integer);
+procedure TIDDatOut.WriteText(const str: PChar; size: integer);
 begin
 end;
 
@@ -2179,7 +2179,7 @@ procedure TIDDatOut.WriteAnchor(const Name: string;
 begin
 end;
 
-procedure TIDDatOut.WriteItem(str: PChar; size: integer; itemType: TDatItemType);
+procedure TIDDatOut.WriteItem(const str: PChar; size: integer; itemType: TDatItemType);
 begin
   case itemType of
     ditDATE: begin
@@ -2449,7 +2449,7 @@ begin
   if NeedConvert then
   begin
     SetString(convname, name, nameSize);
-    if InCodeCheck(convname) in [EUC_IN, EUCorSJIS_IN] then
+//    if InCodeCheck(convname) in [EUC_IN, EUCorSJIS_IN] then
     begin
       convname := euc2sjis(convname);
       name := PChar(convname);
@@ -2457,7 +2457,7 @@ begin
     end;
 
     SetString(convmail, mail, mailSize);
-    if InCodeCheck(convmail) in [EUC_IN, EUCorSJIS_IN] then
+//    if InCodeCheck(convmail) in [EUC_IN, EUCorSJIS_IN] then
     begin
       convmail := euc2sjis(convmail);
       mail := PChar(convmail);
@@ -2465,7 +2465,7 @@ begin
     end;
 
     SetString(convmsg, msg, msgSize);
-    if InCodeCheck(convmsg) in [EUC_IN, EUCorSJIS_IN] then
+//    if InCodeCheck(convmsg) in [EUC_IN, EUCorSJIS_IN] then
     begin
       convmsg := euc2sjis(convmsg);
       msg := PChar(convmsg);

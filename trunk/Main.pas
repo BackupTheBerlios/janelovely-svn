@@ -3064,6 +3064,10 @@ begin
     end else
       SetRPane(ptList);
 
+    //開いているスレッド一覧が開いている場合
+    if (currentBoard <> nil) and (currentBoard is TOpenThreadsBoard) then
+      UpdateListView;
+
     CanAutoCheckNewRes := True;  //aiai
 
     try
@@ -3123,6 +3127,8 @@ begin
   for j := 0 to SkinCollectionList.Count - 1 do
     TSkinCollection(SkinCollectionList.Items[j]).Free;
   SkinCollectionList.Free;
+
+  sleep(2000);
 
   UILock := True;
   {aiai}
@@ -3500,10 +3506,12 @@ begin
   MenuViewWriteMemoToggleVisible.Checked := WritePanel.Visible;
 
   (* Columns *)
+  ListView.Items.BeginUpdate;
   SetupColumns;
   for i := 0 to ListView.Columns.Count -1 do
     ListView.Column[i].Width := iniFile.ReadInteger(INI_WIN_SECT, 'Column' + IntToStr(ListView.Column[i].Tag), ListView.Column[i].Width);
   ListView.Show;
+  ListView.Items.EndUpdate;
 
   (* CoolBar *) //※[457]
   //CoolBar.Bands.BeginUpdate;
@@ -4632,6 +4640,10 @@ var
           result := IntToStr(currentBoard.IndexOf(thread) +1)
         else if 0 < thread.number then
           result := IntToStr(thread.number);
+        {aiai}
+        if thread.Opened then
+          result := '*' + result;
+        {/aiai}
       end;
     LVSC_TITLE:
       begin
@@ -4691,12 +4703,15 @@ var
       end;
     LVSC_GAIN: //aiai
       try
-        if (0 < thread.itemCount) and (thread.itemCount >= thread.previousitemCount) then
+        if (0 < thread.number) and (thread.itemCount >= thread.previousitemCount) then
           (* 新規に立ったスレの増しレス数はレス数と同じ *)
-          if (CurrentBoard.last2Modified <> '') and (CheckNewThreadAfter2 < StrToInt(thread.datName)) then
-            result := IntToStr(thread.itemCount)
-          else if thread.previousitemCount > 0 then
-            result := IntToStr(thread.itemCount - thread.previousitemCount);
+          if (CurrentBoard.last2Modified <> '') then
+          begin
+            if(CheckNewThreadAfter2 < StrToInt(thread.datName)) then
+              result := IntToStr(thread.itemCount)
+            else
+              result := IntToStr(thread.itemCount - thread.previousitemCount);
+          end;
       except
       end;
     end;
@@ -4982,6 +4997,7 @@ procedure TMainWnd.ShowSpecifiedThread(thread: TThreadItem;
                                        wndstate: TMTVState = MTV_MAX);
 var
   viewItem: TViewItem;
+  OpenThreads: TOpenThreadsBoard;
 begin
   if oprType = gotNOP then
     exit;
@@ -4995,6 +5011,15 @@ begin
       SetCurrentView(viewList.IndexOf(viewItem));
   end
   else begin
+    {aiai}
+    OpenThreads := i2ch.items[0].items[2] as TOpenThreadsBoard;
+    if OpenThreads.Refered then
+    begin
+      OpenThreads.Add(thread);
+      thread.AddRef(false);
+    end;
+    thread.Opened := true;
+    {/aiai}
     if not newViewP then
       viewItem := GetActiveView;
     if (viewItem = nil) or (viewItem.thread = nil) then
@@ -6370,6 +6395,8 @@ begin
     viewList.Items[index].browser.TabStop := false;
     if savePos then
       viewList.Items[index].Cancel;
+    if viewList.Items[index].thread <> nil then
+      viewList.Items[index].thread.Opened := False;
     viewList.Items[index].FreeThread(savePos);
     viewList.Delete(index);
     viewListLock.Release;
@@ -6867,7 +6894,6 @@ begin
     result := -result;
 end;
 
-function ListCompareFuncMarker(Item1, Item2: Pointer): integer;
   function GetThreadMaxNum(thread: TThreadItem): integer;
   begin
     case TBoard(thread.board).BBSType of
@@ -6877,68 +6903,76 @@ function ListCompareFuncMarker(Item1, Item2: Pointer): integer;
     end;
   end;
 
+function ListCompareFuncMarker(Item1, Item2: Pointer): integer;
 var
   t1, t2: TThreadItem;
+  current: Boolean;
 begin
   t1 := Item1;
   t2 := Item2;
 
   (* Over 1000 とか *)
-  result := Integer(t2.oldLines < GetThreadMaxNum(t2)) - Integer(t1.oldLines < GetThreadMaxNum(t1));
+  current := t2.oldLines < GetThreadMaxNum(t2);
+  result := Integer(current) - Integer(t1.oldLines < GetThreadMaxNum(t1));
   if result <> 0 then
     exit;
   (* dat落ちが上がってこないように (aiai) *)
+  current := current or (t2.number > 0);
   result := Integer(t2.number > 0) - Integer(t1.number > 0);
   if result <> 0 then
     exit;
-  (* dat落ち とか *)
-  result := Integer(t2.itemCount >0) - Integer(t1.itemCount >0);
-  if result <> 0 then
-    exit;
   (* 取得レスがあるかどうか *)
-  result := Integer(0 < t2.lines) - Integer(0 < t1.lines);
-  if result <> 0 then
-    exit;
+  if current then
+  begin
+    result := Integer(0 < t2.lines) - Integer(0 < t1.lines);
+    if result <> 0 then
+      exit;
+  end;
   (* 更新があるかどうか *)
   result := Integer(t2.lines < t2.itemCount)
           - Integer(t1.lines < t1.itemCount);
   if result <> 0 then
     exit;
   (* 未読があるかどうか *)
-  result := Integer(t2.oldLines < t2.lines) - Integer(t1.oldLines < t1.lines);
-  if result <> 0 then
-    exit;
+  if (0 < t2.lines) and (t2.lines >= t2.itemCount) then
+  begin
+    result := Integer(t2.oldLines < t2.lines) - Integer(t1.oldLines < t1.lines);
+    if result <> 0 then
+      exit;
+  end;
   (* 印があるかどうか *)
   result := Ord(t2.mark) - Ord(t1.mark);
   if result <> 0 then
     exit;
   result := Ord(t1.state) - Ord(t2.state); //※[457]
-  {aiai}  //新規スレッド
-  if Config.optCheckThreadMadeAfterLstMdfy2
+  if result <> 0 then
+    exit;
+
+  (* 現役で取得レスがない場合 *)
+  if current and (0 >= t2.lines) then
+  begin
+    {aiai}  //新規スレッド
+    if Config.optCheckThreadMadeAfterLstMdfy2
           and (MainWnd.CurrentBoard.last2Modified <> '') then
-  try
-    (*
-    result := Integer(MainWnd.CurrentBoard.previouslastModified
-            < StrToInt(t2.datName))
-                    - Integer(MainWnd.CurrentBoard.previouslastModified
-                             < StrToInt(t1.datName));
-    *)
-    result := Integer(StrToInt(t2.datName) > CheckNewThreadAfter2)
-            - Integer(StrToInt(t1.datName) > CheckNewThreadAfter2);
-  except
-    result := 0;
+    try
+      result := Integer(StrToInt(t2.datName) > CheckNewThreadAfter2)
+              - Integer(StrToInt(t1.datName) > CheckNewThreadAfter2);
+    except
+      result := 0;
+    end;
+    if result <> 0 then exit;
+    {/aiai}
+    {beginner}  //新着スレッド
+    if Config.optCheckThreadMadeAfterLstMdfy then
+    try
+      result := Integer(StrToInt(t2.datName) > CheckNewThreadAfter)
+              - Integer(StrToInt(t1.datName) > CheckNewThreadAfter);
+    except
+      Result:=0;
+    end;
+    {/beginner}
   end;
-  if result <> 0 then exit;
-  {/aiai}
-  {beginner}  //新着スレッド
-  if Config.optCheckThreadMadeAfterLstMdfy then
-  try
-    result := Integer(StrToInt(t2.datName) > CheckNewThreadAfter)
-            - Integer(StrToInt(t1.datName) > CheckNewThreadAfter);
-  except
-    Result:=0;
-  end;
-  {/beginner}
+
   if result = 0 then
     result := ListCompareFuncNumber(Item1, Item2);
 end;
@@ -7102,43 +7136,47 @@ end;
 
 //aiai 増レスカラムでのソート
 function ListCompareFuncGain(Item1, Item2: Pointer): integer;
-  function itemcountgain(Item: Pointer): integer;
+  function itemcountgain(thread: TThreadItem): integer;
   begin
-    result := TThreadItem(Item).itemCount - TThreadItem(Item).previousitemCount;
-  end;
-begin
-  if MainWnd.currentSortColumn = -LVSC_GAIN then
-  begin
-    if ((TThreadItem(Item1).itemCount = 0) and (TThreadItem(Item2).itemCount = 0))
-    or ((TThreadItem(Item1).previousitemCount = 0) and (TThreadItem(Item2).previousitemCount = 0)) then
-      result := ListCompareFuncNumber(Item1, Item2)
-    else if TThreadItem(Item1).itemCount = 0 then
-      result := 1
-    else if TThreadItem(Item2).itemCount = 0 then
-      result := -1
+    if CheckNewThreadAfter2 < StrToIntDef(thread.datName, 0) then
+      result := thread.itemCount
     else
-     result := itemcountgain(Item1) - itemcountgain(Item2);
-    if result = 0 then
-      result := ListCompareFuncNumber(Item1, Item2);
-  end else
-  begin
-    {if ((TThreadItem(Item1).itemCount = 0) and (TThreadItem(Item2).itemCount = 0))
-    or ((TThreadItem(Item1).previousitemCount = 0) and (TThreadItem(Item2).previousitemCount = 0)) then
-      result := ListCompareFuncNumber(Item1, Item2)
-    else if (TThreadItem(Item1).itemCount = 0) then
-      result := 1
-    else if (TThreadItem(Item2).itemCount = 0) then
-      result := -1
-    else}
-    result := TThreadItem(Item1).number - TThreadItem(Item2).number;
-    if result <> 0 then
-    begin
-      result := itemcountgain(Item2) - itemcountgain(Item1);
-      if result = 0 then
-        result := ListCompareFuncNumber(Item1, Item2);
-    end;
+      result := thread.itemCount - thread.previousitemCount;
   end;
+
+var
+  t1, t2: TThreadItem;
+begin
+  t1 := TThreadItem(Item1);
+  t2 := TThreadItem(Item2);
+
+  if MainWnd.currentBoard.Last2Modified = '' then
+  begin
+    result := ListCompareFuncNumber(Item1, Item2);
+    exit;
+  end;
+  (* Over 1000 とか *)
+  result := Integer(t2.oldLines < GetThreadMaxNum(t2)) - Integer(t1.oldLines < GetThreadMaxNum(t1));
+  if result <> 0 then
+    exit;
+  (* dat落ち *)
+  result := Integer(t2.number > 0) - Integer(t1.number > 0);
+  if result <> 0 then
+    exit;
+
+  result := Integer(t2.itemCount >= t2.previousitemCount) - Integer(t1.itemCount >= t1.itemCount);
+  if result <> 0 then
+    exit;
+
+  result := itemcountgain(t1) - itemcountgain(t2);
+
+  if MainWnd.currentSortColumn = LVSC_GAIN then
+    result := - result;
+
+  if result = 0 then
+    result := ListCompareFuncNumber(Item1, Item2);
 end;
+
 //スレ絞込みでのソート
 function ListCompareFuncSearchState(Item1, Item2: Pointer): integer;
 begin
@@ -7234,8 +7272,6 @@ var
   thread: TThreadItem;
   index: integer;
 begin
-  ListView.DoubleBuffered := True;
-
   MakeCheckNewThreadAfter(nil,0,0); //beginner
 
   ListView.List := currentBoard;
@@ -7320,8 +7356,6 @@ begin
   end;
   UpdateListTab;
 
-  ListView.Repaint;
-  ListView.DoubleBuffered := False;
 end;
 
 procedure TMainWnd.ViewPopupResClick(Sender: TObject);
@@ -8773,8 +8807,7 @@ begin
   StopAutoReSc; //aiai
   if assigned(viewItem) and assigned(viewItem.thread) then
   begin
-    if viewItem.thread.Downloading then
-      viewItem.thread.CancelAsyncRead;
+    viewItem.thread.CancelAsyncRead;
     viewItem.thread.RemoveLog;
     UnRegisterFavorite(viewItem.thread);
     UpdateThreadInfo(viewItem.thread);
@@ -16280,12 +16313,14 @@ begin
   while High(Config.stlClmnArray) >= ListView.Columns.Count do
     ListView.Columns.Add;
 
+  ListView.Items.BeginUpdate;
   SetUpColumns;
 
   for i := 0 to ListView.Columns.Count -1 do
     ListView.Column[i].Width := iniFile.ReadInteger(INI_WIN_SECT,
                                 'Column' + IntToStr(ListView.Column[i].Tag),
                                 ListView.Column[i].Width);
+  ListView.Items.EndUpdate;
   iniFile.Free;
 end;
 
@@ -16296,6 +16331,7 @@ end;
 
 procedure TMainWnd.PopupTaskTrayCloseClick(Sender: TObject);
 begin
+  TrayIcon.Hide;
   Close;
 end;
 
@@ -17549,7 +17585,7 @@ begin
 
   j := Length(SearchTarget);
   str := PChar(SearchTarget);
-  if (TreeViewSearchEditBox.Tag = 1)
+  if (ThreViewSearchEditBox.Tag = 1)
     and Config.schEnableMigemo and MigemoOBJ.CanUse and NumAlpha(str, j) then
   begin
     hloption := hloReg;
@@ -17560,7 +17596,7 @@ begin
       keywordList.Insert(i, str);
       MigemoOBJ.Release(str);
     end;
-  end else if (TreeViewSearchEditBox.Tag = 2) then
+  end else if (ThreViewSearchEditBox.Tag = 2) then
     hloption := hloReg;
 
   try
@@ -18233,7 +18269,7 @@ end;
 initialization
   OleInitialize(nil);
   Application.ShowHint := False;
-  HintWindowClass := TXPHintWindow; 
+  HintWindowClass := TXPHintWindow;
   Application.ShowHint := True;
 finalization
   OleUninitialize;

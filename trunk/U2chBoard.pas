@@ -71,10 +71,10 @@ type
     FProcGetSettingTxt: TAsyncReq;
     FSettingTxtLoaded: Boolean;
     FDatList: THashedStringList;  (* subject.txtにあるスレのdatのリスト TBoard.FindFirstでTThreadの検索に使う (aiai) *)
-    FProcGetSubject: TAsyncReq;   (* 通信用 (aiai) *) //テスト
+    FProcGetSubject: TAsyncReq;
     FPRocState: TProgState;
-    FFavPatrolData: String;       (* 通信用 (aiai) *) //テスト
-    FFavPatrolType: TPatrolType;  (* 通信用 (aiai) *) //テスト
+    FFavPatrolData: String;
+    FFavPatrolType: TPatrolType; 
     FOnSubjectEnd: TBoardSubjectEndNotifyEvent;
     FOnCheckEnd: TBoardCheckEndEvent;
 
@@ -89,15 +89,14 @@ type
     procedure SetUma(val: boolean);
     procedure SetHost(newHost: string); virtual;
 
-    function FindThreadFirst(const datName: string): TThreadItem; //aiai
+    function FindThreadFirst(const datName: string): TThreadItem;
     procedure MergeCache;
     procedure MergeCacheFast;
     procedure InitialDBOpen;
     procedure IdxDataBaseOpen(Sender: TObject);
     procedure IdxDataBaseClose(Sender: TObject);
     procedure ChangeThreadItemURI;
-//    procedure OnDone(Sender: TAsyncReq);           (* 通信用 (aiai) *) //テスト
-    procedure OnMovedSubject(sender: TAsyncReq);   (* 通信用 (aiai) *) //テスト
+    procedure OnMovedSubject(sender: TAsyncReq);
     procedure OnAsyncDoneProc(Sender: TASyncReq);
     procedure GetSettingTxt;
     procedure OnSettingTxt(sender: TAsyncReq);
@@ -185,6 +184,14 @@ type
   (*-------------------------------------------------------*)
   //※[457]
   TLogListBoard = class(TFunctionalBoard)
+  public
+    constructor Create(category: TObject);
+    procedure Load(refresh: Boolean = False); override;
+  end;
+
+  (*-------------------------------------------------------*)
+  // 現在開いているスレッドの一覧 ( by aiai )
+  TOpenThreadsBoard = class(TFunctionalBoard)
   public
     constructor Create(category: TObject);
     procedure Load(refresh: Boolean = False); override;
@@ -908,7 +915,6 @@ begin
     sql := 'COMMIT';
     err := FIdxDataBase.Exec(PChar(sql), nil, nil, msg);
     SQLCheck(err, FName, sql, msg);
-    FIdxDataBase.Close;
   end;
   (* //DataBase *)
 
@@ -1043,7 +1049,6 @@ begin
     exit;
   end;
   SQLCheck(err, FName, sql, msg);
-  FIdxDataBase.Close;
   Assign(FMergingList, laOr);
 
   FMergingList.Free;
@@ -1942,7 +1947,6 @@ begin
     sql := 'COMMIT';
     err := FIdxDataBase.Exec(PChar(sql), nil, nil, msg); //トランザクション
     SQLCheck(err, FName, sql, msg);
-    FIdxDataBase.Close;
   end;
   (* //DataBase *)
 
@@ -2077,6 +2081,33 @@ begin
   FHost := 'Jane';   //適当だけどお気に入りで使うために
   bbs := 'Log';
   Name := 'ログ一覧';
+end;
+
+(*=======================================================*)
+// 現在開いているスレッドの一覧 ( by aiai )
+constructor TOpenThreadsBoard.Create(category: TObject);
+begin
+  inherited Create(category);
+
+  FHost := 'Jane';
+  bbs := 'OpenThreads';
+  Name := 'OpenThreads';
+end;
+
+procedure TOpenThreadsBoard.Load;
+var
+  i: integer;
+  item: TThreadItem;
+begin
+  for i := 0 to viewList.Count - 1 do
+  begin
+    item := viewList.Items[i].thread;
+    if item <> nil then
+    begin
+      item.AddRef(false);
+      Add(item);
+    end;
+  end;
 end;
 
 (*=======================================================*)
