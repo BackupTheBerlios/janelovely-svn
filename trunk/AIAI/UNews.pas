@@ -266,13 +266,14 @@ end;
 
 function TNews.GetNewsText: String;
 begin
-  Result := FList[FIndex - 1];
+  if (1 <= FIndex) and (FIndex <= FList.Count) then
+    Result := FList[FIndex - 1];
 end;
 
 function TNews.GetNewsURI: String;
 begin
-  if FURLList.Count > 0 then
-    Result := 'http://www.asahi.com/'
+  if (FURLList.Count > 0) and (1 <= FIndex) and (FIndex <= FList.Count) then
+   Result := 'http://www.asahi.com/'
             + siteList.Strings[siteIndex]
             + '/update/'
             + FURLList.Strings[FIndex - 1]

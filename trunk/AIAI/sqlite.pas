@@ -33,6 +33,8 @@ const
   SQLITE_ROW =        100;  (* sqlite_step() has another row ready *)
   SQLITE_DONE =       101;  (* sqlite_step() has finished executing *)
 
+  SQLITE_DLL_NAME = 'sqlite.dll';
+
 (* ------------------------------------------------------------------------- *)
 type
 (* ------------------------------------------------------------------------- *)
@@ -61,11 +63,13 @@ procedure Finaldll;
 
 (* ------------------------------------------------------------------------- *)
 implementation
+
+uses Main;
 (* ------------------------------------------------------------------------- *)
 
 function Initdll: Boolean;
 begin
-  SQLiteHandle := LoadLibrary('sqlite.dll');
+  SQLiteHandle := LoadLibrary(SQLITE_DLL_NAME);
   if SQLiteHandle = 0 then
   begin
     Result := False;

@@ -1183,10 +1183,18 @@ begin
 end;
 
 procedure ChangeWriteMemoStyle;
+var
+  bname: string;
 begin
   WritePanelControl.ChangeWriteMemoColor;
   WritePanelControl.ChangeWriteMemoFont;
   WritePanelControl.ChangePreViewStyle;
+  if WritePanelControl.board <> nil then
+    bname := WritePanelControl.board.bbs
+  else
+    bname := '';
+  SetNameBox(WritePanelControl.EditNameBox, Config.wrtNameList, bname);
+  WritePanelControl.EditMailBox.Items.Assign(Config.wrtMailList);
 end;
 
 end.

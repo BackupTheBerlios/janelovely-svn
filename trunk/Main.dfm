@@ -8462,6 +8462,13 @@ object MainWnd: TMainWnd
       Caption = 'URL'#12434#12467#12500#12540'(&C)'
       OnClick = MenuStatusCopyURIClick
     end
+    object MenuStatusReset: TMenuItem
+      Caption = #12491#12517#12540#12473#12496#12540#12434#12522#12475#12483#12488'(&R)'
+      OnClick = MenuStatusResetClick
+    end
+    object N98: TMenuItem
+      Caption = '-'
+    end
     object N56: TMenuItem
       Caption = #12513#12514#27396#12434#34920#31034'(&M)'
       OnClick = StatusBarClick

@@ -43,7 +43,7 @@ uses
 
 const
   VERSION  = '0.1.3.16';      (* Printable ASCIIコード厳守。')'はダメ *)
-  JANE2CH  = 'JaneLovely 0.1.3.16 β3';
+  JANE2CH  = 'JaneLovely 0.1.3.16';
   KEYWORD_OF_USER_AGENT = 'JaneLovely';      (*  *)
 
   DISTRIBUTORS_SITE = 'http://www.geocities.jp/openjane4714/';
@@ -871,6 +871,8 @@ type
     ButtonWriteWrite: TButton;
     Button2: TButton;
     TreeTabControl: TTabControl;
+    N98: TMenuItem;
+    MenuStatusReset: TMenuItem;
     {/aiai}
     procedure FormCreate(Sender: TObject);
     procedure MenuToolsOptionsClick(Sender: TObject);
@@ -1371,6 +1373,7 @@ type
       Shift: TShiftState);
     procedure MemoWriteMainKeyPress(Sender: TObject; var Key: Char);
     procedure CheckBoxWriteSageClick(Sender: TObject);
+    procedure MenuStatusResetClick(Sender: TObject);
     {/aiai}
   private
   { Private 宣言 }
@@ -2748,8 +2751,9 @@ var
   wnd: HWND;
   p: Pointer;
   dlg: TGetBoardListForm; //aiai
-  rs: TResourceStream; //aiai
+  error: Boolean;  //aiai
 begin
+  error := false;
   {$IFDEF BENCH}
   InitBench;
   {$ENDIF}
@@ -2793,6 +2797,27 @@ begin
   (* コンフィグレーション *)
   Config := TJaneConfig.Create;
   Config.Load;
+
+  (* DataBase (aiai) *)
+  if Config.ojvQuickMerge then
+  begin
+    if not FileExists(Config.BasePath + SQLITE_DLL_NAME) then
+    begin
+      MessageBox(Handle, SQLITE_DLL_NAME + ' が見つからなかったため、このアプリケーションを開始できませんでした。アプリケーションをインストールし直すとこの問題は解決される場合があります。', 'Jane2ch.exe - コンポーネントが見つかりません', MB_ICONERROR or MB_OK);
+      Application.Terminate;
+      Application.ShowMainForm := false;
+      error := true;
+    end;
+    if not Initdll then
+    begin
+      MessageBox(Handle, SQLITE_DLL_NAME + ' の初期化に失敗したため、このアプリケーションを開始できませんでした。アプリケーションをインストールし直すとこの問題は解決される場合があります。', 'Jane2ch.exe - dllを初期化できません', MB_ICONERROR or MB_OK);
+      Application.Terminate;
+      Application.ShowMainForm := false;
+      error := true;
+    end;
+  end;
+  (* //DataBase *)
+
   UDat2HTML.ABONE := Config.viewNGMsgMarker;
 
   AsyncInitialize;
@@ -3023,24 +3048,6 @@ begin
   //ListView.SmartoubleBuffered := True;
   //LogPanel.DoubleBuffered := True;
 
-
-  (* DataBase (aiai) *)
-  if Config.ojvQuickMerge and not FileExists(Config.BasePath + 'sqlite.dll') then
-  begin
-    rs := TResourceStream.Create(hInstance, 'SQLite', 'DLL');
-    try
-      rs.SaveToFile(Config.BasePath + 'sqlite.dll');
-    finally
-      rs.Free;
-    end;
-  end;
-  if Config.ojvQuickMerge and not Initdll then
-  begin
-    ShowMessage('sqlite.dllの初期化に失敗したのでJaneを終了します');
-    Application.Terminate;
-  end;
-  (* //DataBase *)
-
   {aiai}
   if Config.schEnableMigemo then
   begin
@@ -3080,7 +3087,8 @@ begin
   end;
   {/aiai}
 
-  OpenStartupThread;
+  if not error then
+    OpenStartupThread;
   UpdateTabTexts;
 
   userImeMode := imDontCare;
@@ -13783,50 +13791,30 @@ end;
 //※[457]
 procedure TMainWnd.ListViewCustomDrawItem(Sender: TCustomListView;
   Item: TListItem; State: TCustomDrawState; var DefaultDraw: Boolean);
-var
-  sethotstate: Boolean;
 begin
-  sethotstate := false;
+  Sender.Canvas.Brush.Style := bsClear; //aiai (下線が残るのを避ける。特に意味はない)
 
   if config.stlListViewUseExtraBackColor then
   begin
-    Sender.Canvas.Brush.Style := bsClear; //aiai (下線が残るのを避ける。特に意味はない)
-
     if Item.Index and 1 = 0 then
-    begin
-      Sender.Canvas.Brush.Color := config.clListViewOddBackColor;
-      //Sender.Canvas.
-      //ListImages.BkColor := config.clListViewEvenBackColor;
-    end
+      Sender.Canvas.Brush.Color := config.clListViewOddBackColor
     else
       Sender.Canvas.Brush.Color := config.clListViewEvenBackColor;
-    sethotstate := true;
-  end;
+  end else
+    Sender.Canvas.Brush.Color := ListView.Color;
 
   if TThreadItem(Item.Data).liststate <> 0 then
   begin
     Sender.Canvas.Font.Color := clRed;
-    //ListView.Canvas.Brush.Color := clHighlight;
-    //ListView.Canvas.Font.Color := clHighlightText;
-    sethotstate := true;
   end else if (TThreadItem(Item.Data).ThreAboneType and TThreAboneTypeMASK in [1, 2]) then
   begin
     Sender.Canvas.Font.Color := clGray;
-    sethotstate := true;
   end else if (TThreadItem(Item.Data).ThreAboneType and TThreAboneTypeMASK = 4) then
   begin
     Sender.Canvas.Font.Color := clBlue;
-    sethotstate := true;
   end;
-(*
-  if fsUnderline in Sender.Canvas.Font.Style then
-  begin
-    Sender.Canvas.Font.Style := Sender.Canvas.Font.Style - [fsUnderline]
 
-  end;
-*)
-  //自分でHotTrack時の絵画をする必要がある時だけ変更
-  if sethotstate and (cdsHot in state) then
+  if (cdsHot in state) then
   begin
     Sender.Canvas.Font.Style := Sender.Canvas.Font.Style + [fsUnderline];
     Sender.Canvas.Font.Color := clHotLight;
@@ -17391,6 +17379,7 @@ begin
     MenuStatusOpenByBrowser.Visible := True;
     MenuStatusOpenByLovelyBrowser.Visible := True;
     MenuStatusCopyURI.Visible := True;
+    MenuStatusReset.Visible := True;
     i := PopupStatusBar.Items.IndexOf(MenuStatusCmdSep);
     for i := i + 1 to PopupStatusBar.Items.Count - 1 do
       PopupStatusBar.Items[i].Visible := True;
@@ -17399,6 +17388,7 @@ begin
     MenuStatusOpenByBrowser.Visible := False;
     MenuStatusOpenByLovelyBrowser.Visible := False;
     MenuStatusCopyURI.Visible := False;
+    MenuStatusReset.Visible := False;
     i := PopupStatusBar.Items.IndexOf(MenuStatusCmdSep);
     for i := i + 1 to PopupStatusBar.Items.Count - 1 do
       PopupStatusBar.Items[i].Visible := False;
@@ -17418,6 +17408,14 @@ end;
 procedure TMainWnd.MenuStatusCopyURIClick(Sender: TObject);
 begin
  Clipboard.AsText := MyNews.TempBuffer;
+end;
+
+procedure TMainWnd.MenuStatusResetClick(Sender: TObject);
+begin
+  Config.tstUseNews := false;
+  CreateNewsBar;
+  Config.tstUseNews := true;
+  CreateNewsBar;
 end;
 
 //▲ ステータスバー
