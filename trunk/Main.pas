@@ -8812,6 +8812,7 @@ begin
     viewItem.thread.RemoveLog;
     UnRegisterFavorite(viewItem.thread);
     UpdateThreadInfo(viewItem.thread);
+    viewItem.thread.canclose := True;
     actCloseThisTabExecute(Sender);
   end;
 end;
