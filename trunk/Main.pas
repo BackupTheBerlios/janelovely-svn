@@ -42,8 +42,8 @@ uses
   {/aiai}
 
 const
-  VERSION  = '0.1.3.10';      (* Printable ASCIIコード厳守。')'はダメ *)
-  JANE2CH  = 'JaneLovely 0.1.3.10';
+  VERSION  = '0.1.3.11';      (* Printable ASCIIコード厳守。')'はダメ *)
+  JANE2CH  = 'JaneLovely 0.1.3.11';
   KEYWORD_OF_USER_AGENT = 'JaneLovely';      (*  *)
 
   DISTRIBUTORS_SITE = 'http://www.geocities.jp/openjane4714/';
@@ -5624,7 +5624,7 @@ begin
       if (viewItem.thread = nil) then
         exit;
       try
-        s := RightStr(Text, Length(Text) - 3);
+        SetString(s, PChar(Text) + 3, Length(Text) - 3);
         if Length(s) <= 0 then
           exit;
         if ShowIDInfo(Point, IdStr, s, viewItem,
@@ -6336,7 +6336,7 @@ begin
     cancel := true;
     if (viewItem.thread = nil) then
       exit;
-    URI := RightStr(URL, Length(URL) - 3);
+    SetString(URI, PChar(URL) + 3, Length(URL) - 3);
     if Length(URI) <= 0 then
       exit;
     newViewItem := NewPopUpView(viewItem);
@@ -7745,7 +7745,7 @@ end;
 {aiai} //このIDでレス抽出
 procedure TMainWnd.TextPopupExtractIDClick(Sender: TObject);
 var
-  target: string;
+  target, tmp: string;
   viewItem: TBaseViewItem;
 begin
   if PopupTextMenu.PopupComponent is THogeTextView then
@@ -7754,10 +7754,10 @@ begin
     viewItem := GetActiveView;
   if (viewItem = nil) then
     exit;
-  target := viewItem.LinkText;
-  if not AnsiStartsStr('ID:', target) then
+  tmp := viewItem.LinkText;
+  if not AnsiStartsStr('ID:', tmp) then
     exit;
-  target := RightStr(target, Length(target) - 3);
+  SetString(target, PChar(tmp) + 3, Length(tmp) - 3);
   if Length(target) <= 0 then
     exit;
   searchTarget := target;
@@ -11296,7 +11296,6 @@ begin
         //Nothing To Do
       end else
       begin
-        ReleasePopupHint(viewItem, True);  //aiai
         Cancel := False;
         OnBrowserMouseMove(Sender, Shift, X, Y);
         BrowserBeforeNavigate(Sender, FStatusText, Mouse.CursorPos, Cancel, False);
@@ -14343,10 +14342,10 @@ begin
     viewItem := GetActiveView;
   if viewItem = nil then
     exit;
-  Item := viewItem.LinkText;
-  if not AnsiStartsStr('ID:', Item) then
+  tmp := viewItem.LinkText;
+  if not AnsiStartsStr('ID:', tmp) then
     exit;
-  Item := RightStr(Item, Length(Item) - 3);
+  SetString(Item, PChar(tmp) + 3, Length(tmp) - 3);
   if Length(Item) <= 0 then
     exit;
 
@@ -14424,7 +14423,7 @@ end;
 procedure TMainWnd.TextPopupIDAboneClick(Sender: TObject);
 var
   viewItem: TViewItem;
-  Item: String;
+  Item, tmp: String;
   i: Integer;
   dat: TThreadData;
   AboneType: Integer;
@@ -14435,14 +14434,14 @@ begin
     viewItem := GetActiveView;
   if (viewItem = nil) then
     exit;
-  Item := viewItem.LinkText;
-  if not AnsiStartsStr('ID:', Item) then
+  tmp := viewItem.LinkText;
+  if not AnsiStartsStr('ID:', tmp) then
     exit;
   viewItem := GetActiveView;
   if (viewItem = nil) or (viewItem.thread = nil)
     or (viewItem.thread.dat = nil) then
     exit;
-  Item := RightStr(Item, Length(Item) - 3);
+  SetString(Item, PChar(tmp) + 3, Length(tmp) - 3);
   if Length(Item) <= 0 then
     exit;
 

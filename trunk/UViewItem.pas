@@ -1171,10 +1171,16 @@ begin
 
   (* —j“ú•t‚«‚ª‚Ç‚¤‚©’²‚×‚é *)
   for i := 0 to size do
-  begin
-    if (str + i)^ in [#$8B..#$96] then
-      exit;
-  end;
+    case (str + i)^ of
+      #$8C: if (i < size - 1) and ((str + i + 1)^ = #$8E) then exit;  //ŒŽ
+      #$89: if (i < size - 1) and ((str + i + 1)^ = #$CE) then exit;  //‰Î
+      #$90: if (i < size - 1) and ((str + i + 1)^ = #$85) then exit;  //…
+      #$96: if (i < size - 1) and ((str + i + 1)^ = #$D8) then exit;  //–Ø
+      #$8B: if (i < size - 1) and ((str + i + 1)^ = #$E0) then exit;  //‹à
+      #$93: if (i < size - 1) then
+              if (str + i + 1)^ = #$79 then exit //“y
+              else if (str + i + 1)^ = #$FA then exit; //“ú
+    end;  //Case
 
   (* ”N‚ª2Œ…‚Ìê‡ *)
   if (size > 8)  and ((str + 2)^ = '/') and ((str + 8)^ = ' ') then
@@ -1680,10 +1686,16 @@ begin
 
   (* —j“ú•t‚«‚ª‚Ç‚¤‚©’²‚×‚é *)
   for i := 0 to size do
-  begin
-    if (str + i)^ in [#$8B..#$96] then
-      exit;
-  end;
+    case (str + i)^ of
+      #$8C: if (i < size - 1) and ((str + i + 1)^ = #$8E) then exit;  //ŒŽ
+      #$89: if (i < size - 1) and ((str + i + 1)^ = #$CE) then exit;  //‰Î
+      #$90: if (i < size - 1) and ((str + i + 1)^ = #$85) then exit;  //…
+      #$96: if (i < size - 1) and ((str + i + 1)^ = #$D8) then exit;  //–Ø
+      #$8B: if (i < size - 1) and ((str + i + 1)^ = #$E0) then exit;  //‹à
+      #$93: if (i < size - 1) then
+              if (str + i + 1)^ = #$79 then exit //“y
+              else if (str + i + 1)^ = #$FA then exit; //“ú
+    end;  //Case
 
   (* ”N‚ª2Œ…‚Ìê‡ *)
   if (size > 8)  and ((str + 2)^ = '/') and ((str + 8)^ = ' ') then
