@@ -1629,6 +1629,7 @@ var
   Header: TStringList;
   ImageHeaderPointer: PChar;
   CPos: TPoint;
+  DummyBMP: TBitmap;
 begin
 
   CPos := Mouse.CursorPos;
@@ -1694,31 +1695,67 @@ begin
       SeekSkipMacBin(CacheStream);
       ImageHeaderPointer := PChar(CacheStream.DataString) + CacheStream.Position;
 
-      if (StrLComp(ImageHeaderPointer, #$FF#$D8#$FF#$E0#$00#$10'JFIF',10) = 0)
-          or (StrLComp(ImageHeaderPointer, #$FF#$D8#$FF#$E1, 4) = 0)
-          {or SameText(ExtractFileExt(Text), '.jpg') or SameText(ExtractFileExt(Text), '.jpeg')} then
-        //ImageConv:=TJPEGImage.Create
-        ImageConv := TApiBitmap.Create
       (* pngの展開にPNGImageを使う (aiai) *)
-      else if (StrLComp(ImageHeaderPointer, PngHeader, 8)=0)  {SameText(ExtractFileExt(FInfo), '.png')} then
-        ImageConv := TPNGObject.Create
-      (* gifの展開にPNGImageを使う (aiai) *)
-      else if (StrLComp(ImageHeaderPointer,'GIF',3)=0) then begin
-        ImageConv := TGifImage.Create;
-        TGifImage(ImageConv).Animate := False;
-      end else
-        ImageConv:=TSPIBitmap.Create;
+      if (StrLComp(ImageHeaderPointer, PngHeader, 8) = 0) then begin
 
-      try
-        ImageConv.LoadFromStream(CacheStream);
-        PopupHint.OwnBitmap.Assign(ImageConv);
-        PopupHint.ActivateHintData(Bounds(CPos.X, CPos.Y+20,
-                          ImageViewConfig.ImageHintWidth, ImageViewConfig.ImageHintHeight),
-                          'キャッシュ画像', PopupHint.OwnBitmap);
-      except
-        on e:Exception do PopUpTextHint('Decode不可：キャッシュ済み');
+        ImageConv := TPNGObject.Create;
+        DummyBMP := TBitmap.Create;
+        try
+          ImageConv.LoadFromStream(CacheStream);
+          DummyBMP.Width := TPNGObject(ImageConv).Width;
+          DummyBMP.Height := TPNGObject(ImageConv).Height;
+          DummyBMP.Canvas.Draw(0, 0, TPNGObject(ImageConv));
+          PopupHint.OwnBitmap.Assign(DummyBMP);
+          PopupHint.ActivateHintData(Bounds(CPos.X, CPos.Y+20,
+            ImageViewConfig.ImageHintWidth, ImageViewConfig.ImageHintHeight),
+            'キャッシュ画像', PopupHint.OwnBitmap);
+        except
+          on e:Exception do PopUpTextHint('Decode不可：キャッシュ済み');
+        end;
+        ImageConv.Free;
+        DummyBMP.Free;
+
+      (* gifの展開にGifImageを使う (aiai) *)
+      end else if (StrLComp(ImageHeaderPointer,'GIF',3) = 0) then begin
+
+        ImageConv := TGifImage.Create;
+        DummyBMP := TBitmap.Create;
+        TGifImage(ImageConv).Animate := False;
+        try
+          ImageConv.LoadFromStream(CacheStream);
+          DummyBMP.Width := TGifImage(ImageConv).Width;
+          DummyBMP.Height := TGifImage(ImageConv).Height;
+          DummyBMP.Canvas.Draw(0, 0, TGifImage(ImageConv));
+          PopupHint.OwnBitmap.Assign(DummyBMP);
+          PopupHint.ActivateHintData(Bounds(CPos.X, CPos.Y+20,
+            ImageViewConfig.ImageHintWidth, ImageViewConfig.ImageHintHeight),
+            'キャッシュ画像', PopupHint.OwnBitmap);
+        except
+          on e:Exception do PopUpTextHint('Decode不可：キャッシュ済み');
+        end;
+        ImageConv.Free;
+        DummyBMP.Free;
+
+      end else begin
+
+        if (StrLComp(ImageHeaderPointer,#$FF#$D8#$FF#$E0#$00#$10'JFIF',10)=0)
+          or (StrLComp(ImageHeaderPointer, #$FF#$D8#$FF#$E1, 4) = 0) then
+          ImageConv := TApiBitmap.Create
+        else
+          ImageConv:=TSPIBitmap.Create;
+
+        try
+          ImageConv.LoadFromStream(CacheStream);
+          PopupHint.OwnBitmap.Assign(ImageConv);
+          PopupHint.ActivateHintData(Bounds(CPos.X, CPos.Y+20,
+            ImageViewConfig.ImageHintWidth, ImageViewConfig.ImageHintHeight),
+            'キャッシュ画像', PopupHint.OwnBitmap);
+        except
+          on e:Exception do PopUpTextHint('Decode不可：キャッシュ済み');
+        end;
+        ImageConv.Free;
+
       end;
-      ImageConv.Free;
     end;
   end;
 

@@ -537,8 +537,9 @@ const
 //データの取り込み、必要に応じてデコードスレッド起動
 procedure TImageView.AssignData(AData:TStringStream);
 var
-  ImageConv:TGraphic;
+  ImageConv: TGraphic;
   HeaderPointer: PChar;
+  DummyBMP: TBitmap;
 begin
 
   if AData.Size = 0 then begin
@@ -565,8 +566,8 @@ begin
 
   if not Assigned(Bitmap) then Bitmap:=TBitmap.Create;
 
-  ImageConv:=nil;
-  if (StrLComp(HeaderPointer,'GIF',3)=0) {and (AnsiPos('gif;',LowerCase(GraphicFileMask(TGraphic))) > 0)} then begin
+  ImageConv := nil;
+  if (StrLComp(HeaderPointer,'GIF',3) = 0) then begin
 
     FImageList:=TBitmapList.Create;
     FImageList.ShareImage:=False;
@@ -576,15 +577,39 @@ begin
     GifData.Data := FData.ReadString(High(Integer));
     GifData.MakeImageList(FImageList, FDelayTimeList, GifDataOnComplete);
 
+  (* pngの展開にPNGImageを使う (aiai) *)
+  end else if (StrLComp(HeaderPointer, PngHeader, 8) = 0) then begin
+
+    ImageConv := TPNGObject.Create;
+    DummyBMP := TBitmap.Create;
+    try
+      try
+        ImageConv.LoadFromStream(FData);
+        DummyBMP.Width := TPNGObject(ImageConv).Width;
+        DummyBMP.Height := TPNGObject(ImageConv).Height;
+        DummyBMP.Canvas.Draw(0, 0, TPNGObject(ImageConv));
+        Bitmap.Assign(DummyBMP);
+        MakeSmallImage;
+        SetProtect(FProtect);
+        if Assigned(FOnComplete) then FOnComplete(Self, False);
+      finally
+        FreeAndNil(ImageConv);
+        FreeAndNil(DummyBMP);
+      end;
+    except
+      on e:Exception do begin
+        Log(e.Message);
+        PaintBox.Bitmap:=nil;
+        FreeAndNil(Bitmap);//エラーの時はビットマップを解放
+        if Assigned(FOnComplete) then FOnComplete(Self, True);
+      end;
+    end;
+
   end else begin
 
-    if (StrLComp(HeaderPointer, #$FF#$D8#$FF#$E0#$00#$10'JFIF', 10)=0)
-       or (StrLComp(HeaderPointer, #$FF#$D8#$FF#$E1,4) = 0) {or SameText(ExtractFileExt(FInfo), '.jpg')} then
-      //ImageConv:=TJPEGImage.Create
+    if (StrLComp(HeaderPointer, #$FF#$D8#$FF#$E0#$00#$10'JFIF', 10) = 0)
+       or (StrLComp(HeaderPointer, #$FF#$D8#$FF#$E1, 4) = 0) then
       ImageConv := TApiBitmap.Create
-    else if (StrLComp(HeaderPointer, PngHeader, 8)=0)  {SameText(ExtractFileExt(FInfo), '.png')} then
-      (* pngの展開にPNGImageを使う (aiai) *)
-      ImageConv := TPNGObject.Create
     else
       ImageConv:=TSPIBitmap.Create;
 
