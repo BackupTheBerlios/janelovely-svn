@@ -2948,6 +2948,14 @@ object UIConfig: TUIConfig
         Caption = #37325#35201#12473#12524#12483#12489#12539#12481#12455#12483#12463#12375#12383#12473#12524#12483#12489#12434#19978#12408#12477#12540#12488
         TabOrder = 12
       end
+      object CheckBoxMarkOpenThread: TCheckBox
+        Left = 210
+        Top = 277
+        Width = 155
+        Height = 17
+        Caption = #38283#12356#12390#12356#12427#12473#12524#12395#12510#12540#12463
+        TabOrder = 13
+      end
     end
     object SheetTab: TTabSheet
       Caption = #12479#12502

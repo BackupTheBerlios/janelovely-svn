@@ -473,6 +473,7 @@ type
     ButtonColordNumber: TButton;
     CheckBoxUpOpenThread: TCheckBox;
     CheckBoxUpImportantThread: TCheckBox;
+    CheckBoxMarkOpenThread: TCheckBox;
     procedure FormShow(Sender: TObject);
     procedure OkButtonClick(Sender: TObject);
     procedure CancelButtonClick(Sender: TObject);
@@ -1090,6 +1091,8 @@ begin
   Main.Config.schShowToolbarOnStartup := CheckBoxShowToolbarOnStartup.Checked;
   Main.Config.schShowTreeToolbarOnStartup := CheckBoxShowTreeToolbarOnStartup.Checked;
   Main.Config.schEnableMigemoTmp := CheckBoxEnableMigemo.Checked;
+
+  Main.Config.stlMarkOpenThread := CheckBoxMarkOpenThread.Checked;
   {/aiai}
 
   Main.Config.Save;
@@ -1423,6 +1426,8 @@ begin
   {aiai}
   Self.CheckBoxUpOpenThread.Checked := Main.Config.stlUpOpenThread;
   Self.CheckBoxUpImportantThread.Checked := Main.Config.stlUpImportantThread;
+
+  Self.CheckBoxMarkOpenThread.Checked := Main.Config.stlMarkOpenThread;
 
   self.ShowDayOfWeekCheckBox.Checked := Main.Config.ojvShowDayOfWeek;
 
