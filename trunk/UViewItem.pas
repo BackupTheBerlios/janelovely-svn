@@ -1013,12 +1013,15 @@ function TDat2View.ProcTag: boolean;
 
 
 begin
+  {aiai}
+  result := False;
   if (str + index)^ = '<' then
   begin
     Inc(index);
-    {aiai}
+    if index >= size then exit;
     if (str + index)^ = '/' then begin
       Inc(index);
+      if index >= size then exit;
       if IsThisTag('b', str + index, 1) then begin
         Inc(index);
         SetBold(False);
@@ -1086,10 +1089,8 @@ begin
     end;
     EndOfTag;
     Result := True;
-    {/aiai}
-  end
-  else
-    result := false;
+  end;
+  {/aiai}
 end;
 
 (* (str + index)^ = '&' *)
@@ -1335,7 +1336,7 @@ var
   index: Integer;
 begin
   Flush;
-
+  Image := nil;
   index := PictViewList.IndexOf(pass);
   if index <> -1 then
   begin
@@ -1389,9 +1390,10 @@ begin
           end;
         end;  //try
         PictViewList.AddObject(pass, Image);
-
-      end;
-    end;
+      end else
+        exit;
+    end else
+      exit;
   end;
 
   FBiteSpaces := FBrowser.AppendPicture(Image, overlap);
@@ -1581,6 +1583,12 @@ begin
     end else
     if (tag = 'dt') or (tag = 'dd') or (tag = 'li') or (tag = 'p') then
       ProcLineFeed
+    {aiai}
+    else if (tag = 'img') then begin
+      EndOfTag;
+      result := true;
+    end
+    {/aiai}
     else
     begin
       index := tmpIndex;

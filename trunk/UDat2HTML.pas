@@ -1740,6 +1740,10 @@ var
   i, ord1, ord2: Integer;
 begin
   Result := False;
+
+  if index + len >=  size then
+    exit;
+
   for i := 0 to len - 1 do
   begin
     ord1 := Ord((substr + i)^);
