@@ -925,12 +925,22 @@ begin
   bbs2ch, bbsOther:
     begin
       {aiai}
-      if (EditNameBox.Text = '') and (board.bbs = 'morningcoffee') then
-        encName := URLEncode(MORNINGCOFFEE_NAME)
-      else
+      if board.NeedConvert then
+      begin
+        if (EditNameBox.Text = '') and (board.bbs = 'morningcoffee') then
+          encName := URLEncode(sjis2euc(MORNINGCOFFEE_NAME))
+        else
+          encName := URLEncode(sjis2euc(EditNameBox.Text));
+        encMail := URLEncode(sjis2euc(EditMailBox.Text));
+      end else
+      begin
+        if (EditNameBox.Text = '') and (board.bbs = 'morningcoffee') then
+          encName := URLEncode(MORNINGCOFFEE_NAME)
+        else
+          encName := URLEncode(EditNameBox.Text);
+        encMail := URLEncode(EditMailBox.Text);
+      end;
       {/aiai}
-        encName := URLEncode(EditNameBox.Text);
-      encMail := URLEncode(EditMailBox.Text);
       case formType of
       formWrite:
         begin
@@ -938,26 +948,46 @@ begin
           postNormal:
             begin
               URI := 'http://' + board.host + '/test/bbs.cgi';
-              postDat := 'submit=' + URLEncode('書き込む')
-                       + '&FROM=' + encName
-                       + '&mail=' + encMail
-                       + '&MESSAGE=' + URLEncode(Memo.Text)
-                       + '&bbs='  + board.bbs
-                       + '&key='  + ChangeFileExt(thread.datName, '')
-                       + '&time=' + IntToStr(board.timeValue);
+              if board.NeedConvert then
+                postDat := 'submit=' + URLEncode(sjis2euc('書き込む'))
+                         + '&FROM=' + encName
+                         + '&mail=' + encMail
+                         + '&MESSAGE=' + URLEncode(sjis2euc(Memo.Text))
+                         + '&bbs='  + board.bbs
+                         + '&key='  + ChangeFileExt(thread.datName, '')
+                         + '&time=' + IntToStr(board.timeValue)
+              else
+                postDat := 'submit=' + URLEncode('書き込む')
+                         + '&FROM=' + encName
+                         + '&mail=' + encMail
+                         + '&MESSAGE=' + URLEncode(Memo.Text)
+                         + '&bbs='  + board.bbs
+                         + '&key='  + ChangeFileExt(thread.datName, '')
+                         + '&time=' + IntToStr(board.timeValue);
             end;
           postCheck:
             begin
               URI := 'http://' + board.host + '/test/subbbs.cgi';
-              postDat := 'bbs='  + board.bbs
-                       + '&key='  + ChangeFileExt(thread.datName, '')
-                       + '&time=' + IntToStr(board.timeValue)
-                       + '&subject='
-                       + '&FROM=' + encName
-                       + '&mail=' + encMail
-                       + '&MESSAGE=' + URLEncode(Memo.Text)
-                       + '&code='  + postCode
-                       + '&submit=' + URLEncode('全責任を負うことを承諾して書き込む');
+              if board.NeedConvert then
+                postDat := 'bbs='  + board.bbs
+                         + '&key='  + ChangeFileExt(thread.datName, '')
+                         + '&time=' + IntToStr(board.timeValue)
+                         + '&subject='
+                         + '&FROM=' + encName
+                         + '&mail=' + encMail
+                         + '&MESSAGE=' + URLEncode(sjis2euc(Memo.Text))
+                         + '&code='  + postCode
+                         + '&submit=' + URLEncode(sjis2euc('全責任を負うことを承諾して書き込む'))
+              else
+                postDat := 'bbs='  + board.bbs
+                         + '&key='  + ChangeFileExt(thread.datName, '')
+                         + '&time=' + IntToStr(board.timeValue)
+                         + '&subject='
+                         + '&FROM=' + encName
+                         + '&mail=' + encMail
+                         + '&MESSAGE=' + URLEncode(Memo.Text)
+                         + '&code='  + postCode
+                         + '&submit=' + URLEncode('全責任を負うことを承諾して書き込む');
             end;
           end;
         end;
@@ -967,24 +997,42 @@ begin
           postNormal:
             begin
               URI := 'http://' + board.host + '/test/bbs.cgi';
-              postDat := 'subject=' + URLEncode(EditSubjectBox.Text)
-                       + '&submit=' + URLEncode('新規スレッド作成')
-                       + '&FROM=' + encName
-                       + '&mail=' + encMail
-                       + '&MESSAGE=' + URLEncode(Memo.Text)
-                       + '&bbs='  + board.bbs
-                       + '&time=' + IntToStr(board.timeValue);
+              if board.NeedConvert then
+                postDat := 'subject=' + URLEncode(sjis2euc(EditSubjectBox.Text))
+                         + '&submit=' + URLEncode(sjis2euc('新規スレッド作成'))
+                         + '&FROM=' + encName
+                         + '&mail=' + encMail
+                         + '&MESSAGE=' + URLEncode(sjis2euc(Memo.Text))
+                         + '&bbs='  + board.bbs
+                         + '&time=' + IntToStr(board.timeValue)
+              else
+                postDat := 'subject=' + URLEncode(sjis2euc(EditSubjectBox.Text))
+                         + '&submit=' + URLEncode(sjis2euc('新規スレッド作成'))
+                         + '&FROM=' + encName
+                         + '&mail=' + encMail
+                         + '&MESSAGE=' + URLEncode(sjis2euc(Memo.Text))
+                         + '&bbs='  + board.bbs
+                         + '&time=' + IntToStr(board.timeValue);
             end;
           postCheck:
             begin
               URI := 'http://' + board.host + '/test/subbbs.cgi';
-              postDat := 'subject=' + URLEncode(EditSubjectBox.Text)
-                       + '&FROM=' + encName
-                       + '&mail=' + encMail
-                       + '&MESSAGE=' + URLEncode(Memo.Text)
-                       + '&bbs='  + board.bbs
-                       + '&time=' + IntToStr(board.timeValue)
-                       + '&submit=' + URLEncode('全責任を負うことを承諾して書き込む');
+              if board.NeedConvert then
+                postDat := 'subject=' + URLEncode(sjis2euc(EditSubjectBox.Text))
+                         + '&FROM=' + encName
+                         + '&mail=' + encMail
+                         + '&MESSAGE=' + URLEncode(sjis2euc(Memo.Text))
+                         + '&bbs='  + board.bbs
+                         + '&time=' + IntToStr(board.timeValue)
+                         + '&submit=' + URLEncode(sjis2euc('全責任を負うことを承諾して書き込む'))
+              else
+                postDat := 'subject=' + URLEncode(EditSubjectBox.Text)
+                         + '&FROM=' + encName
+                         + '&mail=' + encMail
+                         + '&MESSAGE=' + URLEncode(Memo.Text)
+                         + '&bbs='  + board.bbs
+                         + '&time=' + IntToStr(board.timeValue)
+                         + '&submit=' + URLEncode('全責任を負うことを承諾して書き込む');
             end;
           end;
         end;

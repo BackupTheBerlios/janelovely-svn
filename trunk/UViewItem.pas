@@ -4023,7 +4023,7 @@ begin
               ExtStream.BBSType := TBoard(thread.board).GetBBSType;
               if _ExtractKeyword(thread, ExtStream, tgt, 0, RegExp, IncludeRef, True) > 0 then
                 inc(totalCount);
-            end else if thread.dat.Contains(tgt) or Assigned(RegExp) then
+            end else if thread.dat.Contains(tgt, board.NeedConvert) or Assigned(RegExp) then
             {/beginner}
             begin
               EntryFlag := True; //beginner
@@ -4038,9 +4038,9 @@ begin
                 begin
                   {beginner}
                   if Assigned(RegExp) then begin
-                    s := AnsiReplaceStr(AnsiReplaceStr(POPUPD2HTML.ToString(tmpDat, l, 1), ' '#13, #13), #10' ', #10);
+                    s := AnsiReplaceStr(AnsiReplaceStr(POPUPD2HTML.ToString(tmpDat, l, 1, board.NeedConvert), ' '#13, #13), #10' ', #10);
                   end else begin
-                    s := SEARCHD2HTML.ToString(tmpDat, l, 1);
+                    s := SEARCHD2HTML.ToString(tmpDat, l, 1, board.NeedConvert);
                   end;
                   if ((RegExp = nil) and AnsiContainsText(s, target)) or (Assigned(RegExp) and RegExp.Exec(s)) then
                   {/beginner}

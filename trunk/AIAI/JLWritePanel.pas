@@ -514,8 +514,12 @@ function TJLWritePanel.Res2Dat: string;
     Result := AnsiReplaceStr(Result, 'Åü', 'Åû');
     if AnsiPos('#', Result) > 0 then
     begin
-      Result := Copy(Result, 1, AnsiPos('#', Result) - 1) + '</b>'
-        + Trip(Copy(Result,AnsiPos('#', Result) + 1, Length(Result))) + ' <b>';
+      if Assigned(FBoard) and FBoard.NeedConvert then
+        Result := Copy(Result, 1, AnsiPos('#', Result) - 1) + '</b>'
+          + Trip(sjis2euc(Copy(Result,AnsiPos('#', Result) + 1, Length(Result)))) + ' <b>'
+      else
+        Result := Copy(Result, 1, AnsiPos('#', Result) - 1) + '</b>'
+          + Trip(Copy(Result,AnsiPos('#', Result) + 1, Length(Result))) + ' <b>';
     end;
     if AnsiPos('Åî', Result) > 0 then
     begin
@@ -917,35 +921,67 @@ begin
   case TargetBoard.GetBBSType of
   bbs2ch, bbsOther:
     begin
-      if (NameComboBox.Text = '') and (TargetBoard.bbs = 'morningcoffee') then
-        encName := URLEncode(MORNINGCOFFEE_NAME)
-      else
-        encName := URLEncode(NameComboBox.Text);
-      encMail := URLEncode(MailComboBox.Text);
+      {aiai}
+      if TargetBoard.NeedConvert then
+      begin
+        if (NameComboBox.Text = '') and (TargetBoard.bbs = 'morningcoffee') then
+          encName := URLEncode(sjis2euc(MORNINGCOFFEE_NAME))
+        else
+          encName := URLEncode(sjis2euc(NameComboBox.Text));
+        encMail := URLEncode(sjis2euc(MailComboBox.Text));
+      end else
+      begin
+        if (NameComboBox.Text = '') and (TargetBoard.bbs = 'morningcoffee') then
+          encName := URLEncode(MORNINGCOFFEE_NAME)
+        else
+          encName := URLEncode(NameComboBox.Text);
+        encMail := URLEncode(MailComboBox.Text);
+      end;
+      {/aiai}
       case postType of
       postNormal:
         begin
           URI := 'http://' + TargetBoard.host + '/test/bbs.cgi';
-          postDat := 'submit=' + URLEncode('èëÇ´çûÇﬁ')
-                       + '&FROM=' + encName
-                       + '&mail=' + encMail
-                       + '&MESSAGE=' + URLEncode(Memo.Text)
-                       + '&bbs='  + TargetBoard.bbs
-                       + '&key='  + ChangeFileExt(TargetThread.datName, '')
-                       + '&time=' + IntToStr(board.timeValue);
+          if TargetBoard.NeedConvert then
+            postDat := 'submit=' + URLEncode(sjis2euc('èëÇ´çûÇﬁ'))
+                         + '&FROM=' + encName
+                         + '&mail=' + encMail
+                         + '&MESSAGE=' + URLEncode(sjis2euc(Memo.Text))
+                         + '&bbs='  + TargetBoard.bbs
+                         + '&key='  + ChangeFileExt(TargetThread.datName, '')
+                         + '&time=' + IntToStr(board.timeValue)
+          else
+            postDat := 'submit=' + URLEncode('èëÇ´çûÇﬁ')
+                         + '&FROM=' + encName
+                         + '&mail=' + encMail
+                         + '&MESSAGE=' + URLEncode(Memo.Text)
+                         + '&bbs='  + TargetBoard.bbs
+                         + '&key='  + ChangeFileExt(TargetThread.datName, '')
+                         + '&time=' + IntToStr(board.timeValue)
         end;
       postCheck:
         begin
           URI := 'http://' + TargetBoard.host + '/test/subbbs.cgi';
-          postDat := 'bbs='  + TargetBoard.bbs
-                       + '&key='  + ChangeFileExt(TargetThread.datName, '')
-                       + '&time=' + IntToStr(TargetBoard.timeValue)
-                       + '&subject='
-                       + '&FROM=' + encName
-                       + '&mail=' + encMail
-                       + '&MESSAGE=' + URLEncode(Memo.Text)
-                       + '&code='  + postCode
-                       + '&submit=' + URLEncode('ëSê”îCÇïâÇ§Ç±Ç∆Çè≥ë¯ÇµÇƒèëÇ´çûÇﬁ');
+          if TargetBoard.NeedConvert then
+            postDat := 'bbs='  + TargetBoard.bbs
+                         + '&key='  + ChangeFileExt(TargetThread.datName, '')
+                         + '&time=' + IntToStr(TargetBoard.timeValue)
+                         + '&subject='
+                         + '&FROM=' + encName
+                         + '&mail=' + encMail
+                         + '&MESSAGE=' + URLEncode(sjis2euc(Memo.Text))
+                         + '&code='  + postCode
+                         + '&submit=' + URLEncode(sjis2euc('ëSê”îCÇïâÇ§Ç±Ç∆Çè≥ë¯ÇµÇƒèëÇ´çûÇﬁ'))
+          else
+            postDat := 'bbs='  + TargetBoard.bbs
+                         + '&key='  + ChangeFileExt(TargetThread.datName, '')
+                         + '&time=' + IntToStr(TargetBoard.timeValue)
+                         + '&subject='
+                         + '&FROM=' + encName
+                         + '&mail=' + encMail
+                         + '&MESSAGE=' + URLEncode(Memo.Text)
+                         + '&code='  + postCode
+                         + '&submit=' + URLEncode('ëSê”îCÇïâÇ§Ç±Ç∆Çè≥ë¯ÇµÇƒèëÇ´çûÇﬁ');
         end;
       end; //case
       postDat := postDat + ticket2ch.GetSID(URI, '&');

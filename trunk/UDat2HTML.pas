@@ -54,7 +54,7 @@ type
     procedure Clear; override;
     procedure LoadFromFile(const fileName: string); override;
     procedure SaveToFile(const fileName: string); override;
-    function Contains(const target: string): boolean;
+    function Contains(const target: string; NeedConvert: Boolean): boolean;
     function Dup: TThreadData;
     {nono}
     function FetchName(line: Integer):string;
@@ -1195,16 +1195,28 @@ begin
   Inc(result, FCacheInfo.FIndex -1);
 end;
 
-function TThreadData.Contains(const target: string): boolean;
+function TThreadData.Contains(const target: string; NeedConvert: Boolean): boolean;
 var
   i: integer;
+  tmpbuffer: String;
 begin
   for i := 0 to Count -1 do
   begin
-    if 0 < FindPosIC(target, Strings[i], 1) then
+    if NeedConvert then
     begin
-      result := True;
-      exit;
+      tmpbuffer := euc2sjis(Strings[i]);
+      if 0 < FindPosIC(target, tmpbuffer, 1) then
+      begin
+        result := True;
+        exit;
+      end;
+    end else
+    begin
+      if 0 < FindPosIC(target, Strings[i], 1) then
+      begin
+        result := True;
+        exit;
+      end;
     end;
   end;
   result := False;
