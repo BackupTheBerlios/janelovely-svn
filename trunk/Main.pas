@@ -58,7 +58,7 @@ uses
   UWriteForm, USynchro, UHeadCache, UDaemon, U2chThread, U2chCat, U2chCatList,
   ActnList,  UIDlg, Tabs, UFavorite, USharedMem, UXTime,
   U2chTicket, HTTPSub, Buttons,
-  Math, UGrepDlg, jconvert, AppEvnts, JLSideBar, JLWritePanel, JLRSPanel,
+  Math, UGrepDlg, jconvert, AppEvnts, JLWritePanel, JLRSPanel,
   JLTab, JLDualStateButton, JLToolButton;
 
 const
