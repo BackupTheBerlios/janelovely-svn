@@ -269,7 +269,7 @@ begin
 
   if (item <> nil) and (item.thread <> nil) then begin
     item.thread.anchorLine := item.thread.lines;
-    MainWnd.TabControl.Refresh;
+    UpdateTabColor;
     item.NewRequest(item.thread, gotCHECK, -1, false, false);
     MainWnd.UpdateTabTexts;
     if Config.optSetFocusOnWriteMemo then

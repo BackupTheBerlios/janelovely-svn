@@ -1124,7 +1124,7 @@ begin
 
     Main.Config.SaveTabColor;
 
-    if MainWnd.TabControl <> nil then MainWnd.TabControl.Refresh;
+    UpdateTabColor;
     Main.Config.TabColorChanged := false;
   end;
 

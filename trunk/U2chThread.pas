@@ -1640,6 +1640,7 @@ begin
     end;
     Release;
   end;
+  UpdateTabColor;  //aiai
 end;
 
 (* VCLƒXƒŒƒbƒh *)

@@ -800,7 +800,7 @@ begin
   begin
     MainWnd.WriteWaitTimer.Start(DomainName, WaitTime * 1000);
     Log('èëÇ´çûÇ›ë“ã@ - ' + DomainName);
-    MainWnd.TabControl.Refresh;
+    UpdateTabColor;
     ButtonWrite.Caption := WRITE_BUTTON_CAPTION_B + IntToStr(WaitTime) + WRITE_BUTTON_CAPTION_C;
   end;
 end;
@@ -883,7 +883,7 @@ begin
   //  exit;
   MainWnd.WriteWaitTimer.Start(DomainName, newWaitTime * 1000);
   Log('èëÇ´çûÇ›ë“ã@ - ' + DomainName);
-  MainWnd.TabControl.Refresh;
+  UpdateTabColor;
   ButtonWrite.Caption := WRITE_BUTTON_CAPTION_B + IntToStr(newWaitTime) + WRITE_BUTTON_CAPTION_C;
 end;
 

@@ -3140,7 +3140,6 @@ begin
   end;
   (* Ä“ü‚µ‚Ä‚¢‚é‚ÆƒCƒ„‚È‚Ì‚Å•ÊŒû‚Å‰ô‚· *)
   daemon.Post(viewList.DoWorkingAll);
-  MainWnd.TabControl.Refresh;  //aiai
 end;
 
 
@@ -3158,7 +3157,6 @@ begin
       FAsyncStat := tpsReady;
       DoWorking;
     end;
-    MainWnd.TabControl.Refresh;  //aiai
   end;
 end;
 

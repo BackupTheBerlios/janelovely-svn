@@ -1622,6 +1622,7 @@ procedure TBoard.OnAsyncDoneProc(Sender: TASyncReq);
       timeValue := DateTimeToUnix(Str2DateTime(Sender.GetDate));
     if Assigned(FOnSubjectEnd) then
       FOnSubjectEnd(Self);
+    UpdateTabColor;
   end;
 
 var

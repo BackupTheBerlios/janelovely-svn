@@ -39,7 +39,7 @@ uses
 
 const
   VERSION  = '0.1.5';      (* Printable ASCIIコード厳守。')'はダメ *)
-  JANE2CH  = 'JaneLovely 0.1.5 β1';
+  JANE2CH  = 'JaneLovely 0.1.5 β2';
   KEYWORD_OF_USER_AGENT = 'JaneLovely';      (*  *)
 
   DISTRIBUTORS_SITE = 'http://www.geocities.jp/openjane4714/';
@@ -1708,6 +1708,7 @@ procedure SaveImeMode(wnd: HWND);
 procedure Log(const str: string);
 procedure BeginMultiLog;
 procedure EndMultiLog;
+procedure UpdateTabColor;  //aiai
 procedure UpdateThreadInfo(thread: TThreadItem);
 procedure LogBeginQuery;
 procedure LogBeginQuery2;
@@ -2053,7 +2054,6 @@ begin
     Log('（･∀･）ｶﾝﾘｮｳ!!');}
   Log2(6, '');  //ayaya
   MainWnd.WriteStatus('完了');
-  MainWnd.Tabcontrol.Refresh;  //aiai ここでいいや　
 end;
 
 procedure StatLog(const str: string);
@@ -2093,6 +2093,12 @@ begin
   end;
 end;
 {//ayaya}
+
+//aiai
+procedure UpdateTabColor;
+begin
+  MainWnd.TabControl.Repaint;
+end;
 
 procedure UpdateThreadInfo(thread: TThreadItem);
 begin
@@ -3692,7 +3698,6 @@ begin
   UILock := False;
   LogDone;
   i2ch.Save;
-  MainWnd.TabControl.Refresh;   //aiai
 end;
 
 procedure TMainWnd.UpdateBoardMenu;
@@ -5508,7 +5513,6 @@ procedure TMainWnd.UpdateCurrentView(index: integer);
       viewItem.thread.anchorLine := viewItem.thread.lines;
       viewItem.NewRequest(viewItem.thread, gotCHECK, -1, false,
                      Config.oprCheckNewWRedraw xor (GetKeyState(VK_SHIFT) < 0));
-      //TabControl.Refresh;
       UpdateTabTexts;
       SetRPane(ptView);
       //if Config.optSetFocusOnWriteMemo then
@@ -6154,10 +6158,10 @@ begin
 
   if actAutoReSc.Checked then begin
     StartAutoReSc;
-    TabControl.Refresh;
+    UpdateTabColor;
   end else begin
     StopAutoReSc;
-    TabControl.Refresh;
+    UpdateTabColor;
   end;
 end;
 
@@ -6185,7 +6189,6 @@ begin
     viewItem.thread.anchorLine := viewItem.thread.lines;
     viewItem.NewRequest(viewItem.thread, gotCHECK, -1, false,
                          Config.oprCheckNewWRedraw xor (GetKeyState(VK_SHIFT) < 0));
-    //TabControl.Refresh;
     UpdateTabTexts;
     SetRPane(ptView);
     {aiai}
@@ -8414,7 +8417,7 @@ begin
   begin
     AutoReload.Enabled := false;
     actAutoReSc.Checked := false;
-    TabControl.Refresh;
+    UpdateTabColor;
   end else
   begin
     if (AutoReload = nil) then
@@ -8423,7 +8426,7 @@ begin
     AutoReload.Enabled := true;
     if (AutoScroll <> nil) and (AutoScroll.State <> scrStopNormal) then
       actAutoReSc.Checked := true;
-    TabControl.Refresh;
+    UpdateTabColor;
   end;
 end;
 
@@ -10405,6 +10408,7 @@ begin
     exit;
   thread.oldLines := thread.lines;
   thread.SaveIndexData;
+  UpdateTabColor;
 end;
 
 procedure TMainWnd.actGeneralUpdateExecute(Sender: TObject);
@@ -10849,14 +10853,7 @@ begin
       + ' [' + TBoard(board).name + '/'
       + TCategory(TBoard(board).category).name + ']  '
       + datSize;
-    {StatusBar2.Text[2]
-      := '[新0: 全'
-      +  IntToStr(lines) + '] ' + HTML2String(title)
-      +  s
-      + ' [' + TBoard(board).name + '/'
-      + TCategory(TBoard(board).category).name + ']  '
-      + datSize;}  //aiai
-    TabControl.Refresh;
+    UpdateTabColor;
     if not Config.oprCheckNewWRedraw then
     begin
       ListView.DoubleBuffered := True;
@@ -14692,7 +14689,6 @@ begin
     //board.Load(False);
     UpdateListView;
     UpdateTabTexts;
-    //TabControl.Refresh;
     UILock := false;
   end;
 end;
@@ -15708,8 +15704,6 @@ begin
   end;
 
   FavBrdList.Free;
-
-  MainWnd.TabControl.Refresh;
 end;
 
 procedure TMainWnd.FavBrdOpen;
@@ -15890,6 +15884,7 @@ begin
     if thread <> nil then begin
       thread.oldLines := thread.lines;
       viewItem.LocalReload(viewItem.GetTopRes);
+      UpdateTabColor;
     end;
   end;
 end;
@@ -18150,10 +18145,9 @@ end;
 
 procedure TMainWnd.WriteWaitTimerEnd(Sender: TObject);
 begin
-  TabControl.Refresh;
   WritePanelControl.WriteWaitEnd;
   if Assigned(WriteForm) then WriteForm.WriteWaitEnd;
-  MainWnd.TabControl.Refresh;
+  UpdateTabColor;
 end;
 
 //▲ WriteWaitTimerのイベントハンドラ

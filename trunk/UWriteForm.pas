@@ -1571,7 +1571,7 @@ begin
   begin
     MainWnd.WriteWaitTimer.Start(DomainName, WaitTime * 1000);
     Log('‘‚«‚İ‘Ò‹@ - ' + DomainName);
-    MainWnd.TabControl.Refresh;
+    UpdateTabColor;
     ButtonWrite.Caption := IntToStr(WaitTime);
   end;
 end;
@@ -1654,7 +1654,7 @@ begin
   //  exit;
   MainWnd.WriteWaitTimer.Start(DomainName, newWaitTime * 1000);
   Log('‘‚«‚İ‘Ò‹@ - ' + DomainName);
-  MainWnd.TabControl.Refresh;
+  UpdateTabColor;
   ButtonWrite.Caption := IntToStr(newWaitTime);
 end;
 
