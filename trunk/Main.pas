@@ -4214,6 +4214,7 @@ begin
         currentBoard.ResetListState;
         ListView.OnData := ListViewData;
         UpdateListView;
+        currentBoard.Release;
         exit;
       end else
         call := false;
