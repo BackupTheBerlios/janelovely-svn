@@ -2895,9 +2895,9 @@ begin
   AboneLevel := Config.viewAboneLevel;  //あぼーん表示レベルの初期設定
 
   case ThreAboneLevel of
-   -1: MenuListAboneTranseparency.Checked := True;
-    0: MenuListAboneNormal.Checked := True;
-    1: MenuListAboneIgnore.Checked := True;
+   -1: actThreadAboneTranseparency.Checked := True;
+    0: actThreadAboneNormal.Checked := True;
+    1: actThreadAboneIgnore.Checked := True;
   end;
   {beginner}
   case AboneLevel of
@@ -7421,10 +7421,6 @@ begin
 
   MakeCheckNewThreadAfter(nil,0,0); //beginner
 
-  if Config.stlListViewUseExtraBackColor or currentBoard.threadSearched then
-    ListView.OnCustomDrawItem := ListViewCustomDrawItem
-  else
-    ListView.OnCustomDrawItem := nil;
   ListView.List := currentBoard;
 
   {aiai} //過去ログ非表示
@@ -10085,7 +10081,6 @@ procedure TMainWnd.actListDelLogExecute(Sender: TObject);
 var
   item: TListItem;
   thread: TThreadItem;
-  viewItem: TViewItem;
   index: Integer;
 begin
   item := ListView.Selected;
@@ -10098,15 +10093,13 @@ begin
   begin
     thread := TThreadItem(item.Data);
     {aiai}  //開いている場合は閉じる
-    viewItem := viewList.FindViewItem(thread);
-    if viewItem <> nil then
-      for index := 0 to TabControl.Tabs.Count - 1 do
-        if viewItem = viewList.Items[index] then
-        begin
-          tabRightClickedIndex := index;
-          CloseThisTab(False);
-          break;
-        end;
+    index := viewList.FindViewItemIndex(thread);
+    if index <> -1 then
+    begin
+      tabRightClickedIndex := index;
+      CloseThisTab(False);
+      break;
+    end;
     {/aiai}
     thread.CancelAsyncRead;
     thread.RemoveLog;
@@ -13696,8 +13689,6 @@ begin
         end;
   end;
 
-  if not assigned(ListView.OnCustomDrawItem) then
-    ListView.OnCustomDrawItem := ListViewCustomDrawItem;
   ListView.Sort(@ListCompareFuncSearchState);
   ListView.SetTopItem(ListView.Items[0]);
   //ListView.Refresh;
@@ -13706,8 +13697,6 @@ begin
   if currentBoard.threadSearched then
     currentSortColumn := 100
   else begin
-    if config.stlListViewUseExtraBackColor = false then
-      ListView.OnCustomDrawItem := nil;
     currentSortColumn := 1;
   end;
 end;
@@ -14717,9 +14706,6 @@ begin
   else
     ListView.SmallImages := nil;
 
-  if Config.stlListViewUseExtraBackColor and
-     not assigned(ListView.OnCustomDrawItem) then
-    ListView.OnCustomDrawItem := ListViewCustomDrawItem;
   ListView.Refresh;
 
   TreeView.ShowButtons := Config.stlShowTreeMarks;
@@ -17976,19 +17962,13 @@ begin
     ListView.DoubleBuffered := True;
     for i := 0 to ListView.Items.Count - 1 do
       TThreadItem(ListView.List[i]).liststate := 0;
-    if not assigned(ListView.OnCustomDrawItem) then
-      ListView.OnCustomDrawItem := ListViewCustomDrawItem;
     ListView.Sort(@ListCompareFuncSearchState);
     ListView.SetTopItem(ListView.Items[0]);
-    if config.stlListViewUseExtraBackColor = false then
-      ListView.OnCustomDrawItem := nil;
     currentSortColumn := Config.stlDefSortColumn;
     ListView.Repaint;
     ListView.DoubleBuffered := False;
   end else
   begin
-    if not assigned(ListView.OnCustomDrawItem) then
-      ListView.OnCustomDrawItem := ListViewCustomDrawItem;
     ListView.DoubleBuffered := True;
     ListView.Sort(@ListCompareFuncSearchState);
     ListView.SetTopItem(ListView.Items[0]);
@@ -17997,8 +17977,6 @@ begin
     if currentBoard.threadSearched then
       currentSortColumn := 100
     else begin
-      if config.stlListViewUseExtraBackColor = false then
-        ListView.OnCustomDrawItem := nil;
       currentSortColumn := 1;
     end;
     ListView.Repaint;

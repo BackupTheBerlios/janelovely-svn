@@ -3031,6 +3031,7 @@ object MainWnd: TMainWnd
             ViewStyle = vsReport
             OnClick = ListViewClick
             OnColumnClick = ListViewColumnClick
+            OnCustomDrawItem = ListViewCustomDrawItem
             OnData = ListViewData
             OnDataHint = MakeCheckNewThreadAfter
             OnDblClick = ListViewDblClick
@@ -3898,13 +3899,13 @@ object MainWnd: TMainWnd
           GroupIndex = 1
           RadioItem = True
         end
-        object N77: TMenuItem
-          Action = actThreadAboneImportantResOnly
+        object MenuListAboneOnly: TMenuItem
+          Action = actThreadAboneOnly
           GroupIndex = 1
           RadioItem = True
         end
-        object MenuListAboneOnly: TMenuItem
-          Action = actThreadAboneOnly
+        object N77: TMenuItem
+          Action = actThreadAboneImportantResOnly
           GroupIndex = 1
           RadioItem = True
         end
@@ -4697,25 +4698,7 @@ object MainWnd: TMainWnd
     object ListPopupCopyTU: TMenuItem
       Action = actListCopyTU
     end
-    object N25: TMenuItem
-      Caption = '-'
-    end
-    object N70: TMenuItem
-      Caption = #36984#25246#20013#12398#12525#12464#12434#12467#12500#12540'(&C)'
-      object datD1: TMenuItem
-        Action = actListCopyDat
-      end
-      object datidx1: TMenuItem
-        Action = actListCopyDI
-      end
-    end
     object N69: TMenuItem
-      Caption = '-'
-    end
-    object ListPopupDel: TMenuItem
-      Action = actListDelLog
-    end
-    object N102: TMenuItem
       Caption = '-'
     end
     object N101: TMenuItem
@@ -4729,6 +4712,24 @@ object MainWnd: TMainWnd
     end
     object N96: TMenuItem
       Action = actThreadAbone2
+    end
+    object N25: TMenuItem
+      Caption = '-'
+    end
+    object N70: TMenuItem
+      Caption = #36984#25246#20013#12398#12525#12464#12434#12467#12500#12540'(&C)'
+      object datD1: TMenuItem
+        Action = actListCopyDat
+      end
+      object datidx1: TMenuItem
+        Action = actListCopyDI
+      end
+    end
+    object N102: TMenuItem
+      Caption = '-'
+    end
+    object ListPopupDel: TMenuItem
+      Action = actListDelLog
     end
   end
   object HintTimer: TTimer
@@ -4974,7 +4975,7 @@ object MainWnd: TMainWnd
       Category = #12473#12524#12483#12489#12354#12412#65374#12435
       Caption = #36879#26126
       Checked = True
-      GroupIndex = 1
+      GroupIndex = 2
       OnExecute = actThreadAboneShowExecute
     end
     object actWriteRes: TAction
@@ -4986,21 +4987,21 @@ object MainWnd: TMainWnd
     object actThreadAboneNormal: TAction
       Category = #12473#12524#12483#12489#12354#12412#65374#12435
       Caption = #12405#12388#12358
-      GroupIndex = 1
+      GroupIndex = 2
       OnExecute = actThreadAboneShowExecute
     end
     object actThreadAboneIgnore: TAction
       Tag = 1
       Category = #12473#12524#12483#12489#12354#12412#65374#12435
       Caption = #12373#12412#12426
-      GroupIndex = 1
+      GroupIndex = 2
       OnExecute = actThreadAboneShowExecute
     end
     object actThreadAboneImportantResOnly: TAction
       Tag = 2
       Category = #12473#12524#12483#12489#12354#12412#65374#12435
       Caption = #12424#12426#12372#12398#12415
-      GroupIndex = 1
+      GroupIndex = 2
       OnExecute = actThreadAboneShowExecute
     end
     object actCheckNewRes: TAction
@@ -5391,7 +5392,7 @@ object MainWnd: TMainWnd
       Tag = 3
       Category = #12473#12524#12483#12489#12354#12412#65374#12435
       Caption = #12399#12365#12384#12417
-      GroupIndex = 1
+      GroupIndex = 2
       OnExecute = actThreadAboneShowExecute
     end
   end

@@ -357,6 +357,8 @@ type
     function NewView(browser: THogeTextView; index: integer = -1): TViewItem;
     function FindViewItem(thread: TThreadItem): TViewItem; overload;
     function FindViewitem(browser: TComponent): TViewItem; overload;
+    function FindViewItemIndex(thread: TThreadItem): Integer; overload;  //aiai  viewListのindexを返す
+    function FindViewItemIndex(browser: TComponent): Integer; overload;  //aiai  viewListのindexを返す
     function FindFirstViewItem: Integer; //aiai viewListにあるViewのうちで最も高いZオーダーをもつViewのインデックスを返す
     function GetGarbage(insertIndex: integer = -1): TViewItem;
     procedure DoWorkingAll;
@@ -4365,6 +4367,42 @@ begin
     end;
   end;
   result := nil;
+end;
+
+//aiai indexを返す
+function TViewList.FindViewItemIndex(thread: TThreadItem): Integer;
+var
+  i: integer;
+  viewItem: TViewItem;
+begin
+  for i := 0 to Count -1 do
+  begin
+    viewItem := Items[i];
+    if viewItem.thread = thread then
+    begin
+      result := i;
+      exit;
+    end;
+  end;
+  result := -1;
+end;
+
+//aiai indexを返す
+function TViewList.FindViewitemIndex(browser: TComponent): Integer;
+var
+  i: integer;
+  viewItem: TViewItem;
+begin
+  for i := 0 to Count -1 do
+  begin
+    viewItem := Items[i];
+    if viewItem.browser = browser then
+    begin
+      result := i;
+      exit;
+    end;
+  end;
+  result := -1;
 end;
 
 //aiai

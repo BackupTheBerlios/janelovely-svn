@@ -266,7 +266,10 @@ begin
       begin
       end;
     end;
-    strchotto := ConvertJCode(strchotto, SJIS_OUT);
+    if AnsiContainsStr(strchotto, 'charset=UTF-8') then
+      strchotto := UTF8ToAnsi(strchotto)
+    else
+      strchotto := ConvertJCode(strchotto, SJIS_OUT);
     strchotto := chottoReplace(strchotto);
     WriteHTML(strchotto);
     ChottoViewItem.Base := FURL;
