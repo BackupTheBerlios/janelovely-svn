@@ -41,8 +41,8 @@ uses
   {/aiai}
 
 const
-  VERSION  = '0.1.0.1';      (* Printable ASCIIコード厳守。')'はダメ *)
-  JANE2CH  = 'JaneLovely 0.1.0.1';
+  VERSION  = '0.1.0.2';      (* Printable ASCIIコード厳守。')'はダメ *)
+  JANE2CH  = 'JaneLovely 0.1.0.2';
   KEYWORD_OF_USER_AGENT = 'JaneLovely';      (*  *)
 
   DISTRIBUTORS_SITE = 'http://www.geocities.jp/openjane4714/';
@@ -717,6 +717,9 @@ type
     MenuMemoCanMove: TMenuItem;
     MenuMemoPos: TMenuItem;
     MenuMemoDisableStatusBar: TMenuItem;
+    MenuStatusCopyURI: TMenuItem;
+    MenuWritePanelDisableTopBar: TMenuItem;
+    MenuWriteMemoDisableTopBar: TMenuItem;
     {/aiai}
     procedure FormCreate(Sender: TObject);
     procedure MenuToolsOptionsClick(Sender: TObject);
@@ -1162,6 +1165,8 @@ type
     procedure MenuWritePanelDisableStatusBarClick(Sender: TObject);
     procedure PopupWritePanelPopup(Sender: TObject);
     procedure MenuMemoClick(Sender: TObject);
+    procedure MenuStatusCopyURIClick(Sender: TObject);
+    procedure MenuWritePanelDisableTopBarClick(Sender: TObject);
     {/aiai}
   private
   { Private 宣言 }
@@ -1231,7 +1236,6 @@ type
     TreePanelOriginalY: Integer;
 
     WritePanelCanMove: Boolean;
-    WritePanelMoving: Boolean;
     WritePanelTabControlIndex: Byte;
     WritePanelMouseDowned: Boolean;
     WritePanelOriginalX: Integer;
@@ -2958,7 +2962,6 @@ begin
   //ShortDateFormat := 'yy/mm/dd""ddd';
   MenuOptUseNews.Checked := Config.tstUseNews;
   CreateNewsBar;
-  WritePanelMoving := False;
 
   (* メモ欄のセットアップ *)
   CreateWriteMemo(Self, WritePanel, MemoImageList);
@@ -16773,6 +16776,7 @@ begin
   MenuWritePanelPos.Checked := WritePanelPos;
   MenuWritePanelDisableStatusBar.Checked := Config.wrtDisableStatusBar;
   MenuWritePanelPos.Enabled := not WritePanelCanMove;
+  MenuWritePanelDisableTopBar.Checked := not WritePanelTitle.Visible;
 end;
 
 procedure TMainWnd.MenuMemoClick(Sender: TObject);
@@ -16781,6 +16785,7 @@ begin
   MenuMemoPos.Checked := WritePanelPos;
   MenuMemoDisableStatusBar.Checked := Config.wrtDisableStatusBar;
   MenuMemoPos.Enabled := not WritePanelCanMove;
+  MenuWriteMemoDisableTopBar.Checked := not WritePanelTitle.Visible;
 end;
 
 
@@ -16909,6 +16914,11 @@ begin
 end;
 
 
+procedure TMainWnd.MenuWritePanelDisableTopBarClick(Sender: TObject);
+begin
+  WritePanelTitle.Visible := not WritePanelTitle.Visible;
+end;
+
 //▲ 書き込みパネルの表示切替
 
 
@@ -16989,12 +16999,15 @@ begin
     MyNews.TempBuffer := MyNews.NewsURI;
     MenuStatusOpenByBrowser.Caption := MyNews.NewsText + 'をブラウザーで開く(&B)';
     MenuStatusOpenByLovelyBrowser.Caption := MyNews.NewsText + 'をLovelyBrowserで開く(&L)';
+    MenuStatusCopyURI.Caption := MyNews.NewsText + 'のURLをコピー(&C)';
     MenuStatusOpenByBrowser.Visible := True;
     MenuStatusOpenByLovelyBrowser.Visible := True;
+    MenuStatusCopyURI.Visible := True;
   end else
   begin
     MenuStatusOpenByBrowser.Visible := False;
     MenuStatusOpenByLovelyBrowser.Visible := False;
+    MenuStatusCopyURI.Visible := False;
   end;
 end;
 
@@ -17006,6 +17019,11 @@ end;
 procedure TMainWnd.MenuStatusOpenByLovelyBrowserClick(Sender: TObject);
 begin
   OpenByLovelyBrowser(MyNews.TempBuffer);
+end;
+
+procedure TMainWnd.MenuStatusCopyURIClick(Sender: TObject);
+begin
+ Clipboard.AsText := MyNews.TempBuffer;
 end;
 
 //▲ ステータスバー

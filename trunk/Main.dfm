@@ -1608,6 +1608,10 @@ object MainWnd: TMainWnd
         Caption = #12473#12486#12540#12479#12473#12496#12540#38750#34920#31034
         OnClick = MenuWritePanelDisableStatusBarClick
       end
+      object MenuWriteMemoDisableTopBar: TMenuItem
+        Caption = #12488#12483#12503#12496#12540#38750#34920#31034
+        OnClick = MenuWritePanelDisableTopBarClick
+      end
     end
     object Find1: TMenuItem
       Caption = #26908#32034'(&S)'
@@ -5644,6 +5648,10 @@ object MainWnd: TMainWnd
       Caption = 'LovelyBrowser'#12391#38283#12367'(&L)'
       OnClick = MenuStatusOpenByLovelyBrowserClick
     end
+    object MenuStatusCopyURI: TMenuItem
+      Caption = 'URL'#12434#12467#12500#12540'(&C)'
+      OnClick = MenuStatusCopyURIClick
+    end
     object N56: TMenuItem
       Caption = #12513#12514#27396#12434#34920#31034'(&M)'
       OnClick = MenuViewWriteMemoToggleVisibleClick
@@ -5664,6 +5672,10 @@ object MainWnd: TMainWnd
     object MenuWritePanelDisableStatusBar: TMenuItem
       Caption = #12473#12486#12540#12479#12473#12496#12540#38750#34920#31034
       OnClick = MenuWritePanelDisableStatusBarClick
+    end
+    object MenuWritePanelDisableTopBar: TMenuItem
+      Caption = #12488#12483#12503#12496#12540#38750#34920#31034
+      OnClick = MenuWritePanelDisableTopBarClick
     end
   end
 end
