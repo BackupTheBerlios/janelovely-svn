@@ -1592,20 +1592,31 @@ procedure THogeTextView.DoSize(newWidth, newHeight: Integer);
 var
   off: integer;
   vl: integer;
+  top: TPoint;
 begin
   UpdateVisibleLines;
   off := (FLogicalCaret.Y - FLogicalTopLine);
+
+  // リサイズ前のPhysicalなTopLine;
+  top := LogicalToPhysical(Point(0, FLogicalTopLine));
+
   FWidth  := newWidth;
   FHeight := newHeight;
   InvalidateSize;
 
   FLogicalCaret := PhysicalToLogical(FEditPoint);
-  vl := VisibleLines;
-  if vl <= off then
-    off := vl -1;
-  if off < 0 then
-    off := 0;
-  FLogicalTopLine := FLogicalCaret.Y - off;
+  if FCaretScrollSync then
+  begin
+    vl := VisibleLines;
+    if vl <= off then
+      off := vl -1;
+    if off < 0 then
+      off := 0;
+    FLogicalTopLine := FLogicalCaret.Y - off;
+  end else
+    // リサイズ後のLogicalなTopLine;
+    FLogicalTopLine := PhysicalToLogical(top).Y;
+
   vl := TopForBottom;
   if (vl < FLogicalTopLine) then
     FLogicalTopLine := vl;
