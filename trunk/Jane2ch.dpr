@@ -87,7 +87,8 @@ uses
   sqlite in 'AIAI\sqlite.pas',
   ClipBrdSub in 'AIAI\ClipBrdSub.pas',
   UMDITextView in 'AIAI\UMDITextView.pas',
-  UMigemo in 'AIAI\UMigemo.pas';
+  UMigemo in 'AIAI\UMigemo.pas',
+  UWriteWait in 'AIAI\UWriteWait.pas';
 
 {$R *.res}
 

@@ -2070,9 +2070,48 @@ procedure TConvDatOut.ProcDATE;
           break;
         Inc(index2);
       end;
-      
+
       WriteID(str + index, index2 - index, line);
       WriteText(str + index + 3, index2 - index - 3);
+      index := index2;
+      Result := True;
+    end;
+  end;
+
+  function ProcBE: Boolean;
+  var
+    sep, index2: Integer;
+    BEID, BEPOINT: String;
+  begin
+    Result := False;
+    if not Config.ojvIDPopUp then
+      exit;
+    index2 := index;
+    if ((index2 + 3) < size) and ((str + index2 + 1)^ = 'E')
+      and ((str + index2 + 2)^ = ':') then
+    begin
+      Inc(index2, 3);
+      sep := 0;
+
+      (* BEID‚Ì'-'‚Æ––”ö‚ð’T‚· *)
+      while index2 < size do
+      begin
+        case (str + index2)^ of
+        '-': sep := index2;
+        ' ': break;
+        end;
+        Inc(index2);
+      end;
+      if (sep = 0) or ((index2 - sep - 1) <= 0) then
+      begin
+        SetString(BEID, str + index, index2 - index);
+        BEPOINT := ' '
+      end else
+      begin
+        SetString(BEID, str + index, sep - index);
+        SetString(BEPOINT, str + sep + 1, index2 - sep - 1);
+      end;
+      WriteAnchor('', BEID, PChar('?' + BEPOINT), Length(BEPOINT) + 1);
       index := index2;
       Result := True;
     end;
@@ -2117,12 +2156,14 @@ begin
     case (str + index)^ of
       'I': if not ProcID then
              goto ProcChar;
+      'B': if not ProcBE then
+             goto ProcChar;
       '<': if not ProcTag then
              goto ProcChar;
     else
       ProcChar:
       idx2 := index + 1;
-      while (idx2 < size) and not ((str + idx2)^ in ['<', 'I']) do
+      while (idx2 < size) and not ((str + idx2)^ in ['<', 'I', 'B']) do
         Inc(idx2);
       WriteText(str + index, idx2 - index);
       index := idx2;

@@ -263,7 +263,7 @@ object WriteForm: TWriteForm
       end
     end
     object CheckBoxTop: TCheckBox
-      Left = 116
+      Left = 138
       Top = 4
       Width = 75
       Height = 26
@@ -275,7 +275,7 @@ object WriteForm: TWriteForm
     object ToolBar1: TJLXPToolBar
       Left = 8
       Top = 4
-      Width = 92
+      Width = 115
       Height = 22
       Align = alNone
       AutoSize = True
@@ -304,8 +304,15 @@ object WriteForm: TWriteForm
         ShowHint = True
         OnClick = ToolButtonTrimClick
       end
-      object ToolButtonNameWarn: TToolButton
+      object ToolButtonWriteWait: TToolButton
         Left = 46
+        Top = 0
+        Caption = 'ToolButtonWriteWait'
+        ImageIndex = 5
+        OnClick = ToolButtonWriteWaitClick
+      end
+      object ToolButtonNameWarn: TToolButton
+        Left = 69
         Top = 0
         Hint = #12467#12486#12495#12531#35686#21578#26377#21177
         ImageIndex = 6
@@ -314,7 +321,7 @@ object WriteForm: TWriteForm
         OnClick = ToolButtonNameWarnClick
       end
       object ToolButtonBeLogin: TToolButton
-        Left = 69
+        Left = 92
         Top = 0
         Hint = 'BeLogin'
         ImageIndex = 7

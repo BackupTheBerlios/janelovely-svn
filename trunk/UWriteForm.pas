@@ -93,6 +93,7 @@ type
     ToolButtonTrim: TToolButton;
     ToolButtonNameWarn: TToolButton;  //rika
     ToolButtonBeLogin: TToolButton;
+    ToolButtonWriteWait: TToolButton;
 
     procedure PageControlChange(Sender: TObject);
     procedure CheckBoxSageClick(Sender: TObject);
@@ -127,6 +128,7 @@ type
     procedure ToolButtonTrimClick(Sender: TObject);
     procedure ToolButtonNameWarnClick(Sender: TObject);
     procedure ToolButtonBeLoginClick(Sender: TObject);
+    procedure ToolButtonWriteWaitClick(Sender: TObject);
   private
     { Private 宣言 }
     savedTop : integer;
@@ -181,6 +183,10 @@ type
     procedure RequestToGetLocalRule;
     procedure PasteAAListItem;
     procedure SetNameBox(NameCombo: TComboboxEx; NameList: TStringList; const Board: string);  //beginner(by nono)
+    {aiai}
+    procedure WaitTimerStart;
+    procedure WaitTimerStop;
+    {/aiai}
 
   protected
     procedure CreateParams(var Params: TCreateParams); override;
@@ -198,6 +204,10 @@ type
     function SavedBoundsRect:TRect; //beginner
     procedure MainWndOnHide; //beginner
     procedure MainWndOnShow; //beginner
+    {aiai}
+    procedure WriteWaitNotify(DomainName: String; Remainder: Integer);
+    procedure WriteWaitEnd;
+    {/aiai}
   end;
 
 var
@@ -220,6 +230,8 @@ const
   BBS_SUBJECT_COUNT = 'BBS_SUBJECT_COUNT';
   BBS_NAME_COUNT    = 'BBS_NAME_COUNT';
   BBS_MAIL_COUNT    = 'BBS_MAIL_COUNT';
+
+  BUTTON_WRITE_CAPTION = '書き込む(&W)';
 
 (* 書き込み可否判定用のメッセージバイト数 *)
 //途中にヌルを含まず改行=CRLFのSJIS文字列専用
@@ -690,13 +702,24 @@ begin
       EditMailBox.Enabled := true;
       CheckBoxSage.Checked := false;
     end;
-    ButtonWrite.Enabled := not Main.writing;
+    {aiai}
+    if MainWnd.WriteWaitTimer.IsThisHost(board.host) then
+    begin
+      ButtonWrite.Enabled := False;
+      ButtonWrite.Caption := IntToStr(MainWnd.WriteWaitTimer.Remainder);
+    end else
+    begin
+      ButtonWrite.Enabled := not Main.writing;
+      ButtonWrite.Caption := BUTTON_WRITE_CAPTION;
+    end;
+    {/aiai}
     TabSheetResult.TabVisible := (procPost <> nil);
     gotRule := tpsNone;
     gotSettingTxt := tpsNone;
     postType := postNormal;
     postCode := '';
     ToolButtonTrim.Down := Config.wrtTrimRight; //aiai
+    ToolButtonWriteWait.Down := Config.wrtUseWriteWait; //aiai
     ToolButtonNameWarn.Down := Config.wrtNameMailWarning; //aiai
     ToolButtonBeLogin.Down := Config.wrtBeLogin; //aiai
     if Config.wrtDisableStatusBar then
@@ -1174,9 +1197,14 @@ begin
                                      OnWritten, OnNotify);
   if procPost <> nil then
   begin
-    MainWnd.PauseToggleAutoReSc(false); //aiai
     ButtonWrite.Enabled := false;
+    {aiai}
+    MainWnd.PauseToggleAutoReSc(false);
     JLWritePanel.SetWriteButtonEnabled(false);
+    Main.writing := True;
+    if Config.wrtUseWriteWait then
+      WaitTimerStart;
+    {/aiai}
     Result.Lines.Add('--------------------');
     Result.Lines.Add('書込み中・・・');
     Result.Lines.Add('--------------------');
@@ -1302,6 +1330,7 @@ var
 begin
   if procPost <> sender then
     exit;
+  Main.writing := False; //aiai
   procPost := nil;
   if Config.tstCommHeaders then
   begin
@@ -1357,8 +1386,10 @@ begin
     if (errMsg = 'error') then
     begin
       list.Free;
-      ButtonWrite.Enabled := true;
-      JLWritePanel.SetWriteButtonEnabled(true);
+      {aiai}
+      WaitTimerStop;
+      MainWnd.PauseToggleAutoReSc(true);
+      {/aiai}
       exit;
     end;
     if ((errMsg = 'cookie') or
@@ -1391,6 +1422,10 @@ begin
     begin
       list.Free;
       SetPostCode;
+      {aiai}
+      MainWnd.PauseToggleAutoReSc(true);
+      WaitTimerStop;
+      {/aiai}
       exit;
     end;
 
@@ -1400,9 +1435,10 @@ begin
                                   AnsiContainsStr(list[0], '書き込みました'))))then
     begin
       list.Free;
-      ButtonWrite.Enabled := true;
-      JLWritePanel.SetWriteButtonEnabled(true);
-      MainWnd.PauseToggleAutoReSc(true); //aiai
+      {aiai}
+      WaitTimerStop;
+      MainWnd.PauseToggleAutoReSc(true);
+      {/aiai}
       exit;
     end;
     list.Free;
@@ -1418,9 +1454,10 @@ begin
     Result.Lines.Add('--------------------');
     Result.Lines.Add(sender.IdHTTP.ResponseText);
     Result.Lines.Add('--------------------');
-    ButtonWrite.Enabled := true;
-    JLWritePanel.SetWriteButtonEnabled(true);
-    MainWnd.PauseToggleAutoReSc(true); //aiai
+    {aiai}
+    WaitTimerStop;
+    MainWnd.PauseToggleAutoReSc(true);
+    {/aiai}
     exit;
   end;
 
@@ -1438,16 +1475,24 @@ begin
       SaveKakikomi;
 
     viewItem := viewList.FindViewItem(thread);
+    {aiai}
+    //if viewItem <> nil then
+      //viewItem.NewRequest(thread, gotCHECK, -1, True, Config.oprCheckNewWRedraw);
     if viewItem <> nil then
-    begin //aiai
+    begin
       viewItem.NewRequest(thread, gotCHECK, -1, True, Config.oprCheckNewWRedraw);
-      MainWnd.PauseToggleAutoReSc(true); //aiai
-    end; //aiai
+      MainWnd.PauseToggleAutoReSc(true);
+    end;
+    {/aiai}
   end;
 
   if errMsg = 'false' then
   begin
     Caption := '注意が出ています';
+    {aiai}
+    WaitTimerStop;
+    MainWnd.PauseToggleAutoReSc(true);
+    {/aiai}
     exit;
   end;
 
@@ -1461,8 +1506,13 @@ begin
       Memo.Clear;
       if Memo.Visible then Memo.SetFocus;
     except end;
-    ButtonWrite.Enabled := True;  //aiai
   end;
+  {aiai}
+  if Assigned(thread) then
+    ButtonWrite.Enabled := not MainWnd.WriteWaitTimer.IsThisHost(thread.GetHost);
+  if Assigned(WriteMemo) and Assigned(WriteMemo.board) then
+    ChangeWirteButtonEnabled(MainWnd.WriteWaitTimer.IsThisHost(WriteMemo.board.host));
+  {/aiai}
 end;
 
 (* 閉じたように見せる時の処理 *)
@@ -2298,16 +2348,7 @@ begin
 end;
 {/beginner}
 
-
-(* ------------------------------------------------------------------------- *)
-procedure SetButtonWriteEnabled(ABool: Boolean);
-begin
-  if not Assigned(WriteForm) then
-    exit;
-
-  WriteForm.ButtonWrite.Enabled := ABool;
-end;
-
+{aiai}
 procedure TWriteForm.ToolButtonRecordNameMailClick(Sender: TObject);
 begin
   Config.wrtRecordNameMail := not Config.wrtRecordNameMail;
@@ -2322,6 +2363,13 @@ begin
   JLWritePanel.SetTrimRightCheckBox(Config.wrtTrimRight);
 end;
 
+procedure TWriteForm.ToolButtonWriteWaitClick(Sender: TObject);
+begin
+  Config.wrtUseWriteWait := not Config.wrtUseWriteWait;
+  ToolButtonWriteWait.Down := Config.wrtUseWriteWait;
+  JLWritePanel.SetWriteWait(Config.wrtUseWriteWait);
+end;
+
 procedure TWriteForm.ToolButtonNameWarnClick(Sender: TObject);
 begin
   Config.wrtNameMailWarning := not Config.wrtNameMailWarning;
@@ -2334,6 +2382,65 @@ begin
   Config.wrtBeLogin := not Config.wrtBeLogin;
   ToolButtonBeLogin.Down := Config.wrtBeLogin;
   JLWritePanel.SetBeLogin(Config.wrtBeLogin);
+end;
+
+procedure TWriteForm.WaitTimerStart;
+var
+  DomainName: String;
+  HostName: String;
+  text: String;
+  i: Integer;
+  WaitTime: Cardinal;
+begin
+  DomainName := Board.host;
+  HostName := LeftStr(DomainName, AnsiPos('.', DomainName) - 1);
+  WaitTime := 0;
+
+  for i := 0 to Config.waitTimeList.Count - 1 do
+    if 0 < AnsiPos(hostname, Config.waitTimeList.Strings[i]) then begin
+      text := Config.waitTimeList.Strings[i];
+      WaitTime := StrToIntDef(RightStr(text, Length(text) - AnsiPos('=', text)), 0);
+      break;
+    end;
+
+  if WaitTime > 0 then
+  begin
+    MainWnd.WriteWaitTimer.Start(DomainName, WaitTime * 1000);
+    Log('書き込み待機 - ' + DomainName);
+    MainWnd.TabControl.Refresh;
+    ButtonWrite.Caption := IntToStr(WaitTime);
+  end;
+end;
+
+procedure TWriteForm.WaitTimerStop;
+begin
+  MainWnd.WriteWaitTimer.Stop;
+end;
+
+procedure TWriteForm.WriteWaitNotify(DomainName: String; Remainder: Integer);
+begin
+  if not ButtonWrite.Enabled and Assigned(Thread)
+    and (0 = AnsiCompareText(DomainName, Thread.GetHost)) then
+  begin
+    ButtonWrite.Caption := IntToStr(Remainder);
+  end;
+end;
+
+procedure TWriteForm.WriteWaitEnd;
+begin
+  ButtonWrite.Enabled := not writing;
+  ButtonWrite.Caption := BUTTON_WRITE_CAPTION;
+end;
+{/aiai}
+
+
+(* ------------------------------------------------------------------------- *)
+procedure SetButtonWriteEnabled(ABool: Boolean);
+begin
+  if not Assigned(WriteForm) then
+    exit;
+
+  WriteForm.ButtonWrite.Enabled := ABool;
 end;
 
 end.

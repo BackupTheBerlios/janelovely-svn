@@ -37,13 +37,13 @@ uses
   UAAForm, UAddAAForm, UAutoReSc, UAutoReloadSettingForm,
   UAutoScrollSettingForm, ULovelyWebForm, UNews, UGetBoardListForm,
   UChottoForm, UImageViewCacheListForm,
-  UCheckSeverDown, UMDITextView, RegExpr,
+  UCheckSeverDown, UMDITextView, UWriteWait,
   JLWritePanel, JLTab, JLToolButton, JLSideBar, JLXPComCtrls;
   {/aiai}
 
 const
-  VERSION  = '0.1.3.7';      (* Printable ASCIIコード厳守。')'はダメ *)
-  JANE2CH  = 'JaneLovely 0.1.3.7';
+  VERSION  = '0.1.3.8';      (* Printable ASCIIコード厳守。')'はダメ *)
+  JANE2CH  = 'JaneLovely 0.1.3.8';
   KEYWORD_OF_USER_AGENT = 'JaneLovely';      (*  *)
 
   DISTRIBUTORS_SITE = 'http://www.geocities.jp/openjane4714/';
@@ -1585,6 +1585,11 @@ type
     procedure TreeViewSearchMigemoSearch;
     procedure TreeViewSearchNormalSearch;
     procedure TreeViewSearchRegExpSearch;
+    //▲ 板ツリー検索
+    //▼ WriteWaitTimerのイベントハンドラ
+    procedure WriteWaitTimerNotify(Sender: TObject; DomainName: String; Remainder: Integer);
+    procedure WriteWaitTimerEnd(Sender: TObject);
+    //▲ WriteWaitTimerのイベントハンドラ
     {/aiai}
   public
     { Public 宣言 }
@@ -1600,6 +1605,8 @@ type
     thedayofweek : string;
     AutoScroll: TAutoScroll;
     AutoReload: TAutoReload;
+
+    WriteWaitTimer: TWriteWaitTimer;
     {/aiai}
 
     {$IFDEF IE}
@@ -1724,10 +1731,10 @@ var
   {ayaya}
   traceString: array[0..51] of String;
   useTrace: array[0..51] of Boolean;
-  writing: Boolean;      //現在書き込み中かどうか
   {//ayaya}
 
   {aiai}
+  writing: Boolean;      //現在書き込み中かどうか
   MyNews: TNews;
   NGThreadItems: TStringList;
   PictViewList: TPictureViewList;
@@ -3194,6 +3201,10 @@ begin
 
   LoadWindowPos;
   PictViewList := TPictureViewList.Create;
+
+  WriteWaitTimer := TWriteWaitTimer.Create;
+  WriteWaitTimer.OnNotify := WriteWaitTimerNotify;
+  WriteWaitTimer.OnEnd := WriteWaitTimerEnd;
   {/aiai}
 
 //  Application.OnMessage := Self.OnMessage;
@@ -3317,8 +3328,10 @@ var
   i: TNGItemIdent;
 begin
   UILock := True;
-  //aiai
+  {aiai}
   MyNews.Free;
+  WriteWaitTimer.Free;
+  {/aiai}
 
   {beginner}
   if MenuWatchClipboard.Checked then
@@ -3425,7 +3438,7 @@ begin
     Finaldll;
   end;
   (* //DataBase *)
-  if Config.schUseSearchBar then
+  if Config.schEnableMigemo then
   begin
     MigemoOBJ.Free;
 //    WSHRegExp := Unassigned;
@@ -15873,7 +15886,7 @@ begin
       tabControl.Canvas.Brush.Color := $000000FF
     else if active and (AutoReload <> nil) and AutoReload.Enabled then
       tabControl.Canvas.Brush.Color := Config.tclAutoReloadBack
-    else if (thread <> nil) and CheckWriteWait(thread.GetHost) then
+    else if (thread <> nil) and WriteWaitTimer.IsThisHost(thread.GetHost) then
       tabControl.Canvas.Brush.Color := Config.tclWriteWaitBack
     else if Active then
       tabControl.Canvas.Brush.Color := Config.tclActiveBack
@@ -18884,6 +18897,24 @@ begin
 end;
 
 //▲ UrlEditのメニュー
+
+//▼ WriteWaitTimerのイベントハンドラ
+procedure TMainWnd.WriteWaitTimerNotify(Sender: TObject; DomainName: String;
+  Remainder: Integer);
+begin
+  JLWritePanel.WriteWaitNotify(DomainName, Remainder);
+  if Assigned(WriteForm) then WriteForm.WriteWaitNotify(DomainName, Remainder);
+end;
+
+procedure TMainWnd.WriteWaitTimerEnd(Sender: TObject);
+begin
+  TabControl.Refresh;
+  JLWritePanel.WriteWaitEnd;
+  if Assigned(WriteForm) then WriteForm.WriteWaitEnd;
+  MainWnd.TabControl.Refresh;
+end;
+
+//▲ WriteWaitTimerのイベントハンドラ
 
 initialization
   OleInitialize(nil);

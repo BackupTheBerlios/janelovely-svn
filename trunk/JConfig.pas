@@ -1632,13 +1632,9 @@ begin
 
   {aiai} // WriteWait.iniÇì«Ç›çûÇﬁ
   if FileExists(Config.BasePath + WRITEWAIT_FILE) then
-    waitTimeList.LoadFromFile(Config.BasePath + WRITEWAIT_FILE)
-  else
-    waitTimeList.Add('no');
+    try waitTimeList.LoadFromFile(Config.BasePath + WRITEWAIT_FILE); except end;
   if FileExists(Config.BasePath + AALIST_FILE) then
-    aaAAList.LoadFromFile(Config.BasePath + AALIST_FILE);
-  //else
-  //  aaAAList.Add('no');
+    try aaAAList.LoadFromFile(Config.BasePath + AALIST_FILE); except end;
   {/aiai}
 end;
 

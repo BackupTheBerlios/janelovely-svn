@@ -11,7 +11,6 @@ uses
 
 const
   MORNINGCOFFEE_NAME = '名無し募集中。。。';
-  WAIT_LIST_FILE     = 'WriteWait.ini';
   WRITE_BUTTON_CAPTION_A  = '書込(Shift+Enter)';
   WRITE_BUTTON_CAPTION_B  = 'あと';
   WRITE_BUTTON_CAPTION_C  = '秒';
@@ -44,10 +43,6 @@ type
     TargetBoard: TBoard;
     FloatLeft: integer;
     FloatTop: integer;
-    WaitList: TStringList;
-    WaitTimer: TTimer;
-    waittime: integer;
-    hostname: string;
     procedure CreatePreView; override;
     procedure Post; override;
     procedure PasteAA; override;
@@ -72,10 +67,7 @@ type
     procedure OnWritten(sender: TAsyncReq);
     procedure WaitTimerStart;
     procedure WaitTimerStop;
-    procedure WaitTimerTimer(Sender: TObject);
   public
-    constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
     procedure SetUp(AParent: TWinControl); override;
     procedure SetToolBarImageList(AImageList: TImageList);
     procedure SetThread(AThread: TThreadItem);
@@ -86,21 +78,22 @@ type
     procedure ChangeWriteMemoColor;
     procedure ChangeWriteMemoFont;
     procedure ChangePreViewStyle;
-    function WriteWait: Boolean;
     procedure SetRecordNameMailCheckBox(ABool: Boolean);
     procedure SetTrimRightCheckBox(ABool: Boolean);
     procedure SetFocusToMemo;
     procedure SetWriteButtonEnabled(ABool: Boolean);
     procedure ChangeMainPageControlActiveTab(newTab: integer); override;
+    procedure SetWriteWait(AValue: Boolean);
     procedure SetNameMailWarning(ABool: Boolean);
     procedure SetBeLogin(ABool: Boolean);
     procedure SetStatusBarVisible(AVisible: Boolean);
     function SaveAAListBoundsRect(AWidthHeight: TWidthHeight): TWidthHeight;
     function WriteMemoIsFocused: Boolean;
+    procedure WriteWaitNotify(DomainName: String; Remainder: Integer);
+    procedure WriteWaitEnd;
 
     property board: TBoard read FBoard write SetBoard;
     property Parent2: TWinControl read FParent2;
-    property waithost: String read hostname;
   end;
 
 var
@@ -115,7 +108,6 @@ procedure ChangeWirteButtonEnabled(AEnabled: Boolean);
 procedure ChangeWriteMemoText(AText: String);
 procedure UpdateAAComboBox;
 procedure ChangeWriteMemoStyle;
-function CheckWriteWait(hostname: String): Boolean;
 procedure SetNameBox;
 procedure SetMailBox;
 procedure SetRecordNameMailCheckBox(ABool: Boolean);
@@ -123,11 +115,14 @@ procedure SetTrimRightCheckBox(ABool: Boolean);
 procedure SetFocusToWriteMemo;
 procedure SetWriteButtonEnabled(ABool: Boolean);
 procedure ChangeMainPageControlActiveTab(newTab: integer);
+procedure SetWriteWait(AValue: Boolean);
 procedure SetNameMailWarning(AValue: Boolean);
 procedure SetBeLogin(AValue: Boolean);
 procedure SetStatusBarVisible(AVisible: Boolean);
 function SaveAAListBoundsRect(AWidthHeight: TWidthHeight): TWidthHeight;
 function WriteMemoIsFocused: Boolean;
+procedure WriteWaitNotify(DomainName: String; Remainder: Integer);
+procedure WriteWaitEnd;
 //---------------------------------------------------------------------------//
 
 implementation
@@ -172,28 +167,6 @@ end;
 
 
 { TJLWritePanel }
-
-constructor TJLWritePanel.Create(AOwner: TComponent);
-begin
-  inherited Create(AOwner);
-
-  hostname := '';
-  writing := false;
-  WaitList := TStringList.Create;
-  WaitTimer := TTimer.Create(Self);
-  WaitTimer.Interval := 1000;
-  WaitTimer.OnTimer := WaitTimerTimer;
-  WaitTimer.Enabled := False;
-end;
-
-destructor TJLWritePanel.Destroy;
-begin
-  WaitList.Free;
-  WaitTimer.Free;
-
-  inherited Destroy;
-end;
-
 
 
 procedure TJLWritePanel.CreatePreView;
@@ -409,6 +382,8 @@ begin
       begin
         Config.wrtUseWriteWait := not Config.wrtUseWriteWait;
         Sender.Down := Config.wrtUseWriteWait;
+        if Assigned(WriteForm) then
+          WriteForm.ToolButtonWriteWait.Down := Config.wrtUseWriteWait;
       end;
     6: //NameMailWarning
       begin
@@ -1035,9 +1010,6 @@ begin
   end;
   cookie := 'Cookie: NAME=' + encName + '; MAIL=' + encMail;
   list := TStringList.Create;
-  {aiai}
-  //if (TargetBoard.GetBBSType = bbs2ch) and (0 < length(Config.tstWrtCookie)) then
-  //  cookie := cookie + '; ' + Config.tstWrtCookie;
   if (TargetBoard.GetBBSType = bbs2ch) then
   begin
     if (0 < length(Config.wrtBEIDDMDM)) and (0 < length(Config.wrtBEIDMDMD)) then
@@ -1049,7 +1021,6 @@ begin
     if (0 < length(Config.tstWrtCookie)) then
       cookie := cookie + '; ' + Config.tstWrtCookie;
   end;
-  {/aiai}
   list.Add(cookie);
   procPost := Main.AsyncManager.Post(URI, postDat, referer, list,
                                      OnWritten, OnNotify);
@@ -1270,82 +1241,49 @@ begin
 
   Memo.Clear;
   ChangeStatusBar;
-  WriteButton.Enabled := not WaitTimer.Enabled;
-  UWriteForm.SetButtonWriteEnabled(WriteButton.Enabled);
 
   MainWnd.PauseToggleAutoReSc(true);
   ChangeMainPageControlActiveTab(TABSHEET_WRITE);
+  if Assigned(FThread) then
+    WriteButton.Enabled := not MainWnd.WriteWaitTimer.IsThisHost(FThread.GetHost);
+  if Assigned(WriteForm) and Assigned(WriteForm.board) then
+    WriteForm.ButtonWrite.Enabled := not MainWnd.WriteWaitTimer.IsThisHost(WriteForm.board.host);
 end;
 
 
 procedure TJLWritePanel.WaitTimerStart;
 var
-  domainname: string;
-  text: string;
+  DomainName: String;
+  HostName: String;
+  text: String;
   i: Integer;
+  WaitTime: Cardinal;
 begin
-  domainname := TargetThread.GetHost;
-  hostname := LeftStr(domainname, AnsiPos('.', domainname) - 1);
-  waittime := -1;
+  DomainName := TargetThread.GetHost;
+  HostName := LeftStr(DomainName, AnsiPos('.', DomainName) - 1);
+  WaitTime := 0;
 
-  for i := 0 to WaitList.Count - 1 do
-    if 0 < AnsiPos(hostname, WaitList.Strings[i]) then begin
-      text := WaitList.Strings[i];
-      waittime := StrToInt(RightStr(text, Length(text) - AnsiPos('=', text)));
+  for i := 0 to Config.waitTimeList.Count - 1 do
+    if 0 < AnsiPos(hostname, Config.waitTimeList.Strings[i]) then begin
+      text := Config.waitTimeList.Strings[i];
+      WaitTime := StrToIntDef(RightStr(text, Length(text) - AnsiPos('=', text)), 0);
       break;
     end;
 
-  if waittime > 0 then
+  if WaitTime > 0 then
   begin
-    WaitTimer.Enabled := true;
-    Log('書き込み待機 - ' + hostname);
+    MainWnd.WriteWaitTimer.Start(DomainName, WaitTime * 1000);
+    Log('書き込み待機 - ' + DomainName);
     MainWnd.TabControl.Refresh;
-    WriteButton.Caption := WRITE_BUTTON_CAPTION_B + IntToStr(waittime) + WRITE_BUTTON_CAPTION_C;
+    WriteButton.Caption := WRITE_BUTTON_CAPTION_B + IntToStr(WaitTime) + WRITE_BUTTON_CAPTION_C;
   end;
 end;
 
 procedure TJLWritePanel.WaitTimerStop;
 begin
-  if WaitTimer.Enabled then
-  begin
-    waittime := -1;
-    WaitTimer.Enabled := false;
-    MainWnd.TabControl.Refresh;
-  end;
-
-  WriteButton.Enabled := not writing;
-  UWriteForm.SetButtonWriteEnabled(WriteButton.Enabled);
-  WriteButton.Caption := WRITE_BUTTON_CAPTION_A;
+  MainWnd.WriteWaitTimer.Stop;
 end;
 
-procedure TJLWritePanel.WaitTimerTimer(Sender: TObject);
-begin
-
-  waittime := waittime - 1;
-
-  if FThread = nil then
-  begin
-    if waittime = 0 then
-      WaitTimer.Enabled := false;
-    exit;
-  end;
-
-  if(0 < AnsiPos(hostname, FThread.GetHost)) then
-  begin
-    WriteButton.Enabled := false;
-    UWriteForm.SetButtonWriteEnabled(false);
-    WriteButton.Caption := WRITE_BUTTON_CAPTION_B + IntToStr(waittime) + WRITE_BUTTON_CAPTION_C;
-  end;
-
-  if waittime = 0 then
-  begin
-    WriteButton.Enabled := not writing;
-    UWriteForm.SetButtonWriteEnabled(WriteButton.Enabled);
-    WriteButton.Caption := WRITE_BUTTON_CAPTION_A;
-    WaitTimer.Enabled := false;
-    MainWnd.TabControl.Refresh;
-  end;
-end;
 
 
 
@@ -1389,12 +1327,6 @@ begin
   ChangePreViewStyle;
   
   PreViewItem.PopUpViewList := popupviewList;
-
-  try
-    WaitList.LoadFromFile(Config.BasePath + WAIT_LIST_FILE);
-  except
-    WaitList.Clear;
-  end;
 end;
 
 procedure TJLWritePanel.SetToolBarImageList(AImageList: TImageList);
@@ -1443,10 +1375,11 @@ begin
   end;
   SageCheckBox.OnClick := SageCheckBoxCheck;
 
-  if WaitTimer.Enabled and (FThread <> nil)
-      and (0 < AnsiPos(hostname, FThread.GetHost)) then begin
+  if (FThread <> nil)
+    and MainWnd.WriteWaitTimer.IsThisHost(FThread.GetHost) then
+  begin
     WriteButton.Enabled := false;
-    WriteButton.Caption := WRITE_BUTTON_CAPTION_B + IntToStr(waittime)
+    WriteButton.Caption := WRITE_BUTTON_CAPTION_B + IntToStr(MainWnd.WriteWaitTimer.Remainder)
                          + WRITE_BUTTON_CAPTION_C;
   end else begin
     WriteButton.Enabled := not writing and (FThread <> nil)
@@ -1563,11 +1496,6 @@ begin
     CreatePreView;
 end;
 
-function TJLWritePanel.WriteWait: Boolean;
-begin
-  Result := WaitTimer.Enabled;
-end;
-
 procedure TJLWritePanel.SetRecordNameMailCheckBox(ABool: Boolean);
 begin
   ToolButton[3].Down := ABool;
@@ -1591,6 +1519,11 @@ end;
 procedure TJLWritePanel.ChangeMainPageControlActiveTab(newTab: integer);
 begin
   inherited;
+end;
+
+procedure TJLWritePanel.SetWriteWait(AValue: Boolean);
+begin
+  ToolButton[5].Down := AValue;
 end;
 
 procedure TJLWritePanel.SetNameMailWarning(ABool: Boolean);
@@ -1622,6 +1555,21 @@ end;
 function TJLWritePanel.WriteMemoIsFocused: Boolean;
 begin
   Result := NameComboBox.Focused or MailComboBox.Focused or Memo.Focused;
+end;
+
+procedure TJLWritePanel.WriteWaitNotify(DomainName: String; Remainder: Integer);
+begin
+  if not WriteButton.Enabled and Assigned(FThread)
+    and (0 = AnsiCompareText(DomainName, FThread.GetHost)) then
+  begin
+    WriteButton.Caption := WRITE_BUTTON_CAPTION_B + IntToStr(Remainder) + WRITE_BUTTON_CAPTION_C;
+  end;
+end;
+
+procedure TJLWritePanel.WriteWaitEnd;
+begin
+  WriteButton.Enabled := not writing;
+  WriteButton.Caption := WRITE_BUTTON_CAPTION_A;
 end;
 
 (* ----------------------- TJLWritePanel ----------------------------------- *)
@@ -1687,14 +1635,6 @@ begin
   WriteMemo.ChangePreViewStyle;
 end;
 
-function CheckWriteWait(hostname: String): Boolean;
-begin
-  Result := False;
-  if not Assigned(WriteMemo) then exit;
-
-  Result := WriteMemo.WriteWait and (0 < Pos(WriteMemo.waithost, hostname));
-end;
-
 procedure SetNameBox;
 begin
   if not Assigned(WriteMemo) then exit;
@@ -1744,6 +1684,13 @@ begin
   WriteMemo.ChangeMainPageControlActiveTab(newTab);
 end;
 
+procedure SetWriteWait(AValue: Boolean);
+begin
+  if not Assigned(WriteMemo) then exit;
+
+  WriteMemo.SetWriteWait(AValue);
+end;
+
 procedure SetNameMailWarning(AValue: Boolean);
 begin
   if not Assigned(WriteMemo) then exit;
@@ -1786,6 +1733,22 @@ begin
   end;
 
   Result := WriteMemo.WriteMemoIsFocused;
+end;
+
+procedure WriteWaitNotify(DomainName: String; Remainder: Integer);
+begin
+  if not Assigned(WriteMemo) then
+    exit;
+
+  WriteMemo.WriteWaitNotify(DomainName, Remainder);
+end;
+
+procedure WriteWaitEnd;
+begin
+  if not Assigned(WriteMemo) then
+    exit;
+
+  WriteMemo.WriteWaitEnd;
 end;
 
 end.
